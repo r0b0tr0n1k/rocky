@@ -1,0 +1,36 @@
+{
+  "name": "@prasici/database",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./constants/*": "./src/constants/*.ts",
+    "./zod": "./src/zod/index.ts",
+    "./zod/*": "./src/zod/*.ts",
+    "./schema/sm": "./src/schema/sm/index.ts",
+    "./schema/hk": "./src/schema/hk/index.ts",
+    "./schema/an": "./src/schema/an/index.ts",
+    "./schema/auth": "./src/schema/auth/index.ts"
+  },
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
+    "push": "drizzle-kit push",
+    "studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.0",
+    "drizzle-zod": "^0.8.3",
+    "pg": "^8.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.0",
+    "drizzle-kit": "^0.30.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

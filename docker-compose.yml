@@ -1,0 +1,67 @@
+version: "3.8"
+
+services:
+  # Database Services
+  db:
+    container_name: rokidb
+    image: postgis/postgis:18-3.6-alpine
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - DB_USER=tbot
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=tbot
+      - POSTGRES_USER=tbot
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=tbot
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tbot -d tbot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+
+
+  drizzle-studio:
+    image: ghcr.io/drizzle-team/gateway:latest
+    container_name: drizzle-studio
+    ports:
+      - "4983:4983" # Expose port 4983 to your host machine
+    volumes:
+      - drizzle-gateway-data:/app # Use a named volume for persistent configuration
+    environment:
+      - DRIZZLE_MASTER_PASS=${DRIZZLE_MASTER_PASS}
+      # Use environment variables for secrets, loaded from your .env file
+      - MASTERPASS=${DRIZZLE_MASTER_PASS}
+      - PORT=4983
+      - STORE_PATH=/app
+    networks:
+      - app-network # CRITICAL: This puts it on the same network as your database
+    depends_on:
+      db: # It should only start after the database is healthy
+        condition: service_healthy
+    restart: unless-stopped
+
+
+volumes:
+  postgres_data:
+  drizzle-gateway-data:
+
+
+networks:
+  app-network:
+    driver: bridge
