@@ -1,5 +1,12 @@
 import { z } from "zod";
-import { dbConfigSchema } from "@yourcompany/backend-core/config";
+
+const dbConfigSchema = z.object({
+  host: z.string(),
+  user: z.string(),
+  password: z.string(),
+  name: z.string(),
+  port: z.number().optional(),
+});
 
 const apiConfigSchema = z.object({
   env: z.enum(["dev", "production", "test", "staging"]),
