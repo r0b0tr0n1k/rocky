@@ -87,30 +87,39 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 ## RobotFarm: AIMCS Agent Network
 
 ```
-                  ┌───────────────────────────┐
-                  │  RobotFarm Overseer       │
-                  │  (architecture, planning)  │
-                  └──────┬──────┬──────┬───────┘
-                         │      │      │
-              ┌──────────┘      │      └──────────┐
-              ▼                 ▼                  ▼
-     ┌────────────────┐ ┌──────────────┐ ┌────────────────┐
-     │  Database Bot  │ │   API Bot    │ │  Validation    │
-     │ (Drizzle, RLS) │ │(NestJS,tRPC) │ │  Bot (Zod 4)   │
-     └────────────────┘ └──────────────┘ └────────────────┘
-              │                 │                  │
-              └────────┬────────┘                  │
-                       ▼                           │
-              ┌────────────────┐                    │
-              │   Auth Bot     │                   │
-              │(better-auth)   │                    │
-              └────────────────┘                    │
-                       │                            │
-                       ▼                            ▼
-              ┌──────────────────────────────────────────┐
-              │        Frontend Bot (Expo)               │
-              │   (tRPC client, RN components)           │
-              └──────────────────────────────────────────┘
+                  ┌──────────────────────────────┐
+                  │     RobotFarm Overseer       │
+                  │   (architecture, planning)    │
+                  └──────┬──────┬──────┬──────┬───┘
+                         │      │      │      │
+              ┌──────────┘      │      │      └──────────┐
+              ▼                 │      ▼                  ▼
+     ┌────────────────┐        │  ┌────────────────┐ ┌──────────┐
+     │  Database Bot  │        │  │  Validation    │ │  UI Bot  │
+     │ (Drizzle, RLS) │        │  │  Bot (Zod 4)   │ │(shadcn)  │
+     └────────────────┘        │  └────────────────┘ └──────────┘
+              │                │           │
+              └────────┬───────┘           │
+                       ▼                   │
+              ┌────────────────┐            │
+              │   API Bot      │            │
+              │(NestJS, tRPC)  │            │
+              └────┬───────────┘            │
+                   │                        │
+           ┌───────┼───────────────┐        │
+           ▼       ▼               ▼        │
+    ┌─────────┐ ┌──────────┐ ┌──────────┐  │
+    │ Auth Bot│ │Frontend  │ │Admin Bot │  │
+    │(better- │ │Bot (Expo)│ │(Next.js) │  │
+    │ auth)   │ │          │ │          │  │
+    └─────────┘ └──────────┘ └──────────┘  │
+                   │                       │
+                   └───────────┬───────────┘
+                               ▼
+                      ┌──────────────────┐
+                      │   Docs Bot       │
+                      │(MDX, Velite)     │
+                      └──────────────────┘
 ```
 
 ### Child RobotFarm Index
@@ -119,9 +128,12 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 |-----|-------|-----------|
 | **Database Bot** | `packages/@prasici/database/` | Drizzle schemas, migrations, RLS |
 | **Validation Bot** | `packages/@prasici/validators/` | Zod 4 Diamond Seal patterns |
-| **API Bot** | `apps/backend/api/` | NestJS routers, tRPC generation |
-| **Auth Bot** | `apps/backend/api/src/auth/` | better-auth, session, RBAC |
-| **Frontend Bot** | `apps/frontend/mobile/` | Expo tRPC client, components |
+| **UI Bot** | `packages/@prasici/ui/` | shadcn components, design system |
+| **API Bot** | `apps/expo-mobile/apps/backend/api/` | NestJS routers, tRPC generation |
+| **Auth Bot** | `apps/expo-mobile/apps/backend/api/src/auth/` | better-auth, session, RBAC |
+| **Frontend Bot** | `apps/expo-mobile/apps/frontend/mobile/` | Expo tRPC client, components |
+| **Admin Bot** | `apps/nextjs-admin/` | Next.js admin panel |
+| **Docs Bot** | `apps/mdx-shadcn/` | MDX documentation site |
 
 ### RobotFarm Workflows
 
@@ -137,11 +149,17 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 
 **Validation Bot** — Owns the Diamond Seal validation layer in `@prasici/validators`. Creates API Zod schemas from Dumb Zod, enforces NoDrift guillotines, maintains the 3-part enum flow.
 
+**UI Bot** — Manages the shared shadcn/ui component library in `@prasici/ui`. Follows the official shadcn monorepo pattern with `components.json`, `package.json#imports`, and workspace package `exports`. All apps consume components via `@prasici/ui/components/*`.
+
 **API Bot** — Builds NestJS tRPC routers using `@Router`/`@Query`/`@Mutation` decorators. Manages the `nestjs-trpc-v2` generator and keeps `@generated/server.ts` committed.
 
 **Auth Bot** — Configures better-auth with Drizzle adapter. Handles session enrichment via `customSession` plugin, social login providers, and RBAC integration with SM schema.
 
 **Frontend Bot** — Implements Expo mobile screens using `@trpc/react-query`. Manages React Query caches, tRPC subscriptions, and auth cookie flow via `@better-auth/expo`.
+
+**Admin Bot** — Builds the Next.js admin panel in `apps/nextjs-admin/`. Uses `@trpc/react-query` to connect to the NestJS backend, `@prasici/ui` for shadcn components, and `@prasici/validators` for Zod validation.
+
+**Docs Bot** — Maintains the MDX documentation site in `apps/mdx-shadcn/` using Next.js + Velite. Content is authored in MDX with Velite frontmatter validation. Uses `@prasici/ui` for components.
 
 ### Context Boundaries
 
@@ -150,16 +168,68 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 | Overseer | All AGENTS.md, README.md, docs/* | Plans, coordination |
 | Database Bot | `packages/@prasici/database/` | Schemas, migrations, RLS |
 | Validation Bot | `@prasici/validators/`, `@prasici/database/zod/` | Zod schemas |
-| API Bot | `apps/backend/api/`, `@prasici/validators` | Routers, services |
+| UI Bot | `packages/@prasici/ui/`, shadcn registry | Components, hooks, styles |
+| API Bot | `apps/expo-mobile/apps/backend/api/`, `@prasici/validators` | Routers, services |
 | Auth Bot | `auth/*`, `sm/users.ts`, `sm/rbac.ts` | Auth config, session |
-| Frontend Bot | `apps/frontend/mobile/` | Components, queries |
+| Frontend Bot | `apps/expo-mobile/apps/frontend/mobile/` | Components, queries |
+| Admin Bot | `apps/nextjs-admin/`, `@yourcompany/api/types` | Admin pages, queries |
+| Docs Bot | `apps/mdx-shadcn/`, content/ | MDX docs, components |
 
 ### Troubleshooting
 
 | Problem | Likely Cause | Fix |
 |---------|-------------|-----|
-| `@generated/server.ts` stale | API server not restarted | Restart `pnpm -C apps/backend/api dev` |
+| `@generated/server.ts` stale | API server not restarted | Restart `pnpm -C apps/expo-mobile/apps/backend/api dev` |
 | tRPC type error on frontend | Generated file not committed | Commit `@generated/server.ts` |
 | Auth session missing | Cookie not forwarded | Check `expo-origin` header in `trpc-provider.tsx` |
 | Zod validation mismatch | Schema drift | Run `NoDrift` check |
 | RLS blocking query | Context not injected | Call `injectRlsContext()` before query |
+
+---
+
+## Error Sovereignty Doctrine
+
+> *"The point is to move Result to the boundary."*
+
+### The Three Pillars
+
+**1. Neverthrow Sovereignty** — `ok()`, `err()`, `Result<T,E>`, `unwrap()` come from `neverthrow`. Always use `Result<T, E>` as return types from services.
+
+**2. Error Code Parsimony** — Only create distinct error codes when the frontend needs different branching logic. Consolidate CRUD failures to `NOT_FOUND`, `FORBIDDEN`, `DATABASE_ERROR`.
+
+**3. Church and State** — Domain services return `Result<T, E>`. tRPC routers map `E` to `TRPCError`. Domain never knows about HTTP.
+
+### Import Ownership
+
+| Symbol | Source | Example |
+|--------|--------|---------|
+| `ok`, `err`, `Result`, `unwrap`, `fromAsyncThrowable` | `neverthrow` | `import { err, ok } from "neverthrow"` |
+| Shared error classes | `@prasici/errors` | `import { NotFoundError } from "@prasici/errors"` |
+| Domain error classes | Local to service file | `class TodoNotFoundError extends Error` |
+| tRPC error mapping | `@prasici/errors/trpc` | `import { mapToTRPC } from "@prasici/errors/trpc"` |
+| `TRPCError` | `@trpc/server` | Routers only — never in services |
+
+### Pattern
+
+```typescript
+// Service — returns Result, knows nothing about tRPC/HTTP
+class TodoService {
+  async getById(id: string): Promise<Result<Todo, NotFoundError | DbError>> {
+    return fromAsyncThrowable(async () => {
+      const todo = await db.query.todos.findFirst({ where: eq(todos.id, id) });
+      if (!todo) throw new NotFoundError("Todo", id);
+      return todo;
+    }, toAppError)();
+  }
+}
+
+// Router — maps domain errors to tRPC
+@Router()
+class TodoRouter {
+  @Query({ input: z.string(), output: todoSchema })
+  async getById(id: string) {
+    const result = await this.todoService.getById(id);
+    return result.unwrap(); // throws TRPCError if Err
+  }
+}
+```

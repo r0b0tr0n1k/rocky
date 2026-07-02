@@ -2,17 +2,17 @@
 
 ## Delta Analysis: Current vs Diamond Seal Patterns
 
-| Aspect | Current (our build) | Diamond Seal (required) | Action |
-|---|---|---|---|
-| **Package structure** | `@prasici/db` + `@prasici/validators` | `@prasici/database` (schemas, constants, enums, zod) + `@prasici/validators` (api, events, integrations, internal, enums, vendor-enums) | Rename `db`→`database`, add sub-folders |
-| **Enum SSOT** | Inline `z.enum()` in validators/enums.ts | `constants/*.ts` (Dictionary + VALUES) → `schemas/enums/` (pgEnum) → `validators/enums/` (zEnum) | Create 3-part chain |
-| **Dumb Zod** | Missing | `database/zod/factory.ts` + `database/zod/*.ts` (raw `createSelectSchema/createInsertSchema` only) | Add factory + domain files |
-| **Validator consumption** | Mixed in single folder | `validators/api/` → derive from Dumb Zod with `.strict().omit().extend()` | Restructure validators |
-| **NoDrift guillotines** | Missing | Every schema gets `NoDrift<z.infer<>, Interface>` | Add to every schema |
-| **Zod 4 primitives** | Mixed (some old) | `z.int()`, `z.uuid()`, `z.coerce.date()`, `.prefault()`, `.nonnegative()` | Audit & fix all schemas |
-| **Native RLS** | Missing | `pgPolicy()` on every tenant-scoped table | Add to each pgTable |
-| **Vendor types** | Not applicable yet | `text()` columns, never pgEnum; validated at API boundary | Pattern ready for future |
-| **Import boundaries** | Loosely defined | Strict zone-based import rules | Enforce via tooling |
+| Aspect                    | Current (our build)                      | Diamond Seal (required)                                                                                                                 | Action                                  |
+| ------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| **Package structure**     | `@prasici/db` + `@prasici/validators`    | `@prasici/database` (schemas, constants, enums, zod) + `@prasici/validators` (api, events, integrations, internal, enums, vendor-enums) | Rename `db`→`database`, add sub-folders |
+| **Enum SSOT**             | Inline `z.enum()` in validators/enums.ts | `constants/*.ts` (Dictionary + VALUES) → `schemas/enums/` (pgEnum) → `validators/enums/` (zEnum)                                        | Create 3-part chain                     |
+| **Dumb Zod**              | Missing                                  | `database/zod/factory.ts` + `database/zod/*.ts` (raw `createSelectSchema/createInsertSchema` only)                                      | Add factory + domain files              |
+| **Validator consumption** | Mixed in single folder                   | `validators/api/` → derive from Dumb Zod with `.strict().omit().extend()`                                                               | Restructure validators                  |
+| **NoDrift guillotines**   | Missing                                  | Every schema gets `NoDrift<z.infer<>, Interface>`                                                                                       | Add to every schema                     |
+| **Zod 4 primitives**      | Mixed (some old)                         | `z.int()`, `z.uuid()`, `z.coerce.date()`, `.prefault()`, `.nonnegative()`                                                               | Audit & fix all schemas                 |
+| **Native RLS**            | Missing                                  | `pgPolicy()` on every tenant-scoped table                                                                                               | Add to each pgTable                     |
+| **Vendor types**          | Not applicable yet                       | `text()` columns, never pgEnum; validated at API boundary                                                                               | Pattern ready for future                |
+| **Import boundaries**     | Loosely defined                          | Strict zone-based import rules                                                                                                          | Enforce via tooling                     |
 
 ## Step 1: Restructure Package Layout
 

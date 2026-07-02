@@ -13,7 +13,8 @@
     "./schema/sm": "./src/schema/sm/index.ts",
     "./schema/hk": "./src/schema/hk/index.ts",
     "./schema/an": "./src/schema/an/index.ts",
-    "./schema/auth": "./src/schema/auth/index.ts"
+    "./schema/auth": "./src/schema/auth/index.ts",
+    "./schema/demo": "./src/schema/demo/index.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",

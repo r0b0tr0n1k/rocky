@@ -1,7 +1,0 @@
-{
-  "extends": "@yourcompany/configs/tsconfig.node",
-  "compilerOptions": {
-    "rootDir": "src"
-  },
-  "include": ["src"]
-}

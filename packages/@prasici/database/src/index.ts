@@ -7,6 +7,7 @@ import * as sm from "./schema/sm/index.js";
 import * as hk from "./schema/hk/index.js";
 import * as an from "./schema/an/index.js";
 import * as auth from "./schema/auth/index.js";
+import * as demo from "./schema/demo/index.js";
 
 // Connection pool
 export const pool = new Pool({
@@ -23,6 +24,7 @@ export const db = drizzle(pool, {
 		...hk,
 		...an,
 		...auth,
+		...demo,
 	},
 	logger: process.env.NODE_ENV === "development",
 });
@@ -34,6 +36,7 @@ export * from "./schema/sm/index.js";
 export * from "./schema/hk/index.js";
 export * from "./schema/an/index.js";
 export * from "./schema/auth/index.js";
+export * from "./schema/demo/index.js";
 
 // Drizzle config for CLI
 import type { Config } from "drizzle-kit";

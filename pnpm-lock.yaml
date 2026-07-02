@@ -199,6 +199,12 @@ importers:
       '@prasici/database':
         specifier: workspace:*
         version: link:../../../../../packages/@prasici/database
+      '@prasici/domains-todo':
+        specifier: workspace:*
+        version: link:../../../../../packages/@prasici/domains-todo
+      '@prasici/trpc':
+        specifier: workspace:*
+        version: link:../../../../../packages/@prasici/trpc
       '@prasici/validators':
         specifier: workspace:*
         version: link:../../../../../packages/@prasici/validators
@@ -946,6 +952,38 @@ importers:
         specifier: ^5.7.0
         version: 5.9.3
 
+  packages/@prasici/domains-todo:
+    dependencies:
+      '@prasici/database':
+        specifier: workspace:*
+        version: link:../database
+      '@prasici/errors':
+        specifier: workspace:*
+        version: link:../errors
+      drizzle-orm:
+        specifier: ^0.45.0
+        version: 0.45.2(@types/pg@8.20.0)(gel@2.2.0)(kysely@0.29.2)(pg@8.22.0)
+      neverthrow:
+        specifier: ^8.2.0
+        version: 8.2.0
+      zod:
+        specifier: ^4.1.13
+        version: 4.4.3
+    devDependencies:
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+
+  packages/@prasici/errors:
+    dependencies:
+      neverthrow:
+        specifier: ^8.2.0
+        version: 8.2.0
+    devDependencies:
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+
   packages/@prasici/trpc:
     dependencies:
       '@prasici/database':
@@ -954,9 +992,18 @@ importers:
       '@prasici/validators':
         specifier: workspace:*
         version: link:../validators
+      '@trpc/server':
+        specifier: ^11.18.0
+        version: 11.18.0(typescript@5.9.3)
       drizzle-orm:
         specifier: ^0.45.0
         version: 0.45.2(@types/pg@8.20.0)(gel@2.2.0)(kysely@0.29.2)(pg@8.22.0)
+      neverthrow:
+        specifier: ^8.2.0
+        version: 8.2.0
+      superjson:
+        specifier: ^2.2.2
+        version: 2.2.6
       zod:
         specifier: ^4.4.3
         version: 4.4.3
