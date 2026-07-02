@@ -1,10 +1,41 @@
-# Nestjs specific
-/dist
-/node_modules
-/build
+# ── Dependencies ──
+node_modules/
+.pnpm-store/
+
+# ── Build output ──
+dist/
+build/
+.next/
+out/
+.turbo/
+.webpack/
+
+# ── Expo ──
+.expo/
+web-build/
+expo-env.d.ts
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+app-example
+/ios
+/android
+
+# ── NestJS ──
 /tmp
 
-# Logs
+# ── Drizzle ──
+drizzle/meta/
+
+# ── Velite (docs) ──
+.velite/
+
+# ── Metro ──
+.metro-health-check*
+
+# ── Logs ──
 logs
 *.log
 npm-debug.log*
@@ -13,12 +44,31 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# dotenv environment variable files
+# ── Environment ──
 .env
 .env.development
 .env.test
 .env.production
+.env*.local
+.envrc
 
-# temp directory
+# ── IDE & Editor ──
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.ionide/
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+*.orig.*
+
+# ── TypeScript ──
+*.tsbuildinfo
+
+# ── Temp ──
 .temp
 .tmp
+*.pem
