@@ -1,0 +1,11 @@
+{
+  "extends": "@yourcompany/configs/tsconfig.react.app",
+  "compilerOptions": {
+    "rootDir": ".",
+    "paths": {
+      "#/*": [
+        "./src/*"
+      ]
+    }
+  }
+}

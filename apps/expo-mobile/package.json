@@ -1,0 +1,12 @@
+{
+  "name": "@aimcs/expo-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "./scripts/with-worktree-env.sh turbo run --ui tui --concurrency=15 dev"
+  },
+  "engines": {
+    "node": ">=24.14.0 <25"
+  },
+  "packageManager": "pnpm@10.12.4"
+}

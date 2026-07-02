@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.14.2/.schema/devbox.schema.json",
+  "packages": [
+    "just@latest",
+    "nodejs-slim@24.14.0",
+    "pnpm@10.32.1",
+    "atlas@latest",
+    "jq@latest",
+    "gh@latest",
+    "pgcli@latest"
+  ],
+  "env": {
+    "PATH": "$PATH:$PWD/bin"
+  },
+  "shell": {
+    "init_hook": [],
+    "scripts":   {}
+  }
+}
