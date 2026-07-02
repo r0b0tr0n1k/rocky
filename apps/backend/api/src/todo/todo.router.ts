@@ -1,88 +1,99 @@
-import { Injectable } from "@nestjs/common";
-import { Router, Query, Mutation } from "nestjs-trpc-v2";
-import { z } from "zod";
-import { db } from "@prasici/database";
-import { TodoService, createTodoSchema, updateTodoSchema, TODO_ERRORS } from "@prasici/domains-todo";
+import { Injectable, Inject } from "@nestjs/common";
+import { Ctx, Input, Mutation, Query, Router } from "nestjs-trpc-v2";
 import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { createResultUnwrapper } from "@prasici/trpc";
+import type { AppContext } from "@prasici/trpc/context";
+import { TodoService, TODO_ERRORS } from "@prasici/domains-todo";
+import {
+  createTodoSchema,
+  updateTodoSchema,
+  getTodoByIdSchema,
+  deleteTodoSchema,
+} from "@prasici/domains-todo/todo.types";
+import type { Todo } from "@prasici/domains-todo/todo.types";
+import { TODO_TRPC_ERROR_MAP } from "./todo.errors.js";
+
+const unwrapResult = createResultUnwrapper(TODO_TRPC_ERROR_MAP);
 
 const listInputSchema = z.object({ completed: z.boolean().optional() });
+const idInputSchema = getTodoByIdSchema.omit({ userId: true });
+const createInputSchema = createTodoSchema.omit({ userId: true });
+const updateInputSchema = updateTodoSchema.omit({ userId: true });
+const todoOutputSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  title: z.string(),
+  completed: z.boolean(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
 
-@Router()
+@Router({ alias: "todo" })
 @Injectable()
 export class TodoRouter {
-  private readonly todoService = new TodoService(db);
+  constructor(
+    @Inject(TodoService)
+    private readonly _todoService: TodoService,
+  ) {}
 
-  @Query({ input: listInputSchema, output: z.array(z.any()) })
-  async list(input: { completed?: boolean }) {
-    const result = await this.todoService.list({
-      userId: "00000000-0000-0000-0000-000000000000",
-      completed: input.completed,
-    });
-    if (result.isErr()) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: result.error.message,
-      });
-    }
-    return result.value;
+  @Query({ input: listInputSchema, output: todoOutputSchema.array() })
+  async list(
+    @Input() input: { completed?: boolean } | undefined,
+    @Ctx() ctx: AppContext,
+  ): Promise<Todo[]> {
+    if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
+    return unwrapResult(await this._todoService.list({
+      userId: ctx.user.id,
+      completed: input?.completed,
+    }));
   }
 
-  @Query({ input: z.object({ id: z.string().uuid() }), output: z.any() })
-  async getById(input: { id: string }) {
-    const result = await this.todoService.getById({
-      userId: "00000000-0000-0000-0000-000000000000",
+  @Query({ input: idInputSchema, output: todoOutputSchema.nullable() })
+  async getById(
+    @Input() input: { id: string },
+    @Ctx() ctx: AppContext,
+  ): Promise<Todo | null> {
+    if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
+    return unwrapResult(await this._todoService.getById({
+      userId: ctx.user.id,
       id: input.id,
-    });
-    if (result.isErr()) {
-      throw mapTodoError(result.error);
-    }
-    return result.value;
+    }));
   }
 
-  @Mutation({ input: z.object({ title: z.string() }), output: z.any() })
-  async create(input: { title: string }) {
-    const result = await this.todoService.create({
-      userId: "00000000-0000-0000-0000-000000000000",
+  @Mutation({ input: createInputSchema, output: todoOutputSchema })
+  async create(
+    @Input() input: { title: string },
+    @Ctx() ctx: AppContext,
+  ): Promise<Todo> {
+    if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
+    return unwrapResult(await this._todoService.create({
+      userId: ctx.user.id,
       title: input.title,
-    });
-    if (result.isErr()) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: result.error.message,
-      });
-    }
-    return result.value;
+    }));
   }
 
-  @Mutation({ input: updateTodoSchema, output: z.any() })
-  async update(input: z.infer<typeof updateTodoSchema>) {
-    const result = await this.todoService.update({ ...input, userId: "00000000-0000-0000-0000-000000000000" });
-    if (result.isErr()) {
-      throw mapTodoError(result.error);
-    }
-    return result.value;
+  @Mutation({ input: updateInputSchema, output: todoOutputSchema.nullable() })
+  async update(
+    @Input() input: { id: string; title?: string; completed?: boolean },
+    @Ctx() ctx: AppContext,
+  ): Promise<Todo | null> {
+    if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
+    return unwrapResult(await this._todoService.update({
+      userId: ctx.user.id,
+      ...input,
+    }));
   }
 
-  @Mutation({ input: z.object({ id: z.string().uuid() }), output: z.any() })
-  async delete(input: { id: string }) {
-    const result = await this.todoService.delete({
-      userId: "00000000-0000-0000-0000-000000000000",
+  @Mutation({ input: idInputSchema, output: z.object({ deleted: z.boolean() }) })
+  async delete(
+    @Input() input: { id: string },
+    @Ctx() ctx: AppContext,
+  ): Promise<{ deleted: boolean }> {
+    if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
+    return unwrapResult(await this._todoService.delete({
+      userId: ctx.user.id,
       id: input.id,
-    });
-    if (result.isErr()) {
-      throw mapTodoError(result.error);
-    }
-    return result.value;
-  }
-}
-
-function mapTodoError(error: Error): TRPCError {
-  switch (error.message) {
-    case TODO_ERRORS.NOT_FOUND:
-      return new TRPCError({ code: "NOT_FOUND", message: "Todo not found" });
-    case TODO_ERRORS.NOT_AUTHORIZED:
-      return new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
-    default:
-      return new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+    }));
   }
 }

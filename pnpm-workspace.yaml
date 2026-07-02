@@ -1,9 +1,7 @@
 packages:
   - "packages/@prasici/*"
   - "apps/*"
-  - "apps/expo-mobile/apps/**"
-  - "apps/expo-mobile/packages/**"
-  - "apps/expo-mobile/scripts/**"
+  - "apps/backend/*"
 
 catalog:
   '@biomejs/biome': 2.3.8

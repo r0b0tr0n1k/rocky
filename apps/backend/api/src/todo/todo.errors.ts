@@ -1,8 +1,7 @@
-import type { TRPCErrorCode } from "@trpc/server/unstable-core-do-not-import";
+import type { TRPCError } from "@trpc/server";
 
-// Domain error codes → tRPC error mapping
 export interface TodoErrorMapping {
-  code: TRPCErrorCode;
+  code: TRPCError["code"];
   message: string;
 }
 
