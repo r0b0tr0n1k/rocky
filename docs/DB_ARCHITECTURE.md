@@ -24,7 +24,7 @@ Complete database architecture for the modern AIMCS using:
 ┌───────────┼──────────────────────┼────────────────────┼─────────┐
 │           ▼                      ▼                    ▼         │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │           Zod 4 Validation Layer (@prasici/validators)    │  │
+│  │           Zod 4 Validation Layer (@rocky/validators)    │  │
 │  │                                                           │  │
 │  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────┐ │  │
 │  │  │ Holdings │ │ Keepers  │ │ Animals  │ │ Movements    │ │  │
@@ -300,7 +300,7 @@ CREATE TYPE inspection_type AS ENUM (
 ### 1.2 Zod Mirror Enums (for runtime validation)
 
 ```typescript
-// packages/@prasici/validators/src/enums.ts
+// packages/@rocky/validators/src/enums.ts
 import { z } from "zod";
 
 // ── System Management ──
@@ -418,7 +418,7 @@ export const InspectionType = z.enum([
 ### 2.1 Database Connection & Setup
 
 ```typescript
-// packages/@prasici/db/src/index.ts
+// packages/@rocky/db/src/index.ts
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as sm from "./schema/sm";
@@ -445,7 +445,7 @@ export type DB = typeof db;
 ### 2.2 System Management Schema (14 tables)
 
 ```typescript
-// packages/@prasici/db/src/schema/sm/index.ts
+// packages/@rocky/db/src/schema/sm/index.ts
 export { users, userSessions } from "./users";
 export { roles, userRoles, rolePermissions, permissions } from "./rbac";
 export { modules, moduleBusinessRules, businessRules } from "./modules";
@@ -456,7 +456,7 @@ export { auditLog } from "./audit-log";
 ```
 
 ```typescript
-// packages/@prasici/db/src/schema/sm/users.ts
+// packages/@rocky/db/src/schema/sm/users.ts
 import {
   pgTable, uuid, varchar, timestamp, boolean, text, jsonb
 } from "drizzle-orm/pg-core";
@@ -523,7 +523,7 @@ export const userSessions = pgTable("user_sessions", {
 ```
 
 ```typescript
-// packages/@prasici/db/src/schema/sm/rbac.ts
+// packages/@rocky/db/src/schema/sm/rbac.ts
 import { pgTable, uuid, varchar, timestamp, boolean } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { users } from "./users";
@@ -611,7 +611,7 @@ export const userRolesRelations = relations(userRoles, ({ one }) => ({
 ```
 
 ```typescript
-// packages/@prasici/db/src/schema/sm/modules.ts
+// packages/@rocky/db/src/schema/sm/modules.ts
 import { pgTable, uuid, varchar, timestamp, integer, boolean } from "drizzle-orm/pg-core";
 
 // ── Application Modules — replaces SM_MODULES ──
@@ -672,7 +672,7 @@ export const moduleBusinessRules = pgTable("module_business_rules", {
 ```
 
 ```typescript
-// packages/@prasici/db/src/schema/sm/code-tables.ts
+// packages/@rocky/db/src/schema/sm/code-tables.ts
 // Replaces SM_LOG_CODES — generic key-value with multi-language support
 import { pgTable, uuid, varchar, timestamp, integer, boolean, jsonb } from "drizzle-orm/pg-core";
 
@@ -703,7 +703,7 @@ export const codeTables = pgTable("code_tables", {
 ```
 
 ```typescript
-// packages/@prasici/db/src/schema/sm/system-parameters.ts
+// packages/@rocky/db/src/schema/sm/system-parameters.ts
 // Replaces SM_SYS_PARAMS
 import { pgTable, uuid, varchar, timestamp, text, boolean, jsonb } from "drizzle-orm/pg-core";
 
@@ -734,7 +734,7 @@ export const systemParameters = pgTable("system_parameters", {
 ```
 
 ```typescript
-// packages/@prasici/db/src/schema/sm/organizations.ts
+// packages/@rocky/db/src/schema/sm/organizations.ts
 import { pgTable, uuid, varchar, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -786,7 +786,7 @@ export const orgAreas = pgTable("org_areas", {
 ```
 
 ```typescript
-// packages/@prasici/db/src/schema/sm/audit-log.ts
+// packages/@rocky/db/src/schema/sm/audit-log.ts
 // Replaces the generic ID_SESSION audit trail pattern
 import { pgTable, uuid, varchar, timestamp, jsonb, text } from "drizzle-orm/pg-core";
 
@@ -824,7 +824,7 @@ export const auditLog = pgTable("audit_log", {
 ### 2.3 Holder Keeper Schema (10 tables)
 
 ```typescript
-// packages/@prasici/db/src/schema/hk/addresses.ts
+// packages/@rocky/db/src/schema/hk/addresses.ts
 import {
   pgTable, uuid, varchar, timestamp, boolean, geometry,
   integer, uniqueIndex, index
@@ -944,7 +944,7 @@ export const addressesRelations = relations(addresses, ({ one }) => ({
 ```
 
 ```typescript
-// packages/@prasici/db/src/schema/hk/farms.ts
+// packages/@rocky/db/src/schema/hk/farms.ts
 // Replaces HK_KMG — with verification_status replacing temp tables
 import {
   pgTable, uuid, varchar, timestamp, boolean, geometry,
@@ -1019,7 +1019,7 @@ export const farmsRelations = relations(farms, ({ one, many }) => ({
 ```
 
 ```typescript
-// packages/@prasici/db/src/schema/hk/subjects.ts
+// packages/@rocky/db/src/schema/hk/subjects.ts
 // Replaces HK_SUBJ — persons/organizations
 import { pgTable, uuid, varchar, timestamp, boolean } from "drizzle-orm/pg-core";
 
@@ -1057,7 +1057,7 @@ export const subjects = pgTable("subjects", {
 ```
 
 ```typescript
-// packages/@prasici/db/src/schema/hk/farm-subjects.ts
+// packages/@rocky/db/src/schema/hk/farm-subjects.ts
 // Replaces HK_KMG_SUBJ — links subjects to farms with roles
 import { pgTable, uuid, varchar, timestamp, boolean, integer } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
@@ -1096,7 +1096,7 @@ export const farmSubjectsRelations = relations(farmSubjects, ({ one }) => ({
 ```
 
 ```typescript
-// packages/@prasici/db/src/schema/hk/sync-errors.ts
+// packages/@rocky/db/src/schema/hk/sync-errors.ts
 // Replaces HK_SYNC_ERRORS
 import { pgTable, uuid, varchar, timestamp, text, integer } from "drizzle-orm/pg-core";
 
@@ -1122,7 +1122,7 @@ export const syncErrors = pgTable("sync_errors", {
 ### 2.4 Animals & Movements Schema (5 tables)
 
 ```typescript
-// packages/@prasici/db/src/schema/an/index.ts
+// packages/@rocky/db/src/schema/an/index.ts
 export { animals, animalParents } from "./animals";
 export { movements } from "./movements";
 export { birthNotifications } from "./birth-notifications";
@@ -1131,7 +1131,7 @@ export { pastureDeclarations } from "./pasture";
 ```
 
 ```typescript
-// packages/@prasici/db/src/schema/an/animals.ts
+// packages/@rocky/db/src/schema/an/animals.ts
 import {
   pgTable, uuid, varchar, timestamp, date, boolean, integer
 } from "drizzle-orm/pg-core";
@@ -1205,7 +1205,7 @@ export const animalParents = pgTable("animal_parents", {
 ```
 
 ```typescript
-// packages/@prasici/db/src/schema/an/movements.ts
+// packages/@rocky/db/src/schema/an/movements.ts
 // UNIFIED movement table — replaces two-phase departure + arrival
 import {
   pgTable, uuid, varchar, timestamp, date, text, boolean, integer
@@ -1293,7 +1293,7 @@ export const movementsRelations = relations(movements, ({ one }) => ({
 ```
 
 ```typescript
-// packages/@prasici/db/src/schema/an/birth-notifications.ts
+// packages/@rocky/db/src/schema/an/birth-notifications.ts
 import {
   pgTable, uuid, varchar, timestamp, date, text, boolean
 } from "drizzle-orm/pg-core";
@@ -1356,7 +1356,7 @@ export const birthNotificationsRelations = relations(birthNotifications, ({ one 
 ## 3. Zod 4 Validation Layer
 
 ```typescript
-// packages/@prasici/validators/src/registration.ts
+// packages/@rocky/validators/src/registration.ts
 // Complete business rules for animal registration
 import { z } from "zod";
 import { Sex, AnimalStatus, BirthType } from "./enums";
@@ -1534,7 +1534,7 @@ export const marketMovementSchema = z.object({
 ```
 
 ```typescript
-// packages/@prasici/validators/src/holdings.ts
+// packages/@rocky/validators/src/holdings.ts
 import { z } from "zod";
 import { VerificationStatus, FarmType, DataSource, SubjectRole } from "./enums";
 
@@ -1611,7 +1611,7 @@ export const hkFarmRegistrationSchema = z.object({
 ```
 
 ```typescript
-// packages/@prasici/validators/src/eartags.ts
+// packages/@rocky/validators/src/eartags.ts
 import { z } from "zod";
 
 // ── Ear Tag Number Generation ──
@@ -1657,10 +1657,10 @@ export const duplicateTagsOrderSchema = z.object({
 ## 4. tRPC Router Layer with Zod Validation
 
 ```typescript
-// packages/@prasici/trpc/src/context.ts
+// packages/@rocky/trpc/src/context.ts
 import { inferAsyncReturnType } from "@trpc/server";
 import { CreateNextContextOptions } from "@trpc/server/adapters/next";
-import { db, pool } from "@prasici/db";
+import { db, pool } from "@rocky/db";
 
 export async function createContext(opts: CreateNextContextOptions) {
   const { req, res } = opts;
@@ -1686,12 +1686,12 @@ export type Context = inferAsyncReturnType<typeof createContext>;
 ```
 
 ```typescript
-// packages/@prasici/trpc/src/routers/holdings.ts
+// packages/@rocky/trpc/src/routers/holdings.ts
 import { z } from "zod";
 import { router, publicProcedure, protectedProcedure } from "../trpc";
-import { db } from "@prasici/db";
-import { farms, addresses } from "@prasici/db/schema/hk";
-import { farmInputSchema, addressInputSchema } from "@prasici/validators";
+import { db } from "@rocky/db";
+import { farms, addresses } from "@rocky/db/schema/hk";
+import { farmInputSchema, addressInputSchema } from "@rocky/validators";
 import { TRPCError } from "@trpc/server";
 
 export const holdingsRouter = router({
@@ -1841,11 +1841,11 @@ export const holdingsRouter = router({
 ```
 
 ```typescript
-// packages/@prasici/trpc/src/routers/animals.ts
+// packages/@rocky/trpc/src/routers/animals.ts
 import { z } from "zod";
 import { router, protectedProcedure } from "../trpc";
-import { db } from "@prasici/db";
-import { animals, movements, birthNotifications } from "@prasici/db/schema/an";
+import { db } from "@rocky/db";
+import { animals, movements, birthNotifications } from "@rocky/db/schema/an";
 import { TRPCError } from "@trpc/server";
 import { eq, and, lt, gte } from "drizzle-orm";
 
@@ -2063,13 +2063,13 @@ export const animalsRouter = router({
 ```
 
 ```typescript
-// packages/@prasici/trpc/src/routers/admin.ts
+// packages/@rocky/trpc/src/routers/admin.ts
 import { z } from "zod";
 import { router, protectedProcedure, adminProcedure } from "../trpc";
-import { db } from "@prasici/db";
-import { users, roles, userRoles, permissions, rolePermissions } from "@prasici/db/schema/sm";
-import { businessRules, systemParameters } from "@prasici/db/schema/sm";
-import { farms } from "@prasici/db/schema/hk";
+import { db } from "@rocky/db";
+import { users, roles, userRoles, permissions, rolePermissions } from "@rocky/db/schema/sm";
+import { businessRules, systemParameters } from "@rocky/db/schema/sm";
+import { farms } from "@rocky/db/schema/hk";
 import { TRPCError } from "@trpc/server";
 import { eq, like } from "drizzle-orm";
 import bcrypt from "bcrypt";
@@ -2429,7 +2429,7 @@ INSERT INTO user_roles (user_id, role_id)
 ### 5.3 Drizzle Configuration
 
 ```typescript
-// packages/@prasici/db/drizzle.config.ts
+// packages/@rocky/db/drizzle.config.ts
 import type { Config } from "drizzle-kit";
 
 export default {
@@ -2447,7 +2447,7 @@ export default {
 ### 5.4 Migration Commands
 
 ```json
-// packages/@prasici/db/package.json
+// packages/@rocky/db/package.json
 {
   "scripts": {
     "generate": "drizzle-kit generate",

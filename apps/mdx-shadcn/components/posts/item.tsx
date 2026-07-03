@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { formatDate } from "@/lib/mdx";
-import { cn } from "@prasici/ui/lib/utils";
-import { Badge } from "../ui/badge";
+import { cn } from "@rocky/ui/lib/utils";
+import { Badge } from "@rocky/ui/components/badge";
 
 interface PostItemProps {
   slug: string;

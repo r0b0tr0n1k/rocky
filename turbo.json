@@ -1,4 +1,8 @@
 {
+  "$schema": "https://turborepo.dev/schema.json",
+  "globalDependencies": [
+    "**/.env.*local"
+  ],
   "globalPassThroughEnv": [
     "PG_PORT",
     "PG_HOST",
@@ -13,28 +17,23 @@
     "LANDING_URL"
   ],
   "tasks": {
-    "typecheck": {
-      "dependsOn": [
-        "^typecheck"
-      ]
-    },
     "dev": {
-      "persistent": true,
-      "cache": false
-    },
-    "lint": {},
-    "lint:check": {},
-    "format": {},
-    "format:check": {},
-    "test": {},
-    "test:watch": {
       "cache": false,
       "persistent": true
     },
     "build": {
       "dependsOn": [
         "^build"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "!.next/dev/**",
+        "dist/**"
       ]
-    }
+    },
+    "lint": {},
+    "test": {},
+    "test:e2e": {}
   }
 }

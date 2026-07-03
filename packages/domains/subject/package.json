@@ -1,0 +1,22 @@
+{
+  "name": "@rocky/domains-subject",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@rocky/database": "workspace:*",
+    "@rocky/trpc": "workspace:*",
+    "@rocky/validators": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "neverthrow": "catalog:",
+    "@rocky/domains-shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

@@ -1,0 +1,1479 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+apps/
+  api/
+    src/
+      auth/
+        auth.ts
+      trpc/
+        middlewares/
+          logging.middleware.ts
+          protected.middleware.ts
+        routers/
+          notification.router.ts
+          user.router.ts
+        services/
+          user.service.ts
+        app.context.ts
+      app.module.ts
+      main.ts
+    test/
+      jest-e2e.json
+    .gitignore
+    nest-cli.json
+    package.json
+    tsconfig.build.json
+    tsconfig.json
+  web/
+    app/
+      layout.tsx
+      page.tsx
+      providers.tsx
+    lib/
+      auth-client.ts
+      trpc.ts
+    components.json
+    next.config.mjs
+    package.json
+    postcss.config.mjs
+    proxy.ts
+    tsconfig.json
+packages/
+  api/
+    src/
+      dto/
+        user.dto.ts
+      entry.ts
+    package.json
+    tsconfig.json
+  eslint-config/
+    base.js
+    nest.js
+    next.js
+    package.json
+    react-internal.js
+  jest-config/
+    package.json
+    tsconfig.json
+  typescript-config/
+    base.json
+    nestjs.json
+    nextjs.json
+    package.json
+    react-library.json
+  ui/
+    src/
+      components/
+        button.tsx
+      lib/
+        utils.ts
+      styles/
+        globals.css
+    components.json
+    package.json
+    tsconfig.json
+.env.example
+meta.json
+package.json
+pnpm-workspace.yaml
+README.md
+tsconfig.json
+turbo.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="apps/api/src/auth/auth.ts">
+import { betterAuth } from "better-auth";
+
+// Configure your database adapter here (Prisma, Kysely, Drizzle, etc).
+// See: https://www.better-auth.com/docs/installation
+export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
+  secret: process.env.BETTER_AUTH_SECRET,
+  trustedOrigins: [process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3001"],
+  emailAndPassword: {
+    enabled: true,
+  },
+  // database: yourDatabaseAdapter,
+});
+</file>
+
+<file path="apps/api/src/trpc/middlewares/logging.middleware.ts">
+import { Injectable, ConsoleLogger } from '@nestjs/common';
+import { TRPCMiddleware, TRPCMiddlewareOptions } from 'nestjs-trpc-v2';
+import type { Context } from 'nestjs-trpc-v2/types';
+
+@Injectable()
+export class LoggingMiddleware implements TRPCMiddleware<Context> {
+  constructor(private readonly consoleLogger: ConsoleLogger) {}
+
+  async use(opts: TRPCMiddlewareOptions) {
+    const start = Date.now();
+    const { next, path, type } = opts;
+    const result = await next();
+    const durationMs = Date.now() - start;
+    const meta = { path, type, durationMs };
+
+    result.ok
+      ? this.consoleLogger.log('OK request timing', meta)
+      : this.consoleLogger.error('Non-OK request timing', meta);
+
+    return result;
+  }
+}
+</file>
+
+<file path="apps/api/src/trpc/middlewares/protected.middleware.ts">
+import { Injectable } from '@nestjs/common';
+import { TRPCMiddleware, TRPCMiddlewareOptions } from 'nestjs-trpc-v2';
+import { TRPCError } from '@trpc/server';
+import type { Context } from 'nestjs-trpc-v2/types';
+
+@Injectable()
+export class ProtectedMiddleware implements TRPCMiddleware<Context> {
+  async use(opts: TRPCMiddlewareOptions) {
+    const { ctx, next } = opts;
+
+    if (!ctx.session) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'You must be signed in to do this.',
+      });
+    }
+
+    // Anything returned here is merged into ctx and available, fully typed,
+    // as `ProtectedMiddlewareContext` from 'nestjs-trpc-v2/types' in any
+    // procedure that uses @UseMiddlewares(ProtectedMiddleware).
+    return next({
+      ctx: {
+        ...ctx,
+        session: ctx.session,
+        auth: { userId: ctx.session.user.id },
+      },
+    });
+  }
+}
+</file>
+
+<file path="apps/api/src/trpc/routers/notification.router.ts">
+import { Injectable } from '@nestjs/common';
+import { Router, Subscription, Input, Signal } from 'nestjs-trpc-v2';
+import { EventEmitter, on } from 'events';
+import { tracked } from '@trpc/server';
+import { z } from 'zod';
+
+const notificationSchema = z.object({
+  id: z.string(),
+  message: z.string(),
+  timestamp: z.number(),
+});
+
+@Injectable()
+@Router({ alias: 'notification' })
+export class NotificationRouter {
+  private readonly events = new EventEmitter();
+
+  @Subscription({
+    input: z.object({ lastEventId: z.string().nullish() }),
+    output: notificationSchema,
+  })
+  async *onNotification(
+    @Input() input: { lastEventId?: string | null },
+    @Signal() signal?: AbortSignal,
+  ) {
+    // In a real app, replay anything the client missed while disconnected
+    // using `input.lastEventId` against your persistence layer here.
+
+    for await (const [notification] of on(this.events, 'notification', { signal })) {
+      yield tracked(notification.id, notification);
+    }
+  }
+
+  // Call this from any other Nest provider (e.g. after a mutation elsewhere)
+  // to push a live update to every subscribed client.
+  emit(notification: z.infer<typeof notificationSchema>) {
+    this.events.emit('notification', notification);
+  }
+}
+</file>
+
+<file path="apps/api/src/trpc/routers/user.router.ts">
+import { Inject, Injectable } from '@nestjs/common';
+import { Router, Query, Mutation, Input, Context, UseMiddlewares } from 'nestjs-trpc-v2';
+import type { ProtectedMiddlewareContext } from 'nestjs-trpc-v2/types';
+import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
+import { UserService } from '../services/user.service';
+import { ProtectedMiddleware } from '../middlewares/protected.middleware';
+import { LoggingMiddleware } from '../middlewares/logging.middleware';
+
+const userSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+});
+
+// Router-level middleware runs before any procedure-level middleware below.
+@Injectable()
+@Router({ alias: 'user' })
+@UseMiddlewares(LoggingMiddleware)
+export class UserRouter {
+  constructor(@Inject(UserService) private readonly userService: UserService) {}
+
+  @Query({ input: z.string(), output: userSchema })
+  async getUser(@Input() id: string) {
+    return this.userService.findById(id);
+  }
+
+  @UseMiddlewares(ProtectedMiddleware)
+  @Query({ output: userSchema })
+  async me(@Context() ctx: ProtectedMiddlewareContext) {
+    return this.userService.findById(ctx.auth.userId);
+  }
+
+  @UseMiddlewares(ProtectedMiddleware)
+  @Mutation({ input: z.object({ name: z.string() }), output: userSchema })
+  async createUser(@Input() input: { name: string }) {
+    try {
+      return await this.userService.create(input);
+    } catch (error: unknown) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Could not create user.',
+        cause: error,
+      });
+    }
+  }
+}
+</file>
+
+<file path="apps/api/src/trpc/services/user.service.ts">
+import { Injectable } from '@nestjs/common';
+
+export interface User {
+  id: string;
+  name: string;
+}
+
+@Injectable()
+export class UserService {
+  // Swap this out for a real database call.
+  private readonly users = new Map<string, User>([['1', { id: '1', name: 'John Doe' }]]);
+
+  async findById(id: string): Promise<User> {
+    const user = this.users.get(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user;
+  }
+
+  async create(input: { name: string }): Promise<User> {
+    const id = String(this.users.size + 1);
+    const user = { id, ...input };
+    this.users.set(id, user);
+    return user;
+  }
+}
+</file>
+
+<file path="apps/api/src/trpc/app.context.ts">
+import { Injectable } from '@nestjs/common';
+import { ContextOptions, TRPCContext } from 'nestjs-trpc-v2';
+import { auth } from '../auth/auth';
+
+@Injectable()
+export class AppContext implements TRPCContext {
+  async create(opts: ContextOptions): Promise<Record<string, unknown>> {
+    const session = await auth.api.getSession({
+      headers: new Headers(opts.req.headers as Record<string, string>),
+    });
+
+    return {
+      req: opts.req,
+      res: opts.res,
+      session,
+    };
+  }
+}
+</file>
+
+<file path="apps/api/src/app.module.ts">
+import { ConsoleLogger, Module } from '@nestjs/common';
+import { AuthModule } from '@thallesp/nestjs-better-auth';
+import { TRPCModule } from 'nestjs-trpc-v2';
+import { auth } from './auth/auth';
+import { AppContext } from './trpc/app.context';
+import { LoggingMiddleware } from './trpc/middlewares/logging.middleware';
+import { ProtectedMiddleware } from './trpc/middlewares/protected.middleware';
+import { UserService } from './trpc/services/user.service';
+import { UserRouter } from './trpc/routers/user.router';
+import { NotificationRouter } from './trpc/routers/notification.router';
+
+@Module({
+  imports: [
+    // Registers a global AuthGuard: every Nest route requires a session
+    // unless annotated with @AllowAnonymous() or @OptionalAuth().
+    AuthModule.forRoot({ auth }),
+
+    // Generates a type-safe schema file (imported by the web app as
+    // `AppRouter`) and mounts every @Router() below at /trpc.
+    TRPCModule.forRoot({
+      autoSchemaFile: './src/@generated',
+      context: AppContext,
+    }),
+  ],
+  providers: [
+    ConsoleLogger,
+    AppContext,
+    LoggingMiddleware,
+    ProtectedMiddleware,
+    UserService,
+    UserRouter,
+    NotificationRouter,
+  ],
+})
+export class AppModule {}
+</file>
+
+<file path="apps/api/src/main.ts">
+import 'reflect-metadata';
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule, {
+    bodyParser: false, // required so Better Auth can read the raw request body
+  });
+
+  app.enableCors({
+    origin: process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3001',
+    credentials: true,
+  });
+
+  // nestjs-trpc-v2's TRPCModule (registered in AppModule) mounts every
+  // @Router() at /trpc automatically - no manual adapter wiring needed here.
+
+  await app.listen(process.env.PORT ?? 3000);
+}
+bootstrap();
+</file>
+
+<file path="apps/api/test/jest-e2e.json">
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  }
+}
+</file>
+
+<file path="apps/api/.gitignore">
+dist
+node_modules
+src/@generated
+</file>
+
+<file path="apps/api/nest-cli.json">
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "deleteOutDir": true
+  }
+}
+</file>
+
+<file path="apps/api/package.json">
+{
+  "name": "api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "nest start --watch",
+    "build": "nest build",
+    "start": "nest start",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.11",
+    "@nestjs/core": "^11.1.11",
+    "@nestjs/platform-express": "^11.1.11",
+    "@rocky/api": "workspace:*",
+    "@thallesp/nestjs-better-auth": "^1.1.0",
+    "@trpc/server": "^11.0.0",
+    "better-auth": "^1.2.0",
+    "nestjs-trpc-v2": "^1.0.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@jest/globals": "^30.2.0",
+    "@nestjs/cli": "^11.0.14",
+    "@nestjs/schematics": "^11.0.9",
+    "@nestjs/testing": "^11.1.11",
+    "@rocky/eslint-config": "workspace:*",
+    "@rocky/jest-config": "workspace:*",
+    "@rocky/typescript-config": "workspace:*",
+    "@types/express": "^4.17.25",
+    "@types/node": "^22.19.3",
+    "@types/supertest": "^6.0.3",
+    "eslint": "^9.39.2",
+    "jest": "^30.2.0",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.6",
+    "ts-loader": "^9.5.4",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "5.5.4"
+  }
+}
+</file>
+
+<file path="apps/api/tsconfig.build.json">
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "node_modules",
+    "test",
+    "dist",
+    "**/*spec.ts",
+    ".prettierrc.mjs",
+    "eslint.config.mjs",
+    "jest.config.mjs",
+    "jest.config.ts"
+  ],
+  "compilerOptions": {
+    "strictNullChecks": true
+  }
+}
+</file>
+
+<file path="apps/api/tsconfig.json">
+{
+  "extends": "@rocky/typescript-config/nestjs.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./dist",
+    "strictNullChecks": true
+  }
+}
+</file>
+
+<file path="apps/web/app/layout.tsx">
+import "@rocky/ui/globals.css";
+import { Providers } from "./providers";
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  );
+}
+</file>
+
+<file path="apps/web/app/page.tsx">
+'use client';
+
+import { useState } from 'react';
+import { Button } from '@rocky/ui/components/button';
+import { trpc } from '@/lib/trpc';
+import { useSession, signIn, signOut } from '@/lib/auth-client';
+
+export default function Home() {
+  const { data: session } = useSession();
+  const user = trpc.user.getUser.useQuery('1');
+  const [notifications, setNotifications] = useState<string[]>([]);
+
+  trpc.notification.onNotification.useSubscription(
+    { lastEventId: null },
+    {
+      onData: (n) => setNotifications((prev) => [n.data.message, ...prev].slice(0, 5)),
+    },
+  );
+
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center gap-4">
+      <h1 className="text-2xl font-semibold">
+        {user.data ? `Hello, ${user.data.name}` : 'Loading...'}
+      </h1>
+
+      {session ? (
+        <div className="flex items-center gap-2">
+          <span>Signed in as {session.user.email}</span>
+          <Button variant="outline" onClick={() => signOut()}>
+            Sign out
+          </Button>
+        </div>
+      ) : (
+        <Button
+          onClick={() => signIn.email({ email: 'user@email.com', password: 'password' })}
+        >
+          Sign in
+        </Button>
+      )}
+
+      <ul className="text-sm text-foreground/70">
+        {notifications.map((n, i) => (
+          <li key={i}>{n}</li>
+        ))}
+      </ul>
+    </main>
+  );
+}
+</file>
+
+<file path="apps/web/app/providers.tsx">
+"use client";
+
+import { useState } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { trpc, getTrpcClient } from "@/lib/trpc";
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(() => new QueryClient());
+  const [trpcClient] = useState(() => getTrpcClient());
+
+  return (
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </trpc.Provider>
+  );
+}
+</file>
+
+<file path="apps/web/lib/auth-client.ts">
+import { createAuthClient } from "better-auth/react";
+
+// Auth lives on the NestJS API (apps/api), so the web app talks to it
+// as a remote base URL rather than mounting its own handler.
+export const authClient = createAuthClient({
+  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000",
+  fetchOptions: {
+    credentials: "include",
+  },
+});
+
+export const { signIn, signOut, signUp, useSession } = authClient;
+</file>
+
+<file path="apps/web/lib/trpc.ts">
+'use client';
+
+import { createTRPCReact } from '@trpc/react-query';
+import { httpBatchLink, httpSubscriptionLink, splitLink } from '@trpc/client';
+// Type-only import across the workspace boundary - no runtime Nest code is
+// bundled into the client. `nestjs-trpc-v2`'s TRPCModule writes this file
+// (see `autoSchemaFile` in apps/api/src/app.module.ts) whenever the API
+// starts or rebuilds, so it always mirrors the live set of routers.
+import type { AppRouter } from 'api/src/@generated/server';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+
+export const trpc = createTRPCReact<AppRouter>();
+
+export function getTrpcClient() {
+  return trpc.createClient({
+    links: [
+      splitLink({
+        condition: (op) => op.type === 'subscription',
+        true: httpSubscriptionLink({
+          url: `${API_URL}/trpc`,
+        }),
+        false: httpBatchLink({
+          url: `${API_URL}/trpc`,
+          fetch(url, options) {
+            // include Better Auth session cookies on cross-origin requests
+            return fetch(url, { ...options, credentials: 'include' });
+          },
+        }),
+      }),
+    ],
+  });
+}
+</file>
+
+<file path="apps/web/components.json">
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "radix-nova",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "../../packages/ui/src/styles/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true
+  },
+  "iconLibrary": "lucide",
+  "aliases": {
+    "components": "@/components",
+    "hooks": "@/hooks",
+    "lib": "@/lib",
+    "utils": "@rocky/ui/lib/utils",
+    "ui": "@rocky/ui/components"
+  }
+}
+</file>
+
+<file path="apps/web/next.config.mjs">
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  transpilePackages: ["@rocky/ui"],
+};
+
+export default nextConfig;
+</file>
+
+<file path="apps/web/package.json">
+{
+  "name": "web",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack --port 3001",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint --max-warnings 0",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@rocky/ui": "workspace:*",
+    "@trpc/client": "^11.0.0",
+    "@trpc/react-query": "^11.0.0",
+    "@tanstack/react-query": "^5.62.0",
+    "better-auth": "^1.2.0",
+    "next": "16.2.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "tailwindcss": "^4.0.0",
+    "api": "workspace:*",
+    "@rocky/api": "workspace:*",
+    "@rocky/eslint-config": "workspace:*",
+    "@rocky/typescript-config": "workspace:*",
+    "@types/node": "^22.15.3",
+    "@types/react": "19.1.0",
+    "@types/react-dom": "19.1.1",
+    "eslint": "^9.31.0",
+    "typescript": "5.8.2"
+  }
+}
+</file>
+
+<file path="apps/web/postcss.config.mjs">
+export default {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+};
+</file>
+
+<file path="apps/web/proxy.ts">
+import { NextRequest, NextResponse } from "next/server";
+import { getSessionCookie } from "better-auth/cookies";
+
+// This is an OPTIMISTIC check only - it confirms a session cookie exists,
+// it does not validate it. Always re-check `auth.api.getSession` on the
+// NestJS API for any protected mutation/query.
+export async function proxy(request: NextRequest) {
+  const sessionCookie = getSessionCookie(request);
+
+  if (!sessionCookie) {
+    return NextResponse.redirect(new URL("/sign-in", request.url));
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/dashboard/:path*"],
+};
+</file>
+
+<file path="apps/web/tsconfig.json">
+{
+  "extends": "@rocky/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "strictNullChecks": true
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "next-env.d.ts",
+    "next.config.js",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": ["node_modules"]
+}
+</file>
+
+<file path="packages/api/src/dto/user.dto.ts">
+export interface UserDto {
+  id: string;
+  name: string;
+}
+</file>
+
+<file path="packages/api/src/entry.ts">
+// Re-export shared DTOs/types consumed by both apps/api and apps/web.
+export * from "./dto/user.dto";
+</file>
+
+<file path="packages/api/package.json">
+{
+  "name": "@rocky/api",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "dev": "pnpm build --watch",
+    "build": "tsc -b -v",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\""
+  },
+  "main": "./dist/entry.js",
+  "types": "./dist/entry.d.ts",
+  "files": ["./dist/**"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/entry.js",
+      "require": "./dist/entry.js"
+    },
+    "./*": {
+      "import": "./dist/*.js",
+      "require": "./dist/*.js"
+    }
+  },
+  "devDependencies": {
+    "@rocky/eslint-config": "workspace:*",
+    "@rocky/typescript-config": "workspace:*",
+    "@types/node": "^22.10.7",
+    "ts-loader": "^9.4.3",
+    "ts-node": "^10.9.2",
+    "typescript": "5.5.4"
+  }
+}
+</file>
+
+<file path="packages/api/tsconfig.json">
+{
+  "extends": "@rocky/typescript-config/nestjs.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "baseUrl": "src",
+    "esModuleInterop": true,
+    "incremental": false,
+    "outDir": "dist",
+    "types": ["node"],
+    "strictNullChecks": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
+}
+</file>
+
+<file path="packages/eslint-config/base.js">
+import js from "@eslint/js";
+import eslintConfigPrettier from "eslint-config-prettier";
+import turboPlugin from "eslint-plugin-turbo";
+import tseslint from "typescript-eslint";
+import onlyWarn from "eslint-plugin-only-warn";
+
+export const config = [
+  js.configs.recommended,
+  eslintConfigPrettier,
+  ...tseslint.configs.recommended,
+  {
+    plugins: {
+      turbo: turboPlugin,
+    },
+    rules: {
+      "turbo/no-undeclared-env-vars": "warn",
+    },
+  },
+  {
+    plugins: {
+      onlyWarn,
+    },
+  },
+  {
+    ignores: ["dist/**", "node_modules/**"],
+  },
+];
+</file>
+
+<file path="packages/eslint-config/nest.js">
+import { config as baseConfig } from "./base.js";
+import globals from "globals";
+
+export const nestJsConfig = [
+  ...baseConfig,
+  {
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+      sourceType: "commonjs",
+    },
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/interface-name-prefix": "off",
+      "@typescript-eslint/explicit-function-return-type": "off",
+      "@typescript-eslint/explicit-module-boundary-types": "off",
+    },
+  },
+];
+</file>
+
+<file path="packages/eslint-config/next.js">
+import js from "@eslint/js";
+import nextPlugin from "@next/eslint-plugin-next";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactPlugin from "eslint-plugin-react";
+import globals from "globals";
+import { config as baseConfig } from "./base.js";
+
+export const nextJsConfig = [
+  ...baseConfig,
+  js.configs.recommended,
+  {
+    ...reactPlugin.configs.flat.recommended,
+    languageOptions: {
+      ...reactPlugin.configs.flat.recommended.languageOptions,
+      globals: {
+        ...globals.serviceworker,
+        ...globals.browser,
+      },
+    },
+  },
+  {
+    plugins: {
+      "@next/next": nextPlugin,
+    },
+    rules: {
+      ...nextPlugin.configs.recommended.rules,
+      ...nextPlugin.configs["core-web-vitals"].rules,
+    },
+  },
+  {
+    plugins: {
+      "react-hooks": reactHooks,
+    },
+    settings: { react: { version: "detect" } },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      "react/react-in-jsx-scope": "off",
+    },
+  },
+];
+</file>
+
+<file path="packages/eslint-config/package.json">
+{
+  "name": "@rocky/eslint-config",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./base": "./base.js",
+    "./library": "./library.js",
+    "./next-js": "./next.js",
+    "./nest-js": "./nest.js",
+    "./prettier-base": "./prettier-base.js",
+    "./react-internal": "./react-internal.js"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.31.0",
+    "@next/eslint-plugin-next": "^16.2.0",
+    "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-only-warn": "^1.1.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-turbo": "^2.5.0",
+    "globals": "^16.3.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.37.0"
+  }
+}
+</file>
+
+<file path="packages/eslint-config/react-internal.js">
+import js from "@eslint/js";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactPlugin from "eslint-plugin-react";
+import globals from "globals";
+import { config as baseConfig } from "./base.js";
+
+export const config = [
+  ...baseConfig,
+  js.configs.recommended,
+  {
+    ...reactPlugin.configs.flat.recommended,
+    languageOptions: {
+      ...reactPlugin.configs.flat.recommended.languageOptions,
+      globals: {
+        ...globals.serviceworker,
+        ...globals.browser,
+      },
+    },
+  },
+  {
+    plugins: {
+      "react-hooks": reactHooks,
+    },
+    settings: { react: { version: "detect" } },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      "react/react-in-jsx-scope": "off",
+    },
+  },
+];
+</file>
+
+<file path="packages/jest-config/package.json">
+{
+  "name": "@rocky/jest-config",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/entry.js",
+  "types": "./dist/entry.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/entry.js",
+      "require": "./dist/entry.js",
+      "types": "./dist/entry.d.ts"
+    },
+    "./nest": {
+      "import": "./dist/nest.js",
+      "require": "./dist/nest.js",
+      "types": "./dist/nest.d.ts"
+    }
+  },
+  "devDependencies": {
+    "@jest/types": "^30.2.0",
+    "jest": "^30.2.0",
+    "typescript": "^5.8.2"
+  },
+  "scripts": {
+    "build": "tsc"
+  }
+}
+</file>
+
+<file path="packages/jest-config/tsconfig.json">
+{
+  "extends": "@rocky/typescript-config/base.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "allowJs": true,
+    "esModuleInterop": true,
+    "incremental": false,
+    "module": "commonjs",
+    "moduleResolution": "Node10",
+    "outDir": "dist",
+    "baseUrl": "src",
+    "strictNullChecks": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
+}
+</file>
+
+<file path="packages/typescript-config/base.json">
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
+    "incremental": false,
+    "isolatedModules": true,
+    "lib": ["es2022", "DOM", "DOM.Iterable"],
+    "module": "NodeNext",
+    "moduleDetection": "force",
+    "moduleResolution": "NodeNext",
+    "noUncheckedIndexedAccess": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ES2022"
+  }
+}
+</file>
+
+<file path="packages/typescript-config/nestjs.json">
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": false,
+    "incremental": true,
+    "module": "commonjs",
+    "moduleResolution": "Node10",
+    "noFallthroughCasesInSwitch": false,
+    "noImplicitAny": false,
+    "removeComments": true,
+    "sourceMap": true,
+    "strictNullChecks": false,
+    "strictBindCallApply": false
+  }
+}
+</file>
+
+<file path="packages/typescript-config/nextjs.json">
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "plugins": [{ "name": "next" }],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowJs": true,
+    "jsx": "preserve",
+    "noEmit": true
+  }
+}
+</file>
+
+<file path="packages/typescript-config/package.json">
+{
+  "name": "@rocky/typescript-config",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}
+</file>
+
+<file path="packages/typescript-config/react-library.json">
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx"
+  }
+}
+</file>
+
+<file path="packages/ui/src/components/button.tsx">
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@rocky/ui/lib/utils";
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:opacity-90",
+        outline: "border border-border bg-transparent hover:bg-primary/5",
+        ghost: "hover:bg-primary/5",
+      },
+      size: {
+        default: "h-9 px-4 py-2",
+        sm: "h-8 px-3",
+        lg: "h-10 px-6",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
+);
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {}
+
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, ...props }, ref) => (
+    <button ref={ref} className={cn(buttonVariants({ variant, size, className }))} {...props} />
+  ),
+);
+Button.displayName = "Button";
+</file>
+
+<file path="packages/ui/src/lib/utils.ts">
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+</file>
+
+<file path="packages/ui/src/styles/globals.css">
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --radius: 0.625rem;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --border: oklch(1 0 0 / 10%);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-border: var(--border);
+  --radius-lg: var(--radius);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+  }
+}
+</file>
+
+<file path="packages/ui/components.json">
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "radix-nova",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/styles/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true
+  },
+  "iconLibrary": "lucide",
+  "aliases": {
+    "components": "@rocky/ui/components",
+    "utils": "@rocky/ui/lib/utils",
+    "hooks": "@rocky/ui/hooks",
+    "lib": "@rocky/ui/lib",
+    "ui": "@rocky/ui/components"
+  }
+}
+</file>
+
+<file path="packages/ui/package.json">
+{
+  "name": "@rocky/ui",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./globals.css": "./src/styles/globals.css",
+    "./components/*": "./src/components/*.tsx",
+    "./lib/*": "./src/lib/*.ts",
+    "./hooks/*": "./src/hooks/*.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "generate:component": "turbo gen react-component",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@rocky/eslint-config": "workspace:*",
+    "@rocky/typescript-config": "workspace:*",
+    "@types/node": "^22.15.3",
+    "@types/react": "19.1.0",
+    "@types/react-dom": "19.1.1",
+    "eslint": "^9.31.0",
+    "typescript": "5.8.2"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.383.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwind-merge": "^2.6.0"
+  }
+}
+</file>
+
+<file path="packages/ui/tsconfig.json">
+{
+  "extends": "@rocky/typescript-config/react-library.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "strictNullChecks": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}
+</file>
+
+<file path=".env.example">
+# apps/api (NestJS)
+PORT=3000
+BETTER_AUTH_SECRET=replace-with-a-long-random-string
+BETTER_AUTH_URL=http://localhost:3000
+DATABASE_URL=postgres://user:pass@localhost:5432/app
+
+# apps/web (Next.js) - shared with apps/api for CORS/trustedOrigins
+NEXT_PUBLIC_API_URL=http://localhost:3000
+NEXT_PUBLIC_WEB_URL=http://localhost:3001
+</file>
+
+<file path="meta.json">
+{
+  "name": "Next.js + NestJS + tRPC + shadcn/ui + Better Auth",
+  "description": "Turborepo monorepo: NestJS API (tRPC + Better Auth) and a Next.js app sharing a shadcn/ui component library.",
+  "maintainedByCoreTeam": false
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "my-turborepo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Turborepo: Next.js + NestJS + tRPC + shadcn/ui + Better Auth",
+  "author": "",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "lint": "turbo run lint",
+    "check-types": "turbo run check-types",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "@rocky/eslint-config": "workspace:*",
+    "@rocky/typescript-config": "workspace:*",
+    "prettier": "^3.2.5",
+    "turbo": "^2.9.6"
+  },
+  "packageManager": "pnpm@8.15.5",
+  "engines": {
+    "node": ">=18"
+  }
+}
+</file>
+
+<file path="pnpm-workspace.yaml">
+packages:
+  - "apps/*"
+  - "packages/*"
+</file>
+
+<file path="README.md">
+# my-turborepo
+
+A Turborepo monorepo combining:
+
+- **apps/api** — NestJS, exposing a **tRPC** router at `/trpc` and using
+  `@thallesp/nestjs-better-auth` to guard routes and issue sessions.
+- **apps/web** — Next.js 16 (App Router), consuming the API through a
+  type-safe **tRPC React Query** client and the **Better Auth** React client,
+  styled with **shadcn/ui**.
+- **packages/ui** — shared shadcn/ui components (`@rocky/ui`), installed and
+  imported the same way in every workspace via the CLI's monorepo mode.
+- **packages/api** — shared DTOs/types consumed by both apps.
+- **packages/eslint-config**, **packages/typescript-config**,
+  **packages/jest-config** — shared tooling presets.
+
+## Why auth lives in the API
+
+`better-auth` is instantiated once, in `apps/api/src/auth/auth.ts`. The
+Next.js app never mounts its own `/api/auth/[...all]` route — instead
+`apps/web/lib/auth-client.ts` points `createAuthClient` at
+`NEXT_PUBLIC_API_URL`, and `credentials: "include"` keeps the session cookie
+flowing cross-origin.
+
+## tRPC via `nestjs-trpc-v2`
+
+`apps/api` uses [`nestjs-trpc-v2`](https://www.nestjs-trpc-v2.io)'s
+decorator-based adapter rather than wiring `initTRPC` by hand:
+
+- **`trpc/app.context.ts`** implements `TRPCContext` and reads the Better
+  Auth session on every request, exposing `{ req, res, session }` as `ctx`.
+- **`trpc/middlewares/protected.middleware.ts`** implements `TRPCMiddleware`.
+  If `ctx.session` is missing it throws `TRPCError({ code: 'UNAUTHORIZED' })`;
+  otherwise it merges `auth: { userId }` into `ctx`, which becomes available,
+  fully typed, as `ProtectedMiddlewareContext` (from `nestjs-trpc-v2/types`)
+  in any procedure annotated `@UseMiddlewares(ProtectedMiddleware)`.
+- **`trpc/middlewares/logging.middleware.ts`** is a second, composable
+  middleware — router-level `@UseMiddlewares()` runs before procedure-level
+  ones, so `UserRouter` logs every call and layers auth on top per-procedure.
+- **`trpc/routers/user.router.ts`** shows a public `@Query`, a protected
+  `@Query`, and a protected `@Mutation` that wraps errors in `TRPCError`.
+- **`trpc/routers/notification.router.ts`** shows a `@Subscription` using
+  the `EventEmitter` + `tracked()` pattern for auto-reconnecting real-time
+  updates; `apps/web/lib/trpc.ts` splits subscription traffic to
+  `httpSubscriptionLink` and everything else to `httpBatchLink`.
+- **`app.module.ts`** registers everything via `TRPCModule.forRoot({
+  autoSchemaFile: './src/@generated', context: AppContext })`. That module
+  writes a schema file on every build, which the web app imports as a
+  type-only `AppRouter` — no manual codegen step.
+
+## Adding shadcn components
+
+Because both `components.json` files (in `packages/ui` and `apps/web`) point
+their `ui` alias at `@rocky/ui/components`, you can run the CLI from either
+workspace and components land in the shared package automatically:
+
+```bash
+cd apps/web
+npx shadcn@latest add card
+```
+
+## Adding a tRPC router
+
+1. Create `apps/api/src/trpc/routers/<name>.router.ts`, decorate the class
+   with `@Injectable()` and `@Router({ alias: '<name>' })`, and add
+   `@Query()` / `@Mutation()` / `@Subscription()` methods (see
+   `user.router.ts` and `notification.router.ts`).
+2. Add it to the `providers` array in `app.module.ts` — `TRPCModule` picks
+   it up automatically, no manual router-merging required.
+3. Restart `apps/api` once so `autoSchemaFile` regenerates
+   `src/@generated`; the new router then shows up on `trpc.<name>` in
+   `apps/web/lib/trpc.ts` with full type safety.
+
+## Getting started
+
+```bash
+pnpm install
+cp .env.example .env
+pnpm dev
+```
+
+- API: http://localhost:3000 (tRPC at `/trpc`, auth at `/api/auth/*` via
+  Better Auth's own handler mounted inside Nest)
+- Web: http://localhost:3001
+</file>
+
+<file path="tsconfig.json">
+{
+  "extends": "@rocky/typescript-config/base.json",
+  "compilerOptions": {
+    "strictNullChecks": true
+  }
+}
+</file>
+
+<file path="turbo.json">
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "globalDependencies": ["**/.env.*local"],
+  "globalEnv": ["DATABASE_URL", "BETTER_AUTH_SECRET", "BETTER_AUTH_URL", "NEXT_PUBLIC_API_URL"],
+  "tasks": {
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**", "dist/**"]
+    },
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "check-types": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build"]
+    },
+    "test:e2e": {
+      "dependsOn": ["^build"]
+    }
+  }
+}
+</file>
+
+</files>

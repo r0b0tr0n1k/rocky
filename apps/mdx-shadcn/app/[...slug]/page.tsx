@@ -1,4 +1,4 @@
-import { Main, Section, Container, Prose } from "@prasici/ui/components/ds";
+import { Main, Section, Container, Prose } from "@rocky/ui/components/ds";
 import { MDXContent } from "@/components/markdown/mdx-content";
 import { Meta } from "@/components/markdown/meta";
 

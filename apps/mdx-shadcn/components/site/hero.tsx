@@ -1,4 +1,4 @@
-import { Section, Container, Prose } from "@prasici/ui/components/ds";
+import { Section, Container, Prose } from "@rocky/ui/components/ds";
 import { Logo } from "@/components/site/logo";
 
 export const Hero = () => {

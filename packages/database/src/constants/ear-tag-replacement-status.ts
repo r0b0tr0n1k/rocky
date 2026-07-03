@@ -1,0 +1,17 @@
+import { createEnumValues } from "./_brand.js"
+
+export const EAR_TAG_REPLACEMENT_STATUS = {
+	PENDING: "pending",
+	APPROVED: "approved",
+	REJECTED: "rejected",
+	COMPLETED: "completed",
+	CANCELLED: "cancelled",
+} as const;
+
+export const EAR_TAG_REPLACEMENT_STATUS_VALUES = createEnumValues([
+	EAR_TAG_REPLACEMENT_STATUS.PENDING,
+	EAR_TAG_REPLACEMENT_STATUS.APPROVED,
+	EAR_TAG_REPLACEMENT_STATUS.REJECTED,
+	EAR_TAG_REPLACEMENT_STATUS.COMPLETED,
+	EAR_TAG_REPLACEMENT_STATUS.CANCELLED,
+] as const);

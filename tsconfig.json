@@ -1,0 +1,6 @@
+{
+  "extends": "@rocky/typescript-config/base.json",
+  "compilerOptions": {
+    "strictNullChecks": true,
+  },
+}

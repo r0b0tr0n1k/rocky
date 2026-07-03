@@ -1,5 +1,5 @@
 import { YouTubeEmbed } from "@next/third-parties/google";
-import { cn } from "@prasici/ui/lib/utils";
+import { cn } from "@rocky/ui/lib/utils";
 
 interface YouTubeProps {
   videoid: string;

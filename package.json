@@ -1,28 +1,28 @@
 {
-  "name": "aimcs-monorepo",
+  "name": "turborepo",
+  "version": "0.0.0",
   "private": true,
+  "description": "",
+  "author": "",
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "lint": "turbo run lint",
-    "format": "turbo run format",
-    "format:check": "turbo run format:check",
-    "lint:check": "turbo run lint:check",
-    "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "prepare": "husky"
+    "test:e2e": "turbo run test:e2e",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
-  "engines": {
-    "node": ">=24.14.0 <25"
-  },
-  "packageManager": "pnpm@10.12.4",
   "devDependencies": {
-    "@biomejs/biome": "catalog:",
-    "@commitlint/cli": "^19.8.1",
-    "@commitlint/config-conventional": "^19.8.1",
-    "husky": "9.1.7",
-    "turbo": "2.6.3",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
+    "@rocky/typescript-config": "workspace:*",
+    "prettier": "catalog:",
+    "turbo": "catalog:"
+  },
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@better-auth/drizzle-adapter": "catalog:"
   }
 }

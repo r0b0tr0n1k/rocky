@@ -28,7 +28,7 @@ function extractMetadata(html: string, url: string): Metadata {
     html.match(/<meta\s+property="og:title"\s+content="([^"]+)"/i) ||
     html.match(/<meta\s+name="twitter:title"\s+content="([^"]+)"/i) ||
     html.match(/<title>([^<]+)<\/title>/i);
-  if (titleMatch) {
+  if (titleMatch?.[1]) {
     metadata.title = titleMatch[1].trim();
   }
 
@@ -37,7 +37,7 @@ function extractMetadata(html: string, url: string): Metadata {
     html.match(/<meta\s+property="og:description"\s+content="([^"]+)"/i) ||
     html.match(/<meta\s+name="twitter:description"\s+content="([^"]+)"/i) ||
     html.match(/<meta\s+name="description"\s+content="([^"]+)"/i);
-  if (descMatch) {
+  if (descMatch?.[1]) {
     metadata.description = descMatch[1].trim();
   }
 
@@ -45,7 +45,7 @@ function extractMetadata(html: string, url: string): Metadata {
   const imageMatch =
     html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i) ||
     html.match(/<meta\s+name="twitter:image"\s+content="([^"]+)"/i);
-  if (imageMatch) {
+  if (imageMatch?.[1]) {
     let imageUrl = imageMatch[1].trim();
     // Convert relative URLs to absolute
     if (imageUrl.startsWith("//")) {

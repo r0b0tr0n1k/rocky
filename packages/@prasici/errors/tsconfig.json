@@ -1,4 +1,0 @@
-{
-  "extends": "@prasici/database/tsconfig.json",
-  "include": ["src"]
-}

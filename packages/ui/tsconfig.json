@@ -1,0 +1,32 @@
+{
+  "extends": "@rocky/typescript-config/react-library.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "strictNullChecks": true,
+    "paths": {
+      "components/*": [
+        "./src/components/*"
+      ],
+      "ui/*": [
+        "./src/components/*"
+      ],
+      "lib/*": [
+        "./src/lib/*"
+      ],
+      "hooks/*": [
+        "./src/hooks/*"
+      ],
+      "lib/utils": [
+        "./src/lib/utils.ts"
+      ]
+    }
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
+}

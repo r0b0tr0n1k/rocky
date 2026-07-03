@@ -1,0 +1,19 @@
+import { createEnumValues } from "./_brand.js"
+
+export const AUDIT_ACTION = {
+  CREATE: "CREATE",
+  UPDATE: "UPDATE",
+  DELETE: "DELETE",
+  LOGIN: "LOGIN",
+  EXPORT: "EXPORT",
+  IMPORT: "IMPORT",
+} as const;
+
+export const AUDIT_ACTION_VALUES = createEnumValues([
+  AUDIT_ACTION.CREATE,
+  AUDIT_ACTION.UPDATE,
+  AUDIT_ACTION.DELETE,
+  AUDIT_ACTION.LOGIN,
+  AUDIT_ACTION.EXPORT,
+  AUDIT_ACTION.IMPORT,
+] as const);

@@ -1,0 +1,13 @@
+import { createEnumValues } from "./_brand.js"
+
+export const BIRTH_NOTIFICATION_STATUS = {
+  PENDING: "PENDING",
+  SENT: "SENT",
+  FAILED: "FAILED",
+} as const;
+
+export const BIRTH_NOTIFICATION_STATUS_VALUES = createEnumValues([
+  BIRTH_NOTIFICATION_STATUS.PENDING,
+  BIRTH_NOTIFICATION_STATUS.SENT,
+  BIRTH_NOTIFICATION_STATUS.FAILED,
+] as const);

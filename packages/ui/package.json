@@ -1,0 +1,60 @@
+{
+  "name": "@rocky/ui",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@radix-ui/react-label": "catalog:",
+    "@radix-ui/react-slot": "catalog:",
+    "class-variance-authority": "catalog:",
+    "clsx": "catalog:",
+    "lucide-react": "catalog:",
+    "next-themes": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "sonner": "catalog:",
+    "tailwind-merge": "catalog:"
+  },
+  "devDependencies": {
+    "@rocky/typescript-config": "workspace:*",
+    "@tailwindcss/postcss": "catalog:",
+    "@turbo/gen": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:"
+  },
+  "imports": {
+    "#components/*": [
+      "./src/components/*.tsx",
+      "./src/components/*.ts"
+    ],
+    "#ui/*": [
+      "./src/components/*.tsx",
+      "./src/components/*.ts"
+    ],
+    "#lib/*": [
+      "./src/lib/*.ts",
+      "./src/lib/*.tsx"
+    ],
+    "#hooks/*": [
+      "./src/hooks/*.ts"
+    ],
+    "#lib/utils": [
+      "./src/lib/utils.ts"
+    ]
+  },
+  "exports": {
+    "./globals.css": "./src/styles/globals.css",
+    "./postcss.config": "./postcss.config.mjs",
+    "./lib/*": "./src/lib/*.ts",
+    "./components/*": "./src/components/*.tsx",
+    "./hooks/*": "./src/hooks/*.ts"
+  }
+}

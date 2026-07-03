@@ -1,49 +1,26 @@
 {
+  "extends": "@rocky/typescript-config/nextjs.json",
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true,
     "plugins": [
       {
-        "name": "next"
-      }
+        "name": "next",
+      },
     ],
+    "strictNullChecks": true,
+    "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      ".velite": [
-        "./.velite"
-      ],
-      "#site/content": [
-        "./.velite/index.d.ts"
-      ]
+      "@/*": ["./*"]
     },
-    "target": "ES2017"
+    "skipLibCheck": true,
   },
+
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "app/(markdown)/page.mdx",
     ".next/dev/types/**/*.ts",
-    ".velite"
+    ".velite",
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules", "*.config.ts", "*.config.mjs", "*.config.js"],
 }

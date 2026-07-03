@@ -1,4 +1,4 @@
-import { Section, Container } from "@prasici/ui/components/ds";
+import { Section, Container } from "@rocky/ui/components/ds";
 import { Item } from "@/components/posts/item";
 
 import type { Post } from "#site/content";

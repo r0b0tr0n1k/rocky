@@ -1,0 +1,28 @@
+{
+  "name": "@rocky/validators",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./api": "./src/api/index.ts",
+    "./api/*": "./src/api/*.ts",
+    "./enums": "./src/enums/index.ts",
+    "./events": "./src/events/index.ts",
+    "./errors": "./src/errors/index.ts",
+    "./utils": "./src/utils/index.ts",
+    "./utils/check-digit": "./src/utils/check-digit.ts",
+    "./utils/type-bridge": "./src/utils/type-bridge.ts"
+  },
+  "dependencies": {
+    "@rocky/database": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@trpc/server": "catalog:",
+    "typescript": "catalog:"
+  },
+  "optionalDependencies": {}
+}

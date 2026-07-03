@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(pnpm --filter @rocky/docs build:*)",
+      "Bash(pkill:*)",
+      "Bash(pnpm --filter @rocky/api build:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm --filter @rocky/web build:*)",
+      "Bash(grep:*)",
+      "Bash(pnpm --filter web build:*)",
+      "Bash(pnpm install:*)"
+    ]
+  }
+}

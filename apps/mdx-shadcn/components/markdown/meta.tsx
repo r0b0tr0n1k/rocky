@@ -1,7 +1,7 @@
-import { Prose, Section, Container } from "@prasici/ui/components/ds";
+import { Prose, Section, Container } from "@rocky/ui/components/ds";
 import { PageMeta, formatDate } from "@/lib/mdx";
-import { Button } from "@prasici/ui/components/button";
-import { Badge } from "@prasici/ui/components/badge";
+import { Button } from "@rocky/ui/components/button";
+import { Badge } from "@rocky/ui/components/badge";
 import { CopyArticleButton } from "./copy-article-button";
 import { ShareButton } from "./share-button";
 

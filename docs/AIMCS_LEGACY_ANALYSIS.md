@@ -233,20 +233,20 @@ Fictive IDs are later replaced with real IDs when VD confirms the record.
 │                   TURBOREPO MONOREPO                        │
 │                                                             │
 │  ┌─────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │ @prasici/db │  │@prasici/     │  │ @prasici/        │  │
+│  │ @rocky/db │  │@rocky/     │  │ @rocky/        │  │
 │  │  Drizzle     │  │validators    │  │  notifications   │  │
 │  │  Schema      │  │ Zod Rules    │  │  WebSocket       │  │
 │  └──────┬──────┘  └──────┬───────┘  └────────┬─────────┘  │
 │         │                │                    │             │
 │  ┌──────┴────────────────┴────────────────────┴──────────┐ │
-│  │              @prasici/trpc-router                      │ │
+│  │              @rocky/trpc-router                      │ │
 │  │         (Type-safe API Layer)                          │ │
 │  └──────────────────────┬─────────────────────────────────┘ │
 │                         │                                    │
 │  ┌──────────────────────┼──────────────────────────────────┐│
 │  │          apps/        │                                  ││
 │  │  ┌──────────┐ ┌──────┴───────┐ ┌──────────────────┐    ││
-│  │  │ nextjs   │ │ expo-mobile  │ │ nextjs-admin     │    ││
+│   │   │ nextjs   │ │ mobile  │ │ web     │    ││
 │  │  │ VD Admin │ │ Field App    │ │ Dashboard         │    ││
 │  │  │ Dashboard│ │ (Offline)    │ │ (Management)     │    ││
 │  │  └──────────┘ └──────────────┘ └──────────────────┘    ││
@@ -327,10 +327,10 @@ Fictive IDs are later replaced with real IDs when VD confirms the record.
 
 ### 4.3 Business Rules Migration to Zod
 
-#### Legacy Business Rules → Zod Validators (`@prasici/validators`)
+#### Legacy Business Rules → Zod Validators (`@rocky/validators`)
 
 ```typescript
-// @prasici/validators/src/registration.ts
+// @rocky/validators/src/registration.ts
 
 // Legacy rule: "Mother must be alive at time of birth"
 export const motherAliveAtBirth = z.object({
@@ -402,9 +402,9 @@ export const systemParams = z.object({
 ### 4.4 Module Structure
 
 ```
-prasici/
+rocky/
 ├── apps/
-│   ├── nextjs-admin/          # VD Admin Dashboard (Next.js)
+│   ├── web/          # VD Admin Dashboard (Next.js)
 │   │   ├── app/
 │   │   │   ├── (auth)/login
 │   │   │   ├── dashboard/
@@ -421,7 +421,7 @@ prasici/
 │   │   │   └── settings/      # System parameters
 │   │   └── ...
 │   │
-│   ├── expo-mobile/           # Field App (Expo)
+│   ├── mobile/           # Field App (Expo)
 │   │   ├── app/
 │   │   │   ├── (auth)/        # OAuth/JWT login
 │   │   │   ├── holdings/      # GPS auto-fill registration
@@ -437,7 +437,7 @@ prasici/
 │       └── ...
 │
 ├── packages/
-│   ├── @prasici/db/           # Drizzle ORM schema
+│   ├── @rocky/db/           # Drizzle ORM schema
 │   │   ├── src/
 │   │   │   ├── schema/
 │   │   │   │   ├── sm/        # System management tables
@@ -450,7 +450,7 @@ prasici/
 │   │   │   └── index.ts
 │   │   └── ...
 │   │
-│   ├── @prasici/validators/   # Zod validation schemas
+│   ├── @rocky/validators/   # Zod validation schemas
 │   │   ├── src/
 │   │   │   ├── registration.ts
 │   │   │   ├── movements.ts
@@ -466,7 +466,7 @@ prasici/
 │   │   │   └── system.ts
 │   │   └── ...
 │   │
-│   ├── @prasici/trpc/         # tRPC router
+│   ├── @rocky/trpc/         # tRPC router
 │   │   ├── src/
 │   │   │   ├── routers/
 │   │   │   │   ├── holdings.ts
@@ -483,13 +483,13 @@ prasici/
 │   │   │   └── index.ts
 │   │   └── ...
 │   │
-│   ├── @prasici/notifications/ # WebSocket + push
+│   ├── @rocky/notifications/ # WebSocket + push
 │   │   └── ...
 │   │
-│   ├── @prasici/offline/       # Offline sync engine
+│   ├── @rocky/offline/       # Offline sync engine
 │   │   └── ...
 │   │
-│   └── @prasici/geocoding/     # Reverse geocoding
+│   └── @rocky/geocoding/     # Reverse geocoding
 │       └── ...
 │
 └── tooling/
@@ -513,7 +513,7 @@ prasici/
 **Drizzle Schema for Farms:**
 
 ```typescript
-// @prasici/db/src/schema/hk/farms.ts
+// @rocky/db/src/schema/hk/farms.ts
 import { pgTable, serial, integer, varchar, date, geometry } from "drizzle-orm/pg-core";
 
 export const farms = pgTable("farms", {
@@ -555,7 +555,7 @@ export const farms = pgTable("farms", {
 **Drizzle Schema for HK_KMG_SUBJ:**
 
 ```typescript
-// @prasici/db/src/schema/hk/farm_subjects.ts
+// @rocky/db/src/schema/hk/farm_subjects.ts
 export const farmSubjectRole = z.enum([
   "OWNER",
   "KEEPER",
@@ -595,7 +595,7 @@ export const farmSubjects = pgTable("farm_subjects", {
 **Drizzle Schema for Unified Movements:**
 
 ```typescript
-// @prasici/db/src/schema/an/movements.ts
+// @rocky/db/src/schema/an/movements.ts
 export const movementType = z.enum([
   "SALE",
   "PURCHASE",
@@ -692,9 +692,9 @@ Instead of the legacy sync reports (text files + web lists), provide:
 ```
 Phase 1: Foundation (Weeks 1-4)
   ├── Turborepo setup + tooling
-  ├── @prasici/db — Drizzle schemas for SM + HK
-  ├── @prasici/validators — Core Zod rules
-  └── @prasici/trpc — Base router setup
+  ├── @rocky/db — Drizzle schemas for SM + HK
+  ├── @rocky/validators — Core Zod rules
+  └── @rocky/trpc — Base router setup
 
 Phase 2: Pillar 1 — Holding Register (Weeks 5-8)
   ├── Next.js admin: Farm registration with GPS
@@ -714,7 +714,7 @@ Phase 4: Pillar 3 — Animal Register (Weeks 12-16)
   └── Offline queue + incremental sync
 
 Phase 5: Legacy Migration (Weeks 17-20)
-  ├── @prasici/offline — full sync engine
+  ├── @rocky/offline — full sync engine
   ├── Parallel running with legacy Oracle
   ├── Data migration scripts
   └── Cutover and validation
@@ -757,7 +757,7 @@ Phase 6: Advanced Features (Weeks 21-24)
 ## 6. Critical Business Rules (from FS documents)
 
 ```typescript
-// @prasici/validators/src/business-rules.ts
+// @rocky/validators/src/business-rules.ts
 
 // Registration Rules (FS - registration_MK(v0.91).pdf, p13-15)
 export const REGISTRATION_RULES = {
@@ -811,7 +811,7 @@ export const HK_HIERARCHY_RULES = {
 ### 7.1 Farm ID Check Digit Utility
 
 ```typescript
-// @prasici/validators/src/utils/check-digit.ts
+// @rocky/validators/src/utils/check-digit.ts
 
 /**
  * Legacy check digit formula (from TPC_PDA_v1_2.pdf):
@@ -848,7 +848,7 @@ export function validateEarTagCheckDigit(tag: string): boolean {
 Migrate from Oracle scheduled jobs to:
 
 ```typescript
-// @prasici/db/src/schema/gn/risk-analyses.ts
+// @rocky/db/src/schema/gn/risk-analyses.ts
 export const riskAnalysisSchedule = z.enum([
   "DAILY",
   "WEEKLY",

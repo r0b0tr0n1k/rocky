@@ -1,0 +1,31 @@
+{
+  "extends": "@rocky/typescript-config/nestjs.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./dist",
+    "strictNullChecks": true,
+    "moduleResolution": "bundler",
+    "module": "ES2022",
+    "paths": {
+      "#/*": ["./src/*"],
+      "@rocky/database": ["../../packages/database/src/index.ts"],
+      "@rocky/database/*": ["../../packages/database/src/*"],
+      "@rocky/trpc": ["../../packages/trpc/src/index.ts"],
+      "@rocky/trpc/*": ["../../packages/trpc/src/*"],
+      "@rocky/domains-notification": ["../../packages/domains-notification/src/index.ts"],
+      "@rocky/domains-notification/*": ["../../packages/domains-notification/src/*"],
+      "@rocky/domains-todo": ["../../packages/domains-todo/src/index.ts"],
+      "@rocky/domains-todo/*": ["../../packages/domains-todo/src/*"],
+      "@rocky/domains-user": ["../../packages/domains/user/src/index.ts"],
+      "@rocky/domains-user/*": ["../../packages/domains/user/src/*"],
+      "@rocky/domains-rbac": ["../../packages/domains/rbac/src/index.ts"],
+      "@rocky/domains-rbac/*": ["../../packages/domains/rbac/src/*"],
+      "@rocky/domains-organization": ["../../packages/domains/organization/src/index.ts"],
+      "@rocky/domains-organization/*": ["../../packages/domains/organization/src/*"],
+      "@rocky/email": ["../../packages/email/src/index.ts"],
+      "@rocky/email/*": ["../../packages/email/src/*"],
+      "@rocky/validators": ["../../packages/validators/src/index.ts"],
+      "@rocky/validators/*": ["../../packages/validators/src/*"]
+    }
+  }
+}

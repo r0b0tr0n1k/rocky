@@ -1,0 +1,217 @@
+/**
+ * Notification Domain Service
+ *
+ * Orchestrates: validate → preference checks → delegate to repository → return Result.
+ * Business logic (quiet hours, channel gating, scheduling) stays here.
+ */
+
+import { notificationErr, NOTIFICATION_ERRORS } from "../errors/notification.errors.js";
+import type { NotificationRepository } from "../repositories/notification.repository.js";
+import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
+import type { notifications as notificationsTable } from "@rocky/database";
+import type { Notification } from "../types/notification.types.js";
+
+interface NotificationPreferences {
+  emailEnabled: boolean;
+  smsEnabled: boolean;
+  pushEnabled: boolean;
+  inAppEnabled: boolean;
+  quietHoursStart?: string | null;
+  quietHoursEnd?: string | null;
+  timezone?: string | null;
+}
+import {
+  createNotificationSchema,
+  sendNotificationSchema,
+  markAsReadSchema,
+  listNotificationsSchema,
+  createBatchNotificationsSchema,
+  type CreateNotificationInput,
+  type SendNotificationInput,
+  type MarkAsReadInput,
+  type ListNotificationsInput,
+  type CreateBatchNotificationsInput,
+} from "@rocky/validators/api";
+
+export class NotificationService {
+  constructor(private readonly repo: NotificationRepository) {}
+
+  /** Create a single notification */
+  async create(input: CreateNotificationInput): Promise<Result<Notification, Error>> {
+    return fromAsyncThrowable(async () => {
+      const validated = createNotificationSchema.parse(input);
+      const row = await this.repo.insert({
+        ...validated,
+        status: "PENDING" as const,
+        priority: validated.priority ?? "NORMAL",
+        attempts: 0,
+        maxAttempts: 3,
+        source: "USER" as const,
+        createdAt: new Date(),
+      } as typeof notificationsTable.$inferInsert);
+      return row as Notification;
+    }, toAppError)();
+  }
+
+  /** Create batch notifications */
+  async createBatch(input: CreateBatchNotificationsInput): Promise<Result<Notification[], Error>> {
+    return fromAsyncThrowable(async () => {
+      const validated = createBatchNotificationsSchema.parse(input);
+      const now = new Date();
+      const rows = validated.notifications.map(
+        (n) =>
+          ({
+            ...n,
+            status: "PENDING" as const,
+            priority: "NORMAL",
+            attempts: 0,
+            maxAttempts: 3,
+            source: "USER" as const,
+            createdAt: now,
+          }) as typeof notificationsTable.$inferInsert,
+      );
+      return (await this.repo.insertMany(rows)) as Notification[];
+    }, toAppError)();
+  }
+
+  /** Send notification (create from template with preference/quiet-hour gating) */
+  async send(input: SendNotificationInput): Promise<Result<Notification, Error>> {
+    return fromAsyncThrowable(async () => {
+      const validated = sendNotificationSchema.parse(input);
+
+      const prefs = (await this.repo.findPreferences(validated.userId, validated.category)) as
+        | NotificationPreferences
+        | null
+        | undefined;
+
+      // Channel disabled → cancel
+      if (prefs && !this.isChannelEnabled(validated.type, prefs)) {
+        const row = await this.repo.insert({
+          ...validated,
+          status: "CANCELLED" as const,
+          priority: validated.priority ?? "NORMAL",
+          attempts: 0,
+          maxAttempts: 3,
+          source: "SYSTEM" as const,
+          createdAt: new Date(),
+        } as typeof notificationsTable.$inferInsert);
+        return row as Notification;
+      }
+
+      // Quiet hours active → schedule
+      if (prefs && this.isQuietHoursActive(prefs)) {
+        const row = await this.repo.insert({
+          ...validated,
+          status: "PENDING" as const,
+          priority: validated.priority ?? "NORMAL",
+          scheduledAt: this.calculateAfterQuietHours(prefs),
+          attempts: 0,
+          maxAttempts: 3,
+          source: "SYSTEM" as const,
+          createdAt: new Date(),
+        } as typeof notificationsTable.$inferInsert);
+        return row as Notification;
+      }
+
+      // Normal delivery
+      const row = await this.repo.insert({
+        ...validated,
+        status: "PENDING" as const,
+        priority: validated.priority ?? "NORMAL",
+        attempts: 0,
+        maxAttempts: 3,
+        source: "SYSTEM" as const,
+        createdAt: new Date(),
+      } as typeof notificationsTable.$inferInsert);
+      return row as Notification;
+    }, toAppError)();
+  }
+
+  /** List user's notifications */
+  async list(input: ListNotificationsInput): Promise<Result<Notification[], Error>> {
+    return fromAsyncThrowable(async () => {
+      const validated = listNotificationsSchema.parse(input);
+      return (await this.repo.listFiltered(validated)) as Notification[];
+    }, toAppError)();
+  }
+
+  /** Mark notification as read (IN_APP type) */
+  async markAsRead(input: MarkAsReadInput): Promise<Result<Notification, Error>> {
+    return fromAsyncThrowable(async () => {
+      const validated = markAsReadSchema.parse(input);
+      const row = await this.repo.updateById(validated.id, validated.userId, {
+        status: "DELIVERED",
+        deliveredAt: new Date(),
+      });
+      if (!row) throw notificationErr(NOTIFICATION_ERRORS.NOT_FOUND, { id: validated.id });
+      return row as Notification;
+    }, toAppError)();
+  }
+
+  /** Get pending notifications for background worker */
+  async getPending(limit = 100): Promise<Result<Notification[], Error>> {
+    return fromAsyncThrowable(async () => {
+      return (await this.repo.findPending(limit)) as Notification[];
+    }, toAppError)();
+  }
+
+  /** Update notification status after delivery attempt */
+  async updateDeliveryStatus(
+    id: string,
+    status: "SENT" | "DELIVERED" | "FAILED",
+    externalId?: string,
+    errorMessage?: string,
+  ): Promise<Result<Notification, Error>> {
+    return fromAsyncThrowable(async () => {
+      const updates: Partial<typeof notificationsTable.$inferInsert> = {};
+      if (status === "SENT") updates.sentAt = new Date();
+      if (status === "DELIVERED") updates.deliveredAt = new Date();
+      if (status === "FAILED" && errorMessage) updates.lastError = errorMessage;
+      if (externalId) updates.externalId = externalId;
+
+      const row = await this.repo.incrementAttempts(id, { ...updates, status });
+      if (!row) throw notificationErr(NOTIFICATION_ERRORS.NOT_FOUND, { id });
+      return row as Notification;
+    }, toAppError)();
+  }
+
+  /** Get notification template by code */
+  async getTemplate(code: string): Promise<Result<unknown, Error>> {
+    return fromAsyncThrowable(async () => {
+      const template = await this.repo.findTemplateByCode(code);
+      if (!template) throw notificationErr(NOTIFICATION_ERRORS.TEMPLATE_NOT_FOUND, { code });
+      return template;
+    }, toAppError)();
+  }
+
+  // ── Private helpers ────────────────────────────────────────────
+
+  private isChannelEnabled(type: string, prefs: NotificationPreferences): boolean {
+    switch (type) {
+      case "EMAIL":
+        return prefs.emailEnabled;
+      case "SMS":
+        return prefs.smsEnabled;
+      case "PUSH":
+        return prefs.pushEnabled;
+      case "IN_APP":
+        return prefs.inAppEnabled;
+      case "WEBHOOK":
+        return true;
+      default:
+        return true;
+    }
+  }
+
+  private isQuietHoursActive(prefs: NotificationPreferences): boolean {
+    if (!prefs.quietHoursStart || !prefs.quietHoursEnd) return false;
+    return false; // TODO: timezone-aware quiet hours
+  }
+
+  private calculateAfterQuietHours(_prefs: NotificationPreferences): Date {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(8, 0, 0, 0);
+    return tomorrow;
+  }
+}

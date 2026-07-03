@@ -5,7 +5,7 @@ import { useState } from "react";
 import Image, { type StaticImageData } from "next/image";
 
 import { X } from "lucide-react";
-import { cn } from "@prasici/ui/lib/utils";
+import { cn } from "@rocky/ui/lib/utils";
 
 import * as Dialog from "@radix-ui/react-dialog";
 

@@ -1,4 +1,4 @@
-import { Section, Container } from "@prasici/ui/components/ds";
+import { Section, Container } from "@rocky/ui/components/ds";
 
 export const Footer = () => {
   return (

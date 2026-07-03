@@ -1,14 +1,14 @@
 import { ThemeProvider } from "@/components/theme/theme-provider";
-import { Layout, Main } from "@prasici/ui/components/ds";
+import { Layout, Main } from "@rocky/ui/components/ds";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { Toaster } from "@prasici/ui/components/sonner";
+import { Toaster } from "@rocky/ui/components/sonner";
 import { Footer } from "@/components/site/footer";
 
 import type { Metadata } from "next";
 
 import "./globals.css";
 
-import { cn } from "@prasici/ui/lib/utils";
+import { cn } from "@rocky/ui/lib/utils";
 
 export const metadata: Metadata = {
   title: {

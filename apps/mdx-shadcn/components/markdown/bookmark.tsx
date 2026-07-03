@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ExternalLink } from "lucide-react";
-import { cn } from "@prasici/ui/lib/utils";
+import { ExternalLink as LucideExternalLink } from "lucide-react";
+import { cn } from "@rocky/ui/lib/utils";
+
+const ExternalLink = LucideExternalLink as unknown as any;
 
 interface BookmarkMetadata {
   title?: string;

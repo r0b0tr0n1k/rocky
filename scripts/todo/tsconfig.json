@@ -1,0 +1,4 @@
+{
+  "extends": "@rocky/database/tsconfig.json",
+  "include": ["src"]
+}

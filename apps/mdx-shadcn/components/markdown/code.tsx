@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@prasici/ui/lib/utils";
+import { cn } from "@rocky/ui/lib/utils";
 import { Highlight, themes } from "prism-react-renderer";
 import { Check, Copy } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -66,7 +66,7 @@ export function Code({
             <pre
               className={cn(
                 "overflow-x-auto rounded border bg-muted/30 p-3 text-sm font-mono",
-                className
+                className,
               )}
               style={style}
             >
@@ -92,7 +92,7 @@ export function Code({
             <pre
               className={cn(
                 "overflow-x-auto rounded border bg-muted/30 p-3 text-sm font-mono",
-                className
+                className,
               )}
               style={style}
             >
