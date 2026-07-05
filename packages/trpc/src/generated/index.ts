@@ -67,6 +67,15 @@ import type {
   MovementListResponse,
   MovementListRequest,
   CreateMovementRequest,
+  RecordDeathRequest,
+  DeclarePastureRequest,
+  RecordSlaughterRequest,
+  ImportEURequest,
+  ImportThirdCountryRequest,
+  ExportAnimalRequest,
+  RecordMarketTransactionRequest,
+  RecordMarketUnsoldRequest,
+  RecordMarketSlaughterRequest,
   // Notification
   SendNotificationInput,
   MarkAsReadInput,
@@ -398,6 +407,60 @@ export interface AppRouter {
     create: {
       _def: {
         _input_in: CreateMovementRequest;
+        _output_out: MovementResponse;
+      };
+    };
+    recordDeath: {
+      _def: {
+        _input_in: RecordDeathRequest;
+        _output_out: MovementResponse;
+      };
+    };
+    declarePasture: {
+      _def: {
+        _input_in: DeclarePastureRequest;
+        _output_out: MovementResponse[];
+      };
+    };
+    recordSlaughter: {
+      _def: {
+        _input_in: RecordSlaughterRequest;
+        _output_out: MovementResponse;
+      };
+    };
+    importEU: {
+      _def: {
+        _input_in: ImportEURequest;
+        _output_out: MovementResponse;
+      };
+    };
+    importThirdCountry: {
+      _def: {
+        _input_in: ImportThirdCountryRequest;
+        _output_out: MovementResponse;
+      };
+    };
+    exportAnimal: {
+      _def: {
+        _input_in: ExportAnimalRequest;
+        _output_out: MovementResponse;
+      };
+    };
+    recordMarketTransaction: {
+      _def: {
+        _input_in: RecordMarketTransactionRequest;
+        _output_out: MovementResponse[];
+      };
+    };
+    recordMarketUnsold: {
+      _def: {
+        _input_in: RecordMarketUnsoldRequest;
+        _output_out: MovementResponse;
+      };
+    };
+    recordMarketSlaughter: {
+      _def: {
+        _input_in: RecordMarketSlaughterRequest;
         _output_out: MovementResponse;
       };
     };
