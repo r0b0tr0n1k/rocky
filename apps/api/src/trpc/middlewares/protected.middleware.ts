@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { TRPCMiddleware, MiddlewareOptions } from "nestjs-trpc-v2";
+import type { TRPCMiddleware, MiddlewareOptions } from "nestjs-trpc";
 import { TRPCError } from "@trpc/server";
 import type { AppContext } from "@rocky/trpc/context.js";
 
@@ -23,28 +23,28 @@ import type { AppContext } from "@rocky/trpc/context.js";
  */
 @Injectable()
 export class ProtectedMiddleware implements TRPCMiddleware {
-	async use(opts: MiddlewareOptions) {
-		const { ctx, next } = opts as { ctx: AppContext; next: (opts?: { ctx?: Partial<AppContext> }) => unknown };
+  async use(opts: MiddlewareOptions<AppContext>) {
+    const { ctx, next } = opts;
 
-		if (!ctx.user) {
-			throw new TRPCError({
-				code: "UNAUTHORIZED",
-				message: "You must be signed in to perform this action.",
-			});
-		}
+    if (!ctx.user) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "You must be signed in to perform this action.",
+      });
+    }
 
-		// Merge auth context into ctx for downstream procedures
-		return next({
-			ctx: {
-				...ctx,
-				auth: {
-					userId: ctx.user.id,
-					role: ctx.user.role,
-					permissions: ctx.user.permissions,
-				},
-			},
-		});
-	}
+    // Merge auth context into ctx for downstream procedures
+    return next({
+      ctx: {
+        ...ctx,
+        auth: {
+          userId: ctx.user.id,
+          role: ctx.user.role,
+          permissions: ctx.user.permissions,
+        },
+      },
+    });
+  }
 }
 
 /**
@@ -52,9 +52,9 @@ export class ProtectedMiddleware implements TRPCMiddleware {
  * Use this as the type for @Ctx() in protected procedures
  */
 export interface ProtectedMiddlewareContext extends AppContext {
-	auth: {
-		userId: string;
-		role: string;
-		permissions: string[];
-	};
+  auth: {
+    userId: string;
+    role: string;
+    permissions: string[];
+  };
 }

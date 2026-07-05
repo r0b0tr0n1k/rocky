@@ -60,6 +60,18 @@ export class FarmRepository extends BaseRepository {
     return row ?? null;
   }
 
+  async update(
+    id: string,
+    data: Partial<typeof farmsTable.$inferInsert>,
+  ): Promise<typeof farmsTable.$inferSelect | null> {
+    const [row] = await this.db
+      .update(farmsTable)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(farmsTable.id, id))
+      .returning();
+    return row ?? null;
+  }
+
   async findAddressById(id: string) {
     const [row] = await this.db.select().from(addressesTable).where(eq(addressesTable.id, id)).limit(1);
     return row ?? null;

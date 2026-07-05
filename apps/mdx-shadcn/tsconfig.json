@@ -7,13 +7,13 @@
       },
     ],
     "strictNullChecks": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     },
     "skipLibCheck": true,
   },
-
   "include": [
     "next-env.d.ts",
     "**/*.ts",
@@ -22,5 +22,10 @@
     ".next/dev/types/**/*.ts",
     ".velite",
   ],
-  "exclude": ["node_modules", "*.config.ts", "*.config.mjs", "*.config.js"],
+  "exclude": [
+    "node_modules",
+    "*.config.ts",
+    "*.config.mjs",
+    "*.config.js"
+  ],
 }

@@ -66,7 +66,7 @@ export const trpc = createTRPCReact<AppRouter>();
 ```typescript
 // ✅ CORRECT - Import from @rocky/trpc
 import type { AppRouter } from "@rocky/trpc";
-// @ts-ignore - Types generated at runtime by nestjs-trpc-v2
+// @ts-ignore - Types generated at runtime by nestjs-trpc
 export const trpc = createTRPCReact<any>({} as AppRouter);
 ```
 
@@ -149,7 +149,7 @@ export function Container({ children }) {
 
 ### tRPC Type Issues
 
-The nestjs-trpc-v2 generates AppRouter types at runtime. Options:
+The nestjs-trpc generates AppRouter types at runtime. Options:
 
 1. **Run API once** to generate types: `pnpm --filter @rocky/api build`
 2. **Use type assertion** for now: `createTRPCReact<any>({} as AppRouter)`

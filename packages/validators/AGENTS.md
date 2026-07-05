@@ -10,10 +10,10 @@ Owns the Diamond Seal validation layer. All Zod 4 schemas, NoDrift guillotines, 
 
 All validators live under `packages/validators/src/` in two distinct zones:
 
-| Zone | Path | Purpose | Envelope |
-|---|---|---|---|
-| **API** | `api/[domain].api.ts` | Request/response contracts between NestJS tRPC backend and Expo/Next.js frontends | Raw schema |
-| **Events** | `events/[domain].events.ts` | Event payloads for the internal event bus (RabbitMQ/Redis) | `eventEnvelopeSchema(payload)` wraps in `{header, source, payload}` |
+| Zone       | Path                        | Purpose                                                                           | Envelope                                                            |
+| ---------- | --------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| **API**    | `api/[domain].api.ts`       | Request/response contracts between NestJS tRPC backend and Expo/Next.js frontends | Raw schema                                                          |
+| **Events** | `events/[domain].events.ts` | Event payloads for the internal event bus (RabbitMQ/Redis)                        | `eventEnvelopeSchema(payload)` wraps in `{header, source, payload}` |
 
 **Never mix these zones.** API schemas guard the HTTP boundary. Event schemas guard the message boundary. They have different shapes, different consumers, and different rules:
 
@@ -260,12 +260,12 @@ type _drift_animalRegisteredPayload = NoDrift<
 
 ### 3.2 Why 4 Parts?
 
-| Part | Who uses it | Why separated |
-|---|---|---|
-| **Interface** (Part 1) | Domain services, handlers | Depend on types, not Zod. Can import without the Zod dependency. |
-| **Payload Schema** (Part 2) | EventPublisher, integration tests | Standalone validation — can be used without the event envelope. |
-| **Event Schema** (Part 3) | EventPublisher, queue consumers | Full envelope with header, source, and typed payload. |
-| **Guillotine** (Part 4) | Compiler | If interface and schema diverge → fails at `npx tsc`. |
+| Part                        | Who uses it                       | Why separated                                                    |
+| --------------------------- | --------------------------------- | ---------------------------------------------------------------- |
+| **Interface** (Part 1)      | Domain services, handlers         | Depend on types, not Zod. Can import without the Zod dependency. |
+| **Payload Schema** (Part 2) | EventPublisher, integration tests | Standalone validation — can be used without the event envelope.  |
+| **Event Schema** (Part 3)   | EventPublisher, queue consumers   | Full envelope with header, source, and typed payload.            |
+| **Guillotine** (Part 4)     | Compiler                          | If interface and schema diverge → fails at `npx tsc`.            |
 
 ### 3.3 The Event Envelope (`events/base.ts`)
 
@@ -306,7 +306,7 @@ The `eventEnvelopeSchema()` factory function handles the wrapping — every doma
 
 ### 3.4 Event Type Naming Convention
 
-```
+```ts
 {domain}.{entity}.{action}
 ```
 
@@ -453,11 +453,11 @@ export type _AnimalGuillotines = ActivateGuillotines<
 
 ### Common Interface Drifts and Fixes
 
-| Error | Direction | Cause | Fix |
-|---|---|---|---|
-| `"DRIFT (B narrower)"` | B ← A fails | Interface has narrower type than schema (e.g. `string` vs `string \| undefined`, or interface field optional where schema has required) | Widen interface or add `?` |
-| `"DRIFT (A narrower)"` | A ← B fails | Schema output narrower than interface (e.g. `.extend()` removes `null` but interface still has `\| null`) | Remove `\| null` from interface |
-| `"TYPE DRIFT DETECTED"` | AssertEqual | Higher-kinded equality failed — may be false positive on union types | Switch to `NoDriftSimple` |
+| Error                   | Direction   | Cause                                                                                                                                   | Fix                             |
+| ----------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| `"DRIFT (B narrower)"`  | B ← A fails | Interface has narrower type than schema (e.g. `string` vs `string \| undefined`, or interface field optional where schema has required) | Widen interface or add `?`      |
+| `"DRIFT (A narrower)"`  | A ← B fails | Schema output narrower than interface (e.g. `.extend()` removes `null` but interface still has `\| null`)                               | Remove `\| null` from interface |
+| `"TYPE DRIFT DETECTED"` | AssertEqual | Higher-kinded equality failed — may be false positive on union types                                                                    | Switch to `NoDriftSimple`       |
 
 ---
 
@@ -469,11 +469,11 @@ Always `satisfies z.ZodType<T>`. We control both the schema and the interface. I
 **For future Vendor/External integrations (Telegram, Discord, etc.):**
 Use `as z.ZodType<T>` only when:
 
-| Category | Pattern | Why |
-|---|---|---|
-| **Small stable union** (e.g. sticker type: `"regular" \| "mask"`) | `z.enum()` + `satisfies` | Vendor union is small, changes rarely |
-| **Large open union** (e.g. 100+ currency codes) | `z.string()` + `as` | Vendor adds new values; runtime must not crash |
-| **Zod 4 branded internals** (`z.int()`, `z.coerce.date()`) | Schema + `as` + NoDrift guillotine | `satisfies` conflicts with Zod 4's `$ZodTypeInternals` |
+| Category                                                          | Pattern                            | Why                                                    |
+| ----------------------------------------------------------------- | ---------------------------------- | ------------------------------------------------------ |
+| **Small stable union** (e.g. sticker type: `"regular" \| "mask"`) | `z.enum()` + `satisfies`           | Vendor union is small, changes rarely                  |
+| **Large open union** (e.g. 100+ currency codes)                   | `z.string()` + `as`                | Vendor adds new values; runtime must not crash         |
+| **Zod 4 branded internals** (`z.int()`, `z.coerce.date()`)        | Schema + `as` + NoDrift guillotine | `satisfies` conflicts with Zod 4's `$ZodTypeInternals` |
 
 **Rule of thumb:** Inside your own domain → `satisfies`. At the vendor boundary → `as` only when necessary. The `NoDrift` guillotine catches shape drift in both cases.
 
@@ -481,15 +481,15 @@ Use `as z.ZodType<T>` only when:
 
 ## 6. Zod 4 Idiom Reference
 
-| Zod 3 | Zod 4 (our codebase) |
-|---|---|
-| `z.object({...}).strict()` | `z.strictObject({...})` or `z.object({...}).strict()` |
-| `z.object({...}).passthrough()` | `z.looseObject({...})` |
-| `z.string().uuid()` | `z.uuid()` |
-| `.default()` with transforms | `.prefault()` if the default needs parsing |
-| `z.date()` | `z.date()` (same) |
-| `z.coerce.date()` | `z.coerce.date()` (same) |
-| `z.number().int()` | `z.int()` |
+| Zod 3                           | Zod 4 (our codebase)                                                |
+| ------------------------------- | ------------------------------------------------------------------- |
+| `z.object({...}).strict()`      | `z.strictObject({...})` or `z.object({...}).strict()`               |
+| `z.object({...}).passthrough()` | `z.looseObject({...})`                                              |
+| `z.string().uuid()`             | `z.uuid()`                                                          |
+| `.default()` with transforms    | `.prefault()` if the default needs parsing                          |
+| `z.date()`                      | `z.date()` (same)                                                   |
+| `z.coerce.date()`               | `z.coerce.date()` (same)                                            |
+| `z.number().int()`              | `z.int()`                                                           |
 | `.refine()` with object message | `.refine(fn, { message: "..." })` (same, but `error` key preferred) |
 
 Current Rocky codebase uses a mix of `z.object({...}).strict()` and `z.strictObject({...})`. Both are acceptable. The long-term target is `z.strictObject()` for API and event schemas.
@@ -677,7 +677,7 @@ npx tsc --noEmit -p apps/api/tsconfig.json → ✓
 
 ## 9. File Structure Summary
 
-```
+```sh
 packages/validators/src/
 ├── api/                       ← Sovereign API schemas
 │   ├── animals.api.ts         ← Animal CRUD response + request

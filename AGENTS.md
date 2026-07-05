@@ -130,10 +130,20 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 | **Validation Bot** | `packages/@rocky/validators/` | Zod 4 Diamond Seal patterns |
 | **UI Bot** | `packages/@rocky/ui/` | shadcn components, design system |
 | **API Bot** | `apps/api/` | NestJS routers, tRPC generation |
-| **Auth Bot** | `apps/api/src/auth/` | better-auth, session, RBAC |
+| **Auth Bot** | `apps/api/src/auth/`, `apps/web/lib/auth.ts` | better-auth, session, RBAC |
 | **Frontend Bot** | `apps/mobile/src/` | Expo tRPC client, components |
 | **Admin Bot** | `apps/web/` | Next.js admin panel |
 | **Docs Bot** | `apps/mdx-shadcn/` | MDX documentation site |
+| **EarTag Bot** | `packages/domains/eartag/` | Ear tag business rules, state machine, progress |
+| **Animal Bot** | `packages/domains/animal/` | Registration business rules, movement rules, error correction, import/export |
+| **Farm Bot** | `packages/domains/farm/` | Farm CRUD, keeper management, farm book workflow |
+| **Movement Bot** | `packages/domains/movement/` | Death scenarios, pasture, slaughter, market, import/export movements |
+| **Passport Bot** | `packages/domains/passport/` | Cattle passport lifecycle, issuance, seizure, reprint |
+| **Inspection Bot** | `packages/domains/inspection/` | Risk analysis (10% selection), on-spot inspections, VI workflow |
+| **Correction Bot** | `packages/domains/correction/` | Error correction (a priori + a posteriori), plausibility engine, case management |
+| **Archive Bot** | `packages/domains/archive/` | 3-tier document archive (CPC/VS/VI), retention enforcement |
+| **Health Bot** | `packages/domains/health/` | Disease master data, vaccinations, treatments, outbreak alerts |
+| **Mobile Bot** | `apps/mobile/` | Expo React Native app, offline sync, field data entry |
 
 ### RobotFarm Workflows
 
@@ -151,15 +161,33 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 
 **UI Bot** — Manages the shared shadcn/ui component library in `@rocky/ui`. Follows the official shadcn monorepo pattern with `components.json`, `package.json#imports`, and workspace package `exports`. All apps consume components via `@rocky/ui/components/*`.
 
-**API Bot** — Builds NestJS tRPC routers using `@Router`/`@Query`/`@Mutation` decorators. Manages the `nestjs-trpc-v2` generator and keeps `@generated/server.ts` committed.
+**API Bot** — Builds NestJS tRPC routers using `@Router`/`@Query`/`@Mutation` decorators. Manages the `nestjs-trpc` router decorators (`@Router`/`@Query`/`@Mutation`). AppRouter types are manually maintained in `packages/trpc/src/generated/index.ts`.
 
-**Auth Bot** — Configures better-auth with Drizzle adapter. Handles session enrichment via `customSession` plugin, social login providers, and RBAC integration with SM schema.
+**Auth Bot** — Configures better-auth across NestJS server (`apps/api/src/auth/auth.ts`) and Next.js admin (`apps/web/lib/auth.ts`). Plugins: `expo()` (mobile), `nextCookies()` (Next.js SSR), `emailAndPassword` (credential auth + password reset), `customSession` (SM RBAC enrichment — roles, permissions, orgId, language, status), `admin({ adminRoles: ["SUPER_ADMIN"] })` (user management endpoints). Drizzle adapter with `experimental.joins`, `cookiePrefix: "rocky"`, custom field mapping across all 4 schema tables.
 
 **Frontend Bot** — Implements Expo mobile screens using `@trpc/react-query`. Manages React Query caches, tRPC subscriptions, and auth cookie flow via `@better-auth/expo`.
 
 **Admin Bot** — Builds the Next.js admin panel in `apps/web/`. Uses `@trpc/react-query` to connect to the NestJS backend, `@rocky/ui` for shadcn components, and `@rocky/validators` for Zod validation.
 
 **Docs Bot** — Maintains the MDX documentation site in `apps/mdx-shadcn/` using Next.js + Velite. Content is authored in MDX with Velite frontmatter validation. Uses `@rocky/ui` for components.
+
+**Mobile Bot** — Manages the Expo React Native mobile app in `apps/mobile/`. Handles offline-first data entry, local SQLite database, tRPC sync queue, network-aware connectivity, and per-role data scoping. See `apps/mobile/AGENTS.md` for offline sync architecture and `models/mobile-schema-profiles.yaml` for SQLite schema profiles.
+
+**EarTag Bot** — Manages the ear tag domain in `packages/domains/eartag/`. Handles the 6-stage order lifecycle (DRAFT→SUBMITTED→CONFIRMED→SHIPPED→RECEIVED→COMPLETED), per-type stock management (MALE/FEMALE/UNISEX), and farm keeper assignment on delivery.
+
+**Animal Bot** — Manages the animal registration domain in `packages/domains/animal/`. Handles cattle identification via ear tags, birth/death registration, ownership transfers, and error correction. Cross-domain integration with Movement, EarTag, and Farm.
+
+**Farm Bot** — Manages farm CRUD, keeper management, farm book workflow, and farm-level authorization in `packages/domains/farm/`. Handles the `farm_subjects` table (role assignments per farm) and `subject_roles` for per-farm RBAC.
+
+**Movement Bot** — Manages livestock movement tracking in `packages/domains/movement/`. Handles death scenarios (at farm, in transit, at slaughter), pasture movements, slaughter/market movements, and import/export.
+
+**Passport Bot** — Manages cattle passport lifecycle in `packages/domains/passport/`. Handles issuance, seizure, reprint, and the state machine (ACTIVE→SEIZED→REPRINTED→CANCELLED).
+
+**Inspection Bot** — Manages the inspection domain in `packages/domains/inspection/`. Implements CPC risk analysis (weighted random 10% annual farm selection), on-spot inspection lifecycle (scheduled→in-progress→completed/cancelled), form generation (CheckedAnimal JSON with 9 sections + farm animal query), and cross-domain wiring: Health (notifiable disease alerts → flagFarmForInspection), Archive (completion → archiveInspectionForm with 3-year retention). 8 tRPC endpoints including permission-gated risk analysis (`analysis:read`, `analysis:run`). 2 cron jobs: annual risk analysis (`@Cron("0 0 1 1 *")`), daily retention enforcement.
+
+**Archive Bot** — Manages the archive domain in `packages/domains/archive/`. Implements the 3-tier document archive (Central CPC / VS / VI) with full CRUD lifecycle. 3-year retention enforcement via daily `@Cron(EVERY_DAY_AT_2AM)` job that marks expired documents as destroyed. Cross-domain: Inspection completion triggers `archiveInspectionForm()` (fire-and-forget, idempotent). 6 tRPC endpoints including `listExpired` and `markDestroyed`.
+
+**Health Bot** — Manages the health domain in `packages/domains/health/`. Handles disease master data, vaccine catalog + batch inventory (with stock decrement), vaccination recording (with batch expiry + age validation), treatment/diagnosis, lab test results, and vaccine-disease mapping. 10 business rules enforced (batch expiry, age, stock, notifiable triggers). Cross-domain: notifiable disease treatment → `InspectionRepository.flagFarmForInspection()` (fire-and-forget). 4 health events emitted for downstream consumers.
 
 ### Context Boundaries
 
@@ -170,10 +198,19 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 | Validation Bot | `@rocky/validators/`, `@rocky/database/zod/` | Zod schemas |
 | UI Bot | `packages/@rocky/ui/`, shadcn registry | Components, hooks, styles |
 | API Bot | `apps/api/`, `@rocky/validators` | Routers, services |
-| Auth Bot | `auth/*`, `sm/users.ts`, `sm/rbac.ts` | Auth config, session |
+| Auth Bot | `apps/api/src/auth/auth.ts`, `apps/web/lib/auth.ts`, `sm/users.ts`, `sm/rbac.ts` | Auth config, session enrichment, admin plugin |
 | Frontend Bot | `apps/mobile/src/` | Components, queries |
 | Admin Bot | `apps/web/`, `@rocky/api/types` | Admin pages, queries |
 | Docs Bot | `apps/mdx-shadcn/`, content/ | MDX docs, components |
+| EarTag Bot | `packages/domains/eartag/` | Ear tag service, state machine |
+| Animal Bot | `packages/domains/animal/` | Animal service, registration rules |
+| Farm Bot | `packages/domains/farm/` | Farm service, keeper management |
+| Movement Bot | `packages/domains/movement/` | Movement service, death/pasture/slaughter |
+| Passport Bot | `packages/domains/passport/` | Passport service, lifecycle |
+| Inspection Bot | `packages/domains/inspection/` | Inspection service, risk analysis |
+| Correction Bot | `packages/domains/correction/` | Correction service, plausibility |
+| Archive Bot | `packages/domains/archive/` | Archive service, retention |
+| Health Bot | `packages/domains/health/` | Health service, vaccination/disease rules |
 
 ### Troubleshooting
 
@@ -182,6 +219,7 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 | `@generated/server.ts` stale | API server not restarted | Restart `pnpm -C apps/api dev` |
 | tRPC type error on frontend | Generated file not committed | Commit `@generated/server.ts` |
 | Auth session missing | Cookie not forwarded | Check `expo-origin` header in `trpc-provider.tsx` |
+| Admin plugin returns 403 | User lacks `SUPER_ADMIN` role | Verify role in `customSession` enrichment or adjust `adminRoles` in config |
 | Zod validation mismatch | Schema drift | Run `NoDrift` check |
 | RLS blocking query | Context not injected | Call `injectRlsContext()` before query |
 
@@ -233,3 +271,26 @@ class TodoRouter {
   }
 }
 ```
+
+---
+
+## Phase 1 DB Status (July 2026)
+
+### Push State
+Schema pushed to `192.168.1.109:5432/tbot`. All 43 tables, 57 enums, 8 pgRoles, 110+ indexes, 40+ FKs, 25 RLS policies applied. 52 permissions seeded.
+
+### drizzle-kit v1.0.0-rc.4 Bugs
+- `push` fails with "Interactive prompts require a TTY" in non-interactive shells
+- `generate` works but produces `$1`, `$2` parameterized placeholders in RLS policies instead of literal role strings
+- `${isRoleIn(...)}` and `${table.xxx}` template expressions left unresolved in `ear_tag_orders` policy
+- Workaround: `node scripts/fix-rls-sql.mjs` post-processes generated SQL, replaces `$N` → `'SUPER_ADMIN'` etc., resolves templates → proper SQL
+
+### Schema Change Workflow
+```
+pnpm generate  →  node scripts/fix-rls-sql.mjs  →  psql ... -f drizzle/*/migration.fixed.sql
+```
+
+### DB Connection
+- Host: `192.168.1.109:5432`, DB: `tbot`, User: `tbot`
+- `.env` at `packages/database/.env` with `DATABASE_URL`
+- Seed: `pnpm seed` (loads `.env` via `dotenv/config`)

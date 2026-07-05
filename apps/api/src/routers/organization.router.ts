@@ -1,7 +1,7 @@
 // ── Organization Router — tRPC entry point ──
 
 import { Injectable, Inject } from "@nestjs/common";
-import { Router, Query, Mutation, Input, Ctx, UseMiddlewares } from "nestjs-trpc-v2";
+import { Router, Query, Mutation, Input, Ctx, UseMiddlewares } from "nestjs-trpc";
 import { z } from "zod";
 import { createResultUnwrapper } from "@rocky/trpc";
 import { ORG_TRPC_ERROR_MAP } from "@rocky/validators/errors";
@@ -26,7 +26,7 @@ const unwrap = createResultUnwrapper(ORG_TRPC_ERROR_MAP);
 export class OrganizationRouter {
   constructor(
     @Inject(OrganizationService) private readonly orgService: OrganizationService,
-  ) {}
+  ) { }
 
   @Query({ input: idParam, output: organizationResponseSchema })
   async getById(@Input() input: { id: string }): Promise<OrganizationResponse> {
@@ -49,7 +49,7 @@ export class OrganizationRouter {
     @Ctx() ctx: ProtectedMiddlewareContext,
   ): Promise<OrganizationResponse> {
     return unwrap(
-      await this.orgService.create({ ...input, createdBy: ctx.auth.userId }),
+      await this.orgService.create(input),
     );
   }
 }

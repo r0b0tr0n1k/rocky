@@ -25,11 +25,3 @@ export {
 export type { SharedErrorCode } from "./errors.js";
 
 export { BaseRepository } from "./repository.js";
-
-// ── Utility: type-stable Record cast ──
-// Interfaces without index signatures cannot pass to Record<string, unknown>.
-// Object.fromEntries(Object.entries(x)) produces a native Record at both runtime and type level.
-
-export function toRecord<T extends object>(obj: T): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(obj));
-}

@@ -8,17 +8,33 @@
 import { z } from "zod";
 import { subjectSelectSchema, subjectInsertSchema, farmSubjectSelectSchema } from "@rocky/database/zod";
 import { subjectRoleSchema } from "../enums/domain.js";
-import type { subjectRoleType } from "../enums/domain.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RESPONSE SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const subjectResponseSchema = subjectSelectSchema
+export const subjectResponseSchema = subjectSelectSchema.omit({ createdBy: true, validTo: true }).strict();
+
+export type SubjectResponse = z.infer<typeof subjectResponseSchema>;
+
+export const subjectSummarySchema = z.strictObject({
+  id: z.uuid(),
+  shortName: z.string(),
+  firstName: z.string().nullable(),
+  lastName: z.string().nullable(),
+  personalId: z.string().nullable(),
+  phoneNumber: z.string().nullable(),
+  email: z.string().nullable(),
+  isActive: z.boolean(),
+});
+
+export type SubjectSummary = z.infer<typeof subjectSummarySchema>;
+
+export const farmSubjectBindingResponseSchema = farmSubjectSelectSchema
   .omit({ createdBy: true, validTo: true })
   .strict();
 
-export type SubjectResponse = z.infer<typeof subjectResponseSchema>;
+export type FarmSubjectBindingResponse = z.infer<typeof farmSubjectBindingResponseSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // REQUEST SCHEMAS
@@ -52,4 +68,3 @@ export type UnbindSubjectFromFarmRequest = z.infer<typeof unbindSubjectFromFarmR
 // ═══════════════════════════════════════════════════════════════════════════
 // GUILLOTINES
 // ═══════════════════════════════════════════════════════════════════════════
-

@@ -1,7 +1,7 @@
 // ── RBAC Router — tRPC entry point ──
 
 import { Injectable, Inject } from "@nestjs/common";
-import { Router, Query, Mutation, Input, UseMiddlewares } from "nestjs-trpc-v2";
+import { Router, Query, Mutation, Input, UseMiddlewares } from "nestjs-trpc";
 import { z } from "zod";
 import { createResultUnwrapper } from "@rocky/trpc";
 import { RBAC_TRPC_ERROR_MAP } from "@rocky/validators/errors";
@@ -29,7 +29,7 @@ const unwrap = createResultUnwrapper(RBAC_TRPC_ERROR_MAP);
 export class RbacRouter {
   constructor(
     @Inject(RbacService) private readonly rbacService: RbacService,
-  ) {}
+  ) { }
 
   @Query({ output: z.array(roleResponseSchema) })
   async listRoles(): Promise<RoleResponse[]> {

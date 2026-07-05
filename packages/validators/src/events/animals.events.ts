@@ -4,8 +4,23 @@
 
 import { z } from "zod";
 import { eventEnvelopeSchema } from "./base.js";
-import { animalStatusSchema, sexSchema, birthTypeSchema, pastureTypeSchema } from "../enums/domain.js";
-import type { sexType, birthTypeType, animalStatusType } from "../enums/domain.js";
+import {
+  animalStatusSchema,
+  sexSchema,
+  birthTypeSchema,
+  pastureTypeSchema,
+  movementTypeSchema,
+  deathCauseSchema,
+  weighingTypeSchema,
+} from "../enums/domain.js";
+import type {
+  sexType,
+  birthTypeType,
+  animalStatusType,
+  movementTypeType,
+  deathCauseType,
+  weighingTypeType,
+} from "../enums/domain.js";
 import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════
@@ -56,7 +71,7 @@ export interface AnimalMovedPayload {
   movementId: string;
   fromFarmId: string | null;
   toFarmId: string;
-  movementType: string;
+  movementType: movementTypeType;
   movementDate: Date;
 }
 
@@ -65,7 +80,7 @@ export const animalMovedPayloadSchema = z.strictObject({
   movementId: z.uuid(),
   fromFarmId: z.uuid().nullable(),
   toFarmId: z.uuid(),
-  movementType: z.string(),
+  movementType: movementTypeSchema,
   movementDate: z.date(),
 }) satisfies z.ZodType<AnimalMovedPayload>;
 
@@ -82,14 +97,14 @@ export interface AnimalDiedPayload {
   animalId: string;
   farmId: string;
   deathDate: Date;
-  deathCause: string | null;
+  deathCause: deathCauseType | null;
 }
 
 export const animalDiedPayloadSchema = z.strictObject({
   animalId: z.uuid(),
   farmId: z.uuid(),
   deathDate: z.date(),
-  deathCause: z.string().nullable(),
+  deathCause: deathCauseSchema.nullable(),
 }) satisfies z.ZodType<AnimalDiedPayload>;
 
 export const AnimalDiedEvent = eventEnvelopeSchema(animalDiedPayloadSchema);
@@ -107,7 +122,7 @@ export interface AnimalSlaughteredPayload {
   slaughterhouseId: string;
   slaughterDate: Date;
   slaughterNumber: string;
-  massType: string | null;
+  massType: weighingTypeType | null;
   mass: number | null;
 }
 
@@ -117,7 +132,7 @@ export const animalSlaughteredPayloadSchema = z.strictObject({
   slaughterhouseId: z.uuid(),
   slaughterDate: z.date(),
   slaughterNumber: z.string(),
-  massType: z.string().nullable(),
+  massType: weighingTypeSchema.nullable(),
   mass: z.int().nullable(),
 }) satisfies z.ZodType<AnimalSlaughteredPayload>;
 

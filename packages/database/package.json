@@ -14,6 +14,7 @@
     "./schema/sm": "./src/schema/sm/index.ts",
     "./schema/hk": "./src/schema/hk/index.ts",
     "./schema/an": "./src/schema/an/index.ts",
+    "./schema/hd": "./src/schema/hd/index.ts",
     "./schema/auth": "./src/schema/auth/index.ts",
     "./schema/demo": "./src/schema/demo/index.ts",
     "./geometry": "./src/geometry/index.ts"
@@ -21,10 +22,12 @@
   "scripts": {
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
+    "seed": "tsx src/seed.ts",
     "push": "drizzle-kit push",
     "studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "dotenv": "^17.4.2",
     "drizzle-orm": "catalog:",
     "postgres": "catalog:"
   },
@@ -33,6 +36,5 @@
     "drizzle-kit": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"
-  },
-  "optionalDependencies": {}
+  }
 }

@@ -1,0 +1,142 @@
+# ══════════════════════════════════════════════════════════════════════
+# MOBILE LOCAL SQLITE SCHEMA PROFILES
+# ══════════════════════════════════════════════════════════════════════
+# Permission-scoped SQLite schemas for offline mobile use.
+# Each profile defines which tables and columns are synced locally,
+# and the scope of the data (own_farms, org_farms, master_data, all).
+#
+# Architecture: expo-sqlite + Drizzle ORM (SQLite dialect).
+# Sync engine downloads only what the user's role allows.
+# ══════════════════════════════════════════════════════════════════════
+
+# ── Profile: FARMER (farm-scoped, own farms only) ──
+# Sync scope: JOIN farm_subjects WHERE subject_id = user_id
+farmer:
+  description: "Farmer/keeper — sees own farm(s) and animals only"
+  syncStrategy: "own_farms"
+  tables:
+    farms:
+      columns: [id, farmIdNumber, name, type, addressId, isActive, createdAt]
+      sync: own_farms
+    subjects:
+      columns: [id, shortName, personalId, email, phoneNumber]
+      sync: self_only
+    farm_subjects:
+      columns: [id, farmId, subjectId, role, isActive]
+      sync: own_farms
+    addresses:
+      columns: [id, street, city, zipCode, communeId]
+      sync: own_farms
+    animals:
+      columns: [id, farmId, earTagNumber, stateCode, sex, breed, birthDate, status, motherId, fatherId, isFirstTagging, isActive]
+      sync: own_farms
+    movements:
+      columns: [id, animalId, fromFarmId, toFarmId, movementType, movementDate, isActive]
+      sync: own_farms
+    ear_tag_allocations:
+      columns: [id, farmId, typeId, quantity, allocationNumber, isActive]
+      sync: own_farms
+    ear_tag_orders:
+      columns: [id, farmId, orderNumber, quantity, status, isActive]
+      sync: own_farms
+    ear_tags:
+      columns: [id, number, typeId, status, isActive]
+      sync: own_farms
+    birth_notifications:
+      columns: [id, farmId, animalId, status, notificationDate, actualBirthDate, numberOfCalves, isActive]
+      sync: own_farms
+    pasture_declarations:
+      columns: [id, fromFarmId, toFarmId, departureDate, expectedReturnDate, pastureType, isActive]
+      sync: own_farms
+
+# ── Profile: VETERINARIAN (org-scoped, farms in commune area) ──
+# Sync scope: farms whose address commune is in the user's org area
+# Adds: clinical data (inspections, treatments, vaccinations, lab tests)
+# Adds: master data (diseases, vaccines, vaccine_batches)
+veterinarian:
+  description: "Field veterinarian — sees all farms in org area, plus clinical data"
+  syncStrategy: "org_farms"
+  tables:
+    # All farmer tables PLUS:
+    inspections:
+      columns: [id, farmId, inspectorId, status, scheduledDate, inspectionDate, riskScore, riskCriteria, selectedByRiskAnalysis, result, notes, discrepanciesFound, checkedAnimals, formPrinted, formReturned, keeperSigned, isActive]
+      sync: org_farms
+    treatments:
+      columns: [id, animalId, farmId, diseaseId, vetId, diagnosisDate, treatmentDesc, isolated, isActive]
+      sync: org_farms
+    vaccinations:
+      columns: [id, animalId, farmId, vaccineId, batchId, vetId, adminDate, route, notes, isActive]
+      sync: org_farms
+    lab_tests:
+      columns: [id, animalId, farmId, diseaseId, testType, testMethod, result, resultNumeric, resultUnit, interpretation, sampleDate, resultDate, isActive]
+      sync: org_farms
+    diseases:
+      columns: [id, name, notifiable, description, isActive]
+      sync: master_data
+    vaccines:
+      columns: [id, name, manufacturer, type, isActive]
+      sync: master_data
+    vaccine_batches:
+      columns: [id, vaccineId, batchNo, expiryDate, quantityRemaining, isActive]
+      sync: master_data
+    notifications:
+      columns: [id, userId, category, status, title, message, data, scheduledAt, createdAt]
+      sync: user_only
+
+# ── Profile: CPC_ADMIN / VD_STAFF / VD_ADMIN / SUPER_ADMIN ──
+# Sync scope: system-wide, all data
+cpc_admin:
+  description: "CPC admin / VD staff — sees everything system-wide"
+  syncStrategy: "all"
+  tables:
+    # All veterinarian tables PLUS:
+    users:
+      columns: [id, username, email, firstName, lastName, role, organizationId, status, isActive]
+      sync: all
+    organizations:
+      columns: [id, name, code, isActive]
+      sync: all
+    system_parameters:
+      columns: [id, code, value, dataType, description, group, isActive]
+      sync: all
+    risk_analyses:
+      columns: [id, year, status, totalFarms, selectedFarms, algorithmVersion, paramsSnapshot, isActive]
+      sync: all
+    audit_log:
+      columns: [id, userId, action, entityType, entityId, oldValues, newValues, ipAddress, createdAt]
+      sync: all
+    notification_templates:
+      columns: [id, code, subjectTemplate, bodyTemplate, isActive]
+      sync: all
+
+# ══════════════════════════════════════════════════════════════════════
+# ROLE-TO-PROFILE MAPPING
+# ══════════════════════════════════════════════════════════════════════
+roleMapping:
+  FARMER: farmer
+  SLAUGHTERHOUSE_OP: farmer      # Farm-scoped read + slaughter writes
+  MARKET_OP: farmer              # Farm-scoped read + movement writes
+  VETERINARIAN: veterinarian
+  TECHNICIAN: veterinarian        # Org-scoped read + limited writes
+  SUPPLIER: farmer               # Farm-scoped read + ear tag ops
+  VD_STAFF: cpc_admin
+  VD_ADMIN: cpc_admin
+  SUPER_ADMIN: cpc_admin
+
+# ══════════════════════════════════════════════════════════════════════
+# DESIGN DECISIONS
+# ══════════════════════════════════════════════════════════════════════
+# 1. Three profiles, not nine — SUPPLIER/SLAUGHTERHOUSE_OP/MARKET_OP/TECHNICIAN
+#    map to base profiles with reduced write permissions in tRPC layer.
+#
+# 2. Master data is sync-full — diseases, vaccines, vaccine_batches,
+#    system_parameters are small tables (<500 rows) that can be fully
+#    synced once and updated incrementally.
+#
+# 3. checkedAnimals JSONB is NOT synced directly — too large and write-heavy.
+#    VI captures data in a local inspection draft, syncs as batch mutation.
+#
+# 4. audit_log sync is paginated — only last N days for CPC admin profile.
+#
+# 5. Data sync is per-role — on app init, the sync engine looks up the
+#    user's role and selects the appropriate schema profile.

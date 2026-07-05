@@ -1,40 +1,40 @@
-import { posts } from ".velite";
+import { posts, type Post } from "../.velite";
 
 /**
  * Get all published posts sorted by date (newest first)
  */
-export function getAllPosts() {
+export function getAllPosts(): Post[] {
   return posts
-    .filter((post) => post.published)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .filter((post: Post) => post.published)
+    .sort((a: Post, b: Post) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
 /**
  * Get a single post by its slug path
  * @param slug - The slug path (e.g., "example" or "blog/getting-started")
  */
-export function getPostBySlug(slug: string) {
-  return posts.find((post) => post.slug === slug);
+export function getPostBySlug(slug: string): Post | undefined {
+  return posts.find((post: Post) => post.slug === slug);
 }
 
 /**
  * Get all posts from a specific directory/prefix
  * @param prefix - The directory prefix (e.g., "blog", "docs")
  */
-export function getPostsByPrefix(prefix: string) {
+export function getPostsByPrefix(prefix: string): Post[] {
   return posts
-    .filter((post) => post.published && post.slug.startsWith(prefix))
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .filter((post: Post) => post.published && post.slug.startsWith(prefix))
+    .sort((a: Post, b: Post) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
 /**
  * Get all unique tags from published posts
  */
-export function getAllTags() {
+export function getAllTags(): string[] {
   const tags = new Set<string>();
-  posts.forEach((post) => {
+  posts.forEach((post: Post) => {
     if (post.published && post.tags) {
-      post.tags.forEach((tag) => tags.add(tag));
+      post.tags.forEach((tag: string) => tags.add(tag));
     }
   });
   return Array.from(tags).sort();
@@ -43,8 +43,8 @@ export function getAllTags() {
 /**
  * Get posts by tag
  */
-export function getPostsByTag(tag: string) {
+export function getPostsByTag(tag: string): Post[] {
   return posts
-    .filter((post) => post.published && post.tags?.includes(tag))
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .filter((post: Post) => post.published && post.tags?.includes(tag))
+    .sort((a: Post, b: Post) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }

@@ -11,6 +11,7 @@
 //   export const AnimalRegisteredEvent = eventEnvelopeSchema(animalRegisteredPayloadSchema);
 
 import { z } from "zod";
+import { eventSourceSchema as eventSourceTypeSchema } from "../enums/domain.js";
 import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ── Part 1: EVENT HEADER (The Symbolic) ──
@@ -63,7 +64,7 @@ const _eventSourceSchema = z.object({
   userId: z.uuid().optional(),
 
   /** What subsystem produced this event */
-  source: z.enum(["API", "MOBILE", "SYNC", "SYSTEM", "IMPORT", "WEBHOOK"]).default("API"),
+  source: eventSourceTypeSchema.default("API"),
 
   /** IP address of the producer */
   ipAddress: z.string().optional(),

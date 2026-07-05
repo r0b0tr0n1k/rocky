@@ -12,11 +12,21 @@ import { roleSelectSchema, permissionSelectSchema } from "@rocky/database/zod";
 // RESPONSE SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const roleResponseSchema = roleSelectSchema
-  .omit({ createdBy: true, validTo: true })
-  .strict();
+export const roleResponseSchema = roleSelectSchema.omit({ createdBy: true, validTo: true }).strict();
 
 export type RoleResponse = z.infer<typeof roleResponseSchema>;
+
+export const permissionResponseSchema = permissionSelectSchema.strict();
+
+export type PermissionResponse = z.infer<typeof permissionResponseSchema>;
+
+export const roleWithPermissionsResponseSchema = roleResponseSchema
+  .extend({
+    permissions: z.array(permissionResponseSchema),
+  })
+  .strict();
+
+export type RoleWithPermissionsResponse = z.infer<typeof roleWithPermissionsResponseSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // REQUEST SCHEMAS
@@ -43,4 +53,3 @@ export type RevokeRoleFromUserRequest = z.infer<typeof revokeRoleFromUserRequest
 // ═══════════════════════════════════════════════════════════════════════════
 // GUILLOTINES
 // ═══════════════════════════════════════════════════════════════════════════
-

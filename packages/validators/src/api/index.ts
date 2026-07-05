@@ -14,3 +14,8 @@ export * from "./notifications.api.js";
 // Legacy business-rule validators (to be merged into above)
 export * from "./holdings.api.js";
 export * from "./registration.api.js";
+export * from "./health.api.js";
+export * from "./inspection.api.js";
+export * from "./archive.api.js";
+export * from "./passport.api.js";
+export * from "./correction.api.js";

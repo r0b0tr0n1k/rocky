@@ -25,15 +25,13 @@ export const organizationResponseSchema = organizationSelectSchema
 
 export type OrganizationResponse = z.infer<typeof organizationResponseSchema>;
 
-export const organizationSummarySchema = z
-  .object({
+export const organizationSummarySchema = z.strictObject({
     id: z.uuid(),
     name1: z.string(),
     orgType: z.string(),
     parentId: z.uuid().nullable(),
     isActive: z.boolean(),
-  })
-  .strict();
+  });
 
 export type OrganizationSummary = z.infer<typeof organizationSummarySchema>;
 

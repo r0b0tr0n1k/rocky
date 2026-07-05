@@ -60,4 +60,20 @@ export class SubjectRepository extends BaseRepository {
       .from(farmSubjectsTable)
       .where(and(eq(farmSubjectsTable.farmId, farmId), eq(farmSubjectsTable.isActive, true)));
   }
+
+  async findSubjectBinding(farmId: string, subjectId: string, role: string) {
+    const [row] = await this.db
+      .select()
+      .from(farmSubjectsTable)
+      .where(
+        and(
+          eq(farmSubjectsTable.farmId, farmId),
+          eq(farmSubjectsTable.subjectId, subjectId),
+          eq(farmSubjectsTable.role, role),
+          eq(farmSubjectsTable.isActive, true),
+        ),
+      )
+      .limit(1);
+    return row ?? null;
+  }
 }

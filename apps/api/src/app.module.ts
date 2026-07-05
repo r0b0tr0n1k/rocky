@@ -1,4 +1,7 @@
 import { Module } from "@nestjs/common";
+import { LoggerModule } from "@rocky/logger";
+import { ClsModule } from "nestjs-cls";
+import crypto from "node:crypto";
 import { ScheduleModule } from "@nestjs/schedule";
 import { TrpcModule } from "./trpc/trpc.module.js";
 import { AuthCoreModule } from "./auth/auth-core.module.js";
@@ -17,6 +20,11 @@ import { NotificationRepository } from "@rocky/domains-notification";
 import { UserRepository } from "@rocky/domains-user";
 import { RbacRepository } from "@rocky/domains-rbac";
 import { OrganizationRepository } from "@rocky/domains-organization";
+import { HealthRepository } from "@rocky/domains-health";
+import { InspectionRepository } from "@rocky/domains-inspection";
+import { ArchiveRepository } from "@rocky/domains-archive";
+import { PassportRepository } from "@rocky/domains-passport";
+import { CorrectionRepository } from "@rocky/domains-correction";
 
 // ── Domain Services ─────────────────────────────────────────────────
 import { AnimalService } from "@rocky/domains-animal";
@@ -29,6 +37,12 @@ import { EarTagService } from "@rocky/domains-eartag";
 import { UserService } from "@rocky/domains-user";
 import { RbacService } from "@rocky/domains-rbac";
 import { OrganizationService } from "@rocky/domains-organization";
+import { HealthService } from "@rocky/domains-health";
+import { InspectionService } from "@rocky/domains-inspection";
+import { RiskAnalysisService } from "@rocky/domains-inspection";
+import { ArchiveService } from "@rocky/domains-archive";
+import { PassportService } from "@rocky/domains-passport";
+import { CorrectionService } from "@rocky/domains-correction";
 
 // ── tRPC Routers ────────────────────────────────────────────────────
 import { AnimalRouter } from "./routers/animal.router.js";
@@ -40,9 +54,35 @@ import { EarTagRouter } from "./routers/eartag.router.js";
 import { UserRouter } from "./routers/user.router.js";
 import { RbacRouter } from "./routers/rbac.router.js";
 import { OrganizationRouter } from "./routers/organization.router.js";
+import { HealthRouter } from "./routers/health.router.js";
+import { InspectionRouter } from "./routers/inspection.router.js";
+import { ArchiveRouter } from "./routers/archive.router.js";
+import { PassportRouter } from "./routers/passport.router.js";
+import { CorrectionRouter } from "./routers/correction.router.js";
+
+// ── Scheduled Jobs ─────────────────────────────────────────────────
+import { RetentionJob } from "./jobs/retention.job.js";
+import { RiskAnalysisJob } from "./jobs/risk-analysis.job.js";
+import { CorrectionConsistencyJob } from "./jobs/correction-consistency.job.js";
 
 @Module({
-  imports: [ScheduleModule.forRoot(), AuthCoreModule, AuthModule.forRoot({ auth }), TrpcModule, DbModule],
+  imports: [
+    LoggerModule,
+    ClsModule.forRoot({
+      global: true,
+      middleware: {
+        mount: true,
+        generateId: true,
+        idGenerator: (req: any) =>
+          req.headers?.["x-correlation-id"] || crypto.randomUUID(),
+      },
+    }),
+    ScheduleModule.forRoot(),
+    AuthCoreModule,
+    AuthModule.forRoot({ auth }),
+    TrpcModule,
+    DbModule,
+  ],
   providers: [
     // ── Repositories (thin DB wrappers) ──
     {
@@ -88,6 +128,31 @@ import { OrganizationRouter } from "./routers/organization.router.js";
     {
       provide: OrganizationRepository,
       useFactory: (d: DB) => new OrganizationRepository(d),
+      inject: [DB_TOKEN],
+    },
+    {
+      provide: HealthRepository,
+      useFactory: (d: DB) => new HealthRepository(d),
+      inject: [DB_TOKEN],
+    },
+    {
+      provide: InspectionRepository,
+      useFactory: (d: DB) => new InspectionRepository(d),
+      inject: [DB_TOKEN],
+    },
+    {
+      provide: ArchiveRepository,
+      useFactory: (d: DB) => new ArchiveRepository(d),
+      inject: [DB_TOKEN],
+    },
+    {
+      provide: PassportRepository,
+      useFactory: (d: DB) => new PassportRepository(d),
+      inject: [DB_TOKEN],
+    },
+    {
+      provide: CorrectionRepository,
+      useFactory: (d: DB) => new CorrectionRepository(d),
       inject: [DB_TOKEN],
     },
 
@@ -144,6 +209,39 @@ import { OrganizationRouter } from "./routers/organization.router.js";
       useFactory: (repo: OrganizationRepository) => new OrganizationService(repo),
       inject: [OrganizationRepository],
     },
+    {
+      provide: HealthService,
+      useFactory: (repo: HealthRepository, subjectRepo: SubjectRepository, inspectionRepo: InspectionRepository) =>
+        new HealthService(repo, subjectRepo, inspectionRepo),
+      inject: [HealthRepository, SubjectRepository, InspectionRepository],
+    },
+    {
+      provide: InspectionService,
+      useFactory: (repo: InspectionRepository, animalRepo: AnimalRepository, archiveService: ArchiveService, riskAnalysisService: RiskAnalysisService) =>
+        new InspectionService(repo, animalRepo, archiveService, riskAnalysisService),
+      inject: [InspectionRepository, AnimalRepository, ArchiveService, RiskAnalysisService],
+    },
+    {
+      provide: ArchiveService,
+      useFactory: (repo: ArchiveRepository) => new ArchiveService(repo),
+      inject: [ArchiveRepository],
+    },
+    {
+      provide: RiskAnalysisService,
+      useFactory: (d: DB) => new RiskAnalysisService(d),
+      inject: [DB_TOKEN],
+    },
+    {
+      provide: PassportService,
+      useFactory: (repo: PassportRepository, animalRepo: AnimalRepository) =>
+        new PassportService(repo, animalRepo),
+      inject: [PassportRepository, AnimalRepository],
+    },
+    {
+      provide: CorrectionService,
+      useFactory: (repo: CorrectionRepository) => new CorrectionService(repo),
+      inject: [CorrectionRepository],
+    },
 
     // ── tRPC Routers ──
     AnimalRouter,
@@ -155,6 +253,16 @@ import { OrganizationRouter } from "./routers/organization.router.js";
     UserRouter,
     RbacRouter,
     OrganizationRouter,
+    HealthRouter,
+    InspectionRouter,
+    ArchiveRouter,
+    PassportRouter,
+    CorrectionRouter,
+
+    // ── Scheduled Jobs ──
+    RetentionJob,
+    RiskAnalysisJob,
+    CorrectionConsistencyJob,
   ],
 })
 export class AppModule {}

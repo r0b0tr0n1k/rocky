@@ -105,4 +105,15 @@ export class AnimalRepository extends BaseRepository {
       .set({ currentFarmId: farmId, updatedAt: new Date() })
       .where(eq(animalsTable.id, animalId));
   }
+
+  /** Find the most recent calf born to a given mother (for calving gap check) */
+  async findLastCalfByMother(motherId: string) {
+    const [row] = await this.db
+      .select({ id: animalsTable.id, birthDate: animalsTable.birthDate })
+      .from(animalsTable)
+      .where(eq(animalsTable.motherId, motherId))
+      .orderBy(desc(animalsTable.birthDate))
+      .limit(1);
+    return row ?? null;
+  }
 }

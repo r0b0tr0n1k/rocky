@@ -24,15 +24,16 @@ async *onMovementUpdate() {
 ```
 
 **File Fixed:**
+
 - `apps/api/src/movement/movement-subscription.router.ts`
 
 ### 2. Middleware Import Errors
 
-**Problem:** Wrong type name imported from nestjs-trpc-v2
+**Problem:** Wrong type name imported from nestjs-trpc
 
 ```typescript
 // ❌ BEFORE - TRPCMiddlewareOptions doesn't exist
-import { TRPCMiddleware, TRPCMiddlewareOptions } from "nestjs-trpc-v2";
+import { TRPCMiddleware, TRPCMiddlewareOptions } from "nestjs-trpc";
 async use(opts: TRPCMiddlewareOptions) { ... }
 ```
 
@@ -40,11 +41,12 @@ async use(opts: TRPCMiddlewareOptions) { ... }
 
 ```typescript
 // ✅ AFTER - Correct type name
-import { TRPCMiddleware, MiddlewareOptions } from "nestjs-trpc-v2";
+import { TRPCMiddleware, MiddlewareOptions } from "nestjs-trpc";
 async use(opts: MiddlewareOptions) { ... }
 ```
 
 **Files Fixed:**
+
 - `apps/api/src/trpc/middlewares/protected.middleware.ts`
 - `apps/api/src/trpc/middlewares/rls.middleware.ts`
 - `apps/api/src/trpc/middlewares/logging.middleware.ts`
@@ -66,18 +68,19 @@ import type { AppContext } from "@rocky/trpc/context.js";
 ```
 
 **Files Fixed:**
+
 - `apps/api/src/trpc/middlewares/protected.middleware.ts`
 - `apps/api/src/trpc/middlewares/rls.middleware.ts`
 - `apps/api/src/trpc/middlewares/logging.middleware.ts`
 
 ## 🔧 Type System Notes
 
-### nestjs-trpc-v2 Middleware Types
+### nestjs-trpc Middleware Types
 
 The correct types for middleware are:
 
 ```typescript
-import { TRPCMiddleware, MiddlewareOptions } from "nestjs-trpc-v2";
+import { TRPCMiddleware, MiddlewareOptions } from "nestjs-trpc";
 
 @Injectable()
 export class MyMiddleware implements TRPCMiddleware {
@@ -111,7 +114,8 @@ interface AppContext {
 ## 📊 Build Results
 
 ### Before
-```
+
+```txt
 ❌ 7 TypeScript errors
 ❌ Type 'TrackedEnvelope<...>' is not assignable
 ❌ 'TRPCMiddlewareOptions' does not exist
@@ -120,7 +124,8 @@ interface AppContext {
 ```
 
 ### After
-```
+
+```txt
 ✓ Compiled successfully
 ✓ All type errors resolved
 ✓ API build successful
@@ -130,20 +135,23 @@ interface AppContext {
 ## 🚀 Verified Working
 
 **Middleware Stack:**
+
 - ✅ ProtectedMiddleware - Authentication checks
 - ✅ RLSMiddleware - Row Level Security
 - ✅ LoggingMiddleware - Request timing
 
 **Subscription:**
+
 - ✅ MovementSubscriptionRouter - Real-time updates
 
 **Routers Using Middlewares:**
+
 - ✅ TodoRouter - Uses ProtectedMiddleware
 - ✅ NotificationRouter - Uses ProtectedMiddleware
 
 ## 🎯 Key Takeaways
 
-1. **Use correct nestjs-trpc-v2 types:**
+1. **Use correct nestjs-trpc types:**
    - ❌ `TRPCMiddlewareOptions`
    - ✅ `MiddlewareOptions`
 
@@ -156,6 +164,7 @@ interface AppContext {
    - ✅ Implicit: Let TypeScript infer from `yield tracked()`
 
 4. **Type casting in middlewares:**
+
    ```typescript
    // Safe pattern for context typing
    async use(opts: MiddlewareOptions) {

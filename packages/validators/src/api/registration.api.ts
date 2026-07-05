@@ -6,7 +6,6 @@
 
 import { z } from "zod";
 import { sexSchema as SexZ } from "../enums/index.js";
-import type { sexType as Sex } from "../enums/index.js";
 import { earTagSchema, farmIdSchema } from "../utils/check-digit.js";
 
 // ============================================================================

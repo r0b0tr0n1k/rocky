@@ -35,6 +35,7 @@
     "@next/third-parties": "catalog:",
     "@radix-ui/react-dialog": "catalog:",
     "@rocky/ui": "workspace:*",
+    "@total-typescript/ts-reset": "^0.6.1",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "lucide-react": "catalog:",
@@ -70,6 +71,5 @@
     "tw-animate-css": "catalog:",
     "typescript": "catalog:"
   },
-  "overrides": {},
-  "optionalDependencies": {}
+  "overrides": {}
 }

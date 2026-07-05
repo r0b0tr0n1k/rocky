@@ -6,7 +6,7 @@ import {
   Query,
   Router,
   UseMiddlewares,
-} from "nestjs-trpc-v2";
+} from "nestjs-trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createResultUnwrapper } from "@rocky/trpc";
@@ -38,7 +38,7 @@ export class NotificationRouter {
   constructor(
     @Inject(NotificationService)
     private readonly notificationService: NotificationService,
-  ) {}
+  ) { }
 
   @Query({ output: z.object({ count: z.number() }) })
   async unreadCount(

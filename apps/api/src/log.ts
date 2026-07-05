@@ -1,15 +1,30 @@
 import { pino } from "pino";
 import { appConfig } from "#/config";
 
+const isProduction = appConfig.env === "production";
+
 export interface Logger {
   info(msg: string, properties?: Record<string, unknown>): void;
   debug(msg: string, properties?: Record<string, unknown>): void;
   warn(msg: string, properties?: Record<string, unknown>): void;
-  error(msg: string, error: Error | unknown, properties?: Record<string, unknown>): void;
+  error(msg: string, error?: Error | unknown, properties?: Record<string, unknown>): void;
 }
 
 export const logger: Logger = (() => {
-  const log = pino({ level: appConfig.env === "dev" ? "debug" : "info" });
+  const log = pino({
+    level: isProduction ? "info" : "debug",
+    transport: isProduction
+      ? undefined
+      : {
+          target: "pino-pretty",
+          options: {
+            colorize: true,
+            singleLine: true,
+            translateTime: "SYS:yyyy-mm-dd HH:MM:ss.l",
+            ignore: "pid,hostname",
+          },
+        },
+  });
   return {
     info: (msg, properties) => log.info(properties ?? {}, msg),
     debug: (msg, properties) => log.debug(properties ?? {}, msg),

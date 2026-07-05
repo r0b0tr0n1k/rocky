@@ -9,6 +9,7 @@ import type {
   UpdateUserRequest,
   UserListRequest,
 } from "@rocky/validators/api";
+import { userResponseSchema, userSummarySchema } from "@rocky/validators/api";
 import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
 import { UserError, USER_ERRORS } from "../errors/user.errors.js";
 import type { UserRepository } from "../repositories/user.repository.js";
@@ -21,14 +22,14 @@ export class UserService {
     return fromAsyncThrowable(async () => {
       const user = await this.repo.findById(id);
       if (!user) throw new UserError(USER_ERRORS.NOT_FOUND, { id });
-      return user as unknown as UserResponse;
+      return userResponseSchema.parse(user);
     }, toAppError)();
   }
 
   async list(input: UserListRequest): Promise<Result<{ data: UserSummary[]; total: number }, Error>> {
     return fromAsyncThrowable(async () => {
       const result = await this.repo.list(input);
-      return { data: result.data as unknown as UserSummary[], total: result.total };
+      return { data: userSummarySchema.array().parse(result.data), total: result.total };
     }, toAppError)();
   }
 
@@ -46,7 +47,7 @@ export class UserService {
         passwordHash: password,
       };
       const user = await this.repo.insert(dbInput);
-      return user as unknown as UserResponse;
+      return userResponseSchema.parse(user);
     }, toAppError)();
   }
 
@@ -55,7 +56,7 @@ export class UserService {
       const existing = await this.repo.findById(id);
       if (!existing) throw new UserError(USER_ERRORS.NOT_FOUND, { id });
       const user = await this.repo.update(id, input);
-      return user as unknown as UserResponse;
+      return userResponseSchema.parse(user);
     }, toAppError)();
   }
 }

@@ -9,6 +9,7 @@ import type {
   AssignRoleToUserRequest,
   RevokeRoleFromUserRequest,
 } from "@rocky/validators/api";
+import { roleResponseSchema, permissionResponseSchema, roleWithPermissionsResponseSchema } from "@rocky/validators/api";
 import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
 import { RbacError, RBAC_ERRORS } from "../errors/rbac.errors.js";
 import type { RbacRepository } from "../repositories/rbac.repository.js";
@@ -18,7 +19,7 @@ export class RbacService {
 
   async getAllRoles(): Promise<Result<RoleResponse[], Error>> {
     return fromAsyncThrowable(async () => {
-      return (await this.repo.findAllRoles()) as unknown as RoleResponse[];
+      return roleResponseSchema.array().parse(await this.repo.findAllRoles());
     }, toAppError)();
   }
 
@@ -26,13 +27,13 @@ export class RbacService {
     return fromAsyncThrowable(async () => {
       const role = await this.repo.findRoleById(id);
       if (!role) throw new RbacError(RBAC_ERRORS.ROLE_NOT_FOUND, { id });
-      return role as unknown as RoleResponse;
+      return roleResponseSchema.parse(role);
     }, toAppError)();
   }
 
   async getAllPermissions(): Promise<Result<PermissionResponse[], Error>> {
     return fromAsyncThrowable(async () => {
-      return (await this.repo.findAllPermissions()) as unknown as PermissionResponse[];
+      return permissionResponseSchema.array().parse(await this.repo.findAllPermissions());
     }, toAppError)();
   }
 
@@ -40,9 +41,9 @@ export class RbacService {
     return fromAsyncThrowable(async () => {
       const role = await this.repo.findRoleById(roleId);
       if (!role) throw new RbacError(RBAC_ERRORS.ROLE_NOT_FOUND, { roleId });
-      const perms = (await this.repo.findPermissionsForRole(roleId)) as unknown as { permission: unknown }[];
-      const permissions = perms.map((p) => p.permission);
-      return { ...role, permissions } as unknown as RoleWithPermissionsResponse;
+      const perms = await this.repo.findPermissionsForRole(roleId);
+      const permissions = perms.map((p) => p.permission).filter((p): p is NonNullable<typeof p> => p != null);
+      return roleWithPermissionsResponseSchema.parse({ ...role, permissions });
     }, toAppError)();
   }
 

@@ -23,6 +23,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@better-auth/drizzle-adapter": "catalog:"
+    "@better-auth/drizzle-adapter": "catalog:",
+    "tsx": "catalog:"
   }
 }

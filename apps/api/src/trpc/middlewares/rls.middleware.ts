@@ -20,7 +20,7 @@
  */
 
 import { Injectable } from "@nestjs/common";
-import type { TRPCMiddleware, MiddlewareOptions } from "nestjs-trpc-v2";
+import type { TRPCMiddleware, MiddlewareOptions } from "nestjs-trpc";
 import { TRPCError } from "@trpc/server";
 import { sql } from "drizzle-orm";
 import { db } from "@rocky/database";
@@ -45,11 +45,8 @@ interface EnrichedUser {
 
 @Injectable()
 export class RLSMiddleware implements TRPCMiddleware {
-  async use(opts: MiddlewareOptions) {
-    const { ctx, next } = opts as {
-      ctx: AppContext;
-      next: (opts?: { ctx?: Partial<AppContext> }) => unknown;
-    };
+  async use(opts: MiddlewareOptions<AppContext>) {
+    const { ctx, next } = opts;
 
     const user = ctx.user as unknown as EnrichedUser | undefined;
     if (!user?.smUserId) {
@@ -64,8 +61,8 @@ export class RLSMiddleware implements TRPCMiddleware {
     const highestRole =
       user.roles.length > 0
         ? user.roles.reduce((a, b) =>
-            (ROLE_HIERARCHY[a] ?? 0) >= (ROLE_HIERARCHY[b] ?? 0) ? a : b,
-          )
+          (ROLE_HIERARCHY[a] ?? 0) >= (ROLE_HIERARCHY[b] ?? 0) ? a : b,
+        )
         : primaryRole;
 
     // ── Calculate access level ─────────────────────────────────

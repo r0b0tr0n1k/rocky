@@ -1,0 +1,86 @@
+{
+  "$schema": "inspection-form-v1",
+  "formId": "0190a3b2-c1d4-7e00-b000-000000000001",
+  "formVersion": "1.0",
+  "generatedAt": "2026-07-10T10:00:00.000Z",
+  "language": "MK",
+  "farm": {
+    "farmId": "0190a3b2-c1d4-7e00-a000-000000000001",
+    "farmIdNumber": "123456789",
+    "farmName": "Farm Stojkovski",
+    "owner": {
+      "subjectId": "0190a3b2-c1d4-7e00-c000-000000000001",
+      "shortName": "Stojkovski Petar",
+      "personalId": "1234567890123"
+    },
+    "keeper": {
+      "subjectId": "0190a3b2-c1d4-7e00-c000-000000000002",
+      "shortName": "Stojkovski Jane"
+    },
+    "address": {
+      "street": "ul. Partizanska 15",
+      "city": "Tetovo",
+      "zipCode": "1200",
+      "commune": "Tetovo",
+      "state": "MK"
+    }
+  },
+  "inspector": {
+    "inspectorId": "0190a3b2-c1d4-7e00-d000-000000000001",
+    "shortName": "Dr. Ahmeti Blerim",
+    "vsName": "VS Tetovo"
+  },
+  "riskAnalysis": {
+    "selectedByRiskAnalysis": true,
+    "riskScore": "HIGH",
+    "riskCriteria": "no_inspection_3_years;high_animal_count",
+    "analysisPeriod": "2026-Q1"
+  },
+  "scheduledDate": "2026-07-15",
+  "inspectionDate": null,
+  "animals": [
+    {
+      "animalId": "0190a3b2-c1d4-7e00-e000-000000000001",
+      "earTagNumber": "MK123456",
+      "stateCode": "MK",
+      "sex": "female",
+      "breed": "Holstein",
+      "birthDate": "2023-03-15",
+      "motherId": "0190a3b2-c1d4-7e00-e000-000000000010",
+      "currentStatus": "alive",
+      "tagPresent": null,
+      "tagCorrect": null,
+      "animalPresent": null,
+      "discrepancyNote": null
+    },
+    {
+      "animalId": "0190a3b2-c1d4-7e00-e000-000000000002",
+      "earTagNumber": "MK123457",
+      "stateCode": "MK",
+      "sex": "male",
+      "breed": "Simmental",
+      "birthDate": "2024-01-20",
+      "motherId": "0190a3b2-c1d4-7e00-e000-000000000001",
+      "currentStatus": "alive",
+      "tagPresent": null,
+      "tagCorrect": null,
+      "animalPresent": null,
+      "discrepancyNote": null
+    }
+  ],
+  "result": {
+    "overallResult": null,
+    "discrepanciesFound": false,
+    "notes": null
+  },
+  "signature": {
+    "keeperSigned": false,
+    "signedAt": null
+  },
+  "lifecycle": {
+    "formPrinted": true,
+    "formReturned": false,
+    "storedAtVi": false,
+    "retentionExpiry": null
+  }
+}

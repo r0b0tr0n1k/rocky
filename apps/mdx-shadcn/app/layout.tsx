@@ -1,3 +1,4 @@
+import "@total-typescript/ts-reset";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Layout, Main } from "@rocky/ui/components/ds";
 import { ThemeToggle } from "@/components/theme/theme-toggle";

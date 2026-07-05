@@ -1,0 +1,215 @@
+# ══════════════════════════════════════════════════════════════════════
+# INSPECTION FORM DATA MODEL v1.0
+# ══════════════════════════════════════════════════════════════════════
+# Single Source of Truth for inspection form structure.
+# Feeds both: (1) PDF generation via pdfmake (stub), (2) Mobile app display.
+#
+# Source: docs/old/workflow.md §Instance 18 — On-Spot Inspections
+# Status: Definition complete. PDF generation is a TODO stub.
+# ══════════════════════════════════════════════════════════════════════
+
+inspectionForm:
+
+  # ── Section A: Form Metadata ──
+  formId:
+    type: uuid
+    source: inspections.id
+    description: Unique inspection record identifier
+
+  formVersion:
+    type: string
+    default: "1.0"
+    description: Schema version for future evolution
+
+  generatedAt:
+    type: iso8601
+    description: When CPC generated this form
+
+  language:
+    type: enum
+    values: [MK, EN, SQ, SR]
+    default: MK
+    description: Form language (multi-language support)
+
+  # ── Section B: Farm Information ──
+  farm:
+    farmId:
+      type: uuid
+      source: farms.id
+    farmIdNumber:
+      type: string
+      format: "9 digits with check digit (KMG_MID)"
+      source: farms.farm_id_number
+    farmName:
+      type: string | null
+      source: farms.name
+    owner:
+      subjectId:
+        type: uuid | null
+        source: farm_subjects.subject_id WHERE role = 'owner'
+      shortName:
+        type: string | null
+        source: subjects.short_name
+      personalId:
+        type: string | null
+        source: subjects.personal_id
+    keeper:
+      subjectId:
+        type: uuid | null
+        source: farm_subjects.subject_id WHERE role = 'keeper'
+      shortName:
+        type: string | null
+        source: subjects.short_name
+    address:
+      street:
+        type: string | null
+        source: addresses.street
+      city:
+        type: string | null
+        source: addresses.city
+      zipCode:
+        type: string | null
+        source: addresses.zip_code
+      commune:
+        type: string | null
+        source: communes.name
+      state:
+        type: string | null
+        source: states.name
+
+  # ── Section C: Inspector Information ──
+  inspector:
+    inspectorId:
+      type: uuid
+      source: inspections.inspector_id
+    shortName:
+      type: string
+      source: subjects.short_name of the inspector
+    vsName:
+      type: string | null
+      source: Veterinary Station name
+
+  # ── Section D: Risk Analysis Selection ──
+  riskAnalysis:
+    selectedByRiskAnalysis:
+      type: boolean
+      source: inspections.selected_by_risk_analysis
+    riskScore:
+      type: string | null
+      source: inspections.risk_score
+      example: "HIGH", "MEDIUM", "LOW"
+    riskCriteria:
+      type: string | null
+      source: inspections.risk_criteria
+      example: "no_inspection_3_years;high_animal_count"
+    analysisPeriod:
+      type: string | null
+      description: "e.g., 2026-Q1"
+
+  # ── Section E: Scheduling ──
+  scheduledDate:
+    type: date | null
+    source: inspections.scheduled_date
+    description: When CPC scheduled the visit
+
+  inspectionDate:
+    type: date | null
+    source: inspections.inspection_date
+    description: Actual date of on-spot visit (filled by VI)
+
+  # ── Section F: Animal Checklist ──
+  # Core of the form — lists all currently registered animals on the farm
+  # with per-animal checkboxes for the VI to verify.
+  animals:
+    description: Array of all registered animals on the farm
+    item:
+      animalId:
+        type: uuid
+        source: animals.id
+      earTagNumber:
+        type: string
+        format: "8 digits"
+        source: animals.ear_tag_number
+      stateCode:
+        type: string
+        source: animals.state_code
+        example: "MK"
+      sex:
+        type: enum
+        values: [male, female]
+        source: animals.sex
+      breed:
+        type: string | null
+        source: animals.breed
+      birthDate:
+        type: date | null
+        source: animals.birth_date
+      motherId:
+        type: uuid | null
+        source: animals.mother_id
+      currentStatus:
+        type: enum
+        values: [alive, dead, slaughtered, stolen, lost, exported, imported, birth]
+        source: animals.status
+      # ── VI Checkboxes (filled during on-spot visit) ──
+      tagPresent:
+        type: boolean | null
+        source: VI verification
+        description: Is physical ear tag present on the animal?
+      tagCorrect:
+        type: boolean | null
+        source: VI verification
+        description: Does tag number match database records?
+      animalPresent:
+        type: boolean | null
+        source: VI verification
+        description: Is animal physically present on the farm?
+      # ── Discrepancy Notes ──
+      discrepancyNote:
+        type: string | null
+        source: VI notes
+        description: Any mismatch between form data and reality
+
+  # ── Section G: Inspection Result ──
+  result:
+    overallResult:
+      type: string | null
+      values: [PASS, FAIL, CONDITIONAL]
+      source: inspections.result
+    discrepanciesFound:
+      type: boolean
+      default: false
+      source: inspections.discrepancies_found
+    notes:
+      type: string | null
+      source: inspections.notes
+      description: Free-text observations by inspector
+
+  # ── Section H: Keeper Signature ──
+  signature:
+    keeperSigned:
+      type: boolean
+      default: false
+      source: inspections.keeper_signed
+    signedAt:
+      type: timestamp | null
+      source: inspections.signed_at
+
+  # ── Section I: Form Lifecycle ──
+  lifecycle:
+    formPrinted:
+      type: boolean
+      default: false
+      source: inspections.form_printed
+    formReturned:
+      type: boolean
+      default: false
+      source: inspections.form_returned
+    storedAtVi:
+      type: boolean
+      default: false
+      source: inspections.stored_at_vi
+    retentionExpiry:
+      type: date | null
+      source: inspections.retention_expiry
+      description: "3 years from completion date"

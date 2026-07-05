@@ -9,6 +9,7 @@ This document summarizes the architectural improvements made to the Rocky AIMCS 
 **Created:** `apps/api/src/trpc/middlewares/`
 
 #### ProtectedMiddleware (`protected.middleware.ts`)
+
 - **Purpose:** Reusable authentication check for all procedures
 - **Features:**
   - Validates user is authenticated
@@ -16,6 +17,7 @@ This document summarizes the architectural improvements made to the Rocky AIMCS 
   - Throws `UNAUTHORIZED` if no session
 
 **Before:**
+
 ```typescript
 @Query({ output: TodoSchema })
 async getTodo(@Ctx() ctx: AppContext) {
@@ -25,6 +27,7 @@ async getTodo(@Ctx() ctx: AppContext) {
 ```
 
 **After:**
+
 ```typescript
 @Router({ alias: "todo" })
 @UseMiddlewares(ProtectedMiddleware) // Applied once at router level
@@ -38,6 +41,7 @@ export class TodoRouter {
 ```
 
 #### RLSMiddleware (`rls.middleware.ts`)
+
 - **Purpose:** Enforces Row Level Security based on user roles
 - **Features:**
   - Role-based access control (VD_ADMIN, VU_STAFF, FARMER, SYSTEM_ADMIN)
@@ -45,6 +49,7 @@ export class TodoRouter {
   - Supports district-level, organization-level, and own-data access
 
 **Usage:**
+
 ```typescript
 @Router({ alias: "animal" })
 @UseMiddlewares(RLSMiddleware)
@@ -58,12 +63,14 @@ export class AnimalRouter {
 ```
 
 **Access Levels:**
+
 - `VD_ADMIN`: District-level access (all farms in their district)
 - `VU_STAFF`: Organization-level access (assigned farms)
 - `FARMER`: Own data only
 - `SYSTEM_ADMIN`: Full access (RLS bypassed)
 
 #### LoggingMiddleware (`logging.middleware.ts`)
+
 - **Purpose:** Request timing and error logging
 - **Features:**
   - Logs all tRPC requests with timing information
@@ -71,6 +78,7 @@ export class AnimalRouter {
   - Ready for integration with pino logger
 
 **Usage:**
+
 ```typescript
 @Router({ alias: "farm" })
 @UseMiddlewares(LoggingMiddleware) // Logs all procedures
@@ -82,10 +90,12 @@ export class FarmRouter {
 ### 2. Router Refactoring
 
 **Updated Routers:**
+
 - `apps/api/src/todo/todo.router.ts` - Now uses `ProtectedMiddleware`
 - `apps/api/src/notification/notification.router.ts` - Now uses `ProtectedMiddleware`
 
 **Benefits:**
+
 - ✅ Eliminated manual `if (!ctx.user)` checks
 - ✅ Type-safe context with `ProtectedMiddlewareContext`
 - ✅ DRY principle - auth logic defined once
@@ -96,12 +106,14 @@ export class FarmRouter {
 **Created:** `apps/api/src/movement/movement-subscription.router.ts`
 
 **Features:**
+
 - Real-time movement updates via WebSocket
 - Event types: `VERIFIED`, `REJECTED`, `COMPLETED`, `CANCELLED`
 - Automatic reconnection with `tracked()` events
 - User-specific filtering (farmers see their movements)
 
 **Backend Usage:**
+
 ```typescript
 @Injectable()
 export class MovementService {
@@ -121,6 +133,7 @@ export class MovementService {
 ```
 
 **Frontend Usage:**
+
 ```typescript
 // Farmer gets live updates when VD officer verifies movement
 trpc.movement.onMovementUpdate.useSubscription(
@@ -138,6 +151,7 @@ trpc.movement.onMovementUpdate.useSubscription(
 **Updated:** `apps/api/src/trpc/trpc.module.ts`
 
 All middlewares now registered as NestJS providers:
+
 ```typescript
 @Module({
   imports: [TRPCModule.forRoot({...})],
@@ -161,6 +175,7 @@ export class TrpcModule {}
 - **No duplicate handlers:** Next.js doesn't mount `/api/auth/*` routes
 
 Session flow:
+
 1. User signs in via `authClient.signIn()` on web
 2. Request goes to API at `NEXT_PUBLIC_API_URL`
 3. API validates credentials and sets session cookie
@@ -174,7 +189,7 @@ Session flow:
 
 ```typescript
 import { Injectable, Inject } from "@nestjs/common";
-import { Ctx, Input, Mutation, Query, Router, UseMiddlewares } from "nestjs-trpc-v2";
+import { Ctx, Input, Mutation, Query, Router, UseMiddlewares } from "nestjs-trpc";
 import { ProtectedMiddleware, type ProtectedMiddlewareContext } from "../trpc/middlewares/protected.middleware.js";
 import { MyService } from "@rocky/domains-mydomain";
 
@@ -271,9 +286,9 @@ For existing routers:
 
 ## 📚 Additional Resources
 
-- nestjs-trpc-v2 docs: https://nestjs-trpc-v2.io
-- better-auth docs: https://www.better-auth.com/docs
-- tRPC subscriptions: https://trpc.io/docs/subscriptions
+- nestjs-trpc docs: <https://nestjs-trpc.io>
+- better-auth docs: <https://www.better-auth.com/docs>
+- tRPC subscriptions: <https://trpc.io/docs/subscriptions>
 
 ## 🚀 Next Steps
 

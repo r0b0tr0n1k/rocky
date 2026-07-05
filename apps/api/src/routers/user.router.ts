@@ -1,7 +1,7 @@
 // ── User Router — tRPC entry point ──
 
 import { Injectable, Inject } from "@nestjs/common";
-import { Router, Query, Mutation, Input, Ctx, UseMiddlewares } from "nestjs-trpc-v2";
+import { Router, Query, Mutation, Input, Ctx, UseMiddlewares } from "nestjs-trpc";
 import { z } from "zod";
 import { createResultUnwrapper } from "@rocky/trpc";
 import { USER_TRPC_ERROR_MAP } from "@rocky/validators/errors";
@@ -29,7 +29,7 @@ const unwrap = createResultUnwrapper(USER_TRPC_ERROR_MAP);
 export class UserRouter {
   constructor(
     @Inject(UserService) private readonly userService: UserService,
-  ) {}
+  ) { }
 
   @Query({ input: idParam, output: userResponseSchema })
   async getById(@Input() input: { id: string }): Promise<UserResponse> {

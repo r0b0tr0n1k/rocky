@@ -1,9 +1,13 @@
 {
   "extends": "@rocky/typescript-config/react-library.json",
   "compilerOptions": {
-    "outDir": "dist",
     "strictNullChecks": true
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

@@ -1,3 +1,4 @@
+import "@total-typescript/ts-reset";
 import type { Metadata } from "next";
 import "./globals.css";
 import { TRPCProvider } from "#components/trpc-provider";

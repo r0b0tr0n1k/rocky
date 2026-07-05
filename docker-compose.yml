@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  # Database Services
+  # ── PostgreSQL + PostGIS ───────────────────────────────────────
   db:
     container_name: rokidb
     image: postgis/postgis:18-3.6-alpine
@@ -34,33 +34,88 @@ services:
         reservations:
           memory: 512M
 
+  # ── NestJS API (tRPC + better-auth) ──────────────────────────
+  api:
+    container_name: rocky-api
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - API_PORT=8080
+      # Database
+      - PG_HOST=db
+      - PG_PORT=5432
+      - PG_USER=tbot
+      - PG_PASS=${DB_PASSWORD}
+      - PG_DB=tbot
+      # Auth
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - BASE_SERVICE_URL=http://api:8080
+      - AUTH_BASE_URL=http://localhost:3000
+      # CORS (web container + local dev)
+      - CORS_ORIGINS=http://localhost:3000,http://web:3000
+      - TRUSTED_ORIGINS=http://localhost:3000,mobile://
+      # App
+      - VERSION=${VERSION:-production}
+      - ENVIRONMENT=production
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
 
+  # ── Next.js Admin Panel ──────────────────────────────────────
+  web:
+    container_name: rocky-web
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      - NODE_ENV=production
+      # SSR: Next.js server calls API directly via Docker network
+      - API_URL=http://api:8080
+      # Client: Browser-visible URL for auth redirects
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+      # Auth secret (same as API, for server-side session validation)
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - app-network
 
+  # ── Drizzle Studio (optional, dev only) ──────────────────────
   drizzle-studio:
     image: ghcr.io/drizzle-team/gateway:latest
     container_name: drizzle-studio
     ports:
-      - "4983:4983" # Expose port 4983 to your host machine
+      - "4983:4983"
     volumes:
-      - drizzle-gateway-data:/app # Use a named volume for persistent configuration
+      - drizzle-gateway-data:/app
     environment:
       - DRIZZLE_MASTER_PASS=${DRIZZLE_MASTER_PASS}
-      # Use environment variables for secrets, loaded from your .env file
       - MASTERPASS=${DRIZZLE_MASTER_PASS}
       - PORT=4983
       - STORE_PATH=/app
     networks:
-      - app-network # CRITICAL: This puts it on the same network as your database
+      - app-network
     depends_on:
-      db: # It should only start after the database is healthy
+      db:
         condition: service_healthy
     restart: unless-stopped
-
+    profiles:
+      - dev
 
 volumes:
   postgres_data:
   drizzle-gateway-data:
-
 
 networks:
   app-network:

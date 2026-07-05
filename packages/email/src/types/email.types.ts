@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { emailStatusSchema } from "@rocky/validators/enums";
 
 // ============================================================================
 // Email Types
@@ -51,7 +52,7 @@ export type SendEmailInput = z.infer<typeof sendEmailSchema>;
 
 export const emailResponseSchema = z.object({
   messageId: z.string(),
-  status: z.enum(["sent", "queued", "failed"]),
+  status: emailStatusSchema,
   to: z.array(z.string()),
   subject: z.string(),
   timestamp: z.string(),

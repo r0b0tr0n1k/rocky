@@ -13,7 +13,8 @@
     "test": "echo \"No tests yet\""
   },
   "dependencies": {
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@rocky/validators": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",

@@ -13,8 +13,10 @@
   "dependencies": {
     "@rocky/api": "workspace:*",
     "@rocky/database": "workspace:*",
+    "@rocky/trpc": "workspace:*",
     "@rocky/ui": "workspace:*",
     "@tanstack/react-query": "catalog:",
+    "@total-typescript/ts-reset": "^0.6.1",
     "@trpc/client": "catalog:",
     "@trpc/react-query": "catalog:",
     "@trpc/server": "catalog:",
@@ -22,6 +24,7 @@
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "server-only": "^0.0.1",
     "superjson": "catalog:"
   },
   "devDependencies": {

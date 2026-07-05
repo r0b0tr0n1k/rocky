@@ -1,7 +1,7 @@
 export type { AppContext } from "@rocky/trpc";
 
 import { Injectable } from "@nestjs/common";
-import type { TRPCContext } from "nestjs-trpc-v2";
+import type { TRPCContext } from "nestjs-trpc";
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import type { AppContext } from "@rocky/trpc";
 

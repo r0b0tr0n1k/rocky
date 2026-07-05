@@ -9,7 +9,6 @@ import { z } from "zod";
 import { userSelectSchema, userInsertSchema } from "@rocky/database/zod";
 import { userStatusSchema } from "../enums/domain.js";
 import { sortByUserSchema, sortOrderSchema } from "../enums/domain.js";
-import type { userStatusType } from "../enums/domain.js";
 import { STATE_CODE } from "@rocky/database/constants";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -29,8 +28,7 @@ export const userResponseSchema = userSelectSchema
 
 export type UserResponse = z.infer<typeof userResponseSchema>;
 
-export const userSummarySchema = z
-  .object({
+export const userSummarySchema = z.strictObject({
     id: z.uuid(),
     username: z.string(),
     email: z.string().nullable(),
@@ -39,8 +37,7 @@ export const userSummarySchema = z
     organizationId: z.uuid().nullable(),
     status: userStatusSchema,
     lastLoginAt: z.date().nullable(),
-  })
-  .strict();
+  });
 
 export type UserSummary = z.infer<typeof userSummarySchema>;
 

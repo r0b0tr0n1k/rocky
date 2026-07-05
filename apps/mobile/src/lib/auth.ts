@@ -7,7 +7,7 @@ import * as SecureStore from "expo-secure-store";
 import { getConfig } from "./config";
 
 // Must match backend's `advanced.cookiePrefix`
-const COOKIE_PREFIX = "yourcompany";
+const COOKIE_PREFIX = "rocky";
 
 // Prefix for device storage keys (does not need to match cookiePrefix)
 const STORAGE_PREFIX = "mobile";

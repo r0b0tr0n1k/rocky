@@ -4,8 +4,8 @@
 
 import { z } from "zod";
 import { eventEnvelopeSchema } from "./base.js";
-import { verificationStatusSchema, farmTypeSchema, subjectRoleSchema } from "../enums/domain.js";
-import type { verificationStatusType, farmTypeType, subjectRoleType } from "../enums/domain.js";
+import { verificationStatusSchema, farmTypeSchema, subjectRoleSchema, dataSourceSchema } from "../enums/domain.js";
+import type { verificationStatusType, farmTypeType, subjectRoleType, dataSourceType } from "../enums/domain.js";
 import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════
@@ -19,7 +19,7 @@ export interface FarmRegisteredPayload {
   type: farmTypeType;
   addressId: string;
   verificationStatus: verificationStatusType;
-  dataSource: string;
+  dataSource: dataSourceType;
 }
 
 export const farmRegisteredPayloadSchema = z.strictObject({
@@ -29,7 +29,7 @@ export const farmRegisteredPayloadSchema = z.strictObject({
   type: farmTypeSchema,
   addressId: z.uuid(),
   verificationStatus: verificationStatusSchema,
-  dataSource: z.string(),
+  dataSource: dataSourceSchema,
 }) satisfies z.ZodType<FarmRegisteredPayload>;
 
 export const FarmRegisteredEvent = eventEnvelopeSchema(farmRegisteredPayloadSchema);

@@ -4,7 +4,9 @@
 // The database is shared with the NestJS API via @rocky/database.
 // Experimental .joins enables 2-3x perf for session queries.
 
+import "server-only";
 import { betterAuth } from "better-auth";
+import { admin } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { db, user, session, account, verification } from "@rocky/database";
@@ -25,7 +27,7 @@ export const auth = betterAuth({
     joins: true,
   },
   advanced: {
-    cookiePrefix: "yourcompany",
+    cookiePrefix: "rocky",
   },
   user: {
     modelName: "auth_user",
@@ -59,5 +61,5 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
-  plugins: [nextCookies()],
+  plugins: [admin({ adminRoles: ["SUPER_ADMIN"] }), nextCookies()],
 });

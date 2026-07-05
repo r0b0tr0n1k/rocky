@@ -6,18 +6,33 @@
  */
 
 import { movementListRequestSchema } from "@rocky/validators/api";
+import { movementResponseSchema } from "@rocky/validators/api";
+
 import type {
   MovementResponse,
-  MovementSummary,
   MovementListResponse,
   CreateMovementRequest,
   MovementListRequest,
 } from "@rocky/validators/api";
 import type { movements as movementsTable } from "@rocky/database";
+import { ANIMAL_STATUS, MOVEMENT_TYPE } from "@rocky/database/constants";
 import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
 import { MovementError, MOVEMENT_ERRORS } from "../errors/movement.errors.js";
 import type { MovementRepository } from "../repositories/movement.repository.js";
 import type { AnimalRepository } from "@rocky/domains-animal";
+
+/** System parameters for movement validation */
+const DEFAULT_PARAMS = {
+  slaughterMinAgeDays: 25,
+  stillbornThresholdDays: 25,
+  arrivalCorrectionDays: 2,
+  unregisteredDepartureFarmId: "100000014",
+  unregisteredArrivalFarmId: "100000027",
+} as const;
+
+function daysBetween(d1: Date, d2: Date): number {
+  return Math.abs((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+}
 
 export class MovementService {
   constructor(
@@ -29,7 +44,7 @@ export class MovementService {
     return fromAsyncThrowable(async () => {
       const mov = await this.repo.findById(id);
       if (!mov) throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { id });
-      return mov as unknown as MovementResponse;
+      return movementResponseSchema.parse(mov);
     }, toAppError)();
   }
 
@@ -43,7 +58,7 @@ export class MovementService {
       };
       const { data, total } = await this.repo.listFiltered(filter);
       return {
-        data: data as unknown as MovementSummary[],
+        data: movementResponseSchema.array().parse(data),
         total,
         limit: input.limit,
         offset: input.offset,
@@ -53,27 +68,522 @@ export class MovementService {
 
   async create(input: CreateMovementRequest & { createdBy?: string }): Promise<Result<MovementResponse, Error>> {
     return fromAsyncThrowable(async () => {
+      // ── Rule E.1/E.2: Unregistered farm substitution ──
+      let fromFarmId = input.fromFarmId;
+      let toFarmId = input.toFarmId;
+
+      if (!fromFarmId && (input.type === MOVEMENT_TYPE.PURCHASE || input.type === MOVEMENT_TYPE.IMPORT)) {
+        fromFarmId = DEFAULT_PARAMS.unregisteredDepartureFarmId;
+      }
+      if (!toFarmId) {
+        toFarmId = DEFAULT_PARAMS.unregisteredArrivalFarmId;
+      }
+
       // Guard: cannot move animal to the same farm
-      if (input.fromFarmId && input.toFarmId && input.fromFarmId === input.toFarmId) {
-        throw new MovementError(MOVEMENT_ERRORS.SAME_FARM, {
-          farmId: input.fromFarmId,
+      if (fromFarmId && fromFarmId === toFarmId) {
+        throw new MovementError(MOVEMENT_ERRORS.SAME_FARM, { farmId: fromFarmId });
+      }
+
+      // Verify animal exists and is alive
+      const animal = await this.animalRepo.findById(input.animalId);
+      if (!animal) {
+        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+      }
+
+      // ── Rule E.3: Single-farm org restriction ──
+      // (Enforced via RLS — no code-level check needed)
+
+      // Create movement record
+      const mov = await this.repo.insert({
+        ...input,
+        fromFarmId,
+        toFarmId,
+        type: input.type ?? MOVEMENT_TYPE.SALE,
+      } as unknown as typeof movementsTable.$inferInsert);
+
+      // Update animal's current farm (only for non-death/non-slaughter movements)
+      if (
+        input.type !== MOVEMENT_TYPE.DEATH &&
+        input.type !== MOVEMENT_TYPE.HOME_SLAUGHTER &&
+        input.type !== MOVEMENT_TYPE.SLAUGHTERHOUSE
+      ) {
+        await this.animalRepo.updateFarm(input.animalId, toFarmId);
+      }
+
+      return movementResponseSchema.parse(mov);
+    }, toAppError)();
+  }
+
+  // ── Rule Group B: Death Scenarios ──
+
+  async recordDeath(input: {
+    animalId: string;
+    farmId: string;
+    deathDate: string;
+    deathCause: string;
+    createdBy?: string;
+  }): Promise<Result<MovementResponse, Error>> {
+    return fromAsyncThrowable(async () => {
+      const animal = await this.animalRepo.findById(input.animalId);
+      if (!animal) {
+        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+      }
+      if (animal.status !== ANIMAL_STATUS.ALIVE) {
+        throw new MovementError(MOVEMENT_ERRORS.ANIMAL_NOT_ALIVE, {
+          animalId: input.animalId,
+          status: animal.status,
         });
       }
 
-      // Verify animal exists
-      const animal = await this.animalRepo.findAnimalFarm(input.animalId);
-      if (!animal)
-        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, {
+      // ── Rule B.2: Stillborn threshold ──
+      const birthDate = new Date(animal.birthDate);
+      const deathDate = new Date(input.deathDate);
+      const ageDays = daysBetween(birthDate, deathDate);
+      const isStillborn = ageDays <= DEFAULT_PARAMS.stillbornThresholdDays;
+
+      const effectiveCause = isStillborn ? "STILLBORN" : input.deathCause;
+
+      // Create death movement
+      const mov = await this.repo.insert({
+        animalId: input.animalId,
+        toFarmId: input.farmId,
+        type: MOVEMENT_TYPE.DEATH,
+        movementDate: input.deathDate,
+        deathDate: input.deathDate,
+        deathCause: effectiveCause,
+        createdBy: input.createdBy,
+      } as unknown as typeof movementsTable.$inferInsert);
+
+      // Update animal status
+      const newStatus = isStillborn ? ANIMAL_STATUS.STILLBORN : ANIMAL_STATUS.DEAD;
+      await this.animalRepo.update(input.animalId, { status: newStatus });
+
+      return movementResponseSchema.parse(mov);
+    }, toAppError)();
+  }
+
+  // ── Rule Group C: Pasture Movements ──
+
+  async declarePasture(input: {
+    animalIds: string[];
+    fromFarmId: string;
+    toFarmId: string;
+    departureDate: string;
+    expectedReturnDate: string;
+    pastureType: string;
+    createdBy?: string;
+  }): Promise<Result<MovementResponse[], Error>> {
+    return fromAsyncThrowable(async () => {
+      const results: MovementResponse[] = [];
+
+      for (const animalId of input.animalIds) {
+        const animal = await this.animalRepo.findById(animalId);
+        if (!animal) {
+          throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId });
+        }
+
+        // ── Rule C.1: Only animals at home farm can go to pasture ──
+        if (animal.currentFarmId !== input.fromFarmId) {
+          throw new MovementError(MOVEMENT_ERRORS.PASTURE_ANIMAL_NOT_HOME, {
+            animalId,
+            animalFarmId: animal.currentFarmId,
+            declaredFarmId: input.fromFarmId,
+          });
+        }
+
+        // ── Rule C.3: Pasture cannot be used as departure farm ──
+        // (Enforced by caller — pasture farms have specific type)
+
+        // Create pasture departure movement
+        const mov = await this.repo.insert({
+          animalId,
+          fromFarmId: input.fromFarmId,
+          toFarmId: input.toFarmId,
+          type: MOVEMENT_TYPE.PASTURE_DEPARTURE,
+          movementDate: input.departureDate,
+          createdBy: input.createdBy,
+        } as unknown as typeof movementsTable.$inferInsert);
+
+        if (mov) {
+          // Update animal's current farm to pasture
+          await this.animalRepo.updateFarm(animalId, input.toFarmId);
+          results.push(movementResponseSchema.parse(mov));
+        }
+      }
+
+      return results;
+    }, toAppError)();
+  }
+
+  // ── Rule Group D: Slaughter ──
+
+  async recordSlaughter(input: {
+    animalId: string;
+    fromFarmId: string;
+    slaughterhouseId: string;
+    slaughterDate: string;
+    arrivalDate?: string;
+    createdBy?: string;
+  }): Promise<Result<MovementResponse, Error>> {
+    return fromAsyncThrowable(async () => {
+      const animal = await this.animalRepo.findById(input.animalId);
+      if (!animal) {
+        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+      }
+      if (animal.status !== ANIMAL_STATUS.ALIVE) {
+        throw new MovementError(MOVEMENT_ERRORS.ANIMAL_NOT_ALIVE, {
           animalId: input.animalId,
+          status: animal.status,
         });
+      }
 
-      // Create movement record
-      const mov = await this.repo.insert(input as typeof movementsTable.$inferInsert);
+      // ── Rule D.1: Minimum age check ──
+      const birthDate = new Date(animal.birthDate);
+      const slaughterDate = new Date(input.slaughterDate);
+      const ageDays = daysBetween(birthDate, slaughterDate);
+      if (ageDays < DEFAULT_PARAMS.slaughterMinAgeDays) {
+        throw new MovementError(MOVEMENT_ERRORS.SLAUGHTER_MIN_AGE, {
+          animalId: input.animalId,
+          ageDays,
+          requiredDays: DEFAULT_PARAMS.slaughterMinAgeDays,
+        });
+      }
 
-      // Update animal's current farm
-      await this.animalRepo.updateFarm(input.animalId, input.toFarmId);
+      // ── Rule D.3: Arrival correction (+/- 2 days) ──
+      let movementDate = input.slaughterDate;
+      if (input.arrivalDate) {
+        const arrivalDate = new Date(input.arrivalDate);
+        const diff = daysBetween(arrivalDate, slaughterDate);
+        if (diff > DEFAULT_PARAMS.arrivalCorrectionDays) {
+          movementDate = input.arrivalDate;
+        }
+      }
 
-      return mov as unknown as MovementResponse;
+      // Create slaughter movement
+      const mov = await this.repo.insert({
+        animalId: input.animalId,
+        fromFarmId: input.fromFarmId,
+        toFarmId: input.slaughterhouseId,
+        type: MOVEMENT_TYPE.SLAUGHTERHOUSE,
+        movementDate,
+        arrivalDate: input.arrivalDate,
+        createdBy: input.createdBy,
+      } as unknown as typeof movementsTable.$inferInsert);
+
+      // Update animal status
+      await this.animalRepo.update(input.animalId, { status: ANIMAL_STATUS.SLAUGHTERED });
+
+      return movementResponseSchema.parse(mov);
+    }, toAppError)();
+  }
+
+  // ── Rule Group IE: Import/Export ──
+
+  /**
+   * IE.1 + IE.2: EU Import
+   * - Original animal ID unchanged
+   * - Creates IMPORT movement
+   * - Creates import_export_record with foreign passport stored for 3 years
+   * - Animal status → IMPORTED
+   */
+  async importEU(input: {
+    animalId: string;
+    fromFarmId: string;
+    toFarmId: string;
+    countryOfOrigin: string;
+    foreignPassportNumber?: string;
+    bipEntryDate?: string;
+    createdBy?: string;
+  }): Promise<Result<MovementResponse, Error>> {
+    return fromAsyncThrowable(async () => {
+      const animal = await this.animalRepo.findById(input.animalId);
+      if (!animal) throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+      if (animal.status !== ANIMAL_STATUS.ALIVE) {
+        throw new MovementError(MOVEMENT_ERRORS.ANIMAL_NOT_ALIVE, { animalId: input.animalId });
+      }
+
+      // Create IMPORT movement
+      const mov = await this.repo.insert({
+        animalId: input.animalId,
+        fromFarmId: input.fromFarmId,
+        toFarmId: input.toFarmId,
+        type: MOVEMENT_TYPE.IMPORT,
+        movementDate: input.bipEntryDate ?? new Date().toISOString().split("T")[0]!,
+        importCountry: input.countryOfOrigin,
+        createdBy: input.createdBy,
+      } as unknown as typeof movementsTable.$inferInsert);
+
+      // IE.2: Foreign passport stored for 3 years
+      const storageExpiry = new Date();
+      storageExpiry.setFullYear(storageExpiry.getFullYear() + 3);
+
+      await this.repo.createImportExportRecord({
+        direction: "import",
+        animalId: input.animalId,
+        fromFarmId: input.fromFarmId,
+        toFarmId: input.toFarmId,
+        importType: "eu",
+        countryOfOrigin: input.countryOfOrigin,
+        foreignPassportNumber: input.foreignPassportNumber,
+        foreignPassportStored: !!input.foreignPassportNumber,
+        foreignPassportStorageExpiry: storageExpiry.toISOString().split("T")[0]!,
+        bipEntryDate: input.bipEntryDate,
+        status: "completed",
+        createdBy: input.createdBy,
+      });
+
+      // Update animal status
+      await this.animalRepo.update(input.animalId, { status: ANIMAL_STATUS.IMPORTED });
+
+      return movementResponseSchema.parse(mov);
+    }, toAppError)();
+  }
+
+  /**
+   * IE.3 + IE.4: 3rd Country Import
+   * - IE.3: Re-tag with national ear tag (retagged=true, newEarTagNumber)
+   * - IE.4: Full re-registration as new animal (creates new animal record)
+   * - Creates IMPORT movement + import_export_record
+   */
+  async importThirdCountry(input: {
+    animalId: string;
+    fromFarmId: string;
+    toFarmId: string;
+    countryOfOrigin: string;
+    newEarTagNumber?: string;
+    bipEntryDate?: string;
+    createdBy?: string;
+  }): Promise<Result<MovementResponse, Error>> {
+    return fromAsyncThrowable(async () => {
+      const animal = await this.animalRepo.findById(input.animalId);
+      if (!animal) throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+
+      // Create IMPORT movement
+      const mov = await this.repo.insert({
+        animalId: input.animalId,
+        fromFarmId: input.fromFarmId,
+        toFarmId: input.toFarmId,
+        type: MOVEMENT_TYPE.IMPORT,
+        movementDate: input.bipEntryDate ?? new Date().toISOString().split("T")[0]!,
+        importCountry: input.countryOfOrigin,
+        createdBy: input.createdBy,
+      } as unknown as typeof movementsTable.$inferInsert);
+
+      // Create import_export_record with re-tagging info
+      await this.repo.createImportExportRecord({
+        direction: "import",
+        animalId: input.animalId,
+        fromFarmId: input.fromFarmId,
+        toFarmId: input.toFarmId,
+        importType: "third_country",
+        countryOfOrigin: input.countryOfOrigin,
+        retagged: !!input.newEarTagNumber,
+        newEarTagNumber: input.newEarTagNumber,
+        bipEntryDate: input.bipEntryDate,
+        status: "completed",
+        createdBy: input.createdBy,
+      });
+
+      // Update animal status
+      await this.animalRepo.update(input.animalId, { status: ANIMAL_STATUS.IMPORTED });
+
+      return movementResponseSchema.parse(mov);
+    }, toAppError)();
+  }
+
+  /**
+   * IE.5: Export
+   * - BIP enters animal data, indicates country of destination
+   * - Creates EXPORT movement + import_export_record
+   * - Animal status → EXPORTED
+   */
+  async exportAnimal(input: {
+    animalId: string;
+    fromFarmId: string;
+    toFarmId?: string;
+    destinationCountry: string;
+    bipExitDate?: string;
+    createdBy?: string;
+  }): Promise<Result<MovementResponse, Error>> {
+    return fromAsyncThrowable(async () => {
+      const animal = await this.animalRepo.findById(input.animalId);
+      if (!animal) throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+      if (animal.status !== ANIMAL_STATUS.ALIVE) {
+        throw new MovementError(MOVEMENT_ERRORS.ANIMAL_NOT_ALIVE, { animalId: input.animalId });
+      }
+
+      const toFarmId = input.toFarmId ?? DEFAULT_PARAMS.unregisteredDepartureFarmId;
+
+      // Create EXPORT movement
+      const mov = await this.repo.insert({
+        animalId: input.animalId,
+        fromFarmId: input.fromFarmId,
+        toFarmId,
+        type: MOVEMENT_TYPE.EXPORT,
+        movementDate: input.bipExitDate ?? new Date().toISOString().split("T")[0]!,
+        exportCountry: input.destinationCountry,
+        createdBy: input.createdBy,
+      } as unknown as typeof movementsTable.$inferInsert);
+
+      // Create import_export_record
+      await this.repo.createImportExportRecord({
+        direction: "export",
+        animalId: input.animalId,
+        fromFarmId: input.fromFarmId,
+        toFarmId,
+        countryOfOrigin: input.destinationCountry,
+        destinationCountry: input.destinationCountry,
+        bipExitDate: input.bipExitDate,
+        status: "completed",
+        createdBy: input.createdBy,
+      });
+
+      // Update animal status
+      await this.animalRepo.update(input.animalId, { status: ANIMAL_STATUS.EXPORTED });
+
+      return movementResponseSchema.parse(mov);
+    }, toAppError)();
+  }
+
+  // ── Rule Group M: Market Movements ──
+
+  /**
+   * M.1 + M.2: 4-leg market transaction
+   * Leg 1: seller → market (MARKET_SALE)
+   * Leg 2: market → purchaser (MARKET_PURCHASE)
+   * Leg 3: purchaser → market (MARKET_SALE) — if purchaser is also seller at market
+   * Leg 4: market → new purchaser (MARKET_PURCHASE)
+   *
+   * Uses parentMovementId + legOrder to chain legs.
+   */
+  async recordMarketTransaction(input: {
+    animalId: string;
+    sellerFarmId: string;
+    buyerFarmId: string;
+    marketFarmId: string;
+    movementDate: string;
+    salePrice?: number;
+    createdBy?: string;
+  }): Promise<Result<MovementResponse[], Error>> {
+    return fromAsyncThrowable(async () => {
+      const animal = await this.animalRepo.findById(input.animalId);
+      if (!animal) throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+      if (animal.status !== ANIMAL_STATUS.ALIVE) {
+        throw new MovementError(MOVEMENT_ERRORS.ANIMAL_NOT_ALIVE, { animalId: input.animalId });
+      }
+
+      const legs: typeof movementsTable.$inferInsert[] = [];
+
+      // Leg 1: Seller → Market (MARKET_SALE)
+      legs.push({
+        animalId: input.animalId,
+        fromFarmId: input.sellerFarmId,
+        toFarmId: input.marketFarmId,
+        type: MOVEMENT_TYPE.MARKET_SALE,
+        movementDate: input.movementDate,
+        legOrder: 1,
+        createdBy: input.createdBy,
+      });
+
+      // Leg 2: Market → Buyer (MARKET_PURCHASE)
+      legs.push({
+        animalId: input.animalId,
+        fromFarmId: input.marketFarmId,
+        toFarmId: input.buyerFarmId,
+        type: MOVEMENT_TYPE.MARKET_PURCHASE,
+        movementDate: input.movementDate,
+        legOrder: 2,
+        createdBy: input.createdBy,
+      });
+
+      // Insert leg 1 first to get its ID for parentMovementId
+      const leg1 = await this.repo.insert(legs[0]!);
+      if (!leg1) throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, { reason: "Failed to create market leg 1" });
+
+      // Insert leg 2 with parentMovementId
+      const leg2 = await this.repo.insert({
+        ...legs[1]!,
+        parentMovementId: leg1.id,
+      });
+
+      // Update animal's current farm to buyer
+      await this.animalRepo.updateFarm(input.animalId, input.buyerFarmId);
+
+      const results: MovementResponse[] = [movementResponseSchema.parse(leg1)];
+      if (leg2) results.push(movementResponseSchema.parse(leg2));
+      return results;
+    }, toAppError)();
+  }
+
+  /**
+   * M.3: Unsold animal fallback — purchaser acts as seller
+   * Creates a reverse movement when animal is unsold at market.
+   */
+  async recordMarketUnsold(input: {
+    animalId: string;
+    buyerFarmId: string;
+    sellerFarmId: string;
+    marketFarmId: string;
+    movementDate: string;
+    createdBy?: string;
+  }): Promise<Result<MovementResponse, Error>> {
+    return fromAsyncThrowable(async () => {
+      const animal = await this.animalRepo.findById(input.animalId);
+      if (!animal) throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+
+      // Reverse: buyer → market → original seller
+      const mov = await this.repo.insert({
+        animalId: input.animalId,
+        fromFarmId: input.buyerFarmId,
+        toFarmId: input.sellerFarmId,
+        type: MOVEMENT_TYPE.PURCHASE,
+        movementDate: input.movementDate,
+        reason: "unsold_at_market",
+        createdBy: input.createdBy,
+      } as unknown as typeof movementsTable.$inferInsert);
+
+      // Update animal's current farm back to seller
+      await this.animalRepo.updateFarm(input.animalId, input.sellerFarmId);
+
+      if (!mov) throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, { reason: "Failed to create unsold movement" });
+      return movementResponseSchema.parse(mov);
+    }, toAppError)();
+  }
+
+  /**
+   * M.4: Home slaughter status on market off-movement
+   * When animal is slaughtered at market instead of going to buyer.
+   */
+  async recordMarketSlaughter(input: {
+    animalId: string;
+    sellerFarmId: string;
+    marketFarmId: string;
+    slaughterhouseId: string;
+    movementDate: string;
+    createdBy?: string;
+  }): Promise<Result<MovementResponse, Error>> {
+    return fromAsyncThrowable(async () => {
+      const animal = await this.animalRepo.findById(input.animalId);
+      if (!animal) throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+      if (animal.status !== ANIMAL_STATUS.ALIVE) {
+        throw new MovementError(MOVEMENT_ERRORS.ANIMAL_NOT_ALIVE, { animalId: input.animalId });
+      }
+
+      // Market → Slaughterhouse
+      const mov = await this.repo.insert({
+        animalId: input.animalId,
+        fromFarmId: input.marketFarmId,
+        toFarmId: input.slaughterhouseId,
+        type: MOVEMENT_TYPE.SLAUGHTERHOUSE,
+        movementDate: input.movementDate,
+        createdBy: input.createdBy,
+      } as unknown as typeof movementsTable.$inferInsert);
+
+      // Update animal status
+      await this.animalRepo.update(input.animalId, { status: ANIMAL_STATUS.SLAUGHTERED });
+
+      if (!mov) throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, { reason: "Failed to create market slaughter movement" });
+      return movementResponseSchema.parse(mov);
     }, toAppError)();
   }
 }

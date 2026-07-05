@@ -7,22 +7,10 @@
 // Based on: FS - registration_MK(v0.91).pdf §Business rules
 
 import { z } from "zod";
-import {
-  animalSelectSchema,
-  animalInsertSchema,
-  animalParentSelectSchema,
-} from "@rocky/database/zod";
-import {
-  animalStatusSchema,
-  birthTypeSchema,
-  sexSchema,
-} from "../enums/domain.js";
-import {
-  sortAnimalBySchema,
-  sortOrderSchema,
-  stateCodeSchema,
-} from "../enums/domain.js";
-import type { stateCodeType } from "../enums/domain.js";
+import { animalSelectSchema, animalInsertSchema, animalParentSelectSchema } from "@rocky/database/zod";
+import { animalStatusSchema, birthTypeSchema, sexSchema } from "../enums/domain.js";
+import { sortAnimalBySchema, sortOrderSchema, stateCodeSchema } from "../enums/domain.js";
+import { earTagSchema } from "../utils/check-digit.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RESPONSE SCHEMAS (Diamond Seal — what the API returns)
@@ -58,8 +46,7 @@ export const animalSummarySchema = z.strictObject({
 export type AnimalSummary = z.infer<typeof animalSummarySchema>;
 
 /** Parent record embedded in lineage responses */
-export const animalParentResponseSchema =
-  animalParentSelectSchema.strict();
+export const animalParentResponseSchema = animalParentSelectSchema.strict();
 
 export type AnimalParentResponse = z.infer<typeof animalParentResponseSchema>;
 
@@ -129,10 +116,7 @@ export const updateAnimalRequestSchema = z
     taggingDate: z.date().optional(),
     isFirstTagging: z.boolean().optional(),
   })
-  .refine(
-    (data) => Object.keys(data).length > 0,
-    "At least one field must be updated",
-  );
+  .refine((data) => Object.keys(data).length > 0, "At least one field must be updated");
 
 // ── Animal List Request ──
 
@@ -162,4 +146,3 @@ export const findAnimalByTagRequestSchema = z.strictObject({
 // ═══════════════════════════════════════════════════════════════════════════
 // GUILLOTINE ACTIVATION
 // ═══════════════════════════════════════════════════════════════════════════
-

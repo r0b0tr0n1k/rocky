@@ -1,9 +1,17 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { expo } from "@better-auth/expo";
-import { customSession } from "better-auth/plugins";
+import { admin, customSession } from "better-auth/plugins";
 import { db } from "@rocky/database";
 import { user, session, account, verification } from "@rocky/database/schema/auth";
+import {
+  users as smUsers,
+  roles,
+  userRoles as smUserRoles,
+  rolePermissions,
+  permissions as permTable,
+} from "@rocky/database";
+import { eq } from "drizzle-orm";
 import { appConfig } from "#/config";
 import { logger } from "#/log";
 
@@ -27,7 +35,7 @@ export class Auth {
       }),
       trustedOrigins: appConfig.trustedOrigins,
       advanced: {
-        cookiePrefix: "yourcompany",
+        cookiePrefix: "rocky",
         generateId: false,
       },
       user: {
@@ -84,6 +92,7 @@ export class Auth {
         },
       },
       plugins: [
+        admin({ adminRoles: ["SUPER_ADMIN"] }),
         expo(),
         customSession(
           async ({
@@ -94,74 +103,60 @@ export class Auth {
             user: Record<string, unknown>;
           }> => {
             // Bridge Better Auth identity → SM domain identity
-            // Enriches session with roles, permissions, org context for RLS
-            const smUser = (await (db.query! as any).users.findFirst({
-              where: { authUserId: authUser.id } as any,
-              with: {
-                organization: true,
-                roles: {
-                  with: {
-                    role: {
-                      with: {
-                        permissions: {
-                          with: { permission: true },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            })) as unknown as {
-              id: string;
-              username: string | null;
-              language: string | null;
-              status: string | null;
-              organizationId: string | null;
-              organization?: { districtId?: string | null } | null;
-              roles?: Array<{
-                role?: {
-                  name: string;
-                  permissions?: Array<{
-                    permission?: { resource: string; action: string } | null;
-                  } | null> | null;
-                } | null;
-              } | null> | null;
-            } | null;
+            // Uses typed db.select() instead of Drizzle RC's relation queries
 
-            const permissionList =
-              smUser?.roles
-                ?.filter((ur): ur is NonNullable<typeof ur> => ur != null)
-                .flatMap(
-                  (ur) =>
-                    ur.role?.permissions
-                      ?.filter((rp): rp is NonNullable<typeof rp> => rp != null)
-                      .map((rp) => `${rp.permission?.resource}:${rp.permission?.action}`) ?? [],
-                )
-                .filter((s): s is string => Boolean(s)) ?? [];
+            // Step 1: Find SM user
+            const [smUserRow] = await db.select().from(smUsers).where(eq(smUsers.authUserId, authUser.id)).limit(1);
 
-            // Role names for RLS: ["VD_STAFF", "FARMER"]
-            const roleNames: string[] =
-              smUser?.roles
-                ?.filter((ur): ur is NonNullable<typeof ur> => ur != null)
-                .map((ur) => ur.role?.name)
-                .filter((s): s is string => Boolean(s)) ?? [];
+            let smUserId: string | null = null;
+
+            let roleNames: string[] = [];
+            let permissionList: string[] = [];
+
+            if (smUserRow) {
+              smUserId = smUserRow.id;
+
+              // Step 2: Org info available via smUserRow.organizationId directly
+
+              // Step 3: Fetch user roles with permissions via explicit joins
+              const userRoles = await db
+                .select({
+                  roleName: roles.name,
+                  permResource: permTable.resource,
+                  permAction: permTable.action,
+                })
+                .from(smUserRoles)
+                .where(eq(smUserRoles.userId, smUserRow.id))
+                .leftJoin(roles, eq(smUserRoles.roleId, roles.id))
+                .leftJoin(rolePermissions, eq(roles.id, rolePermissions.roleId))
+                .leftJoin(permTable, eq(rolePermissions.permissionId, permTable.id));
+
+              // Collect unique role names
+              roleNames = [...new Set(userRoles.map((r) => r.roleName).filter((n): n is string => n != null))];
+
+              // Collect unique permissions
+              permissionList = [
+                ...new Set(
+                  userRoles
+                    .map((r) => (r.permResource && r.permAction ? `${r.permResource}:${r.permAction}` : null))
+                    .filter((s): s is string => s != null),
+                ),
+              ];
+            }
 
             return {
               session,
               user: {
-                // Better Auth core fields
                 ...authUser,
-                // SM domain identity (RLS middleware consumes these)
-                smUserId: smUser?.id ?? null,
+                smUserId: smUserId,
                 role: roleNames[0] ?? "FARMER",
                 roles: roleNames,
                 permissions: permissionList,
-                organizationId: smUser?.organizationId ?? null,
-                districtId: smUser?.organization?.districtId ?? null,
-                // Audit metadata
-                username: smUser?.username ?? null,
-                language: smUser?.language ?? "MK",
-                status: smUser?.status ?? "ACTIVE",
+                organizationId: smUserRow?.organizationId ?? null,
+
+                username: smUserRow?.username ?? null,
+                language: smUserRow?.language ?? "MK",
+                status: smUserRow?.status ?? "ACTIVE",
               },
             };
           },

@@ -7,6 +7,7 @@
 import { eq, and, desc, asc, sql, gte, lte, type SQL } from "drizzle-orm";
 import type { DB } from "@rocky/database";
 import { movements as movementsTable } from "@rocky/database";
+import { importExportRecords as importExportRecordsTable } from "@rocky/database";
 import { BaseRepository } from "@rocky/domains-shared";
 import { SORT_BY_MOVEMENT, SORT_ORDER } from "@rocky/database/constants";
 
@@ -58,5 +59,41 @@ export class MovementRepository extends BaseRepository {
   async insert(data: typeof movementsTable.$inferInsert): Promise<typeof movementsTable.$inferSelect | null> {
     const [row] = await this.db.insert(movementsTable).values(data).returning();
     return row ?? null;
+  }
+
+  async insertBatch(data: typeof movementsTable.$inferInsert[]): Promise<typeof movementsTable.$inferSelect[]> {
+    if (data.length === 0) return [];
+    const rows = await this.db.insert(movementsTable).values(data).returning();
+    return rows;
+  }
+
+  async findActiveDeparturesByAnimal(animalId: string) {
+    return this.db
+      .select()
+      .from(movementsTable)
+      .where(
+        and(
+          eq(movementsTable.animalId, animalId),
+          eq(movementsTable.isActive, true),
+        ),
+      )
+      .orderBy(desc(movementsTable.movementDate))
+      .limit(5);
+  }
+
+  // ── Import/Export Records ──
+
+  async createImportExportRecord(data: typeof importExportRecordsTable.$inferInsert) {
+    const [row] = await this.db.insert(importExportRecordsTable).values(data).returning();
+    return row ?? null;
+  }
+
+  async findImportExportByAnimalId(animalId: string) {
+    return this.db
+      .select()
+      .from(importExportRecordsTable)
+      .where(eq(importExportRecordsTable.animalId, animalId))
+      .orderBy(desc(importExportRecordsTable.createdAt))
+      .limit(5);
   }
 }

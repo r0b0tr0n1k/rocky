@@ -12,10 +12,26 @@ import type {
   UpdateAnimalRequest,
   AnimalListRequest,
 } from "@rocky/validators/api";
+import { animalResponseSchema, animalSummarySchema } from "@rocky/validators/api";
 import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
-import { STATE_CODE } from "@rocky/database/constants";
+import { STATE_CODE, ANIMAL_STATUS } from "@rocky/database/constants";
 import { AnimalError, ANIMAL_ERRORS } from "../errors/animal.errors.js";
 import type { AnimalRepository } from "../repositories/animal.repository.js";
+
+/** System parameters for registration validation */
+const DEFAULT_PARAMS = {
+  minMotherAgeMonths: 17,
+  calvingPeriodDays: 365,
+} as const;
+
+function monthsBetween(d1: Date, d2: Date): number {
+  const months = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
+  return months;
+}
+
+function daysBetween(d1: Date, d2: Date): number {
+  return Math.abs((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+}
 
 export class AnimalService {
   constructor(private readonly repo: AnimalRepository) {}
@@ -24,21 +40,106 @@ export class AnimalService {
     return fromAsyncThrowable(async () => {
       const animal = await this.repo.findById(id);
       if (!animal) throw new AnimalError(ANIMAL_ERRORS.NOT_FOUND, { id });
-      return animal as unknown as AnimalResponse;
+      return animalResponseSchema.parse(animal);
     }, toAppError)();
   }
 
   async list(input: AnimalListRequest): Promise<Result<AnimalListResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const { data, total } = await this.repo.listFiltered(input);
-      return { data: data as unknown as AnimalSummary[], total, limit: input.limit, offset: input.offset };
+      return { data: data.map((d: any) => animalSummarySchema.parse(d)), total, limit: input.limit, offset: input.offset };
     }, toAppError)();
   }
 
   async create(input: CreateAnimalRequest & { createdBy?: string }): Promise<Result<AnimalResponse, Error>> {
     return fromAsyncThrowable(async () => {
+      // ── Rule A.3: Ear tag must be NEW (not previously applied) ──
+      const existingTag = await this.repo.findByTag(input.earTagNumber, input.stateCode ?? STATE_CODE.MK);
+      if (existingTag) {
+        throw new AnimalError(ANIMAL_ERRORS.EAR_TAG_ALREADY_USED, {
+          earTagNumber: input.earTagNumber,
+          stateCode: input.stateCode,
+        });
+      }
+
+      // ── Mother checks (Rules A.4a–A.4d) ──
+      if (input.motherId) {
+        const mother = await this.repo.findById(input.motherId);
+        if (!mother) {
+          throw new AnimalError(ANIMAL_ERRORS.NOT_FOUND, { id: input.motherId, context: "mother" });
+        }
+
+        // Rule A.4a: Mother must be on the farm at time of birth
+        if (mother.currentFarmId !== input.currentFarmId) {
+          throw new AnimalError(ANIMAL_ERRORS.MOTHER_NOT_ON_FARM, {
+            motherId: input.motherId,
+            motherFarmId: mother.currentFarmId,
+            birthFarmId: input.currentFarmId,
+          });
+        }
+
+        // Rule A.4b: Mother must be alive at time of birth
+        if (mother.status !== ANIMAL_STATUS.ALIVE) {
+          throw new AnimalError(ANIMAL_ERRORS.MOTHER_NOT_ALIVE, {
+            motherId: input.motherId,
+            motherStatus: mother.status,
+          });
+        }
+
+        // Rule A.4c: Mother must be >= minMotherAgeMonths old at birth
+        const birthDate = new Date(input.birthDate);
+        const motherBirthDate = new Date(mother.birthDate);
+        const motherAgeMonths = monthsBetween(motherBirthDate, birthDate);
+        if (motherAgeMonths < DEFAULT_PARAMS.minMotherAgeMonths) {
+          throw new AnimalError(ANIMAL_ERRORS.MOTHER_TOO_YOUNG, {
+            motherId: input.motherId,
+            motherAgeMonths,
+            requiredMonths: DEFAULT_PARAMS.minMotherAgeMonths,
+          });
+        }
+
+        // Rule A.4d: Calving gap >= calvingPeriodDays since mother's last calf
+        const lastCalf = await this.repo.findLastCalfByMother(input.motherId);
+        if (lastCalf) {
+          const lastCalfDate = new Date(lastCalf.birthDate);
+          const gapDays = daysBetween(lastCalfDate, birthDate);
+          if (gapDays < DEFAULT_PARAMS.calvingPeriodDays) {
+            throw new AnimalError(ANIMAL_ERRORS.INVALID_CALVING_GAP, {
+              motherId: input.motherId,
+              lastCalfDate: lastCalf.birthDate,
+              gapDays,
+              requiredDays: DEFAULT_PARAMS.calvingPeriodDays,
+            });
+          }
+        }
+      }
+
+      // ── Rule A.5: Parent sex validation ──
+      if (input.motherId) {
+        const mother = await this.repo.findById(input.motherId);
+        if (mother && mother.sex !== "female") {
+          throw new AnimalError(ANIMAL_ERRORS.INVALID_PARENT_SEX, {
+            parentId: input.motherId,
+            parentType: "mother",
+            actualSex: mother.sex,
+            expectedSex: "female",
+          });
+        }
+      }
+      if (input.fatherId) {
+        const father = await this.repo.findById(input.fatherId);
+        if (father && father.sex !== "male") {
+          throw new AnimalError(ANIMAL_ERRORS.INVALID_PARENT_SEX, {
+            parentId: input.fatherId,
+            parentType: "father",
+            actualSex: father.sex,
+            expectedSex: "male",
+          });
+        }
+      }
+
       const animal = await this.repo.insert(input as typeof import("@rocky/database").animals.$inferInsert);
-      return animal as unknown as AnimalResponse;
+      return animalResponseSchema.parse(animal);
     }, toAppError)();
   }
 
@@ -49,7 +150,7 @@ export class AnimalService {
         input as Partial<typeof import("@rocky/database").animals.$inferInsert>,
       );
       if (!animal) throw new AnimalError(ANIMAL_ERRORS.NOT_FOUND, { id });
-      return animal as unknown as AnimalResponse;
+      return animalResponseSchema.parse(animal);
     }, toAppError)();
   }
 
@@ -57,7 +158,7 @@ export class AnimalService {
     return fromAsyncThrowable(async () => {
       const animal = await this.repo.findByTag(earTag, stateCode);
       if (!animal) throw new AnimalError(ANIMAL_ERRORS.NOT_FOUND, { earTag, stateCode });
-      return animal as unknown as AnimalResponse;
+      return animalResponseSchema.parse(animal);
     }, toAppError)();
   }
 }

@@ -1,7 +1,7 @@
 // ── Farm Router — tRPC entry point ──
 
 import { Injectable, Inject } from "@nestjs/common";
-import { Router, Query, Mutation, Input, Ctx, UseMiddlewares } from "nestjs-trpc-v2";
+import { Router, Query, Mutation, Input, Ctx, UseMiddlewares } from "nestjs-trpc";
 import { z } from "zod";
 import { createResultUnwrapper } from "@rocky/trpc";
 import { FARM_TRPC_ERROR_MAP } from "@rocky/validators/errors";
@@ -12,11 +12,13 @@ import {
   farmListResponseSchema,
   addressResponseSchema,
   createFarmRequestSchema,
+  updateFarmRequestSchema,
   farmListRequestSchema,
   type FarmResponse,
   type FarmListResponse,
   type AddressResponse,
   type CreateFarmRequest,
+  type UpdateFarmRequest,
   type FarmListRequest,
 } from "@rocky/validators/api";
 
@@ -31,7 +33,7 @@ const unwrap = createResultUnwrapper(FARM_TRPC_ERROR_MAP);
 export class FarmRouter {
   constructor(
     @Inject(FarmService) private readonly farmService: FarmService,
-  ) {}
+  ) { }
 
   @Query({ input: idParam, output: farmResponseSchema })
   async getById(@Input() input: { id: string }): Promise<FarmResponse> {
@@ -56,6 +58,14 @@ export class FarmRouter {
     return unwrap(
       await this.farmService.create({ ...input, createdBy: ctx.auth.userId }),
     );
+  }
+
+  @Mutation({ input: z.object({ id: z.uuid() }).merge(updateFarmRequestSchema), output: farmResponseSchema })
+  async update(
+    @Input() input: { id: string } & UpdateFarmRequest,
+  ): Promise<FarmResponse> {
+    const { id, ...data } = input;
+    return unwrap(await this.farmService.update(id, data));
   }
 
   @Query({ input: idParam, output: addressResponseSchema })

@@ -5,11 +5,11 @@
  *   Shovels, not announcers — no events, no business logic.
  */
 
-import { eq, and, ilike, or, desc, asc, sql, type SQL } from "drizzle-orm";
+import { eq, and, inArray, ilike, or, desc, asc, sql, gte, lte, type SQL } from "drizzle-orm";
 import type { DB } from "@rocky/database";
-import { earTags, earTagOrders, earTagTypes } from "@rocky/database";
+import { earTags, earTagOrders, earTagTypes, earTagAllocations, farms, animals } from "@rocky/database";
 import { BaseRepository } from "@rocky/domains-shared";
-import { SORT_BY_EARTAG, SORT_ORDER } from "@rocky/database/constants";
+import { SORT_BY_EARTAG, SORT_ORDER, EAR_TAG_ORDER_STATUS, FARM_TYPE, SEX, ANIMAL_STATUS, EAR_TAG_STATUS } from "@rocky/database/constants";
 
 export type SortByEartag = (typeof SORT_BY_EARTAG)[keyof typeof SORT_BY_EARTAG];
 export type SortOrder = (typeof SORT_ORDER)[keyof typeof SORT_ORDER];
@@ -123,6 +123,153 @@ export class EarTagRepository extends BaseRepository {
       .where(eq(earTagOrders.id, orderId))
       .returning();
     return row ?? null;
+  }
+
+  async createOrder(input: {
+    organizationId: string;
+    supplierOrganizationId: string;
+    supplierName: string;
+    totalQuantity: number;
+    description?: string;
+    status: string;
+  }) {
+    const now = new Date();
+    const orderNumber = `ORD-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}-${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`;
+    const [row] = await this.db
+      .insert(earTagOrders)
+      .values({
+        orderNumber,
+        organizationId: input.organizationId,
+        supplierOrganizationId: input.supplierOrganizationId,
+        supplierName: input.supplierName,
+        totalQuantity: input.totalQuantity,
+        items: JSON.stringify({ description: input.description ?? null }),
+        status: input.status,
+        orderDate: now.toISOString().split("T")[0]!,
+      })
+      .returning();
+    return row ?? null;
+  }
+
+  async findFarmById(id: string) {
+    const [row] = await this.db.select().from(farms).where(eq(farms.id, id)).limit(1);
+    return row ?? null;
+  }
+
+  async countFemaleAnimalsOnFarm(farmId: string): Promise<number> {
+    const [row] = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(animals)
+      .where(
+        and(
+          eq(animals.currentFarmId, farmId),
+          eq(animals.sex, SEX.FEMALE as string),
+          eq(animals.status, ANIMAL_STATUS.ALIVE as string),
+          eq(animals.isActive, true),
+        ),
+      );
+    return row?.count ?? 0;
+  }
+
+  async countRemainingEarTagsOnFarm(farmId: string): Promise<number> {
+    const [row] = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(earTags)
+      .innerJoin(earTagAllocations, eq(earTags.allocationId, earTagAllocations.id))
+      .where(
+        and(
+          eq(earTagAllocations.farmId, farmId),
+          eq(earTags.status, EAR_TAG_STATUS.AVAILABLE as string),
+        ),
+      );
+    return row?.count ?? 0;
+  }
+
+  async countOrdersInYear(organizationId: string, year: number): Promise<number> {
+    const start = new Date(year, 0, 1).toISOString();
+    const end = new Date(year + 1, 0, 1).toISOString();
+    const [row] = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(earTagOrders)
+      .where(
+        and(
+          eq(earTagOrders.organizationId, organizationId),
+          gte(earTagOrders.orderDate, start),
+          lte(earTagOrders.orderDate, end),
+          sql`${earTagOrders.status} != ${EAR_TAG_ORDER_STATUS.CANCELLED}`,
+        ),
+      );
+    return row?.count ?? 0;
+  }
+
+  async lastOrderByOrganization(organizationId: string) {
+    const [row] = await this.db
+      .select()
+      .from(earTagOrders)
+      .where(
+        and(
+          eq(earTagOrders.organizationId, organizationId),
+          sql`${earTagOrders.status} != ${EAR_TAG_ORDER_STATUS.CANCELLED}`,
+        ),
+      )
+      .orderBy(desc(earTagOrders.orderDate))
+      .limit(1);
+    return row ?? null;
+  }
+
+  async findRecentDuplicateOrder(input: {
+    organizationId: string;
+    supplierOrganizationId: string;
+    withinHours?: number;
+  }) {
+    const hours = input.withinHours ?? 24;
+    const cutoff = new Date();
+    cutoff.setHours(cutoff.getHours() - hours);
+    const [row] = await this.db
+      .select()
+      .from(earTagOrders)
+      .where(
+        and(
+          eq(earTagOrders.organizationId, input.organizationId),
+          eq(earTagOrders.supplierOrganizationId, input.supplierOrganizationId),
+          gte(earTagOrders.createdAt, cutoff),
+        ),
+      )
+      .orderBy(desc(earTagOrders.createdAt))
+      .limit(1);
+    return row ?? null;
+  }
+
+  async updateOrderQuantity(orderId: string, additionalQuantity: number) {
+    const [row] = await this.db
+      .update(earTagOrders)
+      .set({ totalQuantity: sql`${earTagOrders.totalQuantity} + ${additionalQuantity}` })
+      .where(eq(earTagOrders.id, orderId))
+      .returning();
+    return row ?? null;
+  }
+
+  async findAvailableEarTags(limit: number) {
+    return this.db
+      .select()
+      .from(earTags)
+      .where(eq(earTags.status, EAR_TAG_STATUS.AVAILABLE as string))
+      .orderBy(asc(earTags.tagNumber))
+      .limit(limit);
+  }
+
+  async assignTagsToOrder(tagIds: string[], orderId: string) {
+    await this.db
+      .update(earTags)
+      .set({ orderId, status: EAR_TAG_STATUS.ORDERED as string })
+      .where(inArray(earTags.id, tagIds));
+  }
+
+  async removeTagFromOrder(earTagId: string) {
+    await this.db
+      .update(earTags)
+      .set({ orderId: null, status: EAR_TAG_STATUS.AVAILABLE as string })
+      .where(eq(earTags.id, earTagId));
   }
 
   // ─── Types ───────────────────────────────────────────────────────

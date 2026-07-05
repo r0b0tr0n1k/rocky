@@ -2,7 +2,7 @@
 // Consumes Diamond Seal schemas from @rocky/validators/api
 
 import { Injectable, Inject } from "@nestjs/common";
-import { Router, Query, Mutation, Input, Ctx, UseMiddlewares } from "nestjs-trpc-v2";
+import { Router, Query, Mutation, Input, Ctx, UseMiddlewares } from "nestjs-trpc";
 import { z } from "zod";
 import { createResultUnwrapper } from "@rocky/trpc";
 import { ANIMAL_TRPC_ERROR_MAP } from "@rocky/validators/errors";
@@ -32,7 +32,7 @@ const unwrap = createResultUnwrapper(ANIMAL_TRPC_ERROR_MAP);
 export class AnimalRouter {
   constructor(
     @Inject(AnimalService) private readonly animalService: AnimalService,
-  ) {}
+  ) { }
 
   @Query({ input: idParam, output: animalResponseSchema })
   async getById(@Input() input: { id: string }): Promise<AnimalResponse> {

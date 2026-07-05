@@ -7,7 +7,7 @@
  *
  * DO NOT EDIT MANUALLY. Run: node scripts/regenerate-enums.mjs
  *
- * Generated: 2026-07-03T19:11:18.502Z
+ * Generated: 2026-07-04T21:07:40.236Z
  */
 
 import { zEnum } from "../_enum-helper.js";
@@ -15,14 +15,19 @@ import { z } from "zod";
 import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 
 import { ADMIN_ROLE_VALUES } from "@rocky/database/constants";
+import { ADMIN_ROUTE_VALUES } from "@rocky/database/constants";
 import { ALLOCATION_STATUS_VALUES } from "@rocky/database/constants";
 import { ALLOCATION_TYPE_VALUES } from "@rocky/database/constants";
 import { ANIMAL_STATUS_VALUES } from "@rocky/database/constants";
 import { APPROVAL_ACTION_VALUES } from "@rocky/database/constants";
+import { ARCHIVE_DOCUMENT_TYPE_VALUES } from "@rocky/database/constants";
+import { ARCHIVE_LOCATION_VALUES } from "@rocky/database/constants";
 import { AUDIT_ACTION_VALUES } from "@rocky/database/constants";
 import { BIRTH_NOTIFICATION_STATUS_VALUES } from "@rocky/database/constants";
 import { BIRTH_TYPE_VALUES } from "@rocky/database/constants";
 import { CONTINGENT_TYPE_VALUES } from "@rocky/database/constants";
+import { CORRECTION_CASE_TYPE_VALUES } from "@rocky/database/constants";
+import { CORRECTION_STATUS_VALUES } from "@rocky/database/constants";
 import { DATA_SOURCE_VALUES } from "@rocky/database/constants";
 import { DEATH_CAUSE_VALUES } from "@rocky/database/constants";
 import { DELIVERY_METHOD_VALUES } from "@rocky/database/constants";
@@ -40,6 +45,9 @@ import { EVENT_SOURCE_VALUES } from "@rocky/database/constants";
 import { FARM_READ_ROLE_VALUES } from "@rocky/database/constants";
 import { FARM_TYPE_VALUES } from "@rocky/database/constants";
 import { HOLDING_TYPE_VALUES } from "@rocky/database/constants";
+import { IMPORT_EXPORT_STATUS_VALUES } from "@rocky/database/constants";
+import { IMPORT_TYPE_VALUES } from "@rocky/database/constants";
+import { INSPECTION_STATUS_VALUES } from "@rocky/database/constants";
 import { LANGUAGE_VALUES } from "@rocky/database/constants";
 import { MODULE_TYPE_VALUES } from "@rocky/database/constants";
 import { MOVEMENT_TYPE_VALUES } from "@rocky/database/constants";
@@ -51,7 +59,10 @@ import { ORDER_STATUS_VALUES } from "@rocky/database/constants";
 import { ORG_READ_ROLE_VALUES } from "@rocky/database/constants";
 import { ORG_TYPE_VALUES } from "@rocky/database/constants";
 import { PARENT_TYPE_VALUES } from "@rocky/database/constants";
+import { PASSPORT_STATUS_VALUES } from "@rocky/database/constants";
 import { PASTURE_TYPE_VALUES } from "@rocky/database/constants";
+import { REPRINT_REASON_VALUES } from "@rocky/database/constants";
+import { REPRINT_STATUS_VALUES } from "@rocky/database/constants";
 import { ROLE_PRIORITY_VALUES } from "@rocky/database/constants";
 import { SEVERITY_VALUES } from "@rocky/database/constants";
 import { SEX_VALUES } from "@rocky/database/constants";
@@ -65,18 +76,26 @@ import { STATE_CODE_VALUES } from "@rocky/database/constants";
 import { SUBJECT_ROLE_VALUES } from "@rocky/database/constants";
 import { SYNC_ERROR_TYPE_VALUES } from "@rocky/database/constants";
 import { TAG_CATEGORY_VALUES } from "@rocky/database/constants";
+import { TAKEOVER_STATUS_VALUES } from "@rocky/database/constants";
+import { TEST_RESULT_VALUES } from "@rocky/database/constants";
+import { TEST_TYPE_VALUES } from "@rocky/database/constants";
 import { USER_ROLE_VALUES } from "@rocky/database/constants";
 import { USER_STATUS_VALUES } from "@rocky/database/constants";
+import { VACCINE_TYPE_VALUES } from "@rocky/database/constants";
 import { VERIFICATION_STATUS_VALUES } from "@rocky/database/constants";
 import { WEIGHING_TYPE_VALUES } from "@rocky/database/constants";
 import { WRITE_ROLE_VALUES } from "@rocky/database/constants";
 
-// 56 enum schemas
+// 71 enum schemas
 
 export const adminRolesSchema = zEnum(ADMIN_ROLE_VALUES);
 export type adminRolesType = z.infer<typeof adminRolesSchema>;
 const _satisfies_adminRolesSchema: z.ZodType<adminRolesType> = adminRolesSchema;
 type _nodrift_adminRolesSchema = NoDrift<z.infer<typeof adminRolesSchema>, adminRolesType>;
+export const administrationRouteSchema = zEnum(ADMIN_ROUTE_VALUES);
+export type administrationRouteType = z.infer<typeof administrationRouteSchema>;
+const _satisfies_administrationRouteSchema: z.ZodType<administrationRouteType> = administrationRouteSchema;
+type _nodrift_administrationRouteSchema = NoDrift<z.infer<typeof administrationRouteSchema>, administrationRouteType>;
 export const allocationStatusSchema = zEnum(ALLOCATION_STATUS_VALUES);
 export type allocationStatusType = z.infer<typeof allocationStatusSchema>;
 const _satisfies_allocationStatusSchema: z.ZodType<allocationStatusType> = allocationStatusSchema;
@@ -93,6 +112,14 @@ export const approvalActionSchema = zEnum(APPROVAL_ACTION_VALUES);
 export type approvalActionType = z.infer<typeof approvalActionSchema>;
 const _satisfies_approvalActionSchema: z.ZodType<approvalActionType> = approvalActionSchema;
 type _nodrift_approvalActionSchema = NoDrift<z.infer<typeof approvalActionSchema>, approvalActionType>;
+export const archiveDocumentTypeSchema = zEnum(ARCHIVE_DOCUMENT_TYPE_VALUES);
+export type archiveDocumentTypeType = z.infer<typeof archiveDocumentTypeSchema>;
+const _satisfies_archiveDocumentTypeSchema: z.ZodType<archiveDocumentTypeType> = archiveDocumentTypeSchema;
+type _nodrift_archiveDocumentTypeSchema = NoDrift<z.infer<typeof archiveDocumentTypeSchema>, archiveDocumentTypeType>;
+export const archiveLocationSchema = zEnum(ARCHIVE_LOCATION_VALUES);
+export type archiveLocationType = z.infer<typeof archiveLocationSchema>;
+const _satisfies_archiveLocationSchema: z.ZodType<archiveLocationType> = archiveLocationSchema;
+type _nodrift_archiveLocationSchema = NoDrift<z.infer<typeof archiveLocationSchema>, archiveLocationType>;
 export const auditActionSchema = zEnum(AUDIT_ACTION_VALUES);
 export type auditActionType = z.infer<typeof auditActionSchema>;
 const _satisfies_auditActionSchema: z.ZodType<auditActionType> = auditActionSchema;
@@ -109,6 +136,14 @@ export const contingentTypeSchema = zEnum(CONTINGENT_TYPE_VALUES);
 export type contingentTypeType = z.infer<typeof contingentTypeSchema>;
 const _satisfies_contingentTypeSchema: z.ZodType<contingentTypeType> = contingentTypeSchema;
 type _nodrift_contingentTypeSchema = NoDrift<z.infer<typeof contingentTypeSchema>, contingentTypeType>;
+export const correctionCaseTypeSchema = zEnum(CORRECTION_CASE_TYPE_VALUES);
+export type correctionCaseTypeType = z.infer<typeof correctionCaseTypeSchema>;
+const _satisfies_correctionCaseTypeSchema: z.ZodType<correctionCaseTypeType> = correctionCaseTypeSchema;
+type _nodrift_correctionCaseTypeSchema = NoDrift<z.infer<typeof correctionCaseTypeSchema>, correctionCaseTypeType>;
+export const correctionStatusSchema = zEnum(CORRECTION_STATUS_VALUES);
+export type correctionStatusType = z.infer<typeof correctionStatusSchema>;
+const _satisfies_correctionStatusSchema: z.ZodType<correctionStatusType> = correctionStatusSchema;
+type _nodrift_correctionStatusSchema = NoDrift<z.infer<typeof correctionStatusSchema>, correctionStatusType>;
 export const dataSourceSchema = zEnum(DATA_SOURCE_VALUES);
 export type dataSourceType = z.infer<typeof dataSourceSchema>;
 const _satisfies_dataSourceSchema: z.ZodType<dataSourceType> = dataSourceSchema;
@@ -177,6 +212,18 @@ export const holdingTypeSchema = zEnum(HOLDING_TYPE_VALUES);
 export type holdingTypeType = z.infer<typeof holdingTypeSchema>;
 const _satisfies_holdingTypeSchema: z.ZodType<holdingTypeType> = holdingTypeSchema;
 type _nodrift_holdingTypeSchema = NoDrift<z.infer<typeof holdingTypeSchema>, holdingTypeType>;
+export const importExportStatusSchema = zEnum(IMPORT_EXPORT_STATUS_VALUES);
+export type importExportStatusType = z.infer<typeof importExportStatusSchema>;
+const _satisfies_importExportStatusSchema: z.ZodType<importExportStatusType> = importExportStatusSchema;
+type _nodrift_importExportStatusSchema = NoDrift<z.infer<typeof importExportStatusSchema>, importExportStatusType>;
+export const importTypeSchema = zEnum(IMPORT_TYPE_VALUES);
+export type importTypeType = z.infer<typeof importTypeSchema>;
+const _satisfies_importTypeSchema: z.ZodType<importTypeType> = importTypeSchema;
+type _nodrift_importTypeSchema = NoDrift<z.infer<typeof importTypeSchema>, importTypeType>;
+export const inspectionStatusSchema = zEnum(INSPECTION_STATUS_VALUES);
+export type inspectionStatusType = z.infer<typeof inspectionStatusSchema>;
+const _satisfies_inspectionStatusSchema: z.ZodType<inspectionStatusType> = inspectionStatusSchema;
+type _nodrift_inspectionStatusSchema = NoDrift<z.infer<typeof inspectionStatusSchema>, inspectionStatusType>;
 export const languageSchema = zEnum(LANGUAGE_VALUES);
 export type languageType = z.infer<typeof languageSchema>;
 const _satisfies_languageSchema: z.ZodType<languageType> = languageSchema;
@@ -221,10 +268,22 @@ export const parentTypeSchema = zEnum(PARENT_TYPE_VALUES);
 export type parentTypeType = z.infer<typeof parentTypeSchema>;
 const _satisfies_parentTypeSchema: z.ZodType<parentTypeType> = parentTypeSchema;
 type _nodrift_parentTypeSchema = NoDrift<z.infer<typeof parentTypeSchema>, parentTypeType>;
+export const passportStatusSchema = zEnum(PASSPORT_STATUS_VALUES);
+export type passportStatusType = z.infer<typeof passportStatusSchema>;
+const _satisfies_passportStatusSchema: z.ZodType<passportStatusType> = passportStatusSchema;
+type _nodrift_passportStatusSchema = NoDrift<z.infer<typeof passportStatusSchema>, passportStatusType>;
 export const pastureTypeSchema = zEnum(PASTURE_TYPE_VALUES);
 export type pastureTypeType = z.infer<typeof pastureTypeSchema>;
 const _satisfies_pastureTypeSchema: z.ZodType<pastureTypeType> = pastureTypeSchema;
 type _nodrift_pastureTypeSchema = NoDrift<z.infer<typeof pastureTypeSchema>, pastureTypeType>;
+export const reprintReasonSchema = zEnum(REPRINT_REASON_VALUES);
+export type reprintReasonType = z.infer<typeof reprintReasonSchema>;
+const _satisfies_reprintReasonSchema: z.ZodType<reprintReasonType> = reprintReasonSchema;
+type _nodrift_reprintReasonSchema = NoDrift<z.infer<typeof reprintReasonSchema>, reprintReasonType>;
+export const reprintStatusSchema = zEnum(REPRINT_STATUS_VALUES);
+export type reprintStatusType = z.infer<typeof reprintStatusSchema>;
+const _satisfies_reprintStatusSchema: z.ZodType<reprintStatusType> = reprintStatusSchema;
+type _nodrift_reprintStatusSchema = NoDrift<z.infer<typeof reprintStatusSchema>, reprintStatusType>;
 export const rolePrioritySchema = zEnum(ROLE_PRIORITY_VALUES);
 export type rolePriorityType = z.infer<typeof rolePrioritySchema>;
 const _satisfies_rolePrioritySchema: z.ZodType<rolePriorityType> = rolePrioritySchema;
@@ -277,6 +336,18 @@ export const tagCategorySchema = zEnum(TAG_CATEGORY_VALUES);
 export type tagCategoryType = z.infer<typeof tagCategorySchema>;
 const _satisfies_tagCategorySchema: z.ZodType<tagCategoryType> = tagCategorySchema;
 type _nodrift_tagCategorySchema = NoDrift<z.infer<typeof tagCategorySchema>, tagCategoryType>;
+export const takeoverStatusSchema = zEnum(TAKEOVER_STATUS_VALUES);
+export type takeoverStatusType = z.infer<typeof takeoverStatusSchema>;
+const _satisfies_takeoverStatusSchema: z.ZodType<takeoverStatusType> = takeoverStatusSchema;
+type _nodrift_takeoverStatusSchema = NoDrift<z.infer<typeof takeoverStatusSchema>, takeoverStatusType>;
+export const testResultSchema = zEnum(TEST_RESULT_VALUES);
+export type testResultType = z.infer<typeof testResultSchema>;
+const _satisfies_testResultSchema: z.ZodType<testResultType> = testResultSchema;
+type _nodrift_testResultSchema = NoDrift<z.infer<typeof testResultSchema>, testResultType>;
+export const testTypeSchema = zEnum(TEST_TYPE_VALUES);
+export type testTypeType = z.infer<typeof testTypeSchema>;
+const _satisfies_testTypeSchema: z.ZodType<testTypeType> = testTypeSchema;
+type _nodrift_testTypeSchema = NoDrift<z.infer<typeof testTypeSchema>, testTypeType>;
 export const userRoleSchema = zEnum(USER_ROLE_VALUES);
 export type userRoleType = z.infer<typeof userRoleSchema>;
 const _satisfies_userRoleSchema: z.ZodType<userRoleType> = userRoleSchema;
@@ -285,6 +356,10 @@ export const userStatusSchema = zEnum(USER_STATUS_VALUES);
 export type userStatusType = z.infer<typeof userStatusSchema>;
 const _satisfies_userStatusSchema: z.ZodType<userStatusType> = userStatusSchema;
 type _nodrift_userStatusSchema = NoDrift<z.infer<typeof userStatusSchema>, userStatusType>;
+export const vaccineTypeSchema = zEnum(VACCINE_TYPE_VALUES);
+export type vaccineTypeType = z.infer<typeof vaccineTypeSchema>;
+const _satisfies_vaccineTypeSchema: z.ZodType<vaccineTypeType> = vaccineTypeSchema;
+type _nodrift_vaccineTypeSchema = NoDrift<z.infer<typeof vaccineTypeSchema>, vaccineTypeType>;
 export const verificationStatusSchema = zEnum(VERIFICATION_STATUS_VALUES);
 export type verificationStatusType = z.infer<typeof verificationStatusSchema>;
 const _satisfies_verificationStatusSchema: z.ZodType<verificationStatusType> = verificationStatusSchema;
@@ -298,17 +373,22 @@ export type writeRolesType = z.infer<typeof writeRolesSchema>;
 const _satisfies_writeRolesSchema: z.ZodType<writeRolesType> = writeRolesSchema;
 type _nodrift_writeRolesSchema = NoDrift<z.infer<typeof writeRolesSchema>, writeRolesType>;
 
-// ⚔️ Activate ALL 56 guillotine proofs
+// ⚔️ Activate ALL 71 guillotine proofs
 export type _Activate = ActivateGuillotines<[
   _nodrift_adminRolesSchema,
+  _nodrift_administrationRouteSchema,
   _nodrift_allocationStatusSchema,
   _nodrift_allocationTypeSchema,
   _nodrift_animalStatusSchema,
   _nodrift_approvalActionSchema,
+  _nodrift_archiveDocumentTypeSchema,
+  _nodrift_archiveLocationSchema,
   _nodrift_auditActionSchema,
   _nodrift_birthNotificationStatusSchema,
   _nodrift_birthTypeSchema,
   _nodrift_contingentTypeSchema,
+  _nodrift_correctionCaseTypeSchema,
+  _nodrift_correctionStatusSchema,
   _nodrift_dataSourceSchema,
   _nodrift_deathCauseSchema,
   _nodrift_deliveryMethodSchema,
@@ -326,6 +406,9 @@ export type _Activate = ActivateGuillotines<[
   _nodrift_farmReadRolesSchema,
   _nodrift_farmTypeSchema,
   _nodrift_holdingTypeSchema,
+  _nodrift_importExportStatusSchema,
+  _nodrift_importTypeSchema,
+  _nodrift_inspectionStatusSchema,
   _nodrift_languageSchema,
   _nodrift_moduleTypeSchema,
   _nodrift_movementTypeSchema,
@@ -337,7 +420,10 @@ export type _Activate = ActivateGuillotines<[
   _nodrift_orgReadRolesSchema,
   _nodrift_orgTypeSchema,
   _nodrift_parentTypeSchema,
+  _nodrift_passportStatusSchema,
   _nodrift_pastureTypeSchema,
+  _nodrift_reprintReasonSchema,
+  _nodrift_reprintStatusSchema,
   _nodrift_rolePrioritySchema,
   _nodrift_severitySchema,
   _nodrift_sexSchema,
@@ -351,8 +437,12 @@ export type _Activate = ActivateGuillotines<[
   _nodrift_subjectRoleSchema,
   _nodrift_syncErrorTypeSchema,
   _nodrift_tagCategorySchema,
+  _nodrift_takeoverStatusSchema,
+  _nodrift_testResultSchema,
+  _nodrift_testTypeSchema,
   _nodrift_userRoleSchema,
   _nodrift_userStatusSchema,
+  _nodrift_vaccineTypeSchema,
   _nodrift_verificationStatusSchema,
   _nodrift_weighingTypeSchema,
   _nodrift_writeRolesSchema
