@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js";
 
 /**
- * User Sort-By Columns — which field to sort the user list by.
+ * User Sort-By Columns - which field to sort the user list by.
  */
 export const SORT_BY_USER = {
   USERNAME: "username",

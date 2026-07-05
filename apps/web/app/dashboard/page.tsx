@@ -1,19 +1,14 @@
-import { auth } from "#lib/auth";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { Container, Main, Prose } from "#components/layout";
 
-export default async function DashboardPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    redirect("/");
-  }
-
+export default function DashboardPage() {
   return (
-    <div>
-      <h1>Welcome {session.user.name}</h1>
-    </div>
+    <Main>
+      <Container>
+        <Prose isArticle>
+          <h1>Dashboard</h1>
+          <p>Welcome to the AIMCS Admin panel.</p>
+        </Prose>
+      </Container>
+    </Main>
   );
 }

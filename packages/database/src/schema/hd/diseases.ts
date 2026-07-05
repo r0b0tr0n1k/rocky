@@ -1,18 +1,8 @@
 // ── Drizzle Schema: Disease Master Data ──
 // Replaces: docs/old/deseases.md HD_DISEASES
 
-import {
-  pgTable,
-  uuid,
-  varchar,
-  timestamp,
-  boolean,
-  text,
-  index,
-  uniqueIndex,
-  pgPolicy,
-} from "drizzle-orm/pg-core";
-import { adminWrite } from "../rls-helpers";
+import { boolean, index, pgPolicy, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { adminWrite } from "../rls-helpers.js";
 
 export const diseases = pgTable(
   "diseases",

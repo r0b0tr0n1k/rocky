@@ -1,4 +1,4 @@
-import { createEnumValues } from "./_brand"
+import { createEnumValues } from "./_brand.js"
 
 export const TAKEOVER_STATUS = {
   COMPLETED: "COMPLETED",

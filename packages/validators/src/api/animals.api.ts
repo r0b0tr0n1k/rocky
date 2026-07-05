@@ -1,4 +1,4 @@
-// ── Animals API Schemas — Diamond Seal ──
+// ── Animals API Schemas - Diamond Seal ──
 //
 // This is the gate, Comrade. Every tRPC procedure that touches animals
 // must pass through these schemas. They are the SOLE contract between
@@ -13,7 +13,7 @@ import { sortAnimalBySchema, sortOrderSchema, stateCodeSchema } from "../enums/d
 import { earTagSchema } from "../utils/check-digit.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
-// RESPONSE SCHEMAS (Diamond Seal — what the API returns)
+// RESPONSE SCHEMAS (Diamond Seal - what the API returns)
 // ═══════════════════════════════════════════════════════════════════════════
 
 /** Full animal record returned by GET /animals/:id */

@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js";
 
 /**
- * Ear-Tag Allocation Type — the dialectical moment of tag distribution.
+ * Ear-Tag Allocation Type - the dialectical moment of tag distribution.
  */
 export const ALLOCATION_TYPE = {
 	INITIAL_ALLOCATION: "INITIAL_ALLOCATION",

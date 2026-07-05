@@ -1,21 +1,21 @@
-// ── Passport Router — tRPC entry point ──
+// --- Passport Router - tRPC entry point ---
 
-import { Injectable, Inject } from "@nestjs/common";
-import { Router, Query, Mutation, Input, Ctx, UseMiddlewares } from "nestjs-trpc";
-import { z } from "zod";
-import { createResultUnwrapper } from "@rocky/trpc";
-import { PASSPORT_TRPC_ERROR_MAP } from "@rocky/validators/errors";
-import { ProtectedMiddleware, type ProtectedMiddlewareContext } from "../trpc/middlewares/protected.middleware.js";
+import { Inject, Injectable } from "@nestjs/common";
 import { PassportService } from "@rocky/domains-passport";
+import { createResultUnwrapper } from "@rocky/trpc";
 import {
   issuePassportRequestSchema,
-  seizePassportRequestSchema,
-  reprintPassportRequestSchema,
   passportListRequestSchema,
+  reprintPassportRequestSchema,
+  seizePassportRequestSchema,
   type IssuePassportRequest,
-  type SeizePassportRequest,
   type ReprintPassportRequest,
+  type SeizePassportRequest,
 } from "@rocky/validators/api";
+import { PASSPORT_TRPC_ERROR_MAP } from "@rocky/validators/errors";
+import { Ctx, Input, Mutation, Query, Router, UseMiddlewares } from "nestjs-trpc";
+import { z } from "zod";
+import { ProtectedMiddleware, type ProtectedMiddlewareContext } from "../trpc/middlewares/protected.middleware.js";
 
 const idParam = z.object({ id: z.uuid() });
 const unwrap = createResultUnwrapper(PASSPORT_TRPC_ERROR_MAP);

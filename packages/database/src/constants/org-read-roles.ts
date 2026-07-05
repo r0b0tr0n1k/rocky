@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js"
 
 /**
- * Org-Read Roles — org-scoped read access (VETERINARIAN, TECHNICIAN).
+ * Org-Read Roles - org-scoped read access (VETERINARIAN, TECHNICIAN).
  */
 export const ORG_READ_ROLE = {
     VETERINARIAN: "VETERINARIAN",

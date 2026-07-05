@@ -2,26 +2,26 @@
 // Based on: Eartags.PDF specification
 // Individual ear tag tracking with full lifecycle management
 
+import { sql } from "drizzle-orm";
 import {
+  boolean,
+  date,
+  index,
+  integer,
+  pgPolicy,
   pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
   uuid,
   varchar,
-  timestamp,
-  date,
-  boolean,
-  integer,
-  text,
-  index,
-  uniqueIndex,
-  pgPolicy,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
-import { earTagTypes } from "./ear-tag-types.js";
-import { USER_ROLE, isRoleIn, allocationOwnedByUser, ADMIN_ROLES, adminWrite } from "../rls-helpers.js";
-import { stateCodePgEnum } from "../../schemas/enums/state-code.js";
-import { earTagStatusPgEnum } from "../../schemas/enums/ear-tag-status.js";
-import { STATE_CODE } from "../../constants/state-code.js";
 import { EAR_TAG_STATUS } from "../../constants/ear-tag-status.js";
+import { STATE_CODE } from "../../constants/state-code.js";
+import { earTagStatusPgEnum } from "../../schemas/enums/ear-tag-status.js";
+import { stateCodePgEnum } from "../../schemas/enums/state-code.js";
+import { ADMIN_ROLES, adminWrite, allocationOwnedByUser, isRoleIn } from "../rls-helpers.js";
+import { earTagTypes } from "./ear-tag-types.js";
 
 export const earTags = pgTable(
   "ear_tags",

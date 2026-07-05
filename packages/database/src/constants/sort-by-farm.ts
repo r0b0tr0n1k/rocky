@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js";
 
 /**
- * Farm Sort-By Columns — which field to sort the farm list by.
+ * Farm Sort-By Columns - which field to sort the farm list by.
  */
 export const SORT_BY_FARM = {
   NAME: "name",

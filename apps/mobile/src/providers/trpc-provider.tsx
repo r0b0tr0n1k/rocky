@@ -1,14 +1,16 @@
-import { createContext, useState, type ReactNode } from "react";
+// biome-ignore assist/source/organizeImports: hm
+import { getAuthToken } from "#/lib/auth.js";
+import type { AppRouter } from "@rocky/trpc";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, httpSubscriptionLink, loggerLink, splitLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
+import { createContext, type ReactNode, useState } from "react";
 import superjson from "superjson";
-import { getAuthToken } from "#/lib/auth";
 
 // Bypass tRPC v11's collision check:
 // the AnyRouter type does not declare useContext/useUtils/Provider as procedures.
 // We cast to `any` so createClient and .Provider remain callable in this repository's tooling.
-export const trpc = createTRPCReact<any>() as any;
+export const trpc = createTRPCReact<AppRouter>() as any;
 
 export const TRPCContext = createContext<typeof trpc | undefined>(undefined);
 
@@ -19,7 +21,7 @@ export function TRPCProvider({ children, apiUrl }: { children: ReactNode; apiUrl
       links: [
         loggerLink({ enabled: () => __DEV__ }),
         splitLink({
-          condition: op => op.type === "subscription",
+          condition: (op) => op.type === "subscription",
           true: httpSubscriptionLink({
             url: `${apiUrl}/trpc`,
             transformer: superjson,
@@ -37,7 +39,7 @@ export function TRPCProvider({ children, apiUrl }: { children: ReactNode; apiUrl
           }),
         }),
       ],
-    })
+    }),
   );
 
   return (

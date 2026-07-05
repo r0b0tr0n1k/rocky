@@ -2,19 +2,12 @@
 // Replaces: Workflow 17-04-03.pdf §Instance 18
 // On-spot inspections with risk analysis (10% farm selection)
 
-import { pgTable, uuid, varchar, timestamp, date, boolean, text, jsonb, index, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { animals } from "./animals";
-import { farms } from "../hk/farms";
-import {
-  isRoleIn,
-  farmInOrgArea,
-  farmOwnedByUser,
-  ADMIN_ROLES,
-  ORG_READ_ROLES,
-} from "../rls-helpers";
-import { inspectionStatusPgEnum } from "../../schemas/enums/inspection-status";
-import { INSPECTION_STATUS } from "../../constants/inspection-status";
+import { boolean, date, index, jsonb, pgPolicy, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { INSPECTION_STATUS } from "../../constants/inspection-status.js";
+import { inspectionStatusPgEnum } from "../../schemas/enums/inspection-status.js";
+import { farms } from "../hk/farms.js";
+import { ADMIN_ROLES, farmInOrgArea, isRoleIn, ORG_READ_ROLES } from "../rls-helpers.js";
 
 export const inspections = pgTable(
   "inspections",

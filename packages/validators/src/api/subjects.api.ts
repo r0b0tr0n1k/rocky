@@ -1,6 +1,6 @@
-// ── Subjects API Schemas — Diamond Seal ──
+// ── Subjects API Schemas - Diamond Seal ──
 //
-// The subject is the human agent in the I&R system — farmer, vet, slaughterhouse operator.
+// The subject is the human agent in the I&R system - farmer, vet, slaughterhouse operator.
 // Without the subject, the farm is an empty vessel.
 //
 // Based on: FS - HK_MK(v1.0).pdf, HK.PDF

@@ -2,23 +2,23 @@
 // Replaces: Workflow 17-04-03.pdf §Instance 11
 // The central legal document of the I&R system
 
-import { pgTable, uuid, varchar, timestamp, date, boolean, index, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { animals } from "./animals";
-import { farms } from "../hk/farms";
+import { boolean, date, index, pgPolicy, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { PASSPORT_STATUS } from "../../constants/passport-status.js";
+import { STATE_CODE } from "../../constants/state-code.js";
+import { deathCausePgEnum } from "../../schemas/enums/death-cause.js";
+import { passportStatusPgEnum } from "../../schemas/enums/passport-status.js";
+import { stateCodePgEnum } from "../../schemas/enums/state-code.js";
+import { farms } from "../hk/farms.js";
 import {
-  isRoleIn,
+  ADMIN_ROLES,
+  FARM_READ_ROLES,
   farmInOrgArea,
   farmOwnedByUser,
-  ADMIN_ROLES,
+  isRoleIn,
   ORG_READ_ROLES,
-  FARM_READ_ROLES,
-} from "../rls-helpers";
-import { passportStatusPgEnum } from "../../schemas/enums/passport-status";
-import { stateCodePgEnum } from "../../schemas/enums/state-code";
-import { deathCausePgEnum } from "../../schemas/enums/death-cause";
-import { PASSPORT_STATUS } from "../../constants/passport-status";
-import { STATE_CODE } from "../../constants/state-code";
+} from "../rls-helpers.js";
+import { animals } from "./animals.js";
 
 export const cattlePassports = pgTable(
   "cattle_passports",

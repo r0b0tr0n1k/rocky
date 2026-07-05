@@ -1,38 +1,26 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   allowedDevOrigins: ["http://localhost:3000"],
-  turbopack: {
-    root: "/home/goce/appz/rocky",
-  },
-  typescript: {
-    // Temporarily ignore type errors until tRPC types are generated
-    ignoreBuildErrors: true,
-  },
+  turbopack: { root: "/home/goce/appz/rocky" },
+  typescript: { ignoreBuildErrors: true },
 
-  /**
-   * Proxy /trpc requests to the NestJS API.
+  /*
+   * GATEWAY REWRITES: Next.js proxies API calls to the NestJS backend.
    *
-   * DUAL-PATH ARCHITECTURE:
+   * This works across ANY network topology:
+   *   - same machine: localhost:8080
+   *   - different containers: api:8080 (Docker network)
+   *   - different continents: https://api.eu.example.com (public URL)
    *
-   *   Browser (client components):
-   *     fetch("/trpc/farm.getById")             → Next.js rewrite → http://api:8080/trpc/farm.getById
-   *
-   *   Server (SSR/RSC):
-   *     fetch("http://api:8080/trpc/farm.getById") → direct Docker network call
-   *
-   * In Docker, the browser CANNOT reach "http://api:8080" (internal network).
-   * The Next.js rewrite bridges the gap: browser talks to Next.js (same origin),
-   * Next.js forwards to the API container (Docker network).
-   *
-   * For local dev (non-Docker), API_URL defaults to http://localhost:8080.
+   * The browser only talks to Next.js. Next.js forwards to the API.
    */
   async rewrites() {
     const apiUrl = process.env.API_URL || "http://localhost:8080";
     return [
-      {
-        source: "/trpc/:path*",
-        destination: `${apiUrl}/trpc/:path*`,
-      },
+      // tRPC procedures
+      { source: "/trpc/:path*", destination: `${apiUrl}/trpc/:path*` },
+      // better-auth endpoints (sign-in, sign-up, session, etc.)
+      { source: "/api/auth/:path*", destination: `${apiUrl}/api/auth/:path*` },
     ];
   },
 };

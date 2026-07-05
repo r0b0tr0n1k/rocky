@@ -1,4 +1,4 @@
-// ── Passport API Schemas — Diamond Seal ──
+// ── Passport API Schemas - Diamond Seal ──
 // Cattle passport: the central legal document of the I&R system.
 
 import { z } from "zod";

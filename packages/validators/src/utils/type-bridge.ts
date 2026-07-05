@@ -1,29 +1,29 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// GUILLOTINE SYSTEM — the Materialist Enforcement of the Symbolic Order
+// GUILLOTINE SYSTEM - the Materialist Enforcement of the Symbolic Order
 // ═══════════════════════════════════════════════════════════════════════════
 //
 // The Diamond Seal uses a three-tier enforcement hierarchy:
 //
-//   Tier 1 — `satisfies z.ZodType<Interface>` on the schema declaration
+//   Tier 1 - `satisfies z.ZodType<Interface>` on the schema declaration
 //     Checks the schema's _output type is assignable to the interface.
 //     Catches: missing fields, wrong value types.
 //     Does NOT catch: interface having wider types than schema output.
 //     Use on: ALL schemas (response AND request).
 //
-//   Tier 2 — `NoDrift<z.infer<typeof schema>, Interface>` on a separate type alias
+//   Tier 2 - `NoDrift<z.infer<typeof schema>, Interface>` on a separate type alias
 //     Full structural identity check via AssertEqual (higher-kinded type equality).
 //     Catches: interface wider OR narrower than schema output.
 //     May false-positive on complex union types crossing drizzle-zod boundaries.
 //     Use on: response schemas, hand-built request schemas (no drizzle Dumb Zod).
 //
-//   Tier 3 — `ActivateGuillotines<[_drift_A, _drift_B, ...]>` at file end
+//   Tier 3 - `ActivateGuillotines<[_drift_A, _drift_B, ...]>` at file end
 //     Forces TypeScript to EVALUATE every type alias in the tuple.
 //     Without this, lazy type resolution may never check NoDrift until
 //     something else references it. This makes the type alias DO WORK.
 //
 // Escalation path when NoDrift false-positives:
 //   1. Try swapping to NoDriftSimple (bidirectional extends, not AssertEqual)
-//   2. The _drift_* = true bypass is the last resort — removes coverage
+//   2. The _drift_* = true bypass is the last resort - removes coverage
 //
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -34,7 +34,7 @@ export type ExpectTrue<T extends true> = T;
 export type ExpectFalse<T extends false> = T;
 
 /**
- * **NoDrift** — Full structural identity via higher-kinded type equality.
+ * **NoDrift** - Full structural identity via higher-kinded type equality.
  *
  * Uses the `AssertEqual` trick (two Ts are equal iff their generic
  * function signatures are identical). This is stricter than `extends`
@@ -57,7 +57,7 @@ export type NoDrift<A, B> =
   AssertEqual<A, B> extends true ? true : ["TYPE DRIFT DETECTED ──", { expected: A; actual: B }];
 
 /**
- * **NoDriftSimple** — Bidirectional structural assignability.
+ * **NoDriftSimple** - Bidirectional structural assignability.
  *
  * Checks `A extends B` AND `B extends A`. Less precise than AssertEqual
  * (does not catch readonly or branded-type differences) but immune to
@@ -80,9 +80,9 @@ export type NoDriftSimple<A, B> = A extends B
   : ["DRIFT (A narrower)", A, B];
 
 /**
- * **ActivateGuillotines** — Forces compile-time evaluation of NoDrift types.
+ * **ActivateGuillotines** - Forces compile-time evaluation of NoDrift types.
  *
- * TypeScript's type system is lazy — unreferenced type aliases are never
+ * TypeScript's type system is lazy - unreferenced type aliases are never
  * evaluated. `ActivateGuillotines` consumes every alias in the tuple and
  * constrains them to `true[]`. If ANY alias resolved to a drift tuple
  * instead of `true`, the constraint fails and the compiler errors.

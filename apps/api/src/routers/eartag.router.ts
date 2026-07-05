@@ -1,34 +1,34 @@
-// ── EarTag Router — tRPC entry point ──
+// --- EarTag Router - tRPC entry point ---
 // Consumes Diamond Seal schemas from @rocky/validators/api
 
-import { Injectable, Inject, Logger } from "@nestjs/common";
-import { z } from "zod";
-import { Router, Query, Mutation, Input, Ctx, UseMiddlewares } from "nestjs-trpc";
-import { createResultUnwrapper } from "@rocky/trpc";
-import { EARTAG_TRPC_ERROR_MAP } from "@rocky/validators/errors";
-import { ProtectedMiddleware, type ProtectedMiddlewareContext } from "../trpc/middlewares/protected.middleware.js";
-import { createPermissionGuard } from "../trpc/middlewares/permission.guard.js";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { EarTagService } from "@rocky/domains-eartag";
+import { createResultUnwrapper } from "@rocky/trpc";
 import {
-  earTagResponseSchema,
-  earTagTypeResponseSchema,
+  appendToOrderRequestSchema,
+  cancelOrderItemRequestSchema,
+  cancelOrderRequestSchema,
+  createOrderRequestSchema,
   earTagListRequestSchema,
   earTagListResponseSchema,
+  earTagResponseSchema,
+  earTagTypeResponseSchema,
   orderStatusTransitionSchema,
-  createOrderRequestSchema,
-  cancelOrderRequestSchema,
-  cancelOrderItemRequestSchema,
-  appendToOrderRequestSchema,
-  type EarTagResponse,
-  type EarTagTypeResponse,
+  type AppendToOrderRequest,
+  type CancelOrderItemRequest,
+  type CancelOrderRequest,
+  type CreateOrderRequest,
   type EarTagListRequest,
   type EarTagListResponse,
+  type EarTagResponse,
+  type EarTagTypeResponse,
   type OrderStatusTransition,
-  type CreateOrderRequest,
-  type CancelOrderRequest,
-  type CancelOrderItemRequest,
-  type AppendToOrderRequest,
 } from "@rocky/validators/api";
+import { EARTAG_TRPC_ERROR_MAP } from "@rocky/validators/errors";
+import { Ctx, Input, Mutation, Query, Router, UseMiddlewares } from "nestjs-trpc";
+import { z } from "zod";
+import { createPermissionGuard } from "../trpc/middlewares/permission.guard.js";
+import { ProtectedMiddleware, type ProtectedMiddlewareContext } from "../trpc/middlewares/protected.middleware.js";
 
 const idParam = z.object({ id: z.uuid() });
 const unwrap = createResultUnwrapper(EARTAG_TRPC_ERROR_MAP);

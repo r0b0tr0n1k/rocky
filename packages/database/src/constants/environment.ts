@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js";
 
 /**
- * Environment — deployment stage of the application.
+ * Environment - deployment stage of the application.
  *
  * dev: local development
  * production: live production

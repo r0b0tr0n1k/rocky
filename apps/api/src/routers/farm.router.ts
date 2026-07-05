@@ -1,26 +1,26 @@
-// ── Farm Router — tRPC entry point ──
+// --- Farm Router - tRPC entry point ---
 
-import { Injectable, Inject } from "@nestjs/common";
-import { Router, Query, Mutation, Input, Ctx, UseMiddlewares } from "nestjs-trpc";
-import { z } from "zod";
-import { createResultUnwrapper } from "@rocky/trpc";
-import { FARM_TRPC_ERROR_MAP } from "@rocky/validators/errors";
-import { ProtectedMiddleware, type ProtectedMiddlewareContext } from "../trpc/middlewares/protected.middleware.js";
+import { Inject, Injectable } from "@nestjs/common";
 import { FarmService } from "@rocky/domains-farm";
+import { createResultUnwrapper } from "@rocky/trpc";
 import {
-  farmResponseSchema,
-  farmListResponseSchema,
   addressResponseSchema,
   createFarmRequestSchema,
-  updateFarmRequestSchema,
   farmListRequestSchema,
-  type FarmResponse,
-  type FarmListResponse,
+  farmListResponseSchema,
+  farmResponseSchema,
+  updateFarmRequestSchema,
   type AddressResponse,
   type CreateFarmRequest,
-  type UpdateFarmRequest,
   type FarmListRequest,
+  type FarmListResponse,
+  type FarmResponse,
+  type UpdateFarmRequest,
 } from "@rocky/validators/api";
+import { FARM_TRPC_ERROR_MAP } from "@rocky/validators/errors";
+import { Ctx, Input, Mutation, Query, Router, UseMiddlewares } from "nestjs-trpc";
+import { z } from "zod";
+import { ProtectedMiddleware, type ProtectedMiddlewareContext } from "../trpc/middlewares/protected.middleware.js";
 
 const idParam = z.object({ id: z.uuid() });
 const farmIdParam = z.object({ farmId: z.string() });

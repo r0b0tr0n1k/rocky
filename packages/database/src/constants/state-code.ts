@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js";
 
 /**
- * State Code — ISO 3166-1 alpha-2 codes for countries.
+ * State Code - ISO 3166-1 alpha-2 codes for countries.
  *
  * MK: North Macedonia (default for the domestic herd)
  */

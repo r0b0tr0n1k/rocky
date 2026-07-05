@@ -2,17 +2,10 @@
 // Many-to-many: a vaccine can protect against multiple diseases
 // (e.g., multivalent FMD vaccines), and a disease may have multiple vaccines
 
-import {
-  pgTable,
-  uuid,
-  timestamp,
-  uniqueIndex,
-  index,
-  pgPolicy,
-} from "drizzle-orm/pg-core";
-import { vaccines } from "./vaccines";
-import { diseases } from "./diseases";
-import { adminWrite } from "../rls-helpers";
+import { index, pgPolicy, pgTable, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { adminWrite } from "../rls-helpers.js";
+import { diseases } from "./diseases.js";
+import { vaccines } from "./vaccines.js";
 
 export const vaccineDiseases = pgTable(
   "vaccine_diseases",

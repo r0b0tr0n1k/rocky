@@ -1,4 +1,4 @@
-// ── Inspection API Schemas — Diamond Seal ──
+// ── Inspection API Schemas - Diamond Seal ──
 //
 // On-spot inspections, risk analysis, and notifiable disease alert integration.
 
@@ -31,10 +31,10 @@ export const inspectionResponseSchema = inspectionSelectSchema
 export type InspectionResponse = z.infer<typeof inspectionResponseSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════
-// CHECKED ANIMAL (Form Data — Section F of inspection-form.yaml)
+// CHECKED ANIMAL (Form Data - Section F of inspection-form.yaml)
 // ═══════════════════════════════════════════════════════════════════════════
 
-/** Per-animal checklist entry — populated when form is generated, filled by VI during on-spot visit */
+/** Per-animal checklist entry - populated when form is generated, filled by VI during on-spot visit */
 export interface CheckedAnimal {
   animalId: string;
   earTagNumber: string;
@@ -140,7 +140,7 @@ export const printInspectionFormRequestSchema = z
 
 export type PrintInspectionFormRequest = z.infer<typeof printInspectionFormRequestSchema>;
 
-/** The generated form data structure — matches models/inspection-form.yaml */
+/** The generated form data structure - matches models/inspection-form.yaml */
 export interface InspectionFormData {
   formId: string;
   formVersion: string;

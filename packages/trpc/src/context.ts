@@ -1,4 +1,4 @@
-import type { User, Session } from "better-auth";
+import type { Session, User } from "better-auth";
 
 export interface AppContext {
   headers: Headers;

@@ -1,5 +1,5 @@
-import { TRPCError } from "@trpc/server";
 import type { Result } from "@rocky/domains-shared";
+import { TRPCError } from "@trpc/server";
 
 type ErrorWithCode = Error & { code: string };
 

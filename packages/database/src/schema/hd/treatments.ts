@@ -1,23 +1,11 @@
 // ── Drizzle Schema: Treatment / Diagnosis Events ──
 // Replaces: docs/old/deseases.md HD_TREATMENTS
 
-import {
-  pgTable,
-  uuid,
-  timestamp,
-  date,
-  boolean,
-  text,
-  index,
-  pgPolicy,
-} from "drizzle-orm/pg-core";
-import { animals } from "../an/animals";
-import { farms } from "../hk/farms";
-import { diseases } from "./diseases";
-import {
-  rlsForFarmColumn,
-  adminAndVetWrite,
-} from "../rls-helpers";
+import { boolean, date, index, pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { animals } from "../an/animals.js";
+import { farms } from "../hk/farms.js";
+import { adminAndVetWrite, rlsForFarmColumn } from "../rls-helpers.js";
+import { diseases } from "./diseases.js";
 
 export const treatments = pgTable(
   "treatments",
@@ -32,7 +20,7 @@ export const treatments = pgTable(
       .notNull()
       .references(() => farms.id),
 
-    // Disease (nullable — routine checkups have no diagnosis)
+    // Disease (nullable - routine checkups have no diagnosis)
     diseaseId: uuid("disease_id").references(() => diseases.id),
 
     // Vet who diagnosed/treated

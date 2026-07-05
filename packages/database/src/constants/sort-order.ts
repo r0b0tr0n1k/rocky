@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js";
 
 /**
- * Sort Order — the dialectical direction of query results.
+ * Sort Order - the dialectical direction of query results.
  *
  * ASC: ascending order (A→Z, 0→9, old→new)
  * DESC: descending order (Z→A, 9→0, new→old)

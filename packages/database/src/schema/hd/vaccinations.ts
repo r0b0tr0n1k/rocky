@@ -1,26 +1,13 @@
 // ── Drizzle Schema: Vaccination Events ──
 // Replaces: docs/old/deseases.md HD_VACCINATIONS
 
-import {
-  pgTable,
-  uuid,
-  timestamp,
-  date,
-  boolean,
-  text,
-  index,
-  pgPolicy,
-} from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
-import { animals } from "../an/animals";
-import { farms } from "../hk/farms";
-import { vaccines } from "./vaccines";
-import { vaccineBatches } from "./vaccine-batches";
-import {
-  rlsForFarmColumn,
-  adminAndVetWrite,
-} from "../rls-helpers";
-import { administrationRoutePgEnum } from "../../schemas/enums/administration-route";
+import { boolean, date, index, pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { administrationRoutePgEnum } from "../../schemas/enums/administration-route.js";
+import { animals } from "../an/animals.js";
+import { farms } from "../hk/farms.js";
+import { adminAndVetWrite, rlsForFarmColumn } from "../rls-helpers.js";
+import { vaccineBatches } from "./vaccine-batches.js";
+import { vaccines } from "./vaccines.js";
 
 export const vaccinations = pgTable(
   "vaccinations",

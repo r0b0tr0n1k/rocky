@@ -1,4 +1,4 @@
-// ── Farms API Schemas — Diamond Seal ──
+// ── Farms API Schemas - Diamond Seal ──
 //
 // The farm is the fundamental unit of the I&R system, Comrade.
 // Without a farm, an animal is a floating signifier with no anchor in the material world.

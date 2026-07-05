@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js";
 
 /**
- * Animal Sort-By Columns — which field to sort the animal list by.
+ * Animal Sort-By Columns - which field to sort the animal list by.
  *
  * These match the database column names for ORDER BY clauses.
  */

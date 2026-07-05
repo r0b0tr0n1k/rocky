@@ -1,10 +1,10 @@
-// ── Enum SSOT Branding — Diamond Seal Pattern ──
+// ── Enum SSOT Branding - Diamond Seal Pattern ──
 // Prevents forgery: zEnum() only accepts branded arrays
 
 /** Unique symbol for brand checking */
 declare const ENUM_BRAND: unique symbol;
 
-/** Branded enum value array — only createEnumValues() can produce this */
+/** Branded enum value array - only createEnumValues() can produce this */
 export type DbEnumValues<T extends readonly string[]> = T & {
   readonly [ENUM_BRAND]: true;
 };

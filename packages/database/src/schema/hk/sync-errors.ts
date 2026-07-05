@@ -1,10 +1,10 @@
 // ── Drizzle Schema: Sync Error Log ──
 // Replaces: HK_SYNC_ERRORS (Oracle HK.PDF)
 
-import { pgTable, uuid, varchar, timestamp, boolean, integer, text, index, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { USER_ROLE, isRole, isRoleIn, farmInOrgArea, ADMIN_ROLES } from "../rls-helpers.js";
+import { boolean, index, integer, pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { syncErrorTypePgEnum } from "../../schemas/enums/sync-error-type.js";
+import { ADMIN_ROLES, farmInOrgArea, isRole, isRoleIn, USER_ROLE } from "../rls-helpers.js";
 
 export const syncErrors = pgTable(
   "sync_errors",

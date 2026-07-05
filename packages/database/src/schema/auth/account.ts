@@ -1,4 +1,4 @@
-// ── Drizzle Schema: Auth — Account (better-auth) ──
+// ── Drizzle Schema: Auth - Account (better-auth) ──
 // Supports multiple auth methods per user (credential, google, github, etc.)
 
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core";

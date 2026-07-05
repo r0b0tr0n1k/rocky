@@ -1,4 +1,4 @@
-// ── RLS Policy Helpers — Composable SQL Fragments ──────────────────
+// ── RLS Policy Helpers - Composable SQL Fragments ──────────────────
 //
 // The Žižekian resolution: instead of inlining raw role strings in every
 // pgPolicy, we compose reusable SQL fragments from the SSOT constants.
@@ -12,18 +12,17 @@
 
 import { type SQL, sql } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
-import { USER_ROLE } from "../constants/user-role.js";
 import { ADMIN_ROLE_VALUES } from "../constants/admin-roles.js";
-import { WRITE_ROLE_VALUES } from "../constants/write-roles.js";
-import { ORG_READ_ROLE_VALUES } from "../constants/org-read-roles.js";
 import { FARM_READ_ROLE_VALUES } from "../constants/farm-read-roles.js";
+import { ORG_READ_ROLE_VALUES } from "../constants/org-read-roles.js";
+import { WRITE_ROLE_VALUES } from "../constants/write-roles.js";
 
+export { ADMIN_ROLE_VALUES as ADMIN_ROLES } from "../constants/admin-roles.js";
+export { FARM_READ_ROLE_VALUES as FARM_READ_ROLES } from "../constants/farm-read-roles.js";
+export { ORG_READ_ROLE_VALUES as ORG_READ_ROLES } from "../constants/org-read-roles.js";
 // ── Re-exports: one-stop import for schema files ──
 export { USER_ROLE } from "../constants/user-role.js";
-export { ADMIN_ROLE_VALUES as ADMIN_ROLES } from "../constants/admin-roles.js";
 export { WRITE_ROLE_VALUES as WRITE_ROLES } from "../constants/write-roles.js";
-export { ORG_READ_ROLE_VALUES as ORG_READ_ROLES } from "../constants/org-read-roles.js";
-export { FARM_READ_ROLE_VALUES as FARM_READ_ROLES } from "../constants/farm-read-roles.js";
 export * from "./auth/pg-roles.js";
 
 // ── Session Variables (set by RLS middleware) ──────────────────
@@ -32,12 +31,10 @@ export * from "./auth/pg-roles.js";
 export const currentRole = sql`current_setting('app.current_role', true)`;
 
 /** `current_setting('app.current_user_id', true)::uuid` */
-export const currentUserId =
-  sql`current_setting('app.current_user_id', true)::uuid`;
+export const currentUserId = sql`current_setting('app.current_user_id', true)::uuid`;
 
 /** `current_setting('app.current_org_id', true)::uuid` */
-export const currentOrgId =
-  sql`current_setting('app.current_org_id', true)::uuid`;
+export const currentOrgId = sql`current_setting('app.current_org_id', true)::uuid`;
 
 // ── Inline type helpers for pgColumn column references ─────────
 // Drizzle column references produce SQL via template interpolation.
@@ -52,7 +49,7 @@ export function isRole(role: string): SQL {
   return sql`${currentRole} = ${role}`;
 }
 
-/** `current_role = ANY($roles)` — safe parameterized array check */
+/** `current_role = ANY($roles)` - safe parameterized array check */
 export function isRoleIn(...roles: string[]): SQL {
   return sql`${currentRole} = ANY(${roles})`;
 }
@@ -105,7 +102,6 @@ export function allocationOwnedByUser(allocationCol: Col): SQL {
     WHERE fs.subject_id = ${currentUserId}
   )`;
 }
-
 
 /**
  * Builder for the common pattern:

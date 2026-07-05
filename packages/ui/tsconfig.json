@@ -3,30 +3,17 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
+    "emitDeclarationOnly": true,
+    "allowImportingTsExtensions": true,
     "strictNullChecks": true,
     "paths": {
-      "components/*": [
-        "./src/components/*"
-      ],
-      "ui/*": [
-        "./src/components/*"
-      ],
-      "lib/*": [
-        "./src/lib/*"
-      ],
-      "hooks/*": [
-        "./src/hooks/*"
-      ],
-      "lib/utils": [
-        "./src/lib/utils.ts"
-      ]
+      "components/*": ["./src/components/*"],
+      "ui/*": ["./src/components/*"],
+      "lib/*": ["./src/lib/*"],
+      "hooks/*": ["./src/hooks/*"],
+      "lib/utils": ["./src/lib/utils.ts"]
     }
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ],
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -1150,85 +1150,83 @@ client-side code path.
 
 ---
 
-## 13. Docker Deployment — The Dual-Path tRPC Architecture
+## 13. Docker Deployment — Direct API Architecture
 
-### The Fundamental Problem
+### The Two Paths
 
-When `apps/web` (Next.js) and `apps/api` (NestJS) run in separate Docker containers, tRPC calls face a **network split**:
+When `apps/web` (Next.js) and `apps/api` (NestJS) run in separate Docker containers:
 
-| Caller | Can reach `http://api:8080`? | Why |
-|--------|------------------------------|-----|
-| **Next.js Server (SSR)** | ✅ Yes | Docker internal network (`app-network`) |
-| **Browser (client-side)** | ❌ No | Browser is outside Docker — `api` hostname doesn't resolve |
+| Caller | URL | Network |
+|--------|-----|---------|
+| **Browser (client)** | `NEXT_PUBLIC_API_URL` → `http://localhost:8080` | Host → exposed port |
+| **SSR (server)** | `API_URL` → `http://api:8080` | Docker internal network |
 
-The `getBaseUrl()` function in `apps/web/lib/trpc.ts` MUST return different URLs for each path:
+The API container exposes port 8080 to the host. The browser reaches it at
+`localhost:8080` (or the server's public hostname). The Next.js server, running
+inside Docker, reaches the API at its service name `api:8080`.
 
+### Architecture Diagram
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│                          DOCKER HOST                                  │
+│                                                                       │
+│  ┌──────────────────────────────┐   ┌──────────────────────────────┐ │
+│  │ rocky-web (Next.js :3000)    │   │ rocky-api (NestJS :8080)      │ │
+│  │                               │   │                               │ │
+│  │  SSR: API_URL=http://api:8080─┼──→│  tRPC handlers at /trpc/*    │ │
+│  │       (Docker network call)   │   │  Auth endpoints /api/auth/*  │ │
+│  │                               │   │                               │ │
+│  └──────────────────────────────┘   └──────────────────────────────┘ │
+│           ▲                                      ▲                    │
+│           │ localhost:3000               localhost:8080              │
+└───────────┼──────────────────────────────────────┼───────────────────┘
+            │                                      │
+         ┌──┴──────────────────────────────────────┴──┐
+         │              BROWSER                        │
+         │  Page: localhost:3000                       │
+         │  tRPC: localhost:8080/trpc/farm.list        │
+         │  Auth: localhost:8080/api/auth/sign-in/email │
+         │  Cookie: rocky_session (cross-origin!)       │
+         └─────────────────────────────────────────────┘
+```
+
+### Cross-Origin Cookies
+
+Since the browser sees the API on a different origin (`localhost:8080` vs `localhost:3000`),
+cookies must be configured for cross-origin usage:
+
+**`apps/api/src/auth/auth.ts` (better-auth config):**
 ```typescript
-function getBaseUrl() {
-  if (typeof window !== "undefined") return "";        // Browser → relative (proxied)
+export const auth = betterAuth({
   // ...
-  return process.env.API_URL;                         // SSR → direct Docker call
+  advanced: {
+    crossSubdomainCookies: {
+      enabled: true,
+    },
+    cookieOptions: {
+      sameSite: "lax",  // "none" if using HTTPS
+      secure: process.env.NODE_ENV === "production",
+    },
+  },
+});
+```
+
+**`apps/web/lib/trpc.ts` (client):**
+```typescript
+// Every fetch includes credentials so cookies are sent cross-origin
+fetch(url, options) {
+  return fetch(url, { ...options, credentials: "include" });
 }
 ```
 
-### The Solution: Next.js Rewrite Proxy
-
-`apps/web/next.config.ts` proxies `/trpc/*` to the API container:
-
+**`apps/api/src/main.ts` (CORS):**
 ```typescript
-async rewrites() {
-  const apiUrl = process.env.API_URL || "http://localhost:8080";
-  return [
-    {
-      source: "/trpc/:path*",
-      destination: `${apiUrl}/trpc/:path*`,
-    },
-  ];
-},
+app.enableCors({
+  origin: appConfig.cors.origins,  // ["http://localhost:3000", ...]
+  credentials: true,               // ← required for cookies
+});
 ```
-
-This creates a **dual-path architecture**:
-
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                        DOCKER HOST                                │
-│                                                                    │
-│  ┌─────────────────────────────┐   ┌───────────────────────────┐ │
-│  │ rocky-web (Next.js :3000)   │   │ rocky-api (NestJS :8080)   │ │
-│  │                              │   │                            │ │
-│  │  SSR/RSC:                    │   │  TRPCModule at /trpc      │ │
-│  │  API_URL=http://api:8080 ───┼──→│  better-auth middleware    │ │
-│  │  → direct Docker network call│   │  @Router/@Query handlers  │ │
-│  │                              │   │                            │ │
-│  │  Client components:          │   │                            │ │
-│  │  getBaseUrl() → "" (relative)│   │                            │ │
-│  │  fetch("/trpc/farm.list")    │   │                            │ │
-│  │  → next.config.ts rewrite ───┼──→│  /trpc/farm.list           │ │
-│  └─────────────────────────────┘   └───────────────────────────┘ │
-│           ▲                                    ▲                  │
-│           │ localhost:3000                     │                  │
-│           │ (browser sees same origin)          │                  │
-└───────────┼────────────────────────────────────┼──────────────────┘
-            │                                    │
-         ┌──┴────────────────────────────────────┴──┐
-         │              BROWSER                      │
-         │  Client components:                       │
-         │  fetch("/trpc/farm.list")                 │
-         │  → goes to localhost:3000 (Next.js)       │
-         │  → Next.js proxies to api:8080            │
-         │  Cookie: rocky_session (same origin!)      │
-         └──────────────────────────────────────────┘
-```
-
-### Why This Approach?
-
-| Concern | With Rewrite Proxy | Without Proxy |
-|---------|-------------------|---------------|
-| **Cookies** | Same origin — `rocky_session` cookie works naturally | Cross-origin — needs `SameSite=None; Secure` |
-| **CORS** | Not needed (browser sees same origin) | Must configure `CORS_ORIGINS` for every client origin |
-| **API exposure** | API stays on internal Docker network | API port must be exposed to public |
-| **SSL** | Only Next.js needs HTTPS | Both Next.js and API need HTTPS |
-| **Load** | Extra hop through Next.js (negligible) | Direct connection |
 
 ### Environment Variables
 
@@ -1236,23 +1234,48 @@ This creates a **dual-path architecture**:
 
 | Variable | Value | Used By |
 |----------|-------|---------|
-| `API_URL` | `http://api:8080` | SSR tRPC calls, Next.js rewrite destination |
-| `NEXT_PUBLIC_API_URL` | `http://localhost:3000` | Auth redirects (browser-visible URL) |
+| `API_URL` | `http://api:8080` | SSR tRPC calls (Docker network) |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8080` | Browser tRPC calls + auth redirects |
 | `BETTER_AUTH_SECRET` | (secret) | Server-side session validation |
 
 **`apps/api` (NestJS container):**
 
 | Variable | Value | Used By |
 |----------|-------|---------|
-| `CORS_ORIGINS` | `http://localhost:3000,http://web:3000` | Allowed origins for CORS |
+| `CORS_ORIGINS` | `http://localhost:3000,http://web:3000` | Allowed origins |
 | `TRUSTED_ORIGINS` | `http://localhost:3000,mobile://` | better-auth trusted origins |
-| `BASE_SERVICE_URL` | `http://api:8080` | Auth base URL |
-| `AUTH_BASE_URL` | `http://localhost:3000` | Auth redirect base URL (browser-visible) |
-| `PG_HOST` | `db` | PostgreSQL container hostname |
+| `AUTH_BASE_URL` | `http://localhost:8080` | Auth base URL (browser-visible) |
+
+### Why No Proxy?
+
+The reference pattern you showed (Next.js with embedded `betterAuth` + Drizzle)
+is **self-contained** — the Next.js app owns both auth and data. In that architecture:
+
+- Auth routes live at `/api/auth/[...all]` inside Next.js
+- Database is accessed directly from Next.js
+- No separate API container needed
+
+Our Rocky project uses a **three-tier architecture** where the API is a separate
+service. The browser MUST reach the API directly because:
+
+1. Next.js doesn't own the auth endpoints (`/api/auth/*` lives in the API)
+2. Next.js doesn't own the database (Drizzle lives in the API)
+3. The Next.js admin panel is a thin front-end that talks tRPC to the API
+
+Adding a Next.js proxy that forwards `/trpc` to the API is **unnecessary complexity**
+when the API port is already exposed:
+
+```
+# Terminal 1: API
+docker compose up api       # → localhost:8080
+
+# Terminal 2: Web
+docker compose up web       # → localhost:3000
+
+# Browser: loads page from 3000, API calls go to 8080 directly
+```
 
 ### Local Development (no Docker)
-
-For local dev, the same rewrite works:
 
 ```bash
 # Terminal 1: NestJS API
@@ -1262,39 +1285,19 @@ cd apps/api && pnpm dev   # → http://localhost:8080
 cd apps/web && pnpm dev   # → http://localhost:3000
 ```
 
-- `API_URL` defaults to `http://localhost:8080` when not set
-- Browser calls `/trpc/farm.list` → Next.js rewrite → `http://localhost:8080/trpc/farm.list`
-- No Docker-specific config needed for local dev
+No env vars needed locally — defaults to `http://localhost:8080` for both SSR and browser.
 
-### Cookie Flow in Docker
+### Production (with reverse proxy)
 
-Cookies set by better-auth (on the NestJS API) must reach the browser:
+For production, run both behind Nginx/Traefik/Caddy on the same domain:
 
-1. **Login**: Browser → Next.js proxy → `POST /api/auth/sign-in/email` → API responds with `Set-Cookie: rocky_session=...`
-2. **Next.js forwards** the `Set-Cookie` header to the browser (standard proxy behavior)
-3. **Subsequent requests**: Browser sends `Cookie: rocky_session=...` → Next.js proxy → API
-4. **API validates** the session cookie, populates `ctx.user`, tRPC procedure receives `ProtectedMiddlewareContext`
-
-Because the browser sees a single origin (`localhost:3000`), cookies work without `SameSite` configuration changes.
-
-### Container Build Order
-
-```bash
-# 1. Build and start everything
-docker compose up -d
-
-# 2. Verify
-curl http://localhost:8080/trpc/health.ping   # API health
-curl http://localhost:3000/trpc/health.ping    # Next.js proxy → API
+```
+https://admin.example.com/        → Next.js :3000
+https://admin.example.com/api/*   → NestJS :8080
 ```
 
-### Dockerfile Notes
-
-**`apps/api/Dockerfile`**: Multi-stage build, copies entire monorepo workspace, builds only `@rocky/api` and its workspace dependencies.
-
-**`apps/web/Dockerfile`** (new): Multi-stage build, copies monorepo workspace, builds only `web` and its workspace dependencies. At runtime, sets `API_URL=http://api:8080` as default.
-
-Both Dockerfiles use `pnpm install -r --filter <app>... --frozen-lockfile` to install only the required workspace subtree.
+This eliminates cross-origin issues entirely. Cookies become same-origin,
+CORS is unnecessary, and both services share a single domain.
 
 ---
 

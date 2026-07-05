@@ -1,8 +1,7 @@
 // ── Drizzle Schema: Risk Analyses ──
-// CPC annual risk analysis — selects 10% of farms for on-spot inspection
+// CPC annual risk analysis - selects 10% of farms for on-spot inspection
 
-import { pgTable, uuid, varchar, integer, text, timestamp, boolean, jsonb, index } from "drizzle-orm/pg-core";
-import { farms } from "../hk/farms";
+import { boolean, index, integer, jsonb, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 export const riskAnalyses = pgTable(
   "risk_analyses",
@@ -32,8 +31,5 @@ export const riskAnalyses = pgTable(
     updatedAt: timestamp("updated_at"),
     validTo: timestamp("valid_to"),
   },
-  (table) => [
-    index("idx_risk_analyses_year").on(table.year),
-    index("idx_risk_analyses_status").on(table.status),
-  ],
+  (table) => [index("idx_risk_analyses_year").on(table.year), index("idx_risk_analyses_status").on(table.status)],
 );

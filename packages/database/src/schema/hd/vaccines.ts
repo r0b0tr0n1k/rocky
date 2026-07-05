@@ -1,18 +1,9 @@
 // ── Drizzle Schema: Vaccine Master Data ──
 // Replaces: docs/old/deseases.md HD_VACCINES
 
-import {
-  pgTable,
-  uuid,
-  varchar,
-  timestamp,
-  boolean,
-  index,
-  uniqueIndex,
-  pgPolicy,
-} from "drizzle-orm/pg-core";
-import { adminWrite } from "../rls-helpers";
-import { vaccineTypePgEnum } from "../../schemas/enums/vaccine-type";
+import { boolean, pgPolicy, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { vaccineTypePgEnum } from "../../schemas/enums/vaccine-type.js";
+import { adminWrite } from "../rls-helpers.js";
 
 export const vaccines = pgTable(
   "vaccines",
@@ -31,7 +22,7 @@ export const vaccines = pgTable(
     updatedAt: timestamp("updated_at"),
     validTo: timestamp("valid_to"),
   },
-  (table) => [
+  (_table) => [
     pgPolicy("vaccine_access_policy", {
       as: "permissive",
       to: "public",

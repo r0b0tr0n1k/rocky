@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js"
 
 /**
- * Write Roles — allowed to modify data (`withCheck`).
+ * Write Roles - allowed to modify data (`withCheck`).
  */
 export const WRITE_ROLE = {
     SUPER_ADMIN: "SUPER_ADMIN",

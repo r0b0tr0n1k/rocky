@@ -1,11 +1,11 @@
 // ── Drizzle Schema: User Notification Preferences
 // Controls how users want to receive notifications by category
 
-import { pgTable, uuid, varchar, timestamp, boolean, jsonb, index, uniqueIndex, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { users } from "./users.js";
-import { currentUserId, isRoleIn, ADMIN_ROLES } from "../rls-helpers.js";
+import { boolean, index, jsonb, pgPolicy, pgTable, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 import { notificationCategoryPgEnum } from "../../schemas/enums/notification-category.js";
+import { ADMIN_ROLES, currentUserId, isRoleIn } from "../rls-helpers.js";
+import { users } from "./users.js";
 
 export const notificationPreferences = pgTable(
   "notification_preferences",

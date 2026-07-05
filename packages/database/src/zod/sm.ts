@@ -1,22 +1,13 @@
-// ── Dumb Zod — System Management Domain ──
+// --- Dumb Zod - System Management Domain ---
 
-import { createSelectSchema, createInsertSchema } from "./factory.js";
-import { users, userSessions } from "../schema/sm/users.js";
-import {
-  roles,
-  permissions,
-  rolePermissions,
-  userRoles,
-} from "../schema/sm/rbac.js";
-import { organizations } from "../schema/sm/organizations.js";
-import {
-  codeTables,
-  systemParameters,
-  businessRules,
-} from "../schema/sm/modules.js";
-import { notifications } from "../schema/sm/notifications.js";
-import { notificationTemplates } from "../schema/sm/notification-templates.js";
+import { businessRules, codeTables, systemParameters } from "../schema/sm/modules.js";
 import { notificationPreferences } from "../schema/sm/notification-preferences.js";
+import { notificationTemplates } from "../schema/sm/notification-templates.js";
+import { notifications } from "../schema/sm/notifications.js";
+import { organizations } from "../schema/sm/organizations.js";
+import { permissions, roles } from "../schema/sm/rbac.js";
+import { users } from "../schema/sm/users.js";
+import { createInsertSchema, createSelectSchema } from "./factory.js";
 
 export const userSelectSchema = createSelectSchema(users);
 export const userInsertSchema = createInsertSchema(users);
@@ -42,16 +33,8 @@ export const businessRuleInsertSchema = createInsertSchema(businessRules);
 export const notificationSelectSchema = createSelectSchema(notifications);
 export const notificationInsertSchema = createInsertSchema(notifications);
 
-export const notificationTemplateSelectSchema = createSelectSchema(
-  notificationTemplates,
-);
-export const notificationTemplateInsertSchema = createInsertSchema(
-  notificationTemplates,
-);
+export const notificationTemplateSelectSchema = createSelectSchema(notificationTemplates);
+export const notificationTemplateInsertSchema = createInsertSchema(notificationTemplates);
 
-export const notificationPreferenceSelectSchema = createSelectSchema(
-  notificationPreferences,
-);
-export const notificationPreferenceInsertSchema = createInsertSchema(
-  notificationPreferences,
-);
+export const notificationPreferenceSelectSchema = createSelectSchema(notificationPreferences);
+export const notificationPreferenceInsertSchema = createInsertSchema(notificationPreferences);

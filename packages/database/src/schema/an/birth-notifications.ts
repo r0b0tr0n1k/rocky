@@ -2,24 +2,23 @@
 // Replaces: Workflow 17-04-03.pdf §Instance 8
 // Tracks birth events, 20-day tagging deadlines, vet assignments
 
-import { pgTable, uuid, varchar, timestamp, date, boolean, integer, text, index, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import { boolean, date, index, integer, pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { BIRTH_NOTIFICATION_STATUS } from "../../constants/birth-notification-status.js";
+import { DATA_SOURCE } from "../../constants/data-source.js";
+import { birthNotificationStatusPgEnum } from "../../schemas/enums/birth-notification-status.js";
+import { dataSourcePgEnum } from "../../schemas/enums/data-source.js";
 import { farms } from "../hk/farms.js";
 import {
-  USER_ROLE,
-  currentRole,
+  ADMIN_ROLES,
   currentUserId,
-  isRole,
-  isRoleIn,
   farmInOrgArea,
   farmOwnedByUser,
-  ADMIN_ROLES,
+  isRole,
+  isRoleIn,
+  USER_ROLE,
   WRITE_ROLES,
 } from "../rls-helpers.js";
-import { dataSourcePgEnum } from "../../schemas/enums/data-source.js";
-import { birthNotificationStatusPgEnum } from "../../schemas/enums/birth-notification-status.js";
-import { DATA_SOURCE } from "../../constants/data-source.js";
-import { BIRTH_NOTIFICATION_STATUS } from "../../constants/birth-notification-status.js";
 
 export const birthNotifications = pgTable(
   "birth_notifications",

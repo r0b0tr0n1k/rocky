@@ -1,4 +1,4 @@
-import { createEnumValues } from "./_brand"
+import { createEnumValues } from "./_brand.js"
 
 export const ARCHIVE_LOCATION = {
 	CPC: "cpc",

@@ -1,7 +1,7 @@
-import { createEnumValues } from "./_brand";
+import { createEnumValues } from "./_brand.js";
 
 /**
- * Test Result — laboratory test outcome
+ * Test Result - laboratory test outcome
  */
 export const TEST_RESULT = {
 	POSITIVE: "positive",

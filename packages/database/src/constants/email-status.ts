@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js";
 
 /**
- * Email Status — the fate of an outbound message in the Symbolic infrastructure.
+ * Email Status - the fate of an outbound message in the Symbolic infrastructure.
  */
 export const EMAIL_STATUS = {
 	SENT: "sent",

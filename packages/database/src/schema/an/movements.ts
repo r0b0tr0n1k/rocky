@@ -2,12 +2,11 @@
 // Replaces: Two-phase departure + arrival pattern
 // Modern: Single record with parentMovementId for multi-leg (markets)
 
-import { pgTable, uuid, varchar, timestamp, date, boolean, integer, text, index, pgPolicy } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, timestamp, date, boolean, integer, index, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { animals } from "./animals.js";
 import { farms } from "../hk/farms.js";
 import {
-  USER_ROLE,
   isRoleIn,
   farmInOrgArea,
   farmOwnedByUser,
@@ -17,8 +16,6 @@ import {
 } from "../rls-helpers.js";
 import { movementTypePgEnum } from "../../schemas/enums/movement-type.js";
 import { deathCausePgEnum } from "../../schemas/enums/death-cause.js";
-import { MOVEMENT_TYPE } from "../../constants/movement-type.js";
-import { DEATH_CAUSE } from "../../constants/death-cause.js";
 
 export const movements = pgTable(
   "movements",

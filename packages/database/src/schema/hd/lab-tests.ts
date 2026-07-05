@@ -1,26 +1,15 @@
 // ── Drizzle Schema: Laboratory Test Results ──
 // Covers: serology (rabies titration, TB, brucellosis),
-//         PCR, culture, ELISA — all pathogen-specific tests
+//         PCR, culture, ELISA - all pathogen-specific tests
 // References: import health cert requirements for animal trade
 
-import {
-  pgTable,
-  uuid,
-  varchar,
-  timestamp,
-  date,
-  numeric,
-  text,
-  boolean,
-  index,
-  pgPolicy,
-} from "drizzle-orm/pg-core";
-import { animals } from "../an/animals";
-import { farms } from "../hk/farms";
-import { diseases } from "./diseases";
-import { rlsForFarmColumn, adminAndVetWrite } from "../rls-helpers";
-import { testTypePgEnum } from "../../schemas/enums/test-type";
-import { testResultPgEnum } from "../../schemas/enums/test-result";
+import { boolean, date, index, numeric, pgPolicy, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { testResultPgEnum } from "../../schemas/enums/test-result.js";
+import { testTypePgEnum } from "../../schemas/enums/test-type.js";
+import { animals } from "../an/animals.js";
+import { farms } from "../hk/farms.js";
+import { adminAndVetWrite, rlsForFarmColumn } from "../rls-helpers.js";
+import { diseases } from "./diseases.js";
 
 export const labTests = pgTable(
   "lab_tests",

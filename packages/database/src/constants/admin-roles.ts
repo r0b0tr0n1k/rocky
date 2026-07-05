@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js"
 
 /**
- * Admin Roles — bypass all RLS scoping (read/write everything).
+ * Admin Roles - bypass all RLS scoping (read/write everything).
  */
 export const ADMIN_ROLE = {
     SUPER_ADMIN: "SUPER_ADMIN",

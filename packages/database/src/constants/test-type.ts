@@ -1,7 +1,7 @@
-import { createEnumValues } from "./_brand";
+import { createEnumValues } from "./_brand.js";
 
 /**
- * Test Type — laboratory test methodology
+ * Test Type - laboratory test methodology
  */
 export const TEST_TYPE = {
 	SEROLOGY: "serology",

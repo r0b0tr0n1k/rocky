@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js";
 
 /**
- * Ear-Tag Transition Status — deliverable states of an order.
+ * Ear-Tag Transition Status - deliverable states of an order.
  */
 export const EARTAG_TRANSITION_STATUS = {
 	DELIVERED: "delivered",

@@ -2,12 +2,12 @@
 // Replaces: HK_KMG_SUBJ (Oracle HK.PDF)
 // Represents the "Holder Keeper on Farm" relationship
 
-import { pgTable, uuid, varchar, timestamp, boolean, integer, uniqueIndex, index, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import { boolean, index, integer, pgPolicy, pgTable, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { subjectRolePgEnum } from "../../schemas/enums/subject-role.js";
+import { ADMIN_ROLES, currentUserId, farmInOrgArea, isRoleIn, ORG_READ_ROLES } from "../rls-helpers.js";
 import { farms } from "./farms.js";
 import { subjects } from "./subjects.js";
-import { USER_ROLE, isRoleIn, farmInOrgArea, currentUserId, ADMIN_ROLES, ORG_READ_ROLES } from "../rls-helpers.js";
-import { subjectRolePgEnum } from "../../schemas/enums/subject-role.js";
 
 export const farmSubjects = pgTable(
   "farm_subjects",

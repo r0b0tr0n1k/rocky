@@ -2,21 +2,21 @@
 // Replaces: Workflow 17-04-03.pdf §Instances 22-24
 // Plausibility checks (a priori + a posteriori) and correction tracking
 
-import { pgTable, uuid, varchar, timestamp, date, boolean, text, jsonb, index, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { animals } from "./animals";
-import { farms } from "../hk/farms";
+import { boolean, index, jsonb, pgPolicy, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { CORRECTION_STATUS } from "../../constants/correction-status.js";
+import { correctionCaseTypePgEnum } from "../../schemas/enums/correction-case-type.js";
+import { correctionStatusPgEnum } from "../../schemas/enums/correction-status.js";
+import { farms } from "../hk/farms.js";
 import {
-  isRoleIn,
+  ADMIN_ROLES,
+  FARM_READ_ROLES,
   farmInOrgArea,
   farmOwnedByUser,
-  ADMIN_ROLES,
+  isRoleIn,
   ORG_READ_ROLES,
-  FARM_READ_ROLES,
-} from "../rls-helpers";
-import { correctionStatusPgEnum } from "../../schemas/enums/correction-status";
-import { correctionCaseTypePgEnum } from "../../schemas/enums/correction-case-type";
-import { CORRECTION_STATUS } from "../../constants/correction-status";
+} from "../rls-helpers.js";
+import { animals } from "./animals.js";
 
 export const errorCorrections = pgTable(
   "error_corrections",
@@ -27,12 +27,10 @@ export const errorCorrections = pgTable(
     detectionSource: varchar("detection_source", { length: 50 }).notNull(), // "field", "a_priori", "a_posteriori"
 
     // Farm context
-    farmId: uuid("farm_id")
-      .references(() => farms.id),
+    farmId: uuid("farm_id").references(() => farms.id),
 
     // Animal context (if correction is animal-specific)
-    animalId: uuid("animal_id")
-      .references(() => animals.id),
+    animalId: uuid("animal_id").references(() => animals.id),
 
     // Error details
     errorType: varchar("error_type", { length: 100 }).notNull(),

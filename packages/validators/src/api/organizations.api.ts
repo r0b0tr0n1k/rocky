@@ -1,4 +1,4 @@
-// ── Organizations API Schemas — Diamond Seal ──
+// ── Organizations API Schemas - Diamond Seal ──
 //
 // Organizations are the administrative units of the Veterinary Directorate.
 // Based on: SM.PDF

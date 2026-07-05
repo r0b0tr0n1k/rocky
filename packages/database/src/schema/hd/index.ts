@@ -1,7 +1,8 @@
-export { diseases } from "./diseases";
-export { vaccines } from "./vaccines";
-export { vaccineBatches } from "./vaccine-batches";
-export { vaccinations } from "./vaccinations";
-export { treatments } from "./treatments";
-export { labTests } from "./lab-tests";
-export { vaccineDiseases } from "./vaccine-diseases";
+export { diseases } from "./diseases.js";
+export { labTests } from "./lab-tests.js";
+export { treatments } from "./treatments.js";
+export { vaccinations } from "./vaccinations.js";
+export { vaccineBatches } from "./vaccine-batches.js";
+export { vaccineDiseases } from "./vaccine-diseases.js";
+export { vaccines } from "./vaccines.js";
+

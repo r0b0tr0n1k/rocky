@@ -2,22 +2,22 @@
 //
 // Every event in the Animal I&R system follows this dialectical structure:
 //
-//   1. EVENT HEADER  — The Symbolic: what kind of event, when, and its place in the causal chain
-//   2. EVENT PAYLOAD — The Real: the irreducible kernel of domain data that changed
-//   3. EVENT SOURCE  — The Imaginary: who/what produced this event and from where
-//   4. EVENT ENVELOPE — The Sublime Object: the complete event as it travels through the system
+//   1. EVENT HEADER  - The Symbolic: what kind of event, when, and its place in the causal chain
+//   2. EVENT PAYLOAD - The Real: the irreducible kernel of domain data that changed
+//   3. EVENT SOURCE  - The Imaginary: who/what produced this event and from where
+//   4. EVENT ENVELOPE - The Sublime Object: the complete event as it travels through the system
 //
 // Usage:
 //   export const AnimalRegisteredEvent = eventEnvelopeSchema(animalRegisteredPayloadSchema);
 
 import { z } from "zod";
 import { eventSourceSchema as eventSourceTypeSchema } from "../enums/domain.js";
-import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
+import type { ActivateGuillotines, NoDrift } from "../utils/type-bridge.js";
 
 // ── Part 1: EVENT HEADER (The Symbolic) ──
-// Non-strict version is private — only the strict variant is the public contract
+// Non-strict version is private - only the strict variant is the public contract
 const _eventHeaderSchema = z.object({
-  /** Unique event id (UUID v7 — time-ordered) */
+  /** Unique event id (UUID v7 - time-ordered) */
   eventId: z.uuid(),
 
   /** Event type discriminator (e.g. "animal.registered", "ear-tag.allocated") */
@@ -38,7 +38,7 @@ const _eventHeaderSchema = z.object({
   /** Sequence number within the aggregate stream */
   aggregateSequence: z.int().nonnegative().optional(),
 
-  /** Unique idempotency key — same key = same event, even if retried */
+  /** Unique idempotency key - same key = same event, even if retried */
   idempotencyKey: z.string().optional(),
 });
 
@@ -58,7 +58,7 @@ export const eventHeaderSchema = z.strictObject(_eventHeaderSchema.shape) satisf
 type _drift_eventHeader = NoDrift<z.infer<typeof eventHeaderSchema>, EventHeader>;
 
 // ── Part 2: EVENT SOURCE (The Imaginary) ──
-// Non-strict version is private — only the strict variant is the public contract
+// Non-strict version is private - only the strict variant is the public contract
 const _eventSourceSchema = z.object({
   /** Who produced this event (user id from auth system) */
   userId: z.uuid().optional(),

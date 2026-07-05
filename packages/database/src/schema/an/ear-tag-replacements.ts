@@ -8,7 +8,6 @@ import { users } from "../sm/users.js";
 import { rlsForFarmColumn, adminWrite } from "../rls-helpers.js";
 import { earTagReplacementReasonPgEnum } from "../../schemas/enums/ear-tag-replacement-reason.js";
 import { earTagReplacementStatusPgEnum } from "../../schemas/enums/ear-tag-replacement-status.js";
-import { EAR_TAG_REPLACEMENT_REASON } from "../../constants/ear-tag-replacement-reason.js";
 import { EAR_TAG_REPLACEMENT_STATUS } from "../../constants/ear-tag-replacement-status.js";
 
 export const earTagReplacements = pgTable(

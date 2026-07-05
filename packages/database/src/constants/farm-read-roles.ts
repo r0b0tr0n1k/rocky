@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js"
 
 /**
- * Farm-Read Roles — farm-scoped read access (own farms only).
+ * Farm-Read Roles - farm-scoped read access (own farms only).
  */
 export const FARM_READ_ROLE = {
     FARMER: "FARMER",

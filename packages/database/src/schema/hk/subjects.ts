@@ -1,10 +1,10 @@
 // ── Drizzle Schema: Subjects (Keepers/Holders) ──
 // Replaces: HK_SUBJ (Oracle HK.PDF)
 
-import { pgTable, uuid, varchar, timestamp, boolean, integer, index, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import { boolean, index, integer, pgPolicy, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { ADMIN_ROLES, adminWrite, farmOwnedByUser, isRoleIn, USER_ROLE } from "../rls-helpers.js";
 import { farms } from "./farms.js";
-import { USER_ROLE, isRoleIn, farmOwnedByUser, ADMIN_ROLES, adminWrite } from "../rls-helpers.js";
 
 export const subjects = pgTable(
   "subjects",
@@ -12,7 +12,7 @@ export const subjects = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     legacyId: integer("legacy_id").unique(),
 
-    // Names (dual language — legacy SHORT_NAME/SHORT_NAME_1)
+    // Names (dual language - legacy SHORT_NAME/SHORT_NAME_1)
     shortName: varchar("short_name", { length: 50 }).notNull(),
     shortNameAlt: varchar("short_name_alt", { length: 50 }),
     firstName: varchar("first_name", { length: 50 }),

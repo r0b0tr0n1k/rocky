@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js";
 
 /**
- * Event Source — from which node in the network does the event originate?
+ * Event Source - from which node in the network does the event originate?
  */
 export const EVENT_SOURCE = {
 	API: "API",

@@ -1,4 +1,4 @@
-// ── Drizzle Schema: Auth — Session (better-auth) ──
+// ── Drizzle Schema: Auth - Session (better-auth) ──
 // Tracks active sessions for cookie/token-based auth
 
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core";

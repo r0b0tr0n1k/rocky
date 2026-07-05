@@ -2,19 +2,19 @@
 // Replaces: docs/old/deseases.md HD_VACCINE_BATCHES
 
 import {
+  boolean,
+  date,
+  index,
+  integer,
+  pgPolicy,
   pgTable,
+  timestamp,
+  uniqueIndex,
   uuid,
   varchar,
-  timestamp,
-  date,
-  boolean,
-  integer,
-  index,
-  uniqueIndex,
-  pgPolicy,
 } from "drizzle-orm/pg-core";
-import { vaccines } from "./vaccines";
-import { adminWrite } from "../rls-helpers";
+import { adminWrite } from "../rls-helpers.js";
+import { vaccines } from "./vaccines.js";
 
 export const vaccineBatches = pgTable(
   "vaccine_batches",

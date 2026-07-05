@@ -1,4 +1,4 @@
-// ── Ear Tags API Schemas — Diamond Seal ──
+// ── Ear Tags API Schemas - Diamond Seal ──
 //
 // Ear tags are the material trace of the animal in the Symbolic order.
 // Every tag has a lifecycle: manufactured → allocated → applied → replaced.

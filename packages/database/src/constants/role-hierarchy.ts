@@ -1,7 +1,7 @@
 import { USER_ROLE } from "./user-role.js"
 
 /**
- * Role Hierarchy — defines privilege ordering for RBAC.
+ * Role Hierarchy - defines privilege ordering for RBAC.
  *
  * Higher numbers = more privileges.
  * Used at the application layer, not in SQL RLS policies.

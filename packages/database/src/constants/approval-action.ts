@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js";
 
 /**
- * Approval Action — the trinity of bureaucratic judgment.
+ * Approval Action - the trinity of bureaucratic judgment.
  */
 export const APPROVAL_ACTION = {
 	APPROVE: "APPROVE",

@@ -3,25 +3,25 @@
 // From birth to slaughter, the animal leaves a trail in the Symbolic order.
 
 import { z } from "zod";
-import { eventEnvelopeSchema } from "./base.js";
-import {
-  animalStatusSchema,
-  sexSchema,
-  birthTypeSchema,
-  pastureTypeSchema,
-  movementTypeSchema,
-  deathCauseSchema,
-  weighingTypeSchema,
-} from "../enums/domain.js";
 import type {
-  sexType,
-  birthTypeType,
   animalStatusType,
-  movementTypeType,
+  birthTypeType,
   deathCauseType,
+  movementTypeType,
+  sexType,
   weighingTypeType,
 } from "../enums/domain.js";
-import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
+import {
+  animalStatusSchema,
+  birthTypeSchema,
+  deathCauseSchema,
+  movementTypeSchema,
+  pastureTypeSchema,
+  sexSchema,
+  weighingTypeSchema,
+} from "../enums/domain.js";
+import type { ActivateGuillotines, NoDrift } from "../utils/type-bridge.js";
+import { eventEnvelopeSchema } from "./base.js";
 
 // ═══════════════════════════════════════════════════════════════
 // ANIMAL REGISTERED

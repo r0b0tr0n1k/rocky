@@ -3,23 +3,22 @@
 // Tracks orders for ear tag procurement from suppliers
 
 import {
+  date,
+  index,
+  integer,
+  pgPolicy,
   pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
   uuid,
   varchar,
-  timestamp,
-  date,
-  integer,
-  text,
-  index,
-  uniqueIndex,
-  pgPolicy,
 } from "drizzle-orm/pg-core";
-import { users } from "../sm/users.js";
-import { organizations } from "../sm/organizations.js";
-import { earTagTypes } from "./ear-tag-types.js";
-import { rlsForOrgColumn, adminWrite } from "../rls-helpers.js";
-import { earTagOrderStatusPgEnum } from "../../schemas/enums/ear-tag-order-status.js";
 import { EAR_TAG_ORDER_STATUS } from "../../constants/ear-tag-order-status.js";
+import { earTagOrderStatusPgEnum } from "../../schemas/enums/ear-tag-order-status.js";
+import { adminWrite, rlsForOrgColumn } from "../rls-helpers.js";
+import { organizations } from "../sm/organizations.js";
+import { users } from "../sm/users.js";
 
 export const earTagOrders = pgTable(
   "ear_tag_orders",

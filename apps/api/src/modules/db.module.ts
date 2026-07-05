@@ -1,4 +1,4 @@
-// ── Database Module — provides drizzle connection to NestJS DI ──
+// --- Database Module - provides drizzle connection to NestJS DI ---
 
 import { Global, Module } from "@nestjs/common";
 import { db } from "@rocky/database";

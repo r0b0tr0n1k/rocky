@@ -1,7 +1,7 @@
 /**
  * Risk Analysis Job
  *
- * @description Annual cron job that triggers the CPC risk analysis — selects 10% of farms
+ * @description Annual cron job that triggers the CPC risk analysis - selects 10% of farms
  * for on-spot inspection using weighted random selection.
  *
  * Runs at 00:00 UTC on January 1st annually via @nestjs/schedule.
@@ -20,7 +20,7 @@ export class RiskAnalysisJob {
   ) {}
 
   /**
-   * Annual risk analysis — selects 10% of farms for inspection.
+   * Annual risk analysis - selects 10% of farms for inspection.
    * Runs at midnight on January 1st each year.
    */
   @Cron("0 0 1 1 *")

@@ -1,5 +1,5 @@
-// ── RLS Role Groups — which roles get what access level ──
-// These are NOT branded enums — they're arrays of USER_ROLE values
+// ── RLS Role Groups - which roles get what access level ──
+// These are NOT branded enums - they're arrays of USER_ROLE values
 // consumed by the RLS middleware and helpers.
 
 import { USER_ROLE } from "./user-role.js";

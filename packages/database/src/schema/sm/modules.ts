@@ -2,21 +2,20 @@
 // Replaces: SM_MODULES, SM_BUSINESS_RULES, SM_MODULE_BR, SM_LOG_CODES, SM_SYS_PARAMS
 
 import {
+  boolean,
+  index,
+  integer,
+  jsonb,
   pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
   uuid,
   varchar,
-  timestamp,
-  boolean,
-  integer,
-  text,
-  jsonb,
-  index,
-  uniqueIndex,
 } from "drizzle-orm/pg-core";
+import { SEVERITY } from "../../constants/severity.js";
 import { moduleTypePgEnum } from "../../schemas/enums/module-type.js";
 import { severityPgEnum } from "../../schemas/enums/severity.js";
-import { MODULE_TYPE } from "../../constants/module-type.js";
-import { SEVERITY } from "../../constants/severity.js";
 
 // ── APPLICATION MODULES (replaces SM_MODULES) ──
 export const modules = pgTable("modules", {
@@ -70,7 +69,7 @@ export const moduleBusinessRules = pgTable(
   (table) => [uniqueIndex("idx_module_br").on(table.moduleId, table.businessRuleId)],
 );
 
-// ── CODE TABLES (replaces SM_LOG_CODES — multi-language support) ──
+// ── CODE TABLES (replaces SM_LOG_CODES - multi-language support) ──
 export const codeTables = pgTable(
   "code_tables",
   {

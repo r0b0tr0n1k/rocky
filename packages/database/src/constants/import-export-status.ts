@@ -1,4 +1,4 @@
-import { createEnumValues } from "./_brand"
+import { createEnumValues } from "./_brand.js"
 
 export const IMPORT_EXPORT_STATUS = {
 	PENDING: "pending",

@@ -1,24 +1,24 @@
-// ── RBAC Router — tRPC entry point ──
+// --- RBAC Router - tRPC entry point ---
 
-import { Injectable, Inject } from "@nestjs/common";
-import { Router, Query, Mutation, Input, UseMiddlewares } from "nestjs-trpc";
-import { z } from "zod";
-import { createResultUnwrapper } from "@rocky/trpc";
-import { RBAC_TRPC_ERROR_MAP } from "@rocky/validators/errors";
-import { ProtectedMiddleware } from "../trpc/middlewares/protected.middleware.js";
+import { Inject, Injectable } from "@nestjs/common";
 import { RbacService } from "@rocky/domains-rbac";
+import { createResultUnwrapper } from "@rocky/trpc";
 import {
-  roleResponseSchema,
-  permissionResponseSchema,
-  roleWithPermissionsResponseSchema,
   assignRoleToUserRequestSchema,
+  permissionResponseSchema,
   revokeRoleFromUserRequestSchema,
-  type RoleResponse,
-  type PermissionResponse,
-  type RoleWithPermissionsResponse,
+  roleResponseSchema,
+  roleWithPermissionsResponseSchema,
   type AssignRoleToUserRequest,
+  type PermissionResponse,
   type RevokeRoleFromUserRequest,
+  type RoleResponse,
+  type RoleWithPermissionsResponse,
 } from "@rocky/validators/api";
+import { RBAC_TRPC_ERROR_MAP } from "@rocky/validators/errors";
+import { Input, Mutation, Query, Router, UseMiddlewares } from "nestjs-trpc";
+import { z } from "zod";
+import { ProtectedMiddleware } from "../trpc/middlewares/protected.middleware.js";
 
 const roleIdParam = z.object({ roleId: z.uuid() });
 const unwrap = createResultUnwrapper(RBAC_TRPC_ERROR_MAP);

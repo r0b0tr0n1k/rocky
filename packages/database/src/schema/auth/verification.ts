@@ -1,4 +1,4 @@
-// ── Drizzle Schema: Auth — Verification (better-auth) ──
+// ── Drizzle Schema: Auth - Verification (better-auth) ──
 // Email verification tokens, password reset tokens, OTP codes
 
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core";

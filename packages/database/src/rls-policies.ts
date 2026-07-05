@@ -1,7 +1,7 @@
 // ── RLS Policy Helpers ──
 // Single source of truth for all Row-Level Security policies.
 // Schema files import these functions instead of writing raw SQL.
-// Every role name comes from USER_ROLE constants — no hardcoded strings.
+// Every role name comes from USER_ROLE constants - no hardcoded strings.
 
 import { sql } from "drizzle-orm";
 import { USER_ROLE } from "./constants/user-role.js";
@@ -22,7 +22,7 @@ function roleIn(...roles: string[]) {
 }
 
 /** SQL literal: current_setting(...) = 'ROLE' */
-function roleIs(role: string) {
+function _roleIs(role: string) {
     return sql.raw(`${currentRole()} = '${role}'`);
 }
 

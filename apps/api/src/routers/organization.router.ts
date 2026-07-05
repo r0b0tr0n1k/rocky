@@ -1,20 +1,20 @@
-// ── Organization Router — tRPC entry point ──
+// --- Organization Router - tRPC entry point ---
 
-import { Injectable, Inject } from "@nestjs/common";
-import { Router, Query, Mutation, Input, Ctx, UseMiddlewares } from "nestjs-trpc";
-import { z } from "zod";
-import { createResultUnwrapper } from "@rocky/trpc";
-import { ORG_TRPC_ERROR_MAP } from "@rocky/validators/errors";
-import { ProtectedMiddleware, type ProtectedMiddlewareContext } from "../trpc/middlewares/protected.middleware.js";
+import { Inject, Injectable } from "@nestjs/common";
 import { OrganizationService } from "@rocky/domains-organization";
+import { createResultUnwrapper } from "@rocky/trpc";
 import {
+  createOrganizationRequestSchema,
   organizationResponseSchema,
   organizationSummarySchema,
-  createOrganizationRequestSchema,
+  type CreateOrganizationRequest,
   type OrganizationResponse,
   type OrganizationSummary,
-  type CreateOrganizationRequest,
 } from "@rocky/validators/api";
+import { ORG_TRPC_ERROR_MAP } from "@rocky/validators/errors";
+import { Ctx, Input, Mutation, Query, Router, UseMiddlewares } from "nestjs-trpc";
+import { z } from "zod";
+import { ProtectedMiddleware, type ProtectedMiddlewareContext } from "../trpc/middlewares/protected.middleware.js";
 
 const idParam = z.object({ id: z.uuid() });
 const orgTypeParam = z.object({ orgType: z.string() });

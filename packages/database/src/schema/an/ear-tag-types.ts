@@ -3,19 +3,19 @@
 // Defines types of ear tags (male, female, species-specific, etc.)
 
 import {
+  boolean,
+  index,
+  integer,
+  pgPolicy,
   pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
   uuid,
   varchar,
-  timestamp,
-  boolean,
-  integer,
-  text,
-  index,
-  uniqueIndex,
-  pgPolicy,
 } from "drizzle-orm/pg-core";
-import { adminWrite } from "../rls-helpers.js";
 import { tagCategoryPgEnum } from "../../schemas/enums/tag-category.js";
+import { adminWrite } from "../rls-helpers.js";
 
 export const earTagTypes = pgTable(
   "ear_tag_types",

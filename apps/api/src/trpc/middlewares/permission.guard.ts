@@ -1,15 +1,15 @@
 /**
- * Permission Guard — Action-level authorization for tRPC procedures
+ * Permission Guard - Action-level authorization for tRPC procedures
  *
  * Layer 3 of the 3-layer RBAC architecture:
- *   Layer 1: pgPolicy — row-level filtering (database)
- *   Layer 2: RLSMiddleware — SET LOCAL session vars
- *   Layer 3: @RequirePermission / PermissionGuard — action authorization
+ *   Layer 1: pgPolicy - row-level filtering (database)
+ *   Layer 2: RLSMiddleware - SET LOCAL session vars
+ *   Layer 3: @RequirePermission / PermissionGuard - action authorization
  *
  * RLS solves *which rows you can see*.
  * This guard solves *whether you can call this procedure at all*.
  *
- * Usage (factory pattern — nestjs-trpc @UseMiddlewares expects class constructors):
+ * Usage (factory pattern - nestjs-trpc @UseMiddlewares expects class constructors):
  * ```typescript
  * @Mutation({ input: placeOrderSchema })
  * @UseMiddlewares(createPermissionGuard("eartag:order"))
@@ -52,7 +52,7 @@ export function createPermissionGuard(permission: string): new () => TRPCMiddlew
 }
 
 /**
- * Legacy class-based guard — kept for backward compatibility.
+ * Legacy class-based guard - kept for backward compatibility.
  * Prefer createPermissionGuard() for @UseMiddlewares() usage.
  */
 export class PermissionGuard implements TRPCMiddleware {

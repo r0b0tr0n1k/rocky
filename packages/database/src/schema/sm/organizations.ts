@@ -1,10 +1,10 @@
 // ── Drizzle Schema: Organizations & Areas ──
 // Replaces: SM_ORGANIZATIONS, SM_ORG_AREA (Oracle SM.PDF)
 
-import { pgTable, uuid, varchar, timestamp, boolean, jsonb, index, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { USER_ROLE, isRoleIn, currentOrgId, ADMIN_ROLES } from "../rls-helpers.js";
+import { boolean, index, jsonb, pgPolicy, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { orgTypePgEnum } from "../../schemas/enums/org-type.js";
+import { ADMIN_ROLES, currentOrgId, isRoleIn, USER_ROLE } from "../rls-helpers.js";
 
 export const organizations = pgTable(
   "organizations",

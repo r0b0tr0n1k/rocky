@@ -1,4 +1,4 @@
-// ── Movements API Schemas — Diamond Seal ──
+// ── Movements API Schemas - Diamond Seal ──
 //
 // Movement is the dialectical synthesis of the animal's journey, Comrade.
 // Every movement changes the animal's position in the Symbolic order.

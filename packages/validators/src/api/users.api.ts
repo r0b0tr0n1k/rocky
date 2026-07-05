@@ -1,4 +1,4 @@
-// ── Users API Schemas — Diamond Seal ──
+// ── Users API Schemas - Diamond Seal ──
 //
 // The user is the agent of the System Management domain.
 // With mobilePhone and deviceId for 2FA and device-change detection.

@@ -1,4 +1,4 @@
-import { createEnumValues } from "./_brand"
+import { createEnumValues } from "./_brand.js"
 
 export const CORRECTION_CASE_TYPE = {
 	TECHNICIAN_RESOLVABLE: "technician_resolvable",

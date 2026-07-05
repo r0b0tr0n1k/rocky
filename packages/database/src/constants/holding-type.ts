@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js";
 
 /**
- * Holding Type — the target of a holdings registration.
+ * Holding Type - the target of a holdings registration.
  */
 export const HOLDING_TYPE = {
 	FARM: "FARM",

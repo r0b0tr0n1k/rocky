@@ -1,4 +1,4 @@
-// ── RBAC API Schemas — Diamond Seal ──
+// ── RBAC API Schemas - Diamond Seal ──
 //
 // Roles and permissions are the Symbolic order of the system, Comrade.
 // They determine what each user may see and do.

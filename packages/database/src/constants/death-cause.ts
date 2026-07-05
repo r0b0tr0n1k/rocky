@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js";
 
 /**
- * Death Cause — why did the animal leave the Symbolic order?
+ * Death Cause - why did the animal leave the Symbolic order?
  */
 export const DEATH_CAUSE = {
 	DEATH_REGISTERED: "DEATH_REGISTERED",

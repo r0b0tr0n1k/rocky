@@ -1,10 +1,10 @@
-import { createAuthClient } from "better-auth/react";
 import { expoClient } from "@better-auth/expo/client";
-import { customSessionClient } from "better-auth/client/plugins";
 import type { Auth } from "@rocky/api/auth";
-import { Platform } from "react-native";
+import { customSessionClient } from "better-auth/client/plugins";
+import { createAuthClient } from "better-auth/react";
 import * as SecureStore from "expo-secure-store";
-import { getConfig } from "./config";
+import { Platform } from "react-native";
+import { getConfig } from "./config.js";
 
 // Must match backend's `advanced.cookiePrefix`
 const COOKIE_PREFIX = "rocky";
@@ -22,8 +22,7 @@ export type AuthUser = __authClientType["$Infer"]["Session"]["user"];
 
 let client: AuthClient | null = null;
 
-export const { signIn, signUp, signOut, resetPassword, changeEmail, changePassword, getSession } =
-  getAuthClient();
+export const { signIn, signUp, signOut, resetPassword, changeEmail, changePassword, getSession } = getAuthClient();
 
 export function initAuthClient(authUrl: string): AuthClient {
   if (client) return client;
@@ -111,10 +110,7 @@ export const getAuthHeaders = (): Record<string, string> => {
  * Make an authenticated fetch request to your server.
  * Automatically includes auth cookies from device storage.
  */
-export const authenticatedFetch = async (
-  url: string,
-  options: RequestInit = {}
-): Promise<Response> => {
+export const authenticatedFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
   if (Platform.OS === "web") {
     return fetch(url, {
       ...options,

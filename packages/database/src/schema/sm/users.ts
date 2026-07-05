@@ -1,17 +1,17 @@
-// ── Drizzle Schema: System Management — Users ──
+// ── Drizzle Schema: System Management - Users ──
 // Replaces: SM_USERS, SM_SESSIONS (Oracle SM.PDF)
 // Modern: UUID primary keys, password hashing, MFA support
 // Uses: userRolePgEnum for the role column (Postgres enum, not varchar)
 
-import { pgTable, uuid, varchar, timestamp, boolean, jsonb, uniqueIndex, index, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { organizations } from "./organizations.js";
-import { userRolePgEnum } from "../../schemas/enums/user-role.js";
-import { userStatusPgEnum } from "../../schemas/enums/user-status.js";
-import { languagePgEnum } from "../../schemas/enums/language.js";
+import { boolean, index, jsonb, pgPolicy, pgTable, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 import { LANGUAGE } from "../../constants/language.js";
 import { USER_STATUS } from "../../constants/user-status.js";
-import { USER_ROLE, isRole, isRoleIn, currentUserId, currentOrgId } from "../rls-helpers.js";
+import { languagePgEnum } from "../../schemas/enums/language.js";
+import { userRolePgEnum } from "../../schemas/enums/user-role.js";
+import { userStatusPgEnum } from "../../schemas/enums/user-status.js";
+import { currentOrgId, currentUserId, isRole, isRoleIn, USER_ROLE } from "../rls-helpers.js";
+import { organizations } from "./organizations.js";
 
 // ── USERS ──
 export const users = pgTable(
@@ -27,7 +27,7 @@ export const users = pgTable(
     mfaEnabled: boolean("mfa_enabled").notNull().default(false),
     mfaSecret: varchar("mfa_secret", { length: 100 }),
 
-    // Personal info (dual language — legacy FIRST_NAME/FIRST_NAME_1)
+    // Personal info (dual language - legacy FIRST_NAME/FIRST_NAME_1)
     firstName: varchar("first_name", { length: 50 }),
     firstNameAlt: varchar("first_name_alt", { length: 50 }),
     lastName: varchar("last_name", { length: 50 }),

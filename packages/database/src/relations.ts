@@ -3,11 +3,11 @@
 // https://orm.drizzle.team/docs/relational-query-v2
 
 import { defineRelations } from "drizzle-orm";
-import * as sm from "./schema/sm/index.js";
-import * as hk from "./schema/hk/index.js";
 import * as an from "./schema/an/index.js";
 import * as auth from "./schema/auth/index.js";
 import * as demo from "./schema/demo/index.js";
+import * as hk from "./schema/hk/index.js";
+import * as sm from "./schema/sm/index.js";
 
 export const relations = defineRelations({ ...sm, ...hk, ...an, ...auth, ...demo }, (r) => ({
   // ==================================================================
@@ -204,7 +204,7 @@ export const relations = defineRelations({ ...sm, ...hk, ...an, ...auth, ...demo
   },
 
   // ==================================================================
-  // EAR TAGS (valid relations only — columns that actually exist in pgTable)
+  // EAR TAGS (valid relations only - columns that actually exist in pgTable)
   // ==================================================================
 
   earTagTypes: {
@@ -297,7 +297,7 @@ export const relations = defineRelations({ ...sm, ...hk, ...an, ...auth, ...demo
   },
 
   // ==================================================================
-  // AUTH (authentication system — better-auth .joins experimental)
+  // AUTH (authentication system - better-auth .joins experimental)
   // ==================================================================
 
   user: {

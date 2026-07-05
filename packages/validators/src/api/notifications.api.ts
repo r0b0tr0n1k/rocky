@@ -1,4 +1,4 @@
-// ── Notifications API Schemas — Diamond Seal ──
+// ── Notifications API Schemas - Diamond Seal ──
 //
 // Notifications are the System's way of speaking to the user, Comrade.
 // The panopticon dispatches its messages through these channels.

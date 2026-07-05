@@ -1,4 +1,4 @@
-// ── Archive API Schemas — Diamond Seal ──
+// ── Archive API Schemas - Diamond Seal ──
 //
 // 3-tier document archive, retention enforcement, inspection form archival.
 

@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js";
 
 /**
- * Delivery Method — HK-veterinary data submission channels.
+ * Delivery Method - HK-veterinary data submission channels.
  *
  * HK_IMP: HK Import (bulk file import)
  * HK_PDA: HK PDA (handheld field scanner)

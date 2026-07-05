@@ -2,13 +2,11 @@
 // Replaces: The generic ID_SESSION audit trail pattern on every legacy table
 // Modern: Single audit_log table with pre/post snapshots
 
-import { pgTable, uuid, varchar, timestamp, boolean, jsonb, text, index, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { USER_ROLE, isRoleIn, currentUserId } from "../rls-helpers.js";
+import { boolean, index, jsonb, pgPolicy, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { auditActionPgEnum } from "../../schemas/enums/audit-action.js";
 import { eventSourcePgEnum } from "../../schemas/enums/event-source.js";
-import { AUDIT_ACTION } from "../../constants/audit-action.js";
-import { EVENT_SOURCE } from "../../constants/event-source.js";
+import { currentUserId, isRoleIn, USER_ROLE } from "../rls-helpers.js";
 
 export const auditLog = pgTable(
   "audit_log",

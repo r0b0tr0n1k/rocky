@@ -1,4 +1,4 @@
-// ── Correction API Schemas — Diamond Seal ──
+// ── Correction API Schemas - Diamond Seal ──
 
 import { z } from "zod";
 import { errorCorrectionSelectSchema } from "@rocky/database/zod";

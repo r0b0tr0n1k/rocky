@@ -1,11 +1,10 @@
 // ── Drizzle Schema: Slaughter Records ──
 // Replaces: FS - registration_MK(v0.91).pdf §Slaughtering (p10)
 
-import { pgTable, uuid, varchar, timestamp, date, integer, index, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { USER_ROLE, isRole, isRoleIn, farmInOrgArea, farmOwnedByUser, ADMIN_ROLES } from "../rls-helpers.js";
+import { date, index, integer, pgPolicy, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { weighingTypePgEnum } from "../../schemas/enums/weighing-type.js";
-import { WEIGHING_TYPE } from "../../constants/weighing-type.js";
+import { ADMIN_ROLES, farmInOrgArea, farmOwnedByUser, isRole, isRoleIn, USER_ROLE } from "../rls-helpers.js";
 
 export const slaughterRecords = pgTable(
   "slaughter_records",

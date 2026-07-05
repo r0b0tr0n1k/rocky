@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js"
 
 /**
- * User Roles — RBAC System for Rocky AIMCS
+ * User Roles - RBAC System for Rocky AIMCS
  *
  * Eight roles cover the full livestock management hierarchy.
  * These map to PostgreSQL RLS policies via `current_setting('app.current_role')`.

@@ -1,9 +1,9 @@
 /**
- * Scope Guard — Validates that input farmId/orgId is within the user's scope
+ * Scope Guard - Validates that input farmId/orgId is within the user's scope
  *
  * Layer 3b of the 3-layer RBAC architecture:
- *   - Layer 3a: PermissionGuard — checks the user HAS a permission
- *   - Layer 3b: ScopeGuard — checks the user can ACT ON a specific resource
+ *   - Layer 3a: PermissionGuard - checks the user HAS a permission
+ *   - Layer 3b: ScopeGuard - checks the user can ACT ON a specific resource
  *
  * The FS documents explicitly require this:
  * - "if user comes from organization that can operate on only one farm,
@@ -59,7 +59,7 @@ export class ScopeGuard implements TRPCMiddleware {
 
     const resourceId = input?.[this.scopeField] as string | undefined;
     if (!resourceId) {
-      // No scoped field in input — let RLS handle it downstream
+      // No scoped field in input - let RLS handle it downstream
       return next(opts);
     }
 

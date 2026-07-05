@@ -2,21 +2,21 @@
 // Replaces: Workflow 17-04-03.pdf §Instances 19-21
 // Cross-border animal movement (EU + 3rd country imports, exports)
 
-import { pgTable, uuid, varchar, timestamp, date, boolean, text, index, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { animals } from "./animals";
-import { farms } from "../hk/farms";
+import { boolean, date, index, pgPolicy, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { IMPORT_EXPORT_STATUS } from "../../constants/import-export-status.js";
+import { importExportStatusPgEnum } from "../../schemas/enums/import-export-status.js";
+import { importTypePgEnum } from "../../schemas/enums/import-type.js";
+import { farms } from "../hk/farms.js";
 import {
-  isRoleIn,
+  ADMIN_ROLES,
+  FARM_READ_ROLES,
   farmInOrgArea,
   farmOwnedByUser,
-  ADMIN_ROLES,
+  isRoleIn,
   ORG_READ_ROLES,
-  FARM_READ_ROLES,
-} from "../rls-helpers";
-import { importExportStatusPgEnum } from "../../schemas/enums/import-export-status";
-import { importTypePgEnum } from "../../schemas/enums/import-type";
-import { IMPORT_EXPORT_STATUS } from "../../constants/import-export-status";
+} from "../rls-helpers.js";
+import { animals } from "./animals.js";
 
 export const importExportRecords = pgTable(
   "import_export_records",

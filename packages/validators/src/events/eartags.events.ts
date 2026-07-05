@@ -3,10 +3,10 @@
 // the ear tag is a material trace of the symbolic order of livestock identification.
 
 import { z } from "zod";
+import type { earTagReplacementReasonType, earTagStatusType } from "../enums/domain.js";
+import { earTagReplacementReasonSchema, earTagStatusSchema } from "../enums/domain.js";
+import type { ActivateGuillotines, NoDrift } from "../utils/type-bridge.js";
 import { eventEnvelopeSchema } from "./base.js";
-import { earTagStatusSchema, earTagReplacementReasonSchema } from "../enums/domain.js";
-import type { earTagStatusType, earTagReplacementReasonType } from "../enums/domain.js";
-import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════
 // EAR TAGS CREATED

@@ -2,20 +2,20 @@
 // Replaces: Workflow 17-04-03.pdf §Instance 17
 // Document consumption/loss tracking and reprint workflow
 
-import { pgTable, uuid, varchar, timestamp, date, boolean, text, index, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { farms } from "../hk/farms";
+import { boolean, index, pgPolicy, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { REPRINT_STATUS } from "../../constants/reprint-status.js";
+import { reprintReasonPgEnum } from "../../schemas/enums/reprint-reason.js";
+import { reprintStatusPgEnum } from "../../schemas/enums/reprint-status.js";
+import { farms } from "../hk/farms.js";
 import {
-  isRoleIn,
+  ADMIN_ROLES,
+  FARM_READ_ROLES,
   farmInOrgArea,
   farmOwnedByUser,
-  ADMIN_ROLES,
+  isRoleIn,
   ORG_READ_ROLES,
-  FARM_READ_ROLES,
-} from "../rls-helpers";
-import { reprintStatusPgEnum } from "../../schemas/enums/reprint-status";
-import { reprintReasonPgEnum } from "../../schemas/enums/reprint-reason";
-import { REPRINT_STATUS } from "../../constants/reprint-status";
+} from "../rls-helpers.js";
 
 export const formReprints = pgTable(
   "form_reprints",

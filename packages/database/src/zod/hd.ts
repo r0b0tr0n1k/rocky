@@ -1,14 +1,14 @@
 // ── Dumb Zod: Health Domain ──
-// Auto-generated from Drizzle schemas — NO .strict(), .omit(), .extend()
+// Auto-generated from Drizzle schemas - NO .strict(), .omit(), .extend()
 
-import { createSelectSchema, createInsertSchema } from "./factory";
-import { diseases } from "../schema/hd/diseases";
-import { vaccines } from "../schema/hd/vaccines";
-import { vaccineBatches } from "../schema/hd/vaccine-batches";
-import { vaccinations } from "../schema/hd/vaccinations";
-import { treatments } from "../schema/hd/treatments";
-import { labTests } from "../schema/hd/lab-tests";
-import { vaccineDiseases } from "../schema/hd/vaccine-diseases";
+import { diseases } from "../schema/hd/diseases.js";
+import { labTests } from "../schema/hd/lab-tests.js";
+import { treatments } from "../schema/hd/treatments.js";
+import { vaccinations } from "../schema/hd/vaccinations.js";
+import { vaccineBatches } from "../schema/hd/vaccine-batches.js";
+import { vaccineDiseases } from "../schema/hd/vaccine-diseases.js";
+import { vaccines } from "../schema/hd/vaccines.js";
+import { createInsertSchema, createSelectSchema } from "./factory.js";
 
 export const diseaseSelectSchema = createSelectSchema(diseases);
 export const diseaseInsertSchema = createInsertSchema(diseases);

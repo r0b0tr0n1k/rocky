@@ -3,24 +3,24 @@
 // Tracks distribution of ear tags from central inventory to farms
 
 import {
+  date,
+  index,
+  integer,
+  pgPolicy,
   pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
   uuid,
   varchar,
-  timestamp,
-  date,
-  integer,
-  text,
-  index,
-  uniqueIndex,
-  pgPolicy,
 } from "drizzle-orm/pg-core";
-import { farms } from "../hk/farms.js";
-import { users } from "../sm/users.js";
-import { rlsForFarmColumn, adminWrite } from "../rls-helpers.js";
-import { distributionMethodPgEnum } from "../../schemas/enums/distribution-method.js";
-import { allocationStatusPgEnum } from "../../schemas/enums/allocation-status.js";
-import { DISTRIBUTION_METHOD } from "../../constants/distribution-method.js";
 import { ALLOCATION_STATUS } from "../../constants/allocation-status.js";
+import { DISTRIBUTION_METHOD } from "../../constants/distribution-method.js";
+import { allocationStatusPgEnum } from "../../schemas/enums/allocation-status.js";
+import { distributionMethodPgEnum } from "../../schemas/enums/distribution-method.js";
+import { farms } from "../hk/farms.js";
+import { adminWrite, rlsForFarmColumn } from "../rls-helpers.js";
+import { users } from "../sm/users.js";
 
 export const earTagAllocations = pgTable(
   "ear_tag_allocations",

@@ -5,26 +5,26 @@
 //         Digital signature + photo for field registration
 
 import {
+  boolean,
+  index,
+  integer,
+  pgPolicy,
   pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
   uuid,
   varchar,
-  timestamp,
-  boolean,
-  integer,
-  text,
-  index,
-  uniqueIndex,
-  pgPolicy,
 } from "drizzle-orm/pg-core";
-import { addresses } from "./addresses.js";
-import { geometry } from "../../geometry/postgis.js";
-import { addressInOrgArea, farmOwnedByUser, rlsForFarmColumn, adminAndVetWrite } from "../rls-helpers.js";
-import { farmTypePgEnum } from "../../schemas/enums/farm-type.js";
-import { verificationStatusPgEnum } from "../../schemas/enums/verification-status.js";
-import { dataSourcePgEnum } from "../../schemas/enums/data-source.js";
+import { DATA_SOURCE } from "../../constants/data-source.js";
 import { FARM_TYPE } from "../../constants/farm-type.js";
 import { VERIFICATION_STATUS } from "../../constants/verification-status.js";
-import { DATA_SOURCE } from "../../constants/data-source.js";
+import { geometry } from "../../geometry/postgis.js";
+import { dataSourcePgEnum } from "../../schemas/enums/data-source.js";
+import { farmTypePgEnum } from "../../schemas/enums/farm-type.js";
+import { verificationStatusPgEnum } from "../../schemas/enums/verification-status.js";
+import { adminAndVetWrite, rlsForFarmColumn } from "../rls-helpers.js";
+import { addresses } from "./addresses.js";
 
 export const farms = pgTable(
   "farms",
@@ -47,7 +47,7 @@ export const farms = pgTable(
     // Hierarchy
     parentFarmId: uuid("parent_farm_id"),
 
-    // ★ VERIFICATION STATUS — replaces temp tables ★
+    // ★ VERIFICATION STATUS - replaces temp tables ★
     verificationStatus: verificationStatusPgEnum("verification_status")
       .notNull()
       .default(VERIFICATION_STATUS.PENDING_VD_APPROVAL),

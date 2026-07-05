@@ -2,11 +2,10 @@
 // Replaces: FS - registration_MK(v0.91).pdf §Pasture (p11)
 // Types: MOUNTAIN (seasonal), VILLAGE (daily)
 
-import { pgTable, uuid, varchar, boolean, timestamp, date, index, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { USER_ROLE, isRole, isRoleIn, farmInOrgArea, farmOwnedByUser, ADMIN_ROLES } from "../rls-helpers.js";
+import { boolean, date, index, pgPolicy, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
 import { pastureTypePgEnum } from "../../schemas/enums/pasture-type.js";
-import { PASTURE_TYPE } from "../../constants/pasture-type.js";
+import { ADMIN_ROLES, farmInOrgArea, farmOwnedByUser, isRole, isRoleIn, USER_ROLE } from "../rls-helpers.js";
 
 export const pastureDeclarations = pgTable(
   "pasture_declarations",

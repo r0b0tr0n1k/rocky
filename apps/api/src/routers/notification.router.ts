@@ -1,4 +1,17 @@
-import { Injectable, Inject } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
+import {
+  NotificationService,
+} from "@rocky/domains-notification";
+import { createResultUnwrapper } from "@rocky/trpc";
+import {
+  markAsReadSchema,
+  notificationOutputSchema,
+  sendNotificationSchema,
+  type MarkAsReadInput,
+  type SendNotificationInput,
+} from "@rocky/validators/api";
+import { NOTIFICATION_TRPC_ERROR_MAP } from "@rocky/validators/errors";
+import { TRPCError } from "@trpc/server";
 import {
   Ctx,
   Input,
@@ -7,24 +20,11 @@ import {
   Router,
   UseMiddlewares,
 } from "nestjs-trpc";
-import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { createResultUnwrapper } from "@rocky/trpc";
-import { NOTIFICATION_TRPC_ERROR_MAP } from "@rocky/validators/errors";
 import {
   ProtectedMiddleware,
   type ProtectedMiddlewareContext,
 } from "../trpc/middlewares/protected.middleware.js";
-import {
-  NotificationService,
-} from "@rocky/domains-notification";
-import {
-  sendNotificationSchema,
-  notificationOutputSchema,
-  markAsReadSchema,
-  type SendNotificationInput,
-  type MarkAsReadInput,
-} from "@rocky/validators/api";
 
 // Local type aliases for decorator-safe usage
 type NotificationOutput = z.infer<typeof notificationOutputSchema>;

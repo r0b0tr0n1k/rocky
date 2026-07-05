@@ -2,18 +2,13 @@
 // Replaces: Workflow 17-04-03.pdf §Instance 25
 // 3-tier document archive (CPC / VS / VI) with retention enforcement
 
-import { pgTable, uuid, varchar, timestamp, date, boolean, text, index, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { farms } from "../hk/farms";
-import {
-  isRoleIn,
-  farmInOrgArea,
-  ADMIN_ROLES,
-  ORG_READ_ROLES,
-} from "../rls-helpers";
-import { archiveLocationPgEnum } from "../../schemas/enums/archive-location";
-import { archiveDocumentTypePgEnum } from "../../schemas/enums/archive-document-type";
-import { ARCHIVE_LOCATION } from "../../constants/archive-location";
+import { boolean, date, index, pgPolicy, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { ARCHIVE_LOCATION } from "../../constants/archive-location.js";
+import { archiveDocumentTypePgEnum } from "../../schemas/enums/archive-document-type.js";
+import { archiveLocationPgEnum } from "../../schemas/enums/archive-location.js";
+import { farms } from "../hk/farms.js";
+import { ADMIN_ROLES, farmInOrgArea, isRoleIn, ORG_READ_ROLES } from "../rls-helpers.js";
 
 export const archiveDocuments = pgTable(
   "archive_documents",

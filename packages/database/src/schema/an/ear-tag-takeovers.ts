@@ -1,5 +1,5 @@
 // ── Drizzle Schema: Ear Tag Takeovers
-// Based on: Eartags.PDF — ET_TAKEOVERS
+// Based on: Eartags.PDF - ET_TAKEOVERS
 // Persists supplier collection events for audit trail and cancellation checks
 
 import { sql } from "drizzle-orm";
@@ -13,12 +13,12 @@ import {
   index,
   pgPolicy,
 } from "drizzle-orm/pg-core";
-import { earTagOrders } from "./ear-tag-orders";
-import { organizations } from "../sm/organizations";
-import { users } from "../sm/users";
-import { USER_ROLE, isRoleIn, currentOrgId } from "../rls-helpers";
-import { takeoverStatusPgEnum } from "../../schemas/enums/takeover-status";
-import { TAKEOVER_STATUS } from "../../constants/takeover-status";
+import { earTagOrders } from "./ear-tag-orders.js";
+import { organizations } from "../sm/organizations.js";
+import { users } from "../sm/users.js";
+import { USER_ROLE, isRoleIn, currentOrgId } from "../rls-helpers.js";
+import { takeoverStatusPgEnum } from "../../schemas/enums/takeover-status.js";
+import { TAKEOVER_STATUS } from "../../constants/takeover-status.js";
 
 export const earTagTakeovers = pgTable(
   "ear_tag_takeovers",

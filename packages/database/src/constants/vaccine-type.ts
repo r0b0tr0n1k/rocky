@@ -1,7 +1,7 @@
-import { createEnumValues } from "./_brand";
+import { createEnumValues } from "./_brand.js";
 
 /**
- * Vaccine Type — how was the vaccine produced?
+ * Vaccine Type - how was the vaccine produced?
  */
 export const VACCINE_TYPE = {
 	LIVE: "live",

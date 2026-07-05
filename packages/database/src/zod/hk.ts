@@ -1,11 +1,11 @@
-// ── Dumb Zod — Holder Keeper Domain ──
-// ONLY createSelectSchema/createInsertSchema — no .strict(), .omit(), .extend()
+// --- Dumb Zod - Holder Keeper Domain ---
+// ONLY createSelectSchema/createInsertSchema - no .strict(), .omit(), .extend()
 
-import { createSelectSchema, createInsertSchema } from "./factory.js";
-import { farms } from "../schema/hk/farms.js";
 import { addresses } from "../schema/hk/addresses.js";
-import { subjects } from "../schema/hk/subjects.js";
 import { farmSubjects } from "../schema/hk/farm-subjects.js";
+import { farms } from "../schema/hk/farms.js";
+import { subjects } from "../schema/hk/subjects.js";
+import { createInsertSchema, createSelectSchema } from "./factory.js";
 
 export const farmSelectSchema = createSelectSchema(farms);
 export const farmInsertSchema = createInsertSchema(farms);

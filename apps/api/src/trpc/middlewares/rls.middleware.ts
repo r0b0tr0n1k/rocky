@@ -72,7 +72,7 @@ export class RLSMiddleware implements TRPCMiddleware {
         ? ("organization" as const)
         : ("own" as const);
 
-    // ── Execute PostgreSQL SET LOCAL — this is what makes pgPolicy work ──
+    // ── Execute PostgreSQL SET LOCAL - this is what makes pgPolicy work ──
     await db.execute(sql`
       SELECT set_config('app.current_user_id', ${user.smUserId}, true);
       SELECT set_config('app.current_role', ${highestRole}, true);

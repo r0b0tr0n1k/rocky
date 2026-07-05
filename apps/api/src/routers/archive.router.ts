@@ -1,20 +1,20 @@
-// ── Archive Router — tRPC entry point ──
+// --- Archive Router - tRPC entry point ---
 // Consumes Diamond Seal schemas from @rocky/validators/api
 
-import { Injectable, Inject } from "@nestjs/common";
-import { Router, Query, Mutation, Input, Ctx, UseMiddlewares } from "nestjs-trpc";
-import { z } from "zod";
-import { createResultUnwrapper } from "@rocky/trpc";
-import { ARCHIVE_TRPC_ERROR_MAP } from "@rocky/validators/errors";
-import { ProtectedMiddleware, type ProtectedMiddlewareContext } from "../trpc/middlewares/protected.middleware.js";
+import { Inject, Injectable } from "@nestjs/common";
 import { ArchiveService } from "@rocky/domains-archive";
+import { createResultUnwrapper } from "@rocky/trpc";
 import {
   archiveDocumentListRequestSchema,
-  createArchiveDocumentRequestSchema,
   archiveInspectionFormRequestSchema,
-  type CreateArchiveDocumentRequest,
+  createArchiveDocumentRequestSchema,
   type ArchiveInspectionFormRequest,
+  type CreateArchiveDocumentRequest,
 } from "@rocky/validators/api";
+import { ARCHIVE_TRPC_ERROR_MAP } from "@rocky/validators/errors";
+import { Ctx, Input, Mutation, Query, Router, UseMiddlewares } from "nestjs-trpc";
+import { z } from "zod";
+import { ProtectedMiddleware, type ProtectedMiddlewareContext } from "../trpc/middlewares/protected.middleware.js";
 
 const idParam = z.object({ id: z.uuid() });
 const unwrap = createResultUnwrapper(ARCHIVE_TRPC_ERROR_MAP);

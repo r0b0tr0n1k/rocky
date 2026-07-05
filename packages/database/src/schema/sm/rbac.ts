@@ -1,13 +1,13 @@
-// ── Drizzle Schema: RBAC — Roles, Permissions, Role-Permissions, User-Roles ──
+// ── Drizzle Schema: RBAC - Roles, Permissions, Role-Permissions, User-Roles ──
 // Replaces: SM_GROUPS, SM_GRP_PRIVS, SM_PRIVILEGES, SM_US_PRIVS (Oracle SM.PDF)
 // Modern: Fine-grained RBAC with resource-based permissions and scoped access
 
-import { pgTable, uuid, varchar, timestamp, boolean, index, uniqueIndex, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { users } from "./users.js";
-import { USER_ROLE, isRoleIn, currentUserId } from "../rls-helpers.js";
+import { boolean, index, pgPolicy, pgTable, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 import { ROLE_PRIORITY } from "../../constants/role-priority.js";
 import { rolePriorityPgEnum } from "../../schemas/enums/role-priority.js";
+import { currentUserId, isRoleIn, USER_ROLE } from "../rls-helpers.js";
+import { users } from "./users.js";
 
 // ── ROLES (replaces SM_GROUPS) ──
 export const roles = pgTable(
@@ -61,7 +61,7 @@ export const rolePermissions = pgTable(
   (table) => [uniqueIndex("idx_role_permissions").on(table.roleId, table.permissionId)],
 );
 
-// ── USER-ROLE MAPPING (M2M — replaces SM_US_PRIVS) ──
+// ── USER-ROLE MAPPING (M2M - replaces SM_US_PRIVS) ──
 export const userRoles = pgTable(
   "user_roles",
   {

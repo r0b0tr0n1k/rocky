@@ -1,8 +1,8 @@
-// ── Drizzle Schema: Auth — User (better-auth) ──
-// Global Identity Model — no tenant_id
+// --- Drizzle Schema: Auth - User (better-auth) ---
+// Global Identity Model - no tenant_id
 // Links 1:1 to sm.users for AIMCS domain identity
 
-import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
+import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 export const user = pgTable("auth_user", {
   id: text("id").primaryKey(),

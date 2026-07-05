@@ -1,6 +1,6 @@
-// ── Health API Schemas — Diamond Seal ──
+// ── Health API Schemas - Diamond Seal ──
 //
-// Vaccination, Treatment, Disease, Lab Tests — the health boundary.
+// Vaccination, Treatment, Disease, Lab Tests - the health boundary.
 // No disease escapes without a guillotine check.
 
 import { z } from "zod";
@@ -28,7 +28,7 @@ import {
 } from "../enums/domain.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
-// RESPONSE SCHEMAS (Diamond Seal — what the API returns)
+// RESPONSE SCHEMAS (Diamond Seal - what the API returns)
 // ═══════════════════════════════════════════════════════════════════════════
 
 /** Disease master record */

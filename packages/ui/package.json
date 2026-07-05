@@ -15,8 +15,10 @@
     "clsx": "catalog:",
     "lucide-react": "catalog:",
     "next-themes": "catalog:",
+    "radix-ui": "^1.6.1",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "react-hook-form": "catalog:",
     "sonner": "catalog:",
     "tailwind-merge": "catalog:"
   },

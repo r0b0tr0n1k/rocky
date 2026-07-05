@@ -2,20 +2,17 @@
 // Based on: SM.PDF SM_NOTIFICATIONS specification
 // Handles email, SMS, push, and in-app notifications for all system events
 
-import { pgTable, uuid, varchar, timestamp, boolean, integer, text, jsonb, index, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { users } from "./users.js";
-import { currentUserId, isRoleIn, ADMIN_ROLES, adminWrite } from "../rls-helpers.js";
-import { notificationTypePgEnum } from "../../schemas/enums/notification-type.js";
+import { index, integer, jsonb, pgPolicy, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { NOTIFICATION_PRIORITY } from "../../constants/notification-priority.js";
+import { NOTIFICATION_STATUS } from "../../constants/notification-status.js";
+import { eventSourcePgEnum } from "../../schemas/enums/event-source.js";
 import { notificationCategoryPgEnum } from "../../schemas/enums/notification-category.js";
 import { notificationPriorityPgEnum } from "../../schemas/enums/notification-priority.js";
 import { notificationStatusPgEnum } from "../../schemas/enums/notification-status.js";
-import { eventSourcePgEnum } from "../../schemas/enums/event-source.js";
-import { NOTIFICATION_TYPE } from "../../constants/notification-type.js";
-import { NOTIFICATION_CATEGORY } from "../../constants/notification-category.js";
-import { NOTIFICATION_PRIORITY } from "../../constants/notification-priority.js";
-import { NOTIFICATION_STATUS } from "../../constants/notification-status.js";
-import { EVENT_SOURCE } from "../../constants/event-source.js";
+import { notificationTypePgEnum } from "../../schemas/enums/notification-type.js";
+import { ADMIN_ROLES, adminWrite, currentUserId, isRoleIn } from "../rls-helpers.js";
+import { users } from "./users.js";
 
 export const notifications = pgTable(
   "notifications",

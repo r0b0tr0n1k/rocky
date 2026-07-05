@@ -3,7 +3,7 @@
 // Drizzle-kit manages these via entities.roles config.
 //
 // Hierarchy is enforced at the application layer (ROLE_HIERARCHY).
-// RLS policies check `current_setting('app.current_role')` — 
+// RLS policies check `current_setting('app.current_role')` - 
 // which is SET LOCAL by the RLS middleware before each request.
 
 import { pgRole } from "drizzle-orm/pg-core";
@@ -40,7 +40,7 @@ export const FARMER = pgRole("FARMER", {
   inherit: true,
 });
 
-/** All application roles — used for drizzle-kit migration generation. */
+/** All application roles - used for drizzle-kit migration generation. */
 export const appRoles = {
   SUPER_ADMIN,
   VD_ADMIN,

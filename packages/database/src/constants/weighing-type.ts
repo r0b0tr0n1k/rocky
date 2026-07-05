@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js";
 
 /**
- * Weighing Type — meat-processing accounting unit.
+ * Weighing Type - meat-processing accounting unit.
  *
  * LIVE_WEIGHT: weighing before slaughter (live animal)
  * WARM_HALVES: weighing after slaughter (warm carcass halves)

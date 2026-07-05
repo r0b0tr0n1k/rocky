@@ -2,8 +2,8 @@
 // Replaces: HK_STATES, HK_ZIP_CODES, HK_COMMUNES, HK_ADMIN_UNITS, HK_ADDRESSES
 // Modern: PostGIS geometry(Point, 4326) replaces X/Y/Z coordinates
 
-import { pgTable, uuid, varchar, timestamp, boolean, integer, uniqueIndex, index, pgPolicy } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import { boolean, index, integer, pgPolicy, pgTable, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 import { adminWrite } from "../rls-helpers.js";
 
 // ── STATES ──
@@ -101,7 +101,7 @@ export const addresses = pgTable(
     communeId: uuid("commune_id").references(() => communes.id),
     adminUnitId: uuid("admin_unit_id").references(() => adminUnits.id),
 
-    // Location (PostGIS point — replaces legacy X/Y/Z NUMBER(10,3))
+    // Location (PostGIS point - replaces legacy X/Y/Z NUMBER(10,3))
     location: varchar("location", { length: 100 }),
 
     // Geocoding cache

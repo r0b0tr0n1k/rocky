@@ -2,17 +2,17 @@
 // Run: pnpm -C packages/database seed
 //
 // Populates Layer 3 (authorization) of the 3-layer RBAC architecture:
-//   Layer 1: pgPolicy (RLS) — row-level filtering
-//   Layer 2: RLSMiddleware — SET LOCAL session vars
-//   Layer 3: PermissionGuard — action-level checks
+//   Layer 1: pgPolicy (RLS) - row-level filtering
+//   Layer 2: RLSMiddleware - SET LOCAL session vars
+//   Layer 3: PermissionGuard - action-level checks
 //
 // Based on: SM.PDF (Oracle AIMCS), FS-HK, FS-Eartags, FS-Registration
 
 import "dotenv/config";
-import { db } from "./index";
-import { permissions, roles, rolePermissions } from "./schema/sm/rbac";
-import { ROLE_PRIORITY } from "./constants/role-priority";
 import { sql } from "drizzle-orm";
+import { ROLE_PRIORITY } from "./constants/role-priority.js";
+import { db } from "./index.js";
+import { permissions, rolePermissions, roles } from "./schema/sm/rbac.js";
 
 // ── Permission Definitions ─────────────────────────────────────
 // Each entry: { resource, action, description, scope }
@@ -99,12 +99,12 @@ const PERMISSION_DEFS = [
 
 const ROLE_PERM_MAP: Record<string, string[]> = {
   SUPER_ADMIN: [
-    // Everything — all permissions
+    // Everything - all permissions
     "*",
   ],
 
   VD_ADMIN: [
-    // Everything — all permissions
+    // Everything - all permissions
     "*",
   ],
 
@@ -242,15 +242,27 @@ async function seed() {
 
   // 1.5. Seed system roles
   const ROLE_DEFS = [
-    { name: "SUPER_ADMIN", description: "System super administrator — full access", priority: ROLE_PRIORITY.CRITICAL },
-    { name: "VD_ADMIN", description: "Veterinary Directorate administrator — full access", priority: ROLE_PRIORITY.CRITICAL },
-    { name: "VD_STAFF", description: "Veterinary Directorate staff — management operations", priority: ROLE_PRIORITY.HIGH },
-    { name: "VETERINARIAN", description: "Field veterinarian — animal operations", priority: ROLE_PRIORITY.NORMAL },
-    { name: "TECHNICIAN", description: "Field technician — basic operations", priority: ROLE_PRIORITY.NORMAL },
-    { name: "SUPPLIER", description: "Ear tag supplier — order management", priority: ROLE_PRIORITY.NORMAL },
-    { name: "SLAUGHTERHOUSE_OP", description: "Slaughterhouse operator — slaughter records", priority: ROLE_PRIORITY.LOW },
-    { name: "MARKET_OP", description: "Livestock market operator — market movements", priority: ROLE_PRIORITY.LOW },
-    { name: "FARMER", description: "Farmer/keeper — own farm operations", priority: ROLE_PRIORITY.LOW },
+    { name: "SUPER_ADMIN", description: "System super administrator - full access", priority: ROLE_PRIORITY.CRITICAL },
+    {
+      name: "VD_ADMIN",
+      description: "Veterinary Directorate administrator - full access",
+      priority: ROLE_PRIORITY.CRITICAL,
+    },
+    {
+      name: "VD_STAFF",
+      description: "Veterinary Directorate staff - management operations",
+      priority: ROLE_PRIORITY.HIGH,
+    },
+    { name: "VETERINARIAN", description: "Field veterinarian - animal operations", priority: ROLE_PRIORITY.NORMAL },
+    { name: "TECHNICIAN", description: "Field technician - basic operations", priority: ROLE_PRIORITY.NORMAL },
+    { name: "SUPPLIER", description: "Ear tag supplier - order management", priority: ROLE_PRIORITY.NORMAL },
+    {
+      name: "SLAUGHTERHOUSE_OP",
+      description: "Slaughterhouse operator - slaughter records",
+      priority: ROLE_PRIORITY.LOW,
+    },
+    { name: "MARKET_OP", description: "Livestock market operator - market movements", priority: ROLE_PRIORITY.LOW },
+    { name: "FARMER", description: "Farmer/keeper - own farm operations", priority: ROLE_PRIORITY.LOW },
   ] as const;
 
   for (const def of ROLE_DEFS) {
@@ -270,12 +282,14 @@ async function seed() {
   for (const [roleName, permKeys] of Object.entries(ROLE_PERM_MAP)) {
     const roleId = roleLookup.get(roleName);
     if (!roleId) {
-      console.warn(`  ⚠ Role "${roleName}" not found — skipping`);
+      console.warn(`  ⚠ Role "${roleName}" not found - skipping`);
       continue;
     }
 
     const isWildcard = permKeys.length === 1 && permKeys[0] === "*";
-    const targets = isWildcard ? allPerms.map((p) => p.id) : permKeys.map((k) => permLookup.get(k)).filter(Boolean) as string[];
+    const targets = isWildcard
+      ? allPerms.map((p) => p.id)
+      : (permKeys.map((k) => permLookup.get(k)).filter(Boolean) as string[]);
 
     for (const permId of targets) {
       const pid = permId;
@@ -294,9 +308,9 @@ async function seed() {
   console.log("✅ Seed complete.");
 }
 
-seed()
-  .then(() => process.exit(0))
-  .catch((e) => {
-    console.error("❌ Seed failed:", e);
-    process.exit(1);
-  });
+try {
+  await seed();
+} catch (e) {
+  console.error("❌ Seed failed:", e);
+  throw e;
+}

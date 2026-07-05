@@ -1,12 +1,12 @@
 // ── Farm & Subject Domain Events ──
 // The Holder Keeper is the fundamental unit of the system, Comrade.
-// Without the farm, the animal is a floating signifier — it must be anchored.
+// Without the farm, the animal is a floating signifier - it must be anchored.
 
 import { z } from "zod";
+import type { dataSourceType, farmTypeType, subjectRoleType, verificationStatusType } from "../enums/domain.js";
+import { dataSourceSchema, farmTypeSchema, subjectRoleSchema, verificationStatusSchema } from "../enums/domain.js";
+import type { ActivateGuillotines, NoDrift } from "../utils/type-bridge.js";
 import { eventEnvelopeSchema } from "./base.js";
-import { verificationStatusSchema, farmTypeSchema, subjectRoleSchema, dataSourceSchema } from "../enums/domain.js";
-import type { verificationStatusType, farmTypeType, subjectRoleType, dataSourceType } from "../enums/domain.js";
-import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════
 // FARM REGISTERED

@@ -1,23 +1,23 @@
-// ── Correction Router — tRPC entry point ──
+// --- Correction Router - tRPC entry point ---
 
-import { Injectable, Inject } from "@nestjs/common";
-import { Router, Query, Mutation, Input, Ctx, UseMiddlewares } from "nestjs-trpc";
-import { z } from "zod";
-import { createResultUnwrapper } from "@rocky/trpc";
-import { CORRECTION_TRPC_ERROR_MAP } from "@rocky/validators/errors";
-import { ProtectedMiddleware, type ProtectedMiddlewareContext } from "../trpc/middlewares/protected.middleware.js";
+import { Inject, Injectable } from "@nestjs/common";
 import { CorrectionService } from "@rocky/domains-correction";
+import { createResultUnwrapper } from "@rocky/trpc";
 import {
-  createCorrectionRequestSchema,
-  reviewCorrectionRequestSchema,
-  resolveCorrectionRequestSchema,
-  escalateCorrectionRequestSchema,
   correctionListRequestSchema,
+  createCorrectionRequestSchema,
+  escalateCorrectionRequestSchema,
+  resolveCorrectionRequestSchema,
+  reviewCorrectionRequestSchema,
   type CreateCorrectionRequest,
-  type ReviewCorrectionRequest,
-  type ResolveCorrectionRequest,
   type EscalateCorrectionRequest,
+  type ResolveCorrectionRequest,
+  type ReviewCorrectionRequest,
 } from "@rocky/validators/api";
+import { CORRECTION_TRPC_ERROR_MAP } from "@rocky/validators/errors";
+import { Ctx, Input, Mutation, Query, Router, UseMiddlewares } from "nestjs-trpc";
+import { z } from "zod";
+import { ProtectedMiddleware, type ProtectedMiddlewareContext } from "../trpc/middlewares/protected.middleware.js";
 
 const idParam = z.object({ id: z.uuid() });
 const unwrap = createResultUnwrapper(CORRECTION_TRPC_ERROR_MAP);

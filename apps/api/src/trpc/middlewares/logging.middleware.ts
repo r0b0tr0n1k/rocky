@@ -3,7 +3,7 @@ import type { TRPCMiddleware, MiddlewareOptions } from "nestjs-trpc";
 import type { AppContext } from "@rocky/trpc/context.js";
 
 /**
- * Logging middleware — tracks request timing and errors via Pino
+ * Logging middleware - tracks request timing and errors via Pino
  *
  * The built-in Logger from @nestjs/common routes through nestjs-pino
  * via the one-time substitution in main.ts.

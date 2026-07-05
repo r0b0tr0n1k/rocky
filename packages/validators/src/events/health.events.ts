@@ -4,20 +4,18 @@
 // the health of the herd is recorded in the system.
 
 import { z } from "zod";
-import { eventEnvelopeSchema } from "./base.js";
-import {
-  vaccineTypeSchema,
-  administrationRouteSchema,
-  testTypeSchema,
-  testResultSchema,
-} from "../enums/domain.js";
 import type {
-  vaccineTypeType,
   administrationRouteType,
-  testTypeType,
   testResultType,
+  testTypeType
 } from "../enums/domain.js";
-import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
+import {
+  administrationRouteSchema,
+  testResultSchema,
+  testTypeSchema
+} from "../enums/domain.js";
+import type { ActivateGuillotines, NoDrift } from "../utils/type-bridge.js";
+import { eventEnvelopeSchema } from "./base.js";
 
 // ═══════════════════════════════════════════════════════════════
 // VACCINATION ADMINISTERED

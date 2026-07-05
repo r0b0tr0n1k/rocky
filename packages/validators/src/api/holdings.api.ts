@@ -2,7 +2,7 @@
 // Business rules from:
 //   FS - HK_MK(v1.0).pdf §Processes (p3-4)
 //   Workflow 17-04-03.pdf §Instance 1-3
-//   HK.PDF — Table hierarchy: States → Zip → Address → Farm → Subject → KMG_SUBJ
+//   HK.PDF - Table hierarchy: States → Zip → Address → Farm → Subject → KMG_SUBJ
 
 import { z } from "zod";
 import {
@@ -22,7 +22,7 @@ import type {
 } from "../enums/index.js";
 
 // ============================================================================
-// ADDRESS INPUT (with GPS auto-fill — replaces legacy drill-down hierarchy)
+// ADDRESS INPUT (with GPS auto-fill - replaces legacy drill-down hierarchy)
 // Legacy: States → Zip Codes → Addresses mandatory drill-down
 // Modern: GPS reverse-geocoding auto-fills the hierarchy
 // ============================================================================

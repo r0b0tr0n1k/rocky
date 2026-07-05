@@ -1,7 +1,7 @@
-import { createEnumValues } from "./_brand";
+import { createEnumValues } from "./_brand.js";
 
 /**
- * Administration Route — how was the vaccine or treatment administered?
+ * Administration Route - how was the vaccine or treatment administered?
  */
 export const ADMIN_ROUTE = {
 	INTRAMUSCULAR: "intramuscular",

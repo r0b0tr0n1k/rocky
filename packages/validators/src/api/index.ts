@@ -1,4 +1,4 @@
-// ── API Barrel — Diamond Seal ──
+// ── API Barrel - Diamond Seal ──
 
 // Sovereign API response + request schemas
 export * from "./animals.api.js";

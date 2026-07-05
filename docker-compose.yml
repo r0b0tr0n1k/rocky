@@ -75,12 +75,13 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      args:
+        # Inlined by Next.js at BUILD time for browser use
+        - NEXT_PUBLIC_API_URL=http://localhost:8080
     environment:
       - NODE_ENV=production
-      # SSR: Next.js server calls API directly via Docker network
+      # SSR: Next.js server calls API via Docker internal network (RUNTIME)
       - API_URL=http://api:8080
-      # Client: Browser-visible URL for auth redirects
-      - NEXT_PUBLIC_API_URL=http://localhost:3000
       # Auth secret (same as API, for server-side session validation)
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
     ports:

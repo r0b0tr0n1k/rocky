@@ -1,4 +1,4 @@
-import { createEnumValues } from "./_brand"
+import { createEnumValues } from "./_brand.js"
 
 export const REPRINT_REASON = {
 	CONSUMED: "consumed",

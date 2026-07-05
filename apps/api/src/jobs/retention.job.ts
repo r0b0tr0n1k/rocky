@@ -21,7 +21,7 @@ export class RetentionJob {
   ) {}
 
   /**
-   * Daily retention enforcement — marks expired documents as destroyed.
+   * Daily retention enforcement - marks expired documents as destroyed.
    * Non-destructive by default: only processes documents that have exceeded
    * their retention period and haven't been destroyed yet.
    */

@@ -2,23 +2,23 @@
 // Reusable email/SMS/push notification templates with multi-language support
 
 import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgPolicy,
   pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
   uuid,
   varchar,
-  timestamp,
-  boolean,
-  integer,
-  text,
-  jsonb,
-  index,
-  uniqueIndex,
-  pgPolicy,
 } from "drizzle-orm/pg-core";
-import { adminWrite } from "../rls-helpers.js";
-import { notificationTypePgEnum } from "../../schemas/enums/notification-type.js";
+import { NOTIFICATION_PRIORITY } from "../../constants/notification-priority.js";
 import { notificationCategoryPgEnum } from "../../schemas/enums/notification-category.js";
 import { notificationPriorityPgEnum } from "../../schemas/enums/notification-priority.js";
-import { NOTIFICATION_PRIORITY } from "../../constants/notification-priority.js";
+import { notificationTypePgEnum } from "../../schemas/enums/notification-type.js";
+import { adminWrite } from "../rls-helpers.js";
 
 export const notificationTemplates = pgTable(
   "notification_templates",

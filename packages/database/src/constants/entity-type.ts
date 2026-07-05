@@ -1,7 +1,7 @@
 import { createEnumValues } from "./_brand.js";
 
 /**
- * Entity Type — what kind of thing is being referenced in a holdings query?
+ * Entity Type - what kind of thing is being referenced in a holdings query?
  */
 export const ENTITY_TYPE = {
 	FARM: "FARM",

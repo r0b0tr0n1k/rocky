@@ -2,26 +2,26 @@
 // Replaces: Legacy animal tables from FS - registration_MK(v0.91).pdf
 
 import {
+  boolean,
+  date,
+  index,
+  integer,
+  pgPolicy,
   pgTable,
+  timestamp,
+  uniqueIndex,
   uuid,
   varchar,
-  timestamp,
-  date,
-  boolean,
-  integer,
-  uniqueIndex,
-  index,
-  pgPolicy,
 } from "drizzle-orm/pg-core";
-import { farms } from "../hk/farms.js";
-import { rlsForFarmColumn, adminAndVetWrite } from "../rls-helpers.js";
-import { animalStatusPgEnum } from "../../schemas/enums/animal-status.js";
-import { sexPgEnum } from "../../schemas/enums/sex.js";
-import { birthTypePgEnum } from "../../schemas/enums/birth-type.js";
-import { stateCodePgEnum } from "../../schemas/enums/state-code.js";
-import { parentTypePgEnum } from "../../schemas/enums/parent-type.js";
 import { ANIMAL_STATUS } from "../../constants/animal-status.js";
 import { STATE_CODE } from "../../constants/state-code.js";
+import { animalStatusPgEnum } from "../../schemas/enums/animal-status.js";
+import { birthTypePgEnum } from "../../schemas/enums/birth-type.js";
+import { parentTypePgEnum } from "../../schemas/enums/parent-type.js";
+import { sexPgEnum } from "../../schemas/enums/sex.js";
+import { stateCodePgEnum } from "../../schemas/enums/state-code.js";
+import { farms } from "../hk/farms.js";
+import { adminAndVetWrite, rlsForFarmColumn } from "../rls-helpers.js";
 
 export const animals = pgTable(
   "animals",
