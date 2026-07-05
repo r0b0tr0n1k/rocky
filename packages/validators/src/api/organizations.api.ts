@@ -3,8 +3,9 @@
 // Organizations are the administrative units of the Veterinary Directorate.
 // Based on: SM.PDF
 
-import { z } from "zod";
 import { organizationSelectSchema } from "@rocky/database/zod";
+import { z } from "zod";
+import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RESPONSE SCHEMAS
@@ -26,12 +27,12 @@ export const organizationResponseSchema = organizationSelectSchema
 export type OrganizationResponse = z.infer<typeof organizationResponseSchema>;
 
 export const organizationSummarySchema = z.strictObject({
-    id: z.uuid(),
-    name1: z.string(),
-    orgType: z.string(),
-    parentId: z.uuid().nullable(),
-    isActive: z.boolean(),
-  });
+  id: z.uuid(),
+  name1: z.string(),
+  orgType: z.string(),
+  parentId: z.uuid().nullable(),
+  isActive: z.boolean(),
+});
 
 export type OrganizationSummary = z.infer<typeof organizationSummarySchema>;
 
@@ -60,3 +61,11 @@ export type CreateOrganizationRequest = z.infer<typeof createOrganizationRequest
 // ═══════════════════════════════════════════════════════════════════════════
 // GUILLOTINES
 // ═══════════════════════════════════════════════════════════════════════════
+
+type _drift_organizationResponse = NoDrift<z.infer<typeof organizationResponseSchema>, OrganizationResponse>;
+type _drift_organizationSummary = NoDrift<z.infer<typeof organizationSummarySchema>, OrganizationSummary>;
+type _drift_createOrganization = NoDrift<z.infer<typeof createOrganizationRequestSchema>, CreateOrganizationRequest>;
+
+export type _OrganizationGuillotines = ActivateGuillotines<
+  [_drift_organizationResponse, _drift_organizationSummary, _drift_createOrganization]
+>;

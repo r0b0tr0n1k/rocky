@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatDate } from "@/lib/mdx";
+import { formatDate } from "@/lib/mdx.js";
 import { cn } from "@rocky/ui/lib/utils";
 import { Badge } from "@rocky/ui/components/badge";
 

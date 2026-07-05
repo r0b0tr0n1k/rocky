@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import type { AppContext } from "@rocky/trpc/context";
+import type { AppContext } from "@rocky/trpc/context.js";
 
 @Injectable()
 export class AuthOnlyMiddleware {

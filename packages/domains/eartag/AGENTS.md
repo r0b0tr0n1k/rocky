@@ -1,7 +1,7 @@
 # Ear Tag Domain Service
 
 **Scope:** `packages/domains/eartag/` — service, repository, errors
-**Status:** 13 of 15 fs.md sub-rules implemented
+**Status:** 15 of 15 fs.md sub-rules implemented
 
 ## Implementation Progress (vs docs/old/fs.md)
 
@@ -15,8 +15,8 @@
 ### B. Supplier Contingents
 | Sub-rule | Status |
 |----------|--------|
-| B.1 — Single assignment | ❌ NO logic. Enums exist (`CONTINGENT_TYPE`) but unused |
-| B.2 — .txt file download | ❌ Not implemented |
+| B.1 — Single assignment | ✅ `assignSupplierContingent()` — creates allocation with contingentType, validates no overlapping ranges |
+| B.2 — .txt file download | ✅ `generateTakeoverFile()` — generates flat file with tag numbers, stores content on takeover record, returns file content via tRPC |
 
 ### C. Ordering New Eartags
 | Sub-rule | Status |
@@ -30,7 +30,11 @@
 ### D. Duplicate Eartags
 | Sub-rule | Status |
 |----------|--------|
-| D.1-D.5 — All rules | ❌ Comment stub only |
+| D.1 — Idempotency (same order not entered twice) | ✅ `createDuplicateOrder()` — checks 24h duplicate window |
+| D.2 — Animal must be alive | ✅ `createDuplicateOrder()` — `animal.status !== ALIVE` check |
+| D.3 — Animal must belong to the specified farm | ✅ `createDuplicateOrder()` — `animal.currentFarmId !== input.farmId` |
+| D.4 — User must have farm permissions | ✅ `@Policy({action:"eartag:order"})` on router endpoint |
+| D.5 — Farm must be valid (not slaughterhouse/quarantine) | ✅ `createDuplicateOrder()` — farm type + isActive check |
 
 ### E. Supplier Collection
 | Sub-rule | Status |
@@ -100,40 +104,25 @@ CANCELLED → (terminal)
 |---|---|---|
 | `ear_tag_takeovers` | ✅ Added 2026-07 | `orderId`, `supplierOrganizationId`, `COMPLETED`/`CANCELLED`, RLS scoped to VD + supplier |
 | `ear_tag_takeover_files` | 🔲 Pending | Store generated flat file lines. Needs contingent logic first |
-| `contingent_type` on allocations | 🔲 Pending | `CONTINGENT_TYPE` enum unused. Add column to `ear_tag_allocations` to support supplier-facing blocks |
+| `contingent_type` on allocations | ✅ Added 2026-07-05 | Nullable pgEnum column on `ear_tag_allocations`. Range overlap validation in `assignSupplierContingent()` |
+| `file_content` on takeovers | ✅ Added 2026-07-05 | Flat file content stored as text on `ear_tag_takeovers`. Generated via `generateTakeoverFile()` |
 
-## Remaining Work
+## ✅ Completed Since Last Documentation
 
-### Rule 7: Order/Item Cancellation
-- H.1 — Only order creator or VD can cancel (auth at router level)
-- H.2 — Order cancellable only if supplier hasn't collected yet
-- H.3 — Individual items can be cancelled without cancelling entire order
-- Methods: `cancelOrder()`, `cancelOrderItem()` in service
-- Requires: user context for auth check, takeovers table for H.2
+These items were listed as remaining in older docs but are already implemented:
 
-### Rule 8: Duplicate Order for Specific Animals
-- D.1 — Idempotency (same order not entered twice)
-- D.2 — Animal must be alive
-- D.3 — Animal must belong to the specified farm
-- D.4 — User must have farm permissions
-- D.5 — Farm must be valid (not fictitious/slaughterhouse)
-- F.1-F.3 — Appending to existing orders
-- Method: `createDuplicateOrder()` in service
-- Requires: cross-domain animals query
+| Item | Implemented As |
+|------|----------------|
+| **H.1-H.3: Order/Item Cancellation** | `cancelOrder()` + `cancelOrderItem()` in service + router |
+| **A.3: Batch Tag Generation** | `generateTagNumbers()` starting from 10000001 |
+| **C.1: Permission Guard** | `@Policy({ action: "eartag:order" })` on `createOrder` mutation (uses `@Policy` decorator, not `createPermissionGuard`) |
+| **C.5: Idempotency** | `idempotencyKey` field in `CreateOrderRequest` + 24h duplicate window check |
+| **B.1: Supplier Contingent Assignment** | `assignSupplierContingent()` — creates contingent allocation with range overlap validation |
+| **B.2: Takeover File Generation** | `generateTakeoverFile()` — generates flat file with tag numbers, stores content + filename on takeover |
 
-### Rule A: Tag Number Generation
-- A.3 — Batch generation service starting from 10000001
-- Uses existing `calculateEarTagCheckDigit()`
+## Known Gaps
 
-### Rule B: Supplier Contingents
-- B.1 — Assign tag blocks to suppliers
-- B.2 — Generate + store .txt files
-- Requires: `contingentType` on allocations or new table
-
-### Rule C.1: Permission Guard
-- Apply `@RequirePermission("eartag:order")` to createOrder mutation
-- `PermissionGuard` class exists at `apps/api/src/trpc/middlewares/permission.guard.ts` but unused on EarTagRouter
-
-### Rule C.5: Idempotency
-- Add `idempotencyKey` to createOrder input
-- Check + reject duplicates in service
+1. ~~**Missing tRPC exposure:** `collectOrderTags()` and `generateTagNumbers()` service methods exist but have NO router endpoints~~ — **FIXED 2026-07-05**: `collectOrderTags`, `generateTagNumbers`, `getOrderById`, `listOrders` endpoints added to `eartag.router.ts`
+2. ~~**Comment stale:** `eartag.errors.ts` line 4 says "6 error codes" but there are actually 7~~ — **FIXED 2026-07-05**
+3. ~~**B.1/B.2: Supplier Contingents** — **FIXED 2026-07-05**: `contingentType` column added to `ear_tag_allocations`, `assignSupplierContingent()` + `generateTakeoverFile()` implemented, tRPC endpoints wired~~
+4. **IdempotencyKey nuance:** The `idempotencyKey` field is declared in the schema but the service uses a 24h time-window heuristic (org+supplier match) rather than directly checking/storing the key

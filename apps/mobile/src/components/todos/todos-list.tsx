@@ -9,8 +9,8 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import { trpc } from "#/providers/trpc-provider";
-import { useSession } from "#/providers/session-provider";
+import { trpc } from "#/providers/trpc-provider.js";
+import { useSession } from "#/providers/session-provider.js";
 
 export const TodosList = () => {
   const { data: session } = useSession();

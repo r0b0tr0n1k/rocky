@@ -5,8 +5,7 @@
  */
 
 import { eq, and, desc, asc, sql, gte, lte, type SQL } from "drizzle-orm";
-import type { DB } from "@rocky/database";
-import { movements as movementsTable } from "@rocky/database";
+import { movements as movementsTable, pastureDeclarations as pastureDeclarationsTable, farms as farmsTable } from "@rocky/database";
 import { importExportRecords as importExportRecordsTable } from "@rocky/database";
 import { BaseRepository } from "@rocky/domains-shared";
 import { SORT_BY_MOVEMENT, SORT_ORDER } from "@rocky/database/constants";
@@ -28,12 +27,9 @@ export interface MovementFilter {
 }
 
 export class MovementRepository extends BaseRepository {
-  constructor(db: DB) {
-    super(db);
-  }
 
   async findById(id: string) {
-    const [row] = await this.db.select().from(movementsTable).where(eq(movementsTable.id, id)).limit(1);
+    const [row] = await this.client.select().from(movementsTable).where(eq(movementsTable.id, id)).limit(1);
     return row ?? null;
   }
 
@@ -50,25 +46,25 @@ export class MovementRepository extends BaseRepository {
     const orderBy = filter.sortOrder === SORT_ORDER.ASC ? asc(sortCol) : desc(sortCol);
     const where = c.length > 0 ? and(...c) : undefined;
     const [data, totalResult] = await Promise.all([
-      this.db.select().from(movementsTable).where(where).orderBy(orderBy).limit(filter.limit).offset(filter.offset),
-      this.db.select({ count: sql<number>`count(*)::int` }).from(movementsTable).where(where),
+      this.client.select().from(movementsTable).where(where).orderBy(orderBy).limit(filter.limit).offset(filter.offset),
+      this.client.select({ count: sql<number>`count(*)::int` }).from(movementsTable).where(where),
     ]);
     return { data, total: totalResult[0]?.count ?? 0 };
   }
 
   async insert(data: typeof movementsTable.$inferInsert): Promise<typeof movementsTable.$inferSelect | null> {
-    const [row] = await this.db.insert(movementsTable).values(data).returning();
+    const [row] = await this.client.insert(movementsTable).values(data).returning();
     return row ?? null;
   }
 
   async insertBatch(data: typeof movementsTable.$inferInsert[]): Promise<typeof movementsTable.$inferSelect[]> {
     if (data.length === 0) return [];
-    const rows = await this.db.insert(movementsTable).values(data).returning();
+    const rows = await this.client.insert(movementsTable).values(data).returning();
     return rows;
   }
 
   async findActiveDeparturesByAnimal(animalId: string) {
-    return this.db
+    return this.client
       .select()
       .from(movementsTable)
       .where(
@@ -84,16 +80,57 @@ export class MovementRepository extends BaseRepository {
   // ── Import/Export Records ──
 
   async createImportExportRecord(data: typeof importExportRecordsTable.$inferInsert) {
-    const [row] = await this.db.insert(importExportRecordsTable).values(data).returning();
+    const [row] = await this.client.insert(importExportRecordsTable).values(data).returning();
     return row ?? null;
   }
 
   async findImportExportByAnimalId(animalId: string) {
-    return this.db
+    return this.client
       .select()
       .from(importExportRecordsTable)
       .where(eq(importExportRecordsTable.animalId, animalId))
       .orderBy(desc(importExportRecordsTable.createdAt))
       .limit(5);
+  }
+
+  // ── Pasture Declarations ──
+
+  async findActivePastureDeclaration(animalId: string) {
+    const [row] = await this.client
+      .select()
+      .from(pastureDeclarationsTable)
+      .where(
+        and(
+          sql`${animalId} = ANY(${pastureDeclarationsTable.animalIds})`,
+          eq(pastureDeclarationsTable.isActive, true),
+        ),
+      )
+      .limit(1);
+    return row ?? null;
+  }
+
+  async insertPastureDeclaration(data: typeof pastureDeclarationsTable.$inferInsert) {
+    const [row] = await this.client.insert(pastureDeclarationsTable).values(data).returning();
+    return row ?? null;
+  }
+
+  async deactivatePastureDeclaration(id: string) {
+    const [row] = await this.client
+      .update(pastureDeclarationsTable)
+      .set({ isActive: false, completedAt: new Date().toISOString().split("T")[0] })
+      .where(eq(pastureDeclarationsTable.id, id))
+      .returning();
+    return row ?? null;
+  }
+
+  // ── Farm Helpers ──
+
+  async findFarmType(farmId: string) {
+    const [row] = await this.client
+      .select({ type: farmsTable.type })
+      .from(farmsTable)
+      .where(eq(farmsTable.id, farmId))
+      .limit(1);
+    return row?.type ?? null;
   }
 }

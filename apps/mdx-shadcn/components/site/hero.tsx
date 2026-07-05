@@ -1,5 +1,5 @@
 import { Section, Container, Prose } from "@rocky/ui/components/ds";
-import { Logo } from "@/components/site/logo";
+import { Logo } from "@/components/site/logo.js";
 
 export const Hero = () => {
   return (

@@ -14,6 +14,7 @@ pnpm dev:mobile  # or: npx expo start
 We use [Better Auth](https://www.better-auth.com/) with the `@better-auth/expo` client plugin. However, **Better Auth and Expo don't play along perfectly out of the box** — the session management required some custom handling to work reliably on mobile.
 
 Key files:
+
 - `src/lib/auth.ts` — Auth client initialization with Expo-specific config
 - `src/providers/session-provider.tsx` — Custom session state management
 

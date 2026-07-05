@@ -4,13 +4,13 @@
  * @description Business logic for inspections — risk analysis, on-spot control lifecycle, integration with notifiable disease alerts.
  */
 
-import { ok, err, type Result } from "neverthrow";
-import { InspectionRepository } from "../repositories/inspection.repository.js";
+import { ok, err, } from "neverthrow";
+import type { InspectionRepository } from "../repositories/inspection.repository.js";
 import { InspectionError, INSPECTION_ERRORS } from "../errors/inspection.errors.js";
 import { INSPECTION_STATUS } from "@rocky/database/constants";
 import type { AnimalRepository } from "@rocky/domains-animal";
 import type { ArchiveService } from "@rocky/domains-archive";
-import { RiskAnalysisService, type RunAnalysisInput } from "./risk-analysis.service.js";
+import type { RiskAnalysisService, RunAnalysisInput } from "./risk-analysis.service.js";
 
 export type { InspectionError, InspectionErrorCode } from "../errors/inspection.errors.js";
 

@@ -10,15 +10,13 @@
 
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
-import { ArchiveService } from "@rocky/domains-archive";
+import type { ArchiveService } from "@rocky/domains-archive";
 
 @Injectable()
 export class RetentionJob {
   private readonly logger = new Logger(RetentionJob.name);
 
-  constructor(
-    private readonly archiveService: ArchiveService,
-  ) {}
+  constructor(private readonly archiveService: ArchiveService) {}
 
   /**
    * Daily retention enforcement - marks expired documents as destroyed.
@@ -50,7 +48,9 @@ export class RetentionJob {
       const result = await this.archiveService.markDestroyed(doc.id);
       if (result.isOk()) {
         destroyed++;
-        this.logger.debug(`Destroyed document ${doc.id} (${doc.documentType}, retention expired ${doc.retentionExpiry})`);
+        this.logger.debug(
+          `Destroyed document ${doc.id} (${doc.documentType}, retention expired ${doc.retentionExpiry})`,
+        );
       } else {
         failed++;
         this.logger.error(`Failed to destroy document ${doc.id}`, result.error);

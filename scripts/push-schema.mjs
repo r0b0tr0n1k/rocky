@@ -7,18 +7,17 @@
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import postgres from "postgres";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 const CONSTANTS_DIR = join(ROOT, "packages", "database", "src", "constants");
-const ENUMS_DIR = join(ROOT, "packages", "database", "src", "schemas", "enums");
+const _ENUMS_DIR = join(ROOT, "packages", "database", "src", "schemas", "enums");
 
 // ── Step 1: Generate CREATE TYPE statements from constants ──
 
 const sqlLines = [
   "-- Auto-generated schema push",
-  "-- Generated: " + new Date().toISOString(),
+  `-- Generated: ${new Date().toISOString()}`,
   "",
 ];
 
@@ -47,26 +46,6 @@ for (const f of enumFiles) {
 // ── Step 2: Load schema and generate CREATE TABLE SQL ──
 // We load the Drizzle schema files and use their getTableConfig() to extract DDL
 
-import {
-  pgEnum,
-  pgTable,
-  pgSchema,
-  uuid,
-  varchar,
-  integer,
-  boolean,
-  text,
-  timestamp,
-  jsonb,
-  geometry,
-  serial,
-  primaryKey,
-  uniqueIndex,
-  index,
-  pgPolicy,
-  pgRole,
-} from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
 
 // Dynamically import all schema files
 const schemaDir = join(ROOT, "packages", "database", "src", "schema");
@@ -94,13 +73,13 @@ const tables = [];
 
 for (const file of tableFiles) {
   try {
-    const mod = await import("file://" + file);
+    const mod = await import(`file://${file}`);
     for (const [name, export_] of Object.entries(mod)) {
       if (export_ && typeof export_ === "object" && export_.constructor?.name === "PgTable") {
         tables.push({ name, table: export_ });
       }
     }
-  } catch (e) {
+  } catch (_e) {
     // Skip files that fail to import (they might need other modules)
   }
 }
@@ -113,7 +92,7 @@ sqlLines.push("");
 // We need to write SQL for each table based on knowledge of schema structure
 // For now, output what we have
 const outputPath = join(ROOT, "packages", "database", "drizzle", "0000_full_schema.sql");
-writeFileSync(outputPath, sqlLines.join("\n") + "\n");
+writeFileSync(outputPath, `${sqlLines.join("\n")}\n`);
 console.log(`✓ Schema SQL written to: ${outputPath}`);
 console.log(`  ${enumFiles.length} enum files processed`);
 console.log(`  ${tables.length} tables discovered`);

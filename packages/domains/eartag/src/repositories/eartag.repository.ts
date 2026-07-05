@@ -5,11 +5,25 @@
  *   Shovels, not announcers — no events, no business logic.
  */
 
-import { eq, and, inArray, ilike, or, desc, asc, sql, gte, lte, type SQL } from "drizzle-orm";
-import type { DB } from "@rocky/database";
-import { earTags, earTagOrders, earTagTypes, earTagAllocations, farms, animals } from "@rocky/database";
+import {
+  animals,
+  earTagAllocations,
+  earTagOrders,
+  earTags,
+  earTagTakeovers,
+  earTagTypes,
+  farms,
+} from "@rocky/database";
+import {
+  ANIMAL_STATUS,
+  EAR_TAG_ORDER_STATUS,
+  EAR_TAG_STATUS,
+  SEX,
+  SORT_BY_EARTAG,
+  SORT_ORDER
+} from "@rocky/database/constants";
 import { BaseRepository } from "@rocky/domains-shared";
-import { SORT_BY_EARTAG, SORT_ORDER, EAR_TAG_ORDER_STATUS, FARM_TYPE, SEX, ANIMAL_STATUS, EAR_TAG_STATUS } from "@rocky/database/constants";
+import { and, asc, desc, eq, gte, ilike, inArray, lte, or, type SQL, sql } from "drizzle-orm";
 
 export type SortByEartag = (typeof SORT_BY_EARTAG)[keyof typeof SORT_BY_EARTAG];
 export type SortOrder = (typeof SORT_ORDER)[keyof typeof SORT_ORDER];
@@ -40,19 +54,16 @@ export interface EarTagOrderFilter {
 // ── Repository ──────────────────────────────────────────────────────
 
 export class EarTagRepository extends BaseRepository {
-  constructor(db: DB) {
-    super(db);
-  }
 
   // ─── Tags ────────────────────────────────────────────────────────
 
   async findById(id: string) {
-    const [row] = await this.db.select().from(earTags).where(eq(earTags.id, id)).limit(1);
+    const [row] = await this.client.select().from(earTags).where(eq(earTags.id, id)).limit(1);
     return row ?? null;
   }
 
   async findByTag(stateCode: string, tagNumber: string) {
-    const [row] = await this.db
+    const [row] = await this.client
       .select()
       .from(earTags)
       .where(and(eq(earTags.stateCode, stateCode), eq(earTags.tagNumber, tagNumber)))
@@ -84,8 +95,8 @@ export class EarTagRepository extends BaseRepository {
     const where = conditions.length > 0 ? and(...conditions) : undefined;
 
     const [data, totalResult] = await Promise.all([
-      this.db.select().from(earTags).where(where).orderBy(orderBy).limit(filter.limit).offset(filter.offset),
-      this.db.select({ count: sql<number>`count(*)::int` }).from(earTags).where(where),
+      this.client.select().from(earTags).where(where).orderBy(orderBy).limit(filter.limit).offset(filter.offset),
+      this.client.select({ count: sql<number>`count(*)::int` }).from(earTags).where(where),
     ]);
     return { data, total: totalResult[0]?.count ?? 0 };
   }
@@ -93,7 +104,7 @@ export class EarTagRepository extends BaseRepository {
   // ─── Orders ──────────────────────────────────────────────────────
 
   async findOrderById(id: string) {
-    const [row] = await this.db.select().from(earTagOrders).where(eq(earTagOrders.id, id)).limit(1);
+    const [row] = await this.client.select().from(earTagOrders).where(eq(earTagOrders.id, id)).limit(1);
     return row ?? null;
   }
 
@@ -104,20 +115,20 @@ export class EarTagRepository extends BaseRepository {
     const where = conditions.length > 0 ? and(...conditions) : undefined;
 
     const [data, totalResult] = await Promise.all([
-      this.db
+      this.client
         .select()
         .from(earTagOrders)
         .where(where)
         .orderBy(desc(earTagOrders.orderDate))
         .limit(filter.limit ?? 20)
         .offset(filter.offset ?? 0),
-      this.db.select({ count: sql<number>`count(*)::int` }).from(earTagOrders).where(where),
+      this.client.select({ count: sql<number>`count(*)::int` }).from(earTagOrders).where(where),
     ]);
     return { data, total: totalResult[0]?.count ?? 0 };
   }
 
   async updateOrderStatus(orderId: string, status: string) {
-    const [row] = await this.db
+    const [row] = await this.client
       .update(earTagOrders)
       .set({ status })
       .where(eq(earTagOrders.id, orderId))
@@ -135,7 +146,7 @@ export class EarTagRepository extends BaseRepository {
   }) {
     const now = new Date();
     const orderNumber = `ORD-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}-${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`;
-    const [row] = await this.db
+    const [row] = await this.client
       .insert(earTagOrders)
       .values({
         orderNumber,
@@ -152,12 +163,21 @@ export class EarTagRepository extends BaseRepository {
   }
 
   async findFarmById(id: string) {
-    const [row] = await this.db.select().from(farms).where(eq(farms.id, id)).limit(1);
+    const [row] = await this.client.select().from(farms).where(eq(farms.id, id)).limit(1);
+    return row ?? null;
+  }
+
+  async findAnimalById(id: string) {
+    const [row] = await this.client
+      .select({ id: animals.id, status: animals.status, currentFarmId: animals.currentFarmId })
+      .from(animals)
+      .where(eq(animals.id, id))
+      .limit(1);
     return row ?? null;
   }
 
   async countFemaleAnimalsOnFarm(farmId: string): Promise<number> {
-    const [row] = await this.db
+    const [row] = await this.client
       .select({ count: sql<number>`count(*)::int` })
       .from(animals)
       .where(
@@ -172,23 +192,18 @@ export class EarTagRepository extends BaseRepository {
   }
 
   async countRemainingEarTagsOnFarm(farmId: string): Promise<number> {
-    const [row] = await this.db
+    const [row] = await this.client
       .select({ count: sql<number>`count(*)::int` })
       .from(earTags)
       .innerJoin(earTagAllocations, eq(earTags.allocationId, earTagAllocations.id))
-      .where(
-        and(
-          eq(earTagAllocations.farmId, farmId),
-          eq(earTags.status, EAR_TAG_STATUS.AVAILABLE as string),
-        ),
-      );
+      .where(and(eq(earTagAllocations.farmId, farmId), eq(earTags.status, EAR_TAG_STATUS.AVAILABLE as string)));
     return row?.count ?? 0;
   }
 
   async countOrdersInYear(organizationId: string, year: number): Promise<number> {
     const start = new Date(year, 0, 1).toISOString();
     const end = new Date(year + 1, 0, 1).toISOString();
-    const [row] = await this.db
+    const [row] = await this.client
       .select({ count: sql<number>`count(*)::int` })
       .from(earTagOrders)
       .where(
@@ -203,7 +218,7 @@ export class EarTagRepository extends BaseRepository {
   }
 
   async lastOrderByOrganization(organizationId: string) {
-    const [row] = await this.db
+    const [row] = await this.client
       .select()
       .from(earTagOrders)
       .where(
@@ -225,7 +240,7 @@ export class EarTagRepository extends BaseRepository {
     const hours = input.withinHours ?? 24;
     const cutoff = new Date();
     cutoff.setHours(cutoff.getHours() - hours);
-    const [row] = await this.db
+    const [row] = await this.client
       .select()
       .from(earTagOrders)
       .where(
@@ -241,7 +256,7 @@ export class EarTagRepository extends BaseRepository {
   }
 
   async updateOrderQuantity(orderId: string, additionalQuantity: number) {
-    const [row] = await this.db
+    const [row] = await this.client
       .update(earTagOrders)
       .set({ totalQuantity: sql`${earTagOrders.totalQuantity} + ${additionalQuantity}` })
       .where(eq(earTagOrders.id, orderId))
@@ -250,7 +265,7 @@ export class EarTagRepository extends BaseRepository {
   }
 
   async findAvailableEarTags(limit: number) {
-    return this.db
+    return this.client
       .select()
       .from(earTags)
       .where(eq(earTags.status, EAR_TAG_STATUS.AVAILABLE as string))
@@ -259,14 +274,14 @@ export class EarTagRepository extends BaseRepository {
   }
 
   async assignTagsToOrder(tagIds: string[], orderId: string) {
-    await this.db
+    await this.client
       .update(earTags)
       .set({ orderId, status: EAR_TAG_STATUS.ORDERED as string })
       .where(inArray(earTags.id, tagIds));
   }
 
   async removeTagFromOrder(earTagId: string) {
-    await this.db
+    await this.client
       .update(earTags)
       .set({ orderId: null, status: EAR_TAG_STATUS.AVAILABLE as string })
       .where(eq(earTags.id, earTagId));
@@ -275,11 +290,72 @@ export class EarTagRepository extends BaseRepository {
   // ─── Types ───────────────────────────────────────────────────────
 
   async findTypeById(id: string) {
-    const [row] = await this.db.select().from(earTagTypes).where(eq(earTagTypes.id, id)).limit(1);
+    const [row] = await this.client.select().from(earTagTypes).where(eq(earTagTypes.id, id)).limit(1);
     return row ?? null;
   }
 
   async allTypes() {
-    return this.db.select().from(earTagTypes);
+    return this.client.select().from(earTagTypes);
+  }
+
+  // ─── Supplier Contingents (B.1) ─────────────────────────────────
+
+  async createContingentAllocation(input: {
+    farmId: string;
+    typeId: string;
+    tagRangeStart: string;
+    tagRangeEnd: string;
+    quantity: number;
+    contingentType: string;
+    allocationNumber: string;
+    allocationDate: string;
+    notes?: string;
+  }) {
+    const [row] = await this.client
+      .insert(earTagAllocations)
+      .values({
+        farmId: input.farmId,
+        typeId: input.typeId,
+        tagRangeStart: input.tagRangeStart,
+        tagRangeEnd: input.tagRangeEnd,
+        quantity: input.quantity,
+        contingentType: input.contingentType,
+        allocationNumber: input.allocationNumber,
+        allocationDate: input.allocationDate,
+        notes: input.notes,
+      })
+      .returning();
+    return row ?? null;
+  }
+
+  async findContingentAllocationByRange(tagRangeStart: string, tagRangeEnd: string) {
+    const [row] = await this.client
+      .select()
+      .from(earTagAllocations)
+      .where(
+        and(
+          sql`${earTagAllocations.tagRangeStart} <= ${tagRangeEnd}`,
+          sql`${earTagAllocations.tagRangeEnd} >= ${tagRangeStart}`,
+          sql`${earTagAllocations.contingentType} IS NOT NULL`,
+        ),
+      )
+      .limit(1);
+    return row ?? null;
+  }
+
+  // ─── Takeover Files (B.2) ───────────────────────────────────────
+
+  async findTakeoverById(id: string) {
+    const [row] = await this.client.select().from(earTagTakeovers).where(eq(earTagTakeovers.id, id)).limit(1);
+    return row ?? null;
+  }
+
+  async updateTakeoverFile(takeoverId: string, exportedFileName: string, fileContent: string) {
+    const [row] = await this.client
+      .update(earTagTakeovers)
+      .set({ exportedFileName, fileContent })
+      .where(eq(earTagTakeovers.id, takeoverId))
+      .returning();
+    return row ?? null;
   }
 }

@@ -7,15 +7,17 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./repository": "./src/index.ts"
+    "./repository": "./src/index.ts",
+    "./index.js": "./src/index.ts",
+    "./*": "./src/*"
   },
   "dependencies": {
     "@rocky/database": "workspace:*",
+    "@rocky/domains-shared": "workspace:*",
     "@rocky/trpc": "workspace:*",
     "@rocky/validators": "workspace:*",
     "drizzle-orm": "catalog:",
-    "neverthrow": "catalog:",
-    "@rocky/domains-shared": "workspace:*"
+    "neverthrow": "catalog:"
   },
   "devDependencies": {
     "typescript": "catalog:"

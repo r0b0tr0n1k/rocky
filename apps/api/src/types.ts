@@ -1,1 +1,1 @@
-export type { AppRouter } from "@rocky/trpc/generated";
+export type { AppRouter } from "@rocky/trpc/generated/index.js";

@@ -17,7 +17,9 @@
     "./schema/hd": "./src/schema/hd/index.ts",
     "./schema/auth": "./src/schema/auth/index.ts",
     "./schema/demo": "./src/schema/demo/index.ts",
-    "./geometry": "./src/geometry/index.ts"
+    "./geometry": "./src/geometry/index.ts",
+    "./index.js": "./src/index.ts",
+    "./*": "./src/*"
   },
   "scripts": {
     "generate": "drizzle-kit generate",
@@ -27,8 +29,10 @@
     "studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@nestjs/common": "catalog:",
     "dotenv": "^17.4.2",
     "drizzle-orm": "catalog:",
+    "nestjs-cls": "catalog:",
     "postgres": "catalog:"
   },
   "devDependencies": {

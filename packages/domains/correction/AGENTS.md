@@ -34,7 +34,7 @@ CorrectionRouter (tRPC) → CorrectionService (validate + state machine) → Cor
 | 5 | A priori: PDA upload validated before insertion | ✅ `create()` with a_priori detection source |
 | 6 | A priori: Rejected records get reasons | ✅ `reject()` — sets status to REJECTED |
 | 7 | A priori: Three case types (A/B/C) | ✅ `caseType` field on create |
-| 8 | A posteriori: Regular consistency checks | ✅ `CorrectionConsistencyJob` — weekly @Cron (Sunday 03:00 UTC) |
+| 8 | A posteriori: Regular consistency checks | ⚠️ **Stubs only** — `CorrectionConsistencyJob` exists with weekly @Cron (Sunday 03:00 UTC) but both `checkOrphanedAnimals()` and `checkFutureDates()` return `false` — not real checks |
 | 9 | A posteriori: Error list sorted by villages | 🔲 Future enhancement |
 | 10 | A posteriori: VS resolves during farm visits | 🔲 VS workflow pending |
 
@@ -84,7 +84,7 @@ REJECTED → PENDING (re-open)
 | Bot | Reads | Writes |
 |-----|-------|--------|
 | **Correction Bot** | `packages/domains/correction/` | errors, repo, service |
-| **Passport Bot** | `packages/domains/passport/` | PassportService.reprint() triggered on resolve (future) |
-| **Archive Bot** | `packages/domains/archive/` | Archive entry created on resolve (future) |
+| **Passport Bot** | `packages/domains/passport/` | ✅ `PassportService.reprint()` triggered from `CorrectionService.resolve()` when `passportReprintRequired` + `passportId` set |
+| **Archive Bot** | `packages/domains/archive/` | ✅ `archiveErrorCorrection()` called from `CorrectionService.resolve()` (wired 2026-07-05) |
 | **Validation Bot** | `packages/validators/src/api/correction.api.ts` | Correction API schemas |
 | **API Bot** | `apps/api/src/routers/correction.router.ts` | tRPC router |

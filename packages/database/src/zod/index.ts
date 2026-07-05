@@ -6,6 +6,7 @@ export {
   createSelectSchema,
   createUpdateSchema
 } from "./factory.js";
+export * from "./hd.js";
 export * from "./hk.js";
 export * from "./sm.js";
 

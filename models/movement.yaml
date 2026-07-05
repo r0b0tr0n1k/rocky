@@ -1,0 +1,228 @@
+# ══════════════════════════════════════════════════════════════════════
+# MOVEMENT / TRANSPORT DECLARATION DATA MODEL v1.0
+# ══════════════════════════════════════════════════════════════════════
+# Single Source of Truth for movement/transport declaration structure.
+# Feeds both: (1) PDF generation (future), (2) Print/export YAML output.
+#
+# Source: docs/old/workflow.md §Instances 12-16, 19-21
+# Source: packages/database/src/schema/an/movements.ts
+# Status: Definition complete. YAML generation active.
+# ══════════════════════════════════════════════════════════════════════
+
+movementDeclaration:
+
+  # ── Section A: Declaration Metadata ──
+  declarationId:
+    type: uuid
+    source: movements.id
+    description: Unique movement record identifier
+
+  modelVersion:
+    type: string
+    default: "1.0"
+    description: Schema version for future evolution
+
+  generatedAt:
+    type: iso8601
+    description: When this declaration was generated
+
+  language:
+    type: enum
+    values: [MK, EN, SQ, SR]
+    default: MK
+    description: Document language
+
+  # ── Section B: Movement Details ──
+  movementType:
+    type: enum
+    values:
+      - BIRTH_REGISTRATION
+      - ARRIVAL
+      - DEPARTURE
+      - DEATH
+      - SLAUGHTER
+      - PASTURE_DEPARTURE
+      - PASTURE_RETURN
+      - ALPINE_DEPARTURE
+      - ALPINE_RETURN
+      - MARKET_SALE
+      - MARKET_PURCHASE
+      - IMPORT_EU
+      - IMPORT_THIRD_COUNTRY
+      - EXPORT
+      - CORRECTION
+    source: movements.type
+    description: Type of movement being declared
+
+  movementDate:
+    type: date
+    source: movements.movement_date
+    description: Date of the movement
+
+  arrivalDate:
+    type: date | null
+    source: movements.arrival_date
+    description: Actual arrival date (if different from movement date)
+
+  reason:
+    type: string | null
+    source: movements.reason
+    description: Reason for the movement
+
+  documentRef:
+    type: string | null
+    source: movements.document_ref
+    description: Reference document number
+
+  # ── Section C: Animal Information ──
+  animal:
+    animalId:
+      type: uuid
+      source: animals.id
+    earTagNumber:
+      type: string
+      format: "8-12 digits with state code prefix"
+      source: animals.ear_tag_number
+    stateCode:
+      type: string
+      source: animals.state_code
+      example: "MK"
+    sex:
+      type: enum
+      values: [male, female]
+      source: animals.sex
+    breed:
+      type: string | null
+      source: animals.breed
+    birthDate:
+      type: date | null
+      source: animals.birth_date
+    currentStatus:
+      type: string
+      source: animals.status
+      description: Animal status at time of movement
+
+  # ── Section D: Departure Farm ──
+  fromFarm:
+    farmId:
+      type: uuid | null
+      source: movements.from_farm_id
+    farmIdNumber:
+      type: string | null
+      format: "9 digits with check digit (KMG_MID)"
+      source: farms.farm_id_number (fromFarm)
+    farmName:
+      type: string | null
+      source: farms.name (fromFarm)
+    farmType:
+      type: string | null
+      source: farms.type (fromFarm)
+
+    address:
+      street:
+        type: string | null
+        source: addresses.street (fromFarm address)
+      city:
+        type: string | null
+        source: addresses.city
+      zipCode:
+        type: string | null
+        source: addresses.zip_code
+      commune:
+        type: string | null
+        source: communes.name
+      state:
+        type: string | null
+        source: states.name
+
+  # ── Section E: Arrival Farm ──
+  toFarm:
+    farmId:
+      type: uuid | null
+      source: movements.to_farm_id
+    farmIdNumber:
+      type: string | null
+      format: "9 digits with check digit (KMG_MID)"
+      source: farms.farm_id_number (toFarm)
+    farmName:
+      type: string | null
+      source: farms.name (toFarm)
+    farmType:
+      type: string | null
+      source: farms.type (toFarm)
+
+    address:
+      street:
+        type: string | null
+        source: addresses.street (toFarm address)
+      city:
+        type: string | null
+        source: addresses.city
+      zipCode:
+        type: string | null
+        source: addresses.zip_code
+      commune:
+        type: string | null
+        source: communes.name
+      state:
+        type: string | null
+        source: states.name
+
+  # ── Section F: Death Information (if movement is death/slaughter) ──
+  deathInfo:
+    deathDate:
+      type: date | null
+      source: movements.death_date
+      description: Date of death (for DEATH/SLAUGHTER movements)
+    deathCause:
+      type: string | null
+      source: movements.death_cause
+      description: Cause of death
+    isStillborn:
+      type: boolean | null
+      description: Whether the animal was stillborn
+
+  # ── Section G: Import/Export Information ──
+  importExport:
+    importCountry:
+      type: string | null
+      format: "ISO 3166-1 alpha-3"
+      source: movements.import_country
+      description: Country of origin for imports
+    exportCountry:
+      type: string | null
+      format: "ISO 3166-1 alpha-3"
+      source: movements.export_country
+      description: Destination country for exports
+    breedingState:
+      type: string | null
+      source: movements.breeding_state
+    breedingPlaceId:
+      type: string | null
+      source: movements.breeding_place_id
+
+  # ── Section H: Transport Information ──
+  transport:
+    transporterName:
+      type: string | null
+      description: Name of the transporter
+    vehiclePlate:
+      type: string | null
+      description: Vehicle registration plate
+    transportDocument:
+      type: string | null
+      description: Transport document reference
+
+  # ── Section I: Verification ──
+  verification:
+    isVerified:
+      type: boolean
+      source: movements.is_verified
+      default: false
+      description: Whether the movement has been verified
+    verifiedAt:
+      type: timestamp | null
+      source: movements.verified_at
+    verifiedBy:
+      type: string | null
+      description: Name of the verifier

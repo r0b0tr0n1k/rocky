@@ -2,12 +2,13 @@
  * Farm Repository
  *
  * @description DB access layer for farms and addresses.
+ * Uses DatabaseProvider → transactional connection inside pipeline.
  */
 
 import { eq, and, ilike, or, desc, asc, sql, type SQL } from "drizzle-orm";
-import type { DB } from "@rocky/database";
 import { farms as farmsTable, addresses as addressesTable } from "@rocky/database";
 import { BaseRepository } from "@rocky/domains-shared";
+
 
 export interface FarmFilter {
   type?: string;
@@ -20,17 +21,14 @@ export interface FarmFilter {
 }
 
 export class FarmRepository extends BaseRepository {
-  constructor(db: DB) {
-    super(db);
-  }
 
   async findById(id: string) {
-    const [row] = await this.db.select().from(farmsTable).where(eq(farmsTable.id, id)).limit(1);
+    const [row] = await this.client.select().from(farmsTable).where(eq(farmsTable.id, id)).limit(1);
     return row ?? null;
   }
 
   async findByFarmId(farmId: string) {
-    const [row] = await this.db.select().from(farmsTable).where(eq(farmsTable.farmId, farmId)).limit(1);
+    const [row] = await this.client.select().from(farmsTable).where(eq(farmsTable.farmId, farmId)).limit(1);
     return row ?? null;
   }
 
@@ -49,14 +47,14 @@ export class FarmRepository extends BaseRepository {
     const orderBy = filter.sortOrder === "asc" ? asc(sortCol) : desc(sortCol);
     const where = c.length > 0 ? and(...c) : undefined;
     const [data, totalResult] = await Promise.all([
-      this.db.select().from(farmsTable).where(where).orderBy(orderBy).limit(filter.limit).offset(filter.offset),
-      this.db.select({ count: sql<number>`count(*)::int` }).from(farmsTable).where(where),
+      this.client.select().from(farmsTable).where(where).orderBy(orderBy).limit(filter.limit).offset(filter.offset),
+      this.client.select({ count: sql<number>`count(*)::int` }).from(farmsTable).where(where),
     ]);
     return { data, total: totalResult[0]?.count ?? 0 };
   }
 
   async insert(data: typeof farmsTable.$inferInsert): Promise<typeof farmsTable.$inferSelect | null> {
-    const [row] = await this.db.insert(farmsTable).values(data).returning();
+    const [row] = await this.client.insert(farmsTable).values(data).returning();
     return row ?? null;
   }
 
@@ -64,7 +62,7 @@ export class FarmRepository extends BaseRepository {
     id: string,
     data: Partial<typeof farmsTable.$inferInsert>,
   ): Promise<typeof farmsTable.$inferSelect | null> {
-    const [row] = await this.db
+    const [row] = await this.client
       .update(farmsTable)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(farmsTable.id, id))
@@ -73,7 +71,7 @@ export class FarmRepository extends BaseRepository {
   }
 
   async findAddressById(id: string) {
-    const [row] = await this.db.select().from(addressesTable).where(eq(addressesTable.id, id)).limit(1);
+    const [row] = await this.client.select().from(addressesTable).where(eq(addressesTable.id, id)).limit(1);
     return row ?? null;
   }
 }

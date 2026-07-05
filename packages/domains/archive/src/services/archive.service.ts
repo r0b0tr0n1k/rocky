@@ -4,8 +4,8 @@
  * @description Business logic for archive domain — CRUD, retention enforcement, inspection form archival.
  */
 
-import { ok, err, type Result } from "neverthrow";
-import { ArchiveRepository } from "../repositories/archive.repository.js";
+import { ok, err, } from "neverthrow";
+import type { ArchiveRepository } from "../repositories/archive.repository.js";
 import { ArchiveError, ARCHIVE_ERRORS } from "../errors/archive.errors.js";
 import { ARCHIVE_DOCUMENT_TYPE, ARCHIVE_LOCATION } from "@rocky/database/constants";
 

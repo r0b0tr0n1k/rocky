@@ -1,4 +1,4 @@
-import { posts, type Post } from "../.velite";
+import { posts, type Post } from "../.velite.js";
 
 /**
  * Get all published posts sorted by date (newest first)

@@ -1,34 +1,34 @@
 // --- Correction Router - tRPC entry point ---
 
 import { Inject, Injectable } from "@nestjs/common";
+import { Policy, RegisterPolicy } from "@rocky/authorization/index.js";
 import { CorrectionService } from "@rocky/domains-correction";
-import { createResultUnwrapper } from "@rocky/trpc";
+import type { AppContext } from "@rocky/trpc/index.js";
+import { createResultUnwrapper } from "@rocky/trpc/index.js";
 import {
   correctionListRequestSchema,
-  createCorrectionRequestSchema,
-  escalateCorrectionRequestSchema,
-  resolveCorrectionRequestSchema,
-  reviewCorrectionRequestSchema,
   type CreateCorrectionRequest,
+  createCorrectionRequestSchema,
   type EscalateCorrectionRequest,
+  escalateCorrectionRequestSchema,
   type ResolveCorrectionRequest,
+  resolveCorrectionRequestSchema,
   type ReviewCorrectionRequest,
-} from "@rocky/validators/api";
-import { CORRECTION_TRPC_ERROR_MAP } from "@rocky/validators/errors";
-import { Ctx, Input, Mutation, Query, Router, UseMiddlewares } from "nestjs-trpc";
+  reviewCorrectionRequestSchema,
+} from "@rocky/validators/api/index.js";
+import { CORRECTION_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
+import { Ctx, Input, Mutation, Query, Router } from "nestjs-trpc";
 import { z } from "zod";
-import { ProtectedMiddleware, type ProtectedMiddlewareContext } from "../trpc/middlewares/protected.middleware.js";
 
 const idParam = z.object({ id: z.uuid() });
 const unwrap = createResultUnwrapper(CORRECTION_TRPC_ERROR_MAP);
 
 @Router({ alias: "correction" })
-@UseMiddlewares(ProtectedMiddleware)
+@RegisterPolicy("correction")
+@Policy({ authenticated: true })
 @Injectable()
 export class CorrectionRouter {
-  constructor(
-    @Inject(CorrectionService) private readonly correctionService: CorrectionService,
-  ) { }
+  constructor(@Inject(CorrectionService) private readonly correctionService: CorrectionService) { }
 
   @Query({ input: idParam })
   async getById(@Input() input: { id: string }) {
@@ -41,13 +41,8 @@ export class CorrectionRouter {
   }
 
   @Mutation({ input: createCorrectionRequestSchema })
-  async create(
-    @Input() input: CreateCorrectionRequest,
-    @Ctx() ctx: ProtectedMiddlewareContext,
-  ) {
-    return unwrap(
-      await this.correctionService.create({ ...input, createdBy: ctx.auth.userId }),
-    );
+  async create(@Input() input: CreateCorrectionRequest, @Ctx() ctx: AppContext) {
+    return unwrap(await this.correctionService.create({ ...input, createdBy: ctx.execution?.principal.id }));
   }
 
   @Mutation({ input: reviewCorrectionRequestSchema })
@@ -56,13 +51,10 @@ export class CorrectionRouter {
   }
 
   @Mutation({ input: resolveCorrectionRequestSchema })
-  async resolve(
-    @Input() input: ResolveCorrectionRequest,
-    @Ctx() ctx: ProtectedMiddlewareContext,
-  ) {
+  async resolve(@Input() input: ResolveCorrectionRequest, @Ctx() ctx: AppContext) {
     return unwrap(
       await this.correctionService.resolve(input.id, {
-        resolvedBy: ctx.auth.userId,
+        resolvedBy: ctx.execution!.principal.id,
         resolutionNotes: input.resolutionNotes,
       }),
     );

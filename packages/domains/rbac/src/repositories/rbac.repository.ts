@@ -3,7 +3,6 @@
  */
 
 import { eq, and } from "drizzle-orm";
-import type { DB } from "@rocky/database";
 import {
   roles as rolesTable,
   permissions as permissionsTable,
@@ -13,46 +12,43 @@ import {
 import { BaseRepository } from "@rocky/domains-shared";
 
 export class RbacRepository extends BaseRepository {
-  constructor(db: DB) {
-    super(db);
-  }
 
   // ── Roles ──
 
   async findAllRoles() {
-    return this.db.select().from(rolesTable);
+    return this.client.select().from(rolesTable);
   }
 
   async findRoleById(id: string) {
-    const [row] = await this.db.select().from(rolesTable).where(eq(rolesTable.id, id)).limit(1);
+    const [row] = await this.client.select().from(rolesTable).where(eq(rolesTable.id, id)).limit(1);
     return row ?? null;
   }
 
   async findRoleByName(name: string) {
-    const [row] = await this.db.select().from(rolesTable).where(eq(rolesTable.name, name)).limit(1);
+    const [row] = await this.client.select().from(rolesTable).where(eq(rolesTable.name, name)).limit(1);
     return row ?? null;
   }
 
   async insertRole(data: typeof rolesTable.$inferInsert): Promise<typeof rolesTable.$inferSelect | null> {
-    const [row] = await this.db.insert(rolesTable).values(data).returning();
+    const [row] = await this.client.insert(rolesTable).values(data).returning();
     return row ?? null;
   }
 
   // ── Permissions ──
 
   async findAllPermissions() {
-    return this.db.select().from(permissionsTable);
+    return this.client.select().from(permissionsTable);
   }
 
   async findPermissionById(id: string) {
-    const [row] = await this.db.select().from(permissionsTable).where(eq(permissionsTable.id, id)).limit(1);
+    const [row] = await this.client.select().from(permissionsTable).where(eq(permissionsTable.id, id)).limit(1);
     return row ?? null;
   }
 
   // ── Role-Permission Bindings ──
 
   async findPermissionsForRole(roleId: string) {
-    return this.db
+    return this.client
       .select({ permission: permissionsTable })
       .from(rolePermissionsTable)
       .innerJoin(permissionsTable, eq(rolePermissionsTable.permissionId, permissionsTable.id))
@@ -60,12 +56,12 @@ export class RbacRepository extends BaseRepository {
   }
 
   async assignPermissionToRole(roleId: string, permissionId: string) {
-    const [row] = await this.db.insert(rolePermissionsTable).values({ roleId, permissionId }).returning();
+    const [row] = await this.client.insert(rolePermissionsTable).values({ roleId, permissionId }).returning();
     return row ?? null;
   }
 
   async removePermissionFromRole(roleId: string, permissionId: string) {
-    await this.db
+    await this.client
       .delete(rolePermissionsTable)
       .where(and(eq(rolePermissionsTable.roleId, roleId), eq(rolePermissionsTable.permissionId, permissionId)));
   }
@@ -73,7 +69,7 @@ export class RbacRepository extends BaseRepository {
   // ── User-Role Assignments ──
 
   async findRolesForUser(userId: string) {
-    const rows = await this.db
+    const rows = await this.client
       .select({ role: rolesTable, userRole: userRolesTable })
       .from(userRolesTable)
       .innerJoin(rolesTable, eq(userRolesTable.roleId, rolesTable.id))
@@ -82,7 +78,7 @@ export class RbacRepository extends BaseRepository {
   }
 
   async findUserRoleAssignment(userId: string, roleId: string) {
-    const [row] = await this.db
+    const [row] = await this.client
       .select()
       .from(userRolesTable)
       .where(and(eq(userRolesTable.userId, userId), eq(userRolesTable.roleId, roleId)))
@@ -91,12 +87,12 @@ export class RbacRepository extends BaseRepository {
   }
 
   async assignRoleToUser(data: typeof userRolesTable.$inferInsert): Promise<typeof userRolesTable.$inferSelect | null> {
-    const [row] = await this.db.insert(userRolesTable).values(data).returning();
+    const [row] = await this.client.insert(userRolesTable).values(data).returning();
     return row ?? null;
   }
 
   async revokeRoleFromUser(userId: string, roleId: string) {
-    const [row] = await this.db
+    const [row] = await this.client
       .delete(userRolesTable)
       .where(and(eq(userRolesTable.userId, userId), eq(userRolesTable.roleId, roleId)))
       .returning({ id: userRolesTable.id });

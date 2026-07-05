@@ -71,7 +71,7 @@ export const farmIdSchema = z
   .refine(
     (id) => {
       const checkDigit = calculateFarmIdCheckDigit(id.slice(0, 8));
-      return parseInt(id[8]!) === checkDigit;
+      return parseInt(id[8]!, 10) === checkDigit;
     },
     "Farm ID check digit is invalid"
   );

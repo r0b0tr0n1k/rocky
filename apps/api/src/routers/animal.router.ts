@@ -2,37 +2,37 @@
 // Consumes Diamond Seal schemas from @rocky/validators/api
 
 import { Inject, Injectable } from "@nestjs/common";
+import { Policy, RegisterPolicy } from "@rocky/authorization/index.js";
 import { AnimalService } from "@rocky/domains-animal";
-import { createResultUnwrapper } from "@rocky/trpc";
+import type { AppContext } from "@rocky/trpc/index.js";
+import { createResultUnwrapper } from "@rocky/trpc/index.js";
 import {
-  animalListRequestSchema,
-  animalListResponseSchema,
-  animalResponseSchema,
-  createAnimalRequestSchema,
-  findAnimalByTagRequestSchema,
-  updateAnimalRequestSchema,
   type AnimalListRequest,
   type AnimalListResponse,
   type AnimalResponse,
+  animalListRequestSchema,
+  animalListResponseSchema,
+  animalResponseSchema,
   type CreateAnimalRequest,
+  createAnimalRequestSchema,
   type FindAnimalByTagRequest,
+  findAnimalByTagRequestSchema,
   type UpdateAnimalRequest,
-} from "@rocky/validators/api";
-import { ANIMAL_TRPC_ERROR_MAP } from "@rocky/validators/errors";
-import { Ctx, Input, Mutation, Query, Router, UseMiddlewares } from "nestjs-trpc";
+  updateAnimalRequestSchema,
+} from "@rocky/validators/api/index.js";
+import { ANIMAL_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
+import { Ctx, Input, Mutation, Query, Router } from "nestjs-trpc";
 import { z } from "zod";
-import { ProtectedMiddleware, type ProtectedMiddlewareContext } from "../trpc/middlewares/protected.middleware.js";
 
 const idParam = z.object({ id: z.uuid() });
 const unwrap = createResultUnwrapper(ANIMAL_TRPC_ERROR_MAP);
 
 @Router({ alias: "animal" })
-@UseMiddlewares(ProtectedMiddleware)
+@RegisterPolicy("animal")
+@Policy({ authenticated: true })
 @Injectable()
 export class AnimalRouter {
-  constructor(
-    @Inject(AnimalService) private readonly animalService: AnimalService,
-  ) { }
+  constructor(@Inject(AnimalService) private readonly animalService: AnimalService) {}
 
   @Query({ input: idParam, output: animalResponseSchema })
   async getById(@Input() input: { id: string }): Promise<AnimalResponse> {
@@ -50,19 +50,12 @@ export class AnimalRouter {
   }
 
   @Mutation({ input: createAnimalRequestSchema, output: animalResponseSchema })
-  async create(
-    @Input() input: CreateAnimalRequest,
-    @Ctx() ctx: ProtectedMiddlewareContext,
-  ): Promise<AnimalResponse> {
-    return unwrap(
-      await this.animalService.create({ ...input, createdBy: ctx.auth.userId }),
-    );
+  async create(@Input() input: CreateAnimalRequest, @Ctx() ctx: AppContext): Promise<AnimalResponse> {
+    return unwrap(await this.animalService.create({ ...input, createdBy: ctx.execution?.principal.id }));
   }
 
   @Mutation({ input: updateAnimalRequestSchema, output: animalResponseSchema })
-  async update(
-    @Input() input: UpdateAnimalRequest & { id: string },
-  ): Promise<AnimalResponse> {
+  async update(@Input() input: UpdateAnimalRequest & { id: string }): Promise<AnimalResponse> {
     return unwrap(await this.animalService.update(input.id, input));
   }
 }

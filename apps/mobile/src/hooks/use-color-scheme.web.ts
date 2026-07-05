@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useColorScheme as useRNColorScheme } from "react-native";
-import { useMountEffect } from "./use-mount-effect";
+import { useMountEffect } from "./use-mount-effect.js";
 
 /**
  * To support static rendering, this value needs to be re-calculated on the client side for web

@@ -3,6 +3,7 @@
 
 import {
   boolean,
+  check,
   date,
   index,
   integer,
@@ -13,6 +14,7 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { adminWrite } from "../rls-helpers.js";
 import { vaccines } from "./vaccines.js";
 
@@ -55,5 +57,6 @@ export const vaccineBatches = pgTable(
       using: adminWrite,
       withCheck: adminWrite,
     }),
+    check("ck_quantity_non_negative", sql`${table.quantityRemaining} >= 0`),
   ],
 );

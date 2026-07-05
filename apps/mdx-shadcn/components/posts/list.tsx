@@ -1,5 +1,5 @@
 import { Section, Container } from "@rocky/ui/components/ds";
-import { Item } from "@/components/posts/item";
+import { Item } from "@/components/posts/item.js";
 
 import type { Post } from "#site/content";
 

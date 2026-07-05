@@ -5,9 +5,23 @@
  */
 
 import { CORRECTION_STATUS } from "@rocky/database/constants";
-import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
+import { fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
 import { CorrectionError, CORRECTION_ERRORS } from "../errors/correction.errors.js";
 import type { CorrectionRepository } from "../repositories/correction.repository.js";
+
+interface ArchiveServiceLike {
+  archiveErrorCorrection(input: {
+    correctionId: string;
+    animalId?: string;
+    farmId?: string;
+    passportId?: string;
+    createdBy?: string;
+  }): Promise<any>;
+}
+
+interface PassportServiceLike {
+  reprint(originalPassportId: string): Promise<any>;
+}
 
 /** Valid state transitions */
 const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -19,7 +33,11 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
 };
 
 export class CorrectionService {
-  constructor(private readonly repo: CorrectionRepository) {}
+  constructor(
+    private readonly repo: CorrectionRepository,
+    private readonly archiveService?: ArchiveServiceLike,
+    private readonly passportService?: PassportServiceLike,
+  ) {}
 
   async getById(id: string) {
     return fromAsyncThrowable(async () => {
@@ -91,10 +109,23 @@ export class CorrectionService {
       const correction = await this.repo.findById(id);
       if (!correction) throw new CorrectionError(CORRECTION_ERRORS.NOT_FOUND, { id });
       this.validateTransition(correction.status, CORRECTION_STATUS.RESOLVED);
-      return this.repo.updateStatus(id, CORRECTION_STATUS.RESOLVED, {
+      const result = await this.repo.updateStatus(id, CORRECTION_STATUS.RESOLVED, {
         resolvedBy: input.resolvedBy,
         resolutionNotes: input.resolutionNotes,
       });
+      if (this.archiveService) {
+        await this.archiveService.archiveErrorCorrection({
+          correctionId: id,
+          animalId: correction.animalId ?? undefined,
+          farmId: correction.farmId ?? undefined,
+          passportId: correction.passportId ?? undefined,
+          createdBy: input.resolvedBy,
+        });
+      }
+      if (this.passportService && correction.passportReprintRequired && correction.passportId) {
+        await this.passportService.reprint(correction.passportId).catch(() => {});
+      }
+      return result;
     }, toAppError)();
   }
 
@@ -125,7 +156,7 @@ export class CorrectionService {
 
   private validateTransition(currentStatus: string, targetStatus: string) {
     const allowed = VALID_TRANSITIONS[currentStatus];
-    if (!allowed || !allowed.includes(targetStatus)) {
+    if (!allowed?.includes(targetStatus)) {
       throw new CorrectionError(CORRECTION_ERRORS.INVALID_STATUS_TRANSITION, {
         currentStatus,
         targetStatus,

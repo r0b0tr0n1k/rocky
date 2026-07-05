@@ -14,7 +14,9 @@
     "./errors": "./src/errors/index.ts",
     "./utils": "./src/utils/index.ts",
     "./utils/check-digit": "./src/utils/check-digit.ts",
-    "./utils/type-bridge": "./src/utils/type-bridge.ts"
+    "./utils/type-bridge": "./src/utils/type-bridge.ts",
+    "./index.js": "./src/index.ts",
+    "./*": "./src/*"
   },
   "dependencies": {
     "@rocky/database": "workspace:*",

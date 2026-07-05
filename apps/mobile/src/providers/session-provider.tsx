@@ -1,12 +1,10 @@
-// biome-ignore assist/source/organizeImports: hm
 import { useMountEffect } from "#/hooks/use-mount-effect.js";
-import type { AuthSession } from "#/lib/auth.js";
-import { getAuthClient, getCachedSession, getSession } from "#/lib/auth.js";
-import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from "react";
+import { authClient } from "#/lib/auth.js";
+import { createContext, type ReactNode, useCallback, useContext, } from "react";
 
 type SessionContextType = {
+  data: ReturnType<typeof authClient.useSession>["data"] | null;
   isPending: boolean;
-  data: AuthSession | null;
   refresh: () => Promise<void>;
   onAuthSuccess: () => Promise<void>;
 };
@@ -14,24 +12,10 @@ type SessionContextType = {
 const SessionContext = createContext<SessionContextType | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const initialCached = useMemo(() => getCachedSession(), []);
-  const [data, setData] = useState<AuthSession | null>(initialCached);
-  const [isPending, setIsPending] = useState<boolean>(!initialCached);
+  const { data, isPending } = authClient.useSession();
 
   const refresh = useCallback(async () => {
-    setIsPending(true);
-    const result = await getSession();
-    if (result?.data) {
-      setData(result.data);
-    } else {
-      const status = result?.error?.status;
-      if (status === 401 || status === 403) {
-        setData(null);
-      } else {
-        setData((prev) => prev ?? null);
-      }
-    }
-    setIsPending(false);
+    await authClient.getSession();
   }, []);
 
   const onAuthSuccess = useCallback(async () => {
@@ -39,30 +23,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   useMountEffect(() => {
-    if (!initialCached) {
-      void refresh();
-    } else {
-      setIsPending(false);
-    }
-  });
-
-  useMountEffect(() => {
-    // Keep local state in sync with cookie updates (sign-in/out) without forcing a network call.
-    const store = getAuthClient().$store;
-    const sessionSignal = store.atoms.$sessionSignal;
-    const unsubscribe = sessionSignal.subscribe(() => {
-      setData(getCachedSession());
-    });
-    return () => {
-      unsubscribe();
-    };
+    void refresh();
   });
 
   return (
     <SessionContext.Provider
       value={{
+        data: data ?? null,
         isPending,
-        data,
         refresh,
         onAuthSuccess,
       }}

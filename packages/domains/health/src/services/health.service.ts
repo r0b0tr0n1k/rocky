@@ -5,13 +5,21 @@
  * Validates vet authorization on farm before recording health events.
  */
 
-import { ok, err, type Result } from "neverthrow";
+import { ok, err, fromAsyncThrowable, toAppError, type Result } from "@rocky/domains-shared";
 import type { SubjectRepository } from "@rocky/domains-subject";
-import { HealthRepository } from "../repositories/health.repository.js";
+import type { AnimalRepository } from "@rocky/domains-animal";
+import type { HealthRepository } from "../repositories/health.repository.js";
 import { HealthError, HEALTH_ERRORS } from "../errors/health.errors.js";
-import { SUBJECT_ROLE } from "@rocky/database/constants";
+import { ANIMAL_STATUS, SUBJECT_ROLE } from "@rocky/database/constants";
 
 export type { HealthError, HealthErrorCode } from "../errors/health.errors.js";
+
+const MIN_VACCINATION_AGE_DAYS = 30;
+
+function daysBetween(a: Date, b: Date): number {
+  const ms = Math.abs(b.getTime() - a.getTime());
+  return Math.floor(ms / (1000 * 60 * 60 * 24));
+}
 
 // ── Input types (mirrors validator schemas) ──
 
@@ -86,6 +94,7 @@ export class HealthService {
   constructor(
     private readonly repo: HealthRepository,
     private readonly subjectRepo: SubjectRepository,
+    private readonly animalRepo: AnimalRepository,
     private readonly inspectionRepo?: { flagFarmForInspection: (input: { farmId: string; riskScore?: string | null; riskCriteria?: string | null; notes?: string | null; triggeredBy?: string }) => Promise<any> },
   ) {}
 
@@ -151,14 +160,22 @@ export class HealthService {
     const binding = await this.subjectRepo.findSubjectBinding(input.farmId, input.vetId, SUBJECT_ROLE.VETERINARIAN);
     if (!binding) return err(new HealthError(HEALTH_ERRORS.FORBIDDEN, { vetId: input.vetId, farmId: input.farmId }));
 
-    // 2. Batch validity
+    // 2. Animal validation — alive + age check (Rules 7, 2)
+    const animal = await this.animalRepo.findById(input.animalId);
+    if (!animal) return err(new HealthError(HEALTH_ERRORS.NOT_FOUND, { animalId: input.animalId }));
+    if (animal.status !== ANIMAL_STATUS.ALIVE) return err(new HealthError(HEALTH_ERRORS.ANIMAL_NOT_ALIVE, { animalId: input.animalId }));
+    const adminDate = typeof input.adminDate === "string" ? new Date(input.adminDate) : input.adminDate;
+    const animalBirthDate = new Date(animal.birthDate);
+    const ageDays = daysBetween(animalBirthDate, adminDate);
+    if (ageDays < MIN_VACCINATION_AGE_DAYS) return err(new HealthError(HEALTH_ERRORS.ANIMAL_TOO_YOUNG, { animalId: input.animalId, ageDays, minDays: MIN_VACCINATION_AGE_DAYS }));
+
+    // 3. Batch validity — expiry + stock
     const batchRow = await this.repo.findBatchById(input.batchId);
     if (!batchRow) return err(new HealthError(HEALTH_ERRORS.NOT_FOUND, { batchId: input.batchId }));
-    const adminDate = input.adminDate instanceof Date ? input.adminDate : new Date(input.adminDate);
     if (new Date(batchRow.expiryDate) < adminDate) return err(new HealthError(HEALTH_ERRORS.VACCINE_EXPIRED, { batchId: input.batchId }));
     if (batchRow.quantityRemaining <= 0) return err(new HealthError(HEALTH_ERRORS.BATCH_DEPLETED, { batchId: input.batchId }));
 
-    // 3. Create vaccination record
+    // 4. Create vaccination record
     const vaccination = await this.repo.createVaccination({
       animalId: input.animalId,
       farmId: input.farmId,
@@ -172,7 +189,7 @@ export class HealthService {
     });
     if (!vaccination) return err(new HealthError(HEALTH_ERRORS.INVALID_INPUT));
 
-    // 4. Decrement batch quantity
+    // 5. Decrement batch quantity
     await this.repo.decrementBatchQuantity(input.batchId);
 
     return ok(vaccination);
@@ -195,7 +212,12 @@ export class HealthService {
     const binding = await this.subjectRepo.findSubjectBinding(input.farmId, input.vetId, SUBJECT_ROLE.VETERINARIAN);
     if (!binding) return err(new HealthError(HEALTH_ERRORS.FORBIDDEN, { vetId: input.vetId, farmId: input.farmId }));
 
-    // 2. Check if disease is notifiable (for alert triggering)
+    // 2. Animal alive check (Rule 7)
+    const animal = await this.animalRepo.findById(input.animalId);
+    if (!animal) return err(new HealthError(HEALTH_ERRORS.NOT_FOUND, { animalId: input.animalId }));
+    if (animal.status !== ANIMAL_STATUS.ALIVE) return err(new HealthError(HEALTH_ERRORS.ANIMAL_NOT_ALIVE, { animalId: input.animalId }));
+
+    // 3. Check if disease is notifiable (for alert triggering)
     let isNotifiable = false;
     let diseaseName = "";
     if (input.diseaseId) {
@@ -302,5 +324,96 @@ export class HealthService {
   async getVaccineDiseases(vaccineId: string) {
     const links = await this.repo.findVaccineDiseases(vaccineId);
     return ok(links);
+  }
+
+  // ── PDA Sync (Phase 5) ────────────────────────────────────────
+
+  /**
+   * Download all master data for PDA offline use.
+   */
+  async syncDownload(): Promise<Result<{
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    diseases: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vaccines: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    batches: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vaccineDiseases: any[];
+    syncedAt: Date;
+  }, Error>> {
+    return fromAsyncThrowable(async () => {
+      const [diseases, vaccines, batches, vaccineDiseases] = await Promise.all([
+        this.repo.listAllDiseases(),
+        this.repo.listAllVaccines(),
+        this.repo.listAllBatches(),
+        this.repo.listAllVaccineDiseases(),
+      ]);
+      return {
+        diseases,
+        vaccines,
+        batches,
+        vaccineDiseases,
+        syncedAt: new Date(),
+      };
+    }, toAppError)();
+  }
+
+  /**
+   * Upload batched records created offline on the PDA.
+   * Processes each record sequentially, returning per-record results.
+   */
+  async syncUpload(input: {
+    records: Array<{
+      idempotencyKey: string;
+      type: "vaccination" | "treatment" | "labTest";
+      data: Record<string, unknown>;
+    }>;
+    createdBy: string;
+  }): Promise<Result<{
+    results: Array<{ idempotencyKey: string; success: boolean; recordId: string | null; error: string | null }>;
+    processed: number;
+    failed: number;
+  }, Error>> {
+    const results: Array<{
+      idempotencyKey: string;
+      success: boolean;
+      recordId: string | null;
+      error: string | null;
+    }> = [];
+
+    for (const record of input.records) {
+      try {
+        let result: Result<{ id: string }, Error>;
+        switch (record.type) {
+          case "vaccination":
+            result = await this.recordVaccination(record.data as never);
+            break;
+          case "treatment":
+            result = await this.recordTreatment(record.data as never);
+            break;
+          case "labTest":
+            result = await this.recordLabTest(record.data as never);
+            break;
+          default:
+            results.push({ idempotencyKey: record.idempotencyKey, success: false, recordId: null, error: `Unknown type: ${record.type}` });
+            continue;
+        }
+
+        if (result.isOk()) {
+          results.push({ idempotencyKey: record.idempotencyKey, success: true, recordId: result.value.id, error: null });
+        } else {
+          results.push({ idempotencyKey: record.idempotencyKey, success: false, recordId: null, error: result.error.message });
+        }
+      } catch (e) {
+        results.push({ idempotencyKey: record.idempotencyKey, success: false, recordId: null, error: e instanceof Error ? e.message : "Unknown error" });
+      }
+    }
+
+    return ok({
+      results,
+      processed: results.filter(r => r.success).length,
+      failed: results.filter(r => !r.success).length,
+    });
   }
 }

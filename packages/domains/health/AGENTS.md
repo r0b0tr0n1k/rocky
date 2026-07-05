@@ -253,20 +253,20 @@ All tables in `packages/database/src/schema/hd/` — new schema directory parall
 
 ## Business Rules
 
-| # | Rule | Check | Enforcement Layer |
-|---|------|-------|-------------------|
-| 1 | **Batch not expired** — `adminDate <= batch.expiryDate` | Service | `HealthService.recordVaccination()` |
-| 2 | **Min age for vaccination** — animal age >= system param | Service | `HealthService.recordVaccination()` — reads system param |
-| 3 | **Notifiable disease trigger** — if `disease.notifiable` and treatment recorded, flag farm for inspection | Service | `HealthService.recordTreatment()` → `InspectionRepository.flagFarmForInspection()` |
-| 4 | **Stock reconciliation** — `batch.quantityReceived = batch.quantityRemaining + SUM(doses from vaccinations)` | Report | Manual report or scheduled check |
-| 5 | **Only VET role can record** — vetId must map to a user with VET role on the farm | Auth | `ProtectedMiddleware` + `RequirePermission` |
-| 6 | **No future dates** — adminDate, diagnosisDate, sampleDate <= today | Zod | `health.api.ts` refinement |
-| 7 | **Animal must be alive** — `animal.status != DEAD` | Service | `HealthService` cross-query to animal |
-| 8 | **Batch quantity decrement** — `quantityRemaining -= 1` on each vaccination | Repo | `HealthRepository.decrementBatch()` in same transaction |
-| 9 | **Batch quantity non-negative** — `quantityRemaining >= 0` after decrement | DB | Check constraint |
-| 10 | **Unique batchNo per vaccine** — same batchNo for different vaccines is allowed | DB | Partial unique index `(vaccineId, batchNo)` |
-| 11 | **Unique vaccine-disease link** — same pair cannot be linked twice | DB | Unique index `(vaccineId, diseaseId)` |
-| 12 | **Lab test result date >= sample date** | Zod | `recordLabTestRequestSchema` refinement |
+| # | Rule | Check | Enforcement Layer | Status |
+|-- |------|-------|-------------------|--------|
+| 1 | **Batch not expired** — `adminDate <= batch.expiryDate` | Service | `HealthService.recordVaccination()` | ✅ |
+| 2 | **Min age for vaccination** — animal age >= 30 days | Service | `HealthService.recordVaccination()` — `daysBetween(animal.birthDate, adminDate) < MIN_VACCINATION_AGE_DAYS` | ✅ (added 2026-07-05) |
+| 3 | **Notifiable disease trigger** — if `disease.notifiable` and treatment recorded, flag farm for inspection | Service | `HealthService.recordTreatment()` → `InspectionRepository.flagFarmForInspection()` | ✅ |
+| 4 | **Stock reconciliation** — `batch.quantityReceived = batch.quantityRemaining + SUM(doses from vaccinations)` | Report | Manual report or scheduled check | N/A |
+| 5 | **Only VET role can record** — vetId must map to a user with VET role on the farm | Auth | `ProtectedMiddleware` + `RequirePermission` | ✅ |
+| 6 | **No future dates** — adminDate, diagnosisDate, sampleDate <= today | Zod | `health.api.ts` refinement | ✅ |
+| 7 | **Animal must be alive** — `animal.status == ALIVE` | Service | `HealthService.recordVaccination()` + `recordTreatment()` — `AnimalRepository.findById()` + `ANIMAL_STATUS.ALIVE` check | ✅ (added 2026-07-05) |
+| 8 | **Batch quantity decrement** — `quantityRemaining -= 1` on each vaccination | Repo | `HealthRepository.decrementBatchQuantity()` in same transaction | ✅ |
+| 9 | **Batch quantity non-negative** — `quantityRemaining >= 0` after decrement | DB | Check constraint `ck_quantity_non_negative` on `vaccine_batches` | ✅ (added 2026-07-05) |
+| 10 | **Unique batchNo per vaccine** — same batchNo for different vaccines is allowed | DB | Partial unique index `(vaccineId, batchNo)` | ✅ |
+| 11 | **Unique vaccine-disease link** — same pair cannot be linked twice | DB | Unique index `(vaccineId, diseaseId)` | ✅ |
+| 12 | **Lab test result date >= sample date** | Zod | `recordLabTestRequestSchema` refinement | ✅ |
 
 ## RLS Strategy
 
@@ -282,18 +282,20 @@ All tables in `packages/database/src/schema/hd/` — new schema directory parall
 
 ## Error Codes (`HEALTH_ERRORS`)
 
-| Code | When |
-|------|------|
-| `NOT_FOUND` | Disease/vaccine/animal not found |
-| `VACCINE_EXPIRED` | Batch expiry date has passed |
-| `ANIMAL_TOO_YOUNG` | Animal below minimum vaccination age |
-| `BATCH_DEPLETED` | No remaining doses in batch |
-| `ANIMAL_NOT_ALIVE` | Cannot treat a dead animal |
-| `INVALID_INPUT` | Validation failure |
-| `FORBIDDEN` | Permission denied |
-| `LAB_TEST_NOT_FOUND` | Lab test not found |
-| `VACCINE_DISEASE_CONFLICT` | Vaccine already linked to this disease |
-| `VACCINE_DISEASE_NOT_FOUND` | Vaccine-disease link not found |
+> **Note:** All error codes use `HEALTH_` prefix in their string values (e.g., `HEALTH_NOT_FOUND`). The table below shows the short keys; the actual enum values are `HEALTH_{KEY}`.
+
+| Code (key) | String Value | When |
+|------|-------------|------|
+| `NOT_FOUND` | `HEALTH_NOT_FOUND` | Disease/vaccine/animal not found |
+| `VACCINE_EXPIRED` | `HEALTH_VACCINE_EXPIRED` | Batch expiry date has passed |
+| `ANIMAL_TOO_YOUNG` | `HEALTH_ANIMAL_TOO_YOUNG` | Animal below minimum vaccination age |
+| `BATCH_DEPLETED` | `HEALTH_BATCH_DEPLETED` | No remaining doses in batch |
+| `ANIMAL_NOT_ALIVE` | `HEALTH_ANIMAL_NOT_ALIVE` | Cannot treat a dead animal |
+| `INVALID_INPUT` | `HEALTH_INVALID_INPUT` | Validation failure |
+| `FORBIDDEN` | `HEALTH_FORBIDDEN` | Permission denied |
+| `LAB_TEST_NOT_FOUND` | `HEALTH_LAB_TEST_NOT_FOUND` | Lab test not found |
+| `VACCINE_DISEASE_CONFLICT` | `HEALTH_VACCINE_DISEASE_CONFLICT` | Vaccine already linked to this disease |
+| `VACCINE_DISEASE_NOT_FOUND` | `HEALTH_VACCINE_DISEASE_NOT_FOUND` | Vaccine-disease link not found |
 
 ## Dumb Zod (`packages/database/src/zod/hd.ts`)
 
@@ -324,6 +326,33 @@ New `hd/` directory alongside existing `an/`, `sm/`, `hk/`. Distinct prefix avoi
 
 1. **Phase 1:** Constants + pgEnums + Drizzle schemas → generate → push ✅
 2. **Phase 2:** Dumb Zod + validators (API schemas with guillotines) ✅
-3. **Phase 3:** Health service + repository (CRUD + batch decrement + age check) ✅
+3. **Phase 3:** Health service + repository (CRUD + batch decrement + age check + animal alive check) ✅ (Rules 2 and 7 added 2026-07-05; Rule 9 check constraint added to schema)
 4. **Phase 4:** Notifiable disease alert → InspectionRepository.flagFarmForInspection() ✅
-5. **Phase 5:** PDA sync (download master data, upload vaccination/treatment records) (pending)
+5. **Phase 5:** PDA sync (download master data, upload vaccination/treatment records) ✅ (2026-07-05: `syncDownload()` + `syncUpload()` endpoints) |
+
+## ✅ Missing tRPC Router Endpoints — FIXED (2026-07-05)
+
+The health service has 20 methods, and the tRPC router (`apps/api/src/routers/health.router.ts`) now exposes **17** of them. All missing endpoints from the original audit have been added:
+
+| Service Method | Router Endpoint | Status |
+|---------------|----------------|--------|
+| `recordLabTest()` | ✅ Added | ✅ |
+| `getLabTest()` | ✅ Added | ✅ |
+| `listLabTests()` | ✅ Added | ✅ |
+| `linkVaccineDisease()` | ✅ Added | ✅ |
+| `unlinkVaccineDisease()` | ✅ Added | ✅ |
+| `getVaccineDiseases()` | ✅ Added | ✅ |
+| `listBatches()` | ✅ Added | ✅ |
+
+Corresponding validators were already present in `packages/validators/src/api/health.api.ts` and are now wired in the router. The 3 remaining unexposed methods (`createDisease`, `updateDisease`, `updateVaccine`) are intentionally admin-only and can be added when needed.
+
+## Method Name Differences
+
+The actual code uses slightly different method names than what earlier docs claimed:
+
+| Earlier Claim | Actual Name |
+|--------------|-------------|
+| `getDiseaseById` | `getDisease` |
+| `linkVaccineToDisease` | `linkVaccineDisease` |
+| `unlinkVaccineFromDisease` | `unlinkVaccineDisease` |
+| `decrementBatch` | `decrementBatchQuantity` |

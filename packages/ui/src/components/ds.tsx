@@ -1,4 +1,4 @@
-import { cn } from "../lib/utils.ts"
+import { cn } from "../lib/utils.js"
 
 type DSProps = {
   className?: string
@@ -121,7 +121,7 @@ const proseTableClasses = [
   "[&_td]:px-4 [&_td]:py-2 [&_td]:border-r",
 ]
 
-const proseMediaClasses = [
+const _proseMediaClasses = [
   "[&_img]:border [&_img]:my-4 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-sm",
   "[&_video]:border [&_video]:my-4 [&_video]:max-w-full [&_video]:h-auto [&_video]:rounded-sm",
   "[&_figure]:my-4",

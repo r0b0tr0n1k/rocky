@@ -2,32 +2,28 @@
  * User Repository
  */
 
-import { eq, or, ilike, sql, and } from "drizzle-orm";
-import type { DB } from "@rocky/database";
 import { users as usersTable } from "@rocky/database";
-import { BaseRepository } from "@rocky/domains-shared";
 import { SORT_BY_USER, type SORT_ORDER } from "@rocky/database/constants";
+import { BaseRepository } from "@rocky/domains-shared";
+import { and, eq, ilike, or, sql } from "drizzle-orm";
 
 export type SortByUser = (typeof SORT_BY_USER)[keyof typeof SORT_BY_USER];
 export type SortOrder = (typeof SORT_ORDER)[keyof typeof SORT_ORDER];
 
 export class UserRepository extends BaseRepository {
-  constructor(db: DB) {
-    super(db);
-  }
 
   async findById(id: string) {
-    const [row] = await this.db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1);
+    const [row] = await this.client.select().from(usersTable).where(eq(usersTable.id, id)).limit(1);
     return row ?? null;
   }
 
   async findByUsername(username: string) {
-    const [row] = await this.db.select().from(usersTable).where(eq(usersTable.username, username)).limit(1);
+    const [row] = await this.client.select().from(usersTable).where(eq(usersTable.username, username)).limit(1);
     return row ?? null;
   }
 
   async findByEmail(email: string) {
-    const [row] = await this.db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
+    const [row] = await this.client.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
     return row ?? null;
   }
 
@@ -64,14 +60,14 @@ export class UserRepository extends BaseRepository {
           : usersTable.createdAt;
 
     const [data, totalResult] = await Promise.all([
-      this.db.select().from(usersTable).where(where).orderBy(orderCol).limit(filters.limit).offset(filters.offset),
-      this.db.select({ count: sql<number>`count(*)::int` }).from(usersTable).where(where),
+      this.client.select().from(usersTable).where(where).orderBy(orderCol).limit(filters.limit).offset(filters.offset),
+      this.client.select({ count: sql<number>`count(*)::int` }).from(usersTable).where(where),
     ]);
     return { data, total: totalResult[0]?.count ?? 0 };
   }
 
   async insert(data: typeof usersTable.$inferInsert): Promise<typeof usersTable.$inferSelect | null> {
-    const [row] = await this.db.insert(usersTable).values(data).returning();
+    const [row] = await this.client.insert(usersTable).values(data).returning();
     return row ?? null;
   }
 
@@ -79,7 +75,7 @@ export class UserRepository extends BaseRepository {
     id: string,
     data: Partial<typeof usersTable.$inferInsert>,
   ): Promise<typeof usersTable.$inferSelect | null> {
-    const [row] = await this.db.update(usersTable).set(data).where(eq(usersTable.id, id)).returning();
+    const [row] = await this.client.update(usersTable).set(data).where(eq(usersTable.id, id)).returning();
     return row ?? null;
   }
 }

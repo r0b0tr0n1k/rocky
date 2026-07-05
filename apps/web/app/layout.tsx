@@ -1,10 +1,10 @@
 // biome-ignore assist/source/organizeImports: OK
-import { AuthProvider } from "#components/auth/index";
-import { TRPCProvider } from "#components/trpc-provider";
+import { AuthProvider } from "#components/auth/index.js";
+import { TRPCProvider } from "#components/trpc-provider.js";
 import { Toaster } from "@rocky/ui/components/sonner";
 import "@total-typescript/ts-reset";
 import type { Metadata } from "next";
-import "./globals.css";
+import "./globals.js";
 
 export const metadata: Metadata = {
   title: "AIMCS Admin",

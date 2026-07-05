@@ -5,6 +5,8 @@ export const PASSPORT_STATUS = {
 	ACTIVE: "active",
 	SEIZED: "seized",
 	ARCHIVED: "archived",
+	REPRINTED: "reprinted",
+	CANCELLED: "cancelled",
 } as const;
 
 export const PASSPORT_STATUS_VALUES = createEnumValues([
@@ -12,4 +14,6 @@ export const PASSPORT_STATUS_VALUES = createEnumValues([
 	PASSPORT_STATUS.ACTIVE,
 	PASSPORT_STATUS.SEIZED,
 	PASSPORT_STATUS.ARCHIVED,
+	PASSPORT_STATUS.REPRINTED,
+	PASSPORT_STATUS.CANCELLED,
 ] as const);

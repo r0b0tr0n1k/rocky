@@ -4,21 +4,25 @@
  * Orchestrates: validate → delegate to repository → return Result.
  */
 
+import type { AuditService } from "@rocky/domains-audit";
+import { fromAsyncThrowable, type Result, toAppError } from "@rocky/domains-shared";
 import type {
-  FarmResponse,
-  FarmListResponse,
-  CreateFarmRequest,
-  UpdateFarmRequest,
-  FarmListRequest,
   AddressResponse,
+  CreateFarmRequest,
+  FarmListRequest,
+  FarmListResponse,
+  FarmResponse,
+  UpdateFarmRequest,
 } from "@rocky/validators/api";
-import { farmResponseSchema, addressResponseSchema } from "@rocky/validators/api";
-import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
-import { FarmError, FARM_ERRORS } from "../errors/farm.errors.js";
+import { addressResponseSchema, farmResponseSchema } from "@rocky/validators/api";
+import { FARM_ERRORS, FarmError } from "../errors/farm.errors.js";
 import type { FarmRepository } from "../repositories/farm.repository.js";
 
 export class FarmService {
-  constructor(private readonly repo: FarmRepository) {}
+  constructor(
+    private readonly repo: FarmRepository,
+    private readonly auditService: AuditService,
+  ) { }
 
   async getById(id: string): Promise<Result<FarmResponse, Error>> {
     return fromAsyncThrowable(async () => {
@@ -45,15 +49,28 @@ export class FarmService {
 
   async create(input: CreateFarmRequest & { createdBy?: string }): Promise<Result<FarmResponse, Error>> {
     return fromAsyncThrowable(async () => {
+      if (input.farmId) {
+        const existing = await this.repo.findByFarmId(input.farmId);
+        if (existing) throw new FarmError(FARM_ERRORS.DUPLICATE_FARM_ID, { farmId: input.farmId });
+      }
       const farm = await this.repo.insert(input as typeof import("@rocky/database").farms.$inferInsert);
       return farmResponseSchema.parse(farm);
     }, toAppError)();
   }
 
-  async update(id: string, input: UpdateFarmRequest): Promise<Result<FarmResponse, Error>> {
+  async update(id: string, input: UpdateFarmRequest, updatedBy?: string): Promise<Result<FarmResponse, Error>> {
     return fromAsyncThrowable(async () => {
+      const old = await this.repo.findById(id);
+      if (!old) throw new FarmError(FARM_ERRORS.NOT_FOUND, { id });
       const farm = await this.repo.update(id, input as Partial<typeof import("@rocky/database").farms.$inferInsert>);
       if (!farm) throw new FarmError(FARM_ERRORS.NOT_FOUND, { id });
+      await this.auditService.recordUpdate({
+        resource: "farm",
+        resourceId: farm.id ?? id,
+        oldValue: old,
+        newValue: farm,
+        userId: updatedBy,
+      });
       return farmResponseSchema.parse(farm);
     }, toAppError)();
   }

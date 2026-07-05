@@ -17,6 +17,7 @@ import {
 import { ALLOCATION_STATUS } from "../../constants/allocation-status.js";
 import { DISTRIBUTION_METHOD } from "../../constants/distribution-method.js";
 import { allocationStatusPgEnum } from "../../schemas/enums/allocation-status.js";
+import { contingentTypePgEnum } from "../../schemas/enums/contingent-type.js";
 import { distributionMethodPgEnum } from "../../schemas/enums/distribution-method.js";
 import { farms } from "../hk/farms.js";
 import { adminWrite, rlsForFarmColumn } from "../rls-helpers.js";
@@ -27,6 +28,9 @@ export const earTagAllocations = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     legacyId: integer("legacy_id").unique(),
+
+    // Contingent type (supplier block, VD reserve, VS distribution)
+    contingentType: contingentTypePgEnum("contingent_type"),
 
     // Farm receiving the tags
     farmId: uuid("farm_id")

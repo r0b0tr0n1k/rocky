@@ -1,5 +1,5 @@
 import { pino } from "pino";
-import { appConfig } from "#/config";
+import { appConfig } from "#/config.js";
 
 const isProduction = appConfig.env === "production";
 
@@ -30,9 +30,10 @@ export const logger: Logger = (() => {
     debug: (msg, properties) => log.debug(properties ?? {}, msg),
     warn: (msg, properties) => log.warn(properties ?? {}, msg),
     error: (msg, error, properties) => {
-      const errorObj = error instanceof Error
-        ? { error: { message: error.message, stack: error.stack, name: error.name } }
-        : { error };
+      const errorObj =
+        error instanceof Error
+          ? { error: { message: error.message, stack: error.stack, name: error.name } }
+          : { error };
       log.error({ ...properties, ...errorObj }, msg);
     },
   };

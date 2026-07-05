@@ -15,7 +15,7 @@ for (const f of files) {
   const txt = fs.readFileSync(path.join(dir, f), "utf8");
   const m = txt.match(/export const (\w+_\w+)\s*=\s*createEnumValues\(/);
   if (!m) continue;
-  const valuesConst = m[1];
+  const _valuesConst = m[1];
   const baseName = f.replace(".ts", "");
   const enumName = baseName.replace(/-/g, "_");
 
@@ -87,5 +87,5 @@ for (const c of columnSwaps) {
 }
 
 fs.mkdirSync(path.dirname(out), { recursive: true });
-fs.writeFileSync(out, lines.join("\n") + "\n");
+fs.writeFileSync(out, `${lines.join("\n")}\n`);
 console.log(`Generated ${out}`);

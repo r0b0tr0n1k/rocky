@@ -4,19 +4,19 @@
  * Orchestrates: validate → delegate to repository → return Result.
  */
 
+import { ANIMAL_STATUS, STATE_CODE } from "@rocky/database/constants";
+import { fromAsyncThrowable, type Result, toAppError } from "@rocky/domains-shared";
 import type {
-  AnimalResponse,
-  AnimalSummary,
+  AnimalListRequest,
   AnimalListResponse,
+  AnimalResponse,
   CreateAnimalRequest,
   UpdateAnimalRequest,
-  AnimalListRequest,
 } from "@rocky/validators/api";
 import { animalResponseSchema, animalSummarySchema } from "@rocky/validators/api";
-import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
-import { STATE_CODE, ANIMAL_STATUS } from "@rocky/database/constants";
-import { AnimalError, ANIMAL_ERRORS } from "../errors/animal.errors.js";
+import { ANIMAL_ERRORS, AnimalError } from "../errors/animal.errors.js";
 import type { AnimalRepository } from "../repositories/animal.repository.js";
+import { randomUUID } from "node:crypto";
 
 /** System parameters for registration validation */
 const DEFAULT_PARAMS = {
@@ -47,7 +47,12 @@ export class AnimalService {
   async list(input: AnimalListRequest): Promise<Result<AnimalListResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const { data, total } = await this.repo.listFiltered(input);
-      return { data: data.map((d: any) => animalSummarySchema.parse(d)), total, limit: input.limit, offset: input.offset };
+      return {
+        data: data.map((d) => animalSummarySchema.parse(d)),
+        total,
+        limit: input.limit,
+        offset: input.offset,
+      };
     }, toAppError)();
   }
 
@@ -60,6 +65,14 @@ export class AnimalService {
           earTagNumber: input.earTagNumber,
           stateCode: input.stateCode,
         });
+      }
+
+      // ── Pre-generate animal ID for self-reference guard ──
+      const animalId = randomUUID();
+
+      // Rule A.4e: Animal cannot be its own mother
+      if (input.motherId && input.motherId === animalId) {
+        throw new AnimalError(ANIMAL_ERRORS.SELF_MOTHER, { motherId: input.motherId });
       }
 
       // ── Mother checks (Rules A.4a–A.4d) ──
@@ -138,13 +151,46 @@ export class AnimalService {
         }
       }
 
-      const animal = await this.repo.insert(input as typeof import("@rocky/database").animals.$inferInsert);
+      const animal = await this.repo.insert({
+        ...input,
+        id: animalId,
+        createdBy: input.createdBy,
+      } as typeof import("@rocky/database").animals.$inferInsert);
       return animalResponseSchema.parse(animal);
     }, toAppError)();
   }
 
   async update(id: string, input: UpdateAnimalRequest): Promise<Result<AnimalResponse, Error>> {
     return fromAsyncThrowable(async () => {
+      // Rule A.4e: Animal cannot be its own mother
+      if (input.motherId && input.motherId === id) {
+        throw new AnimalError(ANIMAL_ERRORS.SELF_MOTHER, { motherId: input.motherId });
+      }
+
+      // Mother validation if motherId is being changed
+      if (input.motherId) {
+        const mother = await this.repo.findById(input.motherId);
+        if (!mother) {
+          throw new AnimalError(ANIMAL_ERRORS.NOT_FOUND, { id: input.motherId, context: "mother" });
+        }
+        // Mother must be alive
+        if (mother.status !== ANIMAL_STATUS.ALIVE) {
+          throw new AnimalError(ANIMAL_ERRORS.MOTHER_NOT_ALIVE, {
+            motherId: input.motherId,
+            motherStatus: mother.status,
+          });
+        }
+        // Mother sex check
+        if (mother.sex !== "female") {
+          throw new AnimalError(ANIMAL_ERRORS.INVALID_PARENT_SEX, {
+            parentId: input.motherId,
+            parentType: "mother",
+            actualSex: mother.sex,
+            expectedSex: "female",
+          });
+        }
+      }
+
       const animal = await this.repo.update(
         id,
         input as Partial<typeof import("@rocky/database").animals.$inferInsert>,

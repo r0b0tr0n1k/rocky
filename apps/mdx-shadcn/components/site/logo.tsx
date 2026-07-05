@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import LogoLight from "@/public/logo.svg";
-import LogoDark from "@/public/logo-dark.svg";
+import LogoLight from "@/public/logo.js";
+import LogoDark from "@/public/logo-dark.js";
 
 export const Logo = ({
   href = "/",

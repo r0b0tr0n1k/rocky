@@ -7,14 +7,14 @@
  * Run: node scripts/dumb-zod-transform.mjs
  */
 
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { globSync } from "glob";
 
 const FILES = globSync("packages/validators/src/api/*.api.ts");
 
 for (const file of FILES) {
   let content = readFileSync(file, "utf-8");
-  let changed = false;
+  let _changed = false;
 
   // ── 1. Find every schema + interface pair ──
   // Pattern: schema chain ending with .strict() satisfies z.ZodType<Foo>;
@@ -46,7 +46,7 @@ for (const file of FILES) {
 
   // 2b. Replace manual interfaces with inferred types
   for (const [typeName, schemaName] of interfaces) {
-    const interfaceRe = new RegExp(`export interface ${typeName}\\s*\\{[^}]*\\}\\s*`, "g");
+    const _interfaceRe = new RegExp(`export interface ${typeName}\\s*\\{[^}]*\\}\\s*`, "g");
     // Simple brace-balanced interface match — works for flat interfaces
     // For nested, we use a different approach
     content = content.replace(
@@ -80,7 +80,7 @@ for (const file of FILES) {
   if (content !== readFileSync(file, "utf-8")) {
     writeFileSync(file, content);
     console.log(`✓ ${file}`);
-    changed = true;
+    _changed = true;
   }
 }
 

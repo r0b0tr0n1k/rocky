@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
-import type { TRPCMiddleware, MiddlewareOptions } from "nestjs-trpc";
-import { TRPCError } from "@trpc/server";
 import type { AppContext } from "@rocky/trpc/context.js";
+import { TRPCError } from "@trpc/server";
+import type { MiddlewareOptions, TRPCMiddleware } from "nestjs-trpc";
 
 /**
  * Protected middleware - ensures user is authenticated

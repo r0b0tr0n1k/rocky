@@ -1,0 +1,245 @@
+# ══════════════════════════════════════════════════════════════════════
+# CATTLE PASSPORT DATA MODEL v1.0
+# ══════════════════════════════════════════════════════════════════════
+# Single Source of Truth for cattle passport document structure.
+# Feeds both: (1) PDF generation (future), (2) Print/export YAML output.
+#
+# Source: docs/old/workflow.md §Instance 11 — Issuing of Cattle Passports
+# Source: packages/database/src/schema/an/cattle-passports.ts
+# Status: Definition complete. YAML generation active.
+# ══════════════════════════════════════════════════════════════════════
+
+cattlePassport:
+
+  # ── Section A: Passport Metadata ──
+  passportId:
+    type: uuid
+    source: cattle_passports.id
+    description: Unique passport record identifier
+
+  modelVersion:
+    type: string
+    default: "1.0"
+    description: Schema version for future evolution
+
+  generatedAt:
+    type: iso8601
+    description: When this passport document was generated
+
+  language:
+    type: enum
+    values: [MK, EN, SQ, SR]
+    default: MK
+    description: Document language
+
+  # ── Section B: Passport Identity ──
+  passportNumber:
+    type: string
+    format: "MK-YYYY-XXXXX"
+    source: cattle_passports.passport_number
+    description: National passport number
+
+  status:
+    type: enum
+    values: [ISSUED, ACTIVE, SEIZED, ARCHIVED, REPRINTED, CANCELLED]
+    source: cattle_passports.status
+    description: Current passport lifecycle status
+
+  issueDate:
+    type: date
+    source: cattle_passports.issue_date
+    description: When the passport was issued
+
+  isReprint:
+    type: boolean
+    source: cattle_passports.is_reprint
+    default: false
+    description: Whether this is a reprinted passport
+
+  originalPassportNumber:
+    type: string | null
+    format: "MK-YYYY-XXXXX"
+    source: cattle_passports.original_passport_id → passport_number
+    description: Original passport number if this is a reprint
+
+  # ── Section C: Animal Information ──
+  animal:
+    animalId:
+      type: uuid
+      source: animals.id
+    earTagNumber:
+      type: string
+      format: "8-12 digits with state code prefix"
+      source: animals.ear_tag_number
+    stateCode:
+      type: string
+      source: animals.state_code
+      example: "MK"
+    sex:
+      type: enum
+      values: [male, female]
+      source: animals.sex
+    breed:
+      type: string | null
+      source: animals.breed
+    birthDate:
+      type: date | null
+      source: animals.birth_date
+    birthLocation:
+      type: string | null
+      description: Farm name where animal was born
+
+    # ── Parentage ──
+    mother:
+      earTagNumber:
+        type: string | null
+        source: mother_animal.ear_tag_number
+        description: Mother's ear tag
+      breed:
+        type: string | null
+        source: mother_animal.breed
+
+    father:
+      earTagNumber:
+        type: string | null
+        source: father_animal.ear_tag_number
+        description: Father's ear tag (if known)
+      breed:
+        type: string | null
+        source: father_animal.breed
+
+    currentStatus:
+      type: enum
+      values: [alive, dead, slaughtered, stolen, lost, exported, imported, birth]
+      source: animals.status
+      description: Current animal status in the system
+
+  # ── Section D: Farm Information ──
+  farm:
+    farmId:
+      type: uuid
+      source: farms.id
+    farmIdNumber:
+      type: string
+      format: "9 digits with check digit (KMG_MID)"
+      source: farms.farm_id_number
+    farmName:
+      type: string | null
+      source: farms.name
+    farmType:
+      type: string | null
+      source: farms.type
+
+    keeper:
+      subjectId:
+        type: uuid | null
+        source: farm_subjects.subject_id WHERE role = 'keeper'
+      shortName:
+        type: string | null
+        source: subjects.short_name
+      personalId:
+        type: string | null
+        source: subjects.personal_id
+
+    address:
+      street:
+        type: string | null
+        source: addresses.street
+      city:
+        type: string | null
+        source: addresses.city
+      zipCode:
+        type: string | null
+        source: addresses.zip_code
+      commune:
+        type: string | null
+        source: communes.name
+      state:
+        type: string | null
+        source: states.name
+
+  # ── Section E: Movement History ──
+  movementHistory:
+    description: Chronological list of animal movements
+    item:
+      movementId:
+        type: uuid
+        source: movements.id
+      movementType:
+        type: string
+        source: movements.type
+      movementDate:
+        type: date
+        source: movements.movement_date
+      fromFarmName:
+        type: string | null
+        description: Departure farm name
+      toFarmName:
+        type: string | null
+        description: Arrival farm name
+      reason:
+        type: string | null
+        source: movements.reason
+
+  # ── Section F: Vaccination History ──
+  vaccinationHistory:
+    description: Chronological list of vaccinations
+    item:
+      vaccineName:
+        type: string
+        source: vaccines.name
+      administrationDate:
+        type: date
+        source: vaccinations.admin_date
+      batchNo:
+        type: string | null
+        source: vaccine_batches.batch_no
+      administeredBy:
+        type: string | null
+        source: subjects.short_name (vet)
+
+  # ── Section G: Import/Export Information ──
+  importExport:
+    countryOfOrigin:
+      type: string | null
+      format: "ISO 3166-1 alpha-3"
+      source: cattle_passports.country_of_origin
+      description: Country of origin for imported animals
+    foreignPassportNumber:
+      type: string | null
+      source: cattle_passports.foreign_passport_number
+      description: Original passport number from country of origin
+    exportCountry:
+      type: string | null
+      format: "ISO 3166-1 alpha-3"
+      description: Country of export if animal was exported
+
+  # ── Section H: Passport Lifecycle ──
+  lifecycle:
+    shippedToVs:
+      type: boolean
+      source: cattle_passports.shipped_to_vs
+      default: false
+      description: Passport shipped to Veterinary Station
+    shippedAt:
+      type: timestamp | null
+      source: cattle_passports.shipped_at
+    deliveredToKeeper:
+      type: boolean
+      source: cattle_passports.delivered_to_keeper
+      default: false
+      description: Passport delivered to the keeper
+    deliveredAt:
+      type: timestamp | null
+      source: cattle_passports.delivered_at
+    seizeDate:
+      type: date | null
+      source: cattle_passports.seize_date
+      description: When passport was seized (on death/slaughter)
+    deathCause:
+      type: string | null
+      source: cattle_passports.death_cause
+    archiveDate:
+      type: date | null
+      source: cattle_passports.archive_date
+      description: When passport was archived after retention period

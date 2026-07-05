@@ -1,13 +1,13 @@
 import "@total-typescript/ts-reset";
-import { ThemeProvider } from "@/components/theme/theme-provider";
+import { ThemeProvider } from "@/components/theme/theme-provider.js";
 import { Layout, Main } from "@rocky/ui/components/ds";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { ThemeToggle } from "@/components/theme/theme-toggle.js";
 import { Toaster } from "@rocky/ui/components/sonner";
-import { Footer } from "@/components/site/footer";
+import { Footer } from "@/components/site/footer.js";
 
 import type { Metadata } from "next";
 
-import "./globals.css";
+import "./globals.js";
 
 import { cn } from "@rocky/ui/lib/utils";
 

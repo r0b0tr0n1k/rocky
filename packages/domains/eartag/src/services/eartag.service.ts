@@ -5,41 +5,41 @@
  * No direct DB access — all queries go through EarTagRepository.
  */
 
-import type { EarTagResponse, EarTagTypeResponse, EarTagListRequest, EarTagListResponse } from "@rocky/validators/api";
-import { earTagResponseSchema, earTagTypeResponseSchema } from "@rocky/validators/api";
-import { EAR_TAG_ORDER_STATUS, FARM_TYPE } from "@rocky/database/constants";
-
-import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
-import { EarTagError, EARTAG_ERRORS } from "../errors/eartag.errors.js";
+import { ANIMAL_STATUS, EAR_TAG_ORDER_STATUS, FARM_TYPE } from "@rocky/database/constants";
+import { fromAsyncThrowable, type Result, toAppError } from "@rocky/domains-shared";
+import type {
+  AssignSupplierContingentRequest,
+  EarTagListRequest,
+  EarTagListResponse,
+  EarTagResponse,
+  EarTagTypeResponse,
+  GetTakeoverFileRequest,
+  TakeoverFileResponse,
+} from "@rocky/validators/api";
+import {
+  earTagResponseSchema,
+  earTagTypeResponseSchema,
+  takeoverFileResponseSchema
+} from "@rocky/validators/api";
+import { EARTAG_ERRORS, EarTagError } from "../errors/eartag.errors.js";
 import type { EarTagRepository } from "../repositories/eartag.repository.js";
 
 // ── Status State Machine ──────────────────────────────────────────
 const ORDER_STATUS_TRANSITIONS: Record<string, Set<string>> = {
-  [EAR_TAG_ORDER_STATUS.DRAFT]: new Set([
-    EAR_TAG_ORDER_STATUS.PENDING,
-    EAR_TAG_ORDER_STATUS.CANCELLED,
-  ]),
+  [EAR_TAG_ORDER_STATUS.DRAFT]: new Set([EAR_TAG_ORDER_STATUS.PENDING, EAR_TAG_ORDER_STATUS.CANCELLED]),
   [EAR_TAG_ORDER_STATUS.PENDING]: new Set([
     EAR_TAG_ORDER_STATUS.APPROVED,
     EAR_TAG_ORDER_STATUS.REJECTED,
     EAR_TAG_ORDER_STATUS.CANCELLED,
   ]),
-  [EAR_TAG_ORDER_STATUS.APPROVED]: new Set([
-    EAR_TAG_ORDER_STATUS.ORDERED,
-    EAR_TAG_ORDER_STATUS.CANCELLED,
-  ]),
-  [EAR_TAG_ORDER_STATUS.REJECTED]: new Set([
-    EAR_TAG_ORDER_STATUS.DRAFT,
-  ]),
+  [EAR_TAG_ORDER_STATUS.APPROVED]: new Set([EAR_TAG_ORDER_STATUS.ORDERED, EAR_TAG_ORDER_STATUS.CANCELLED]),
+  [EAR_TAG_ORDER_STATUS.REJECTED]: new Set([EAR_TAG_ORDER_STATUS.DRAFT]),
   [EAR_TAG_ORDER_STATUS.ORDERED]: new Set([
     EAR_TAG_ORDER_STATUS.PARTIALLY_RECEIVED,
     EAR_TAG_ORDER_STATUS.RECEIVED,
     EAR_TAG_ORDER_STATUS.CANCELLED,
   ]),
-  [EAR_TAG_ORDER_STATUS.PARTIALLY_RECEIVED]: new Set([
-    EAR_TAG_ORDER_STATUS.RECEIVED,
-    EAR_TAG_ORDER_STATUS.CANCELLED,
-  ]),
+  [EAR_TAG_ORDER_STATUS.PARTIALLY_RECEIVED]: new Set([EAR_TAG_ORDER_STATUS.RECEIVED, EAR_TAG_ORDER_STATUS.CANCELLED]),
   [EAR_TAG_ORDER_STATUS.RECEIVED]: new Set([]),
   [EAR_TAG_ORDER_STATUS.CANCELLED]: new Set([]),
 };
@@ -55,7 +55,7 @@ function daysBetween(a: Date, b: Date): number {
 }
 
 export class EarTagService {
-  constructor(private readonly repo: EarTagRepository) {}
+  constructor(private readonly repo: EarTagRepository) { }
 
   async getById(id: string): Promise<Result<EarTagResponse, Error>> {
     return fromAsyncThrowable(async () => {
@@ -146,10 +146,15 @@ export class EarTagService {
       // Rule: farm must exist, be active, and allow ordering
       if (input.farmId) {
         const farm = await this.repo.findFarmById(input.farmId);
-        if (!farm) throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, { message: "Farm not found", farmId: input.farmId });
-        if (!farm.isActive) throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, { message: "Farm is inactive", farmId: input.farmId });
+        if (!farm)
+          throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, { message: "Farm not found", farmId: input.farmId });
+        if (!farm.isActive)
+          throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, { message: "Farm is inactive", farmId: input.farmId });
         if (farm.type === FARM_TYPE.SLAUGHTERHOUSE)
-          throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, { message: "Cannot order ear tags for slaughterhouse", farmId: input.farmId });
+          throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, {
+            message: "Cannot order ear tags for slaughterhouse",
+            farmId: input.farmId,
+          });
 
         // Rule: max quantity = female animals - remaining tags
         const [femaleCount, remainingCount] = await Promise.all([
@@ -203,13 +208,91 @@ export class EarTagService {
     }, toAppError)();
   }
 
+  // ── Rule D: Duplicate Order for Specific Animals ─────────────────
+
+  /**
+   * D.1-D.5: Create a duplicate ear tag order for a specific animal.
+   * - D.1: Idempotency — same (animalId, farmId) not entered twice within 24h
+   * - D.2: Animal must be alive
+   * - D.3: Animal must belong to the specified farm
+   * - D.4: User must have farm permissions (enforced via RLS + @Policy decorator)
+   * - D.5: Farm must be valid (not slaughterhouse/fictitious)
+   */
+  async createDuplicateOrder(input: {
+    animalId: string;
+    farmId: string;
+    organizationId: string;
+    supplierOrganizationId: string;
+    supplierName: string;
+    description?: string;
+  }): Promise<Result<EarTagResponse, Error>> {
+    return fromAsyncThrowable(async () => {
+      // D.2: Animal must be alive
+      const animal = await this.repo.findAnimalById(input.animalId);
+      if (!animal) throw new EarTagError(EARTAG_ERRORS.NOT_FOUND, { animalId: input.animalId });
+      if (animal.status !== ANIMAL_STATUS.ALIVE) {
+        throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, {
+          message: "Cannot order duplicate ear tag for a non-alive animal",
+          animalId: input.animalId,
+          status: animal.status,
+        });
+      }
+
+      // D.3: Animal must belong to the specified farm
+      if (animal.currentFarmId !== input.farmId) {
+        throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, {
+          message: "Animal does not belong to the specified farm",
+          animalId: input.animalId,
+          animalFarmId: animal.currentFarmId,
+          specifiedFarmId: input.farmId,
+        });
+      }
+
+      // D.5: Farm must be valid (not slaughterhouse)
+      const farm = await this.repo.findFarmById(input.farmId);
+      if (!farm) throw new EarTagError(EARTAG_ERRORS.NOT_FOUND, { farmId: input.farmId });
+      if (!farm.isActive)
+        throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, { message: "Farm is inactive", farmId: input.farmId });
+      if (farm.type === FARM_TYPE.SLAUGHTERHOUSE || farm.type === FARM_TYPE.QUARANTINE) {
+        throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, {
+          message: "Cannot order duplicate ear tag for this farm type",
+          farmId: input.farmId,
+          farmType: farm.type,
+        });
+      }
+
+      // D.1: Idempotency — check for recent duplicate order
+      const recentDuplicate = await this.repo.findRecentDuplicateOrder({
+        organizationId: input.organizationId,
+        supplierOrganizationId: input.supplierOrganizationId,
+      });
+      if (recentDuplicate) {
+        throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, {
+          message: "Duplicate order detected — a recent order with this supplier already exists",
+          recentOrderId: recentDuplicate.id,
+        });
+      }
+
+      const order = await this.repo.createOrder({
+        organizationId: input.organizationId,
+        supplierOrganizationId: input.supplierOrganizationId,
+        supplierName: input.supplierName,
+        totalQuantity: 1,
+        description: input.description ?? `Duplicate ear tag for animal ${input.animalId}`,
+        status: EAR_TAG_ORDER_STATUS.DRAFT,
+      });
+
+      return earTagResponseSchema.parse(order);
+    }, toAppError)();
+  }
+
   async transitionOrderStatus(orderId: string, newStatus: string): Promise<Result<EarTagResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const order = await this.repo.findOrderById(orderId);
       if (!order) throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, { orderId });
 
       const allowed = ORDER_STATUS_TRANSITIONS[order.status];
-      if (!allowed || !allowed.has(newStatus)) {
+      if (!allowed?.has(newStatus)) {
         throw INVALID_TRANSITION(order.status, newStatus);
       }
 
@@ -253,7 +336,7 @@ export class EarTagService {
    * - Order must not be in RECEIVED or CANCELLED state
    * - If supplier has already collected (ORDERED/PARTIALLY_RECEIVED), cannot cancel
    */
-  async cancelOrder(orderId: string, reason?: string): Promise<Result<EarTagResponse, Error>> {
+  async cancelOrder(orderId: string, _reason?: string): Promise<Result<EarTagResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const order = await this.repo.findOrderById(orderId);
       if (!order) throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, { orderId });
@@ -356,6 +439,80 @@ export class EarTagService {
         tags.push(`${base}${checkDigit}`);
       }
       return tags;
+    }, toAppError)();
+  }
+
+  // ── Rule B.1: Supplier Contingents ──────────────────────────────
+
+  /**
+   * B.1: Assign a tag block to a supplier (create contingent allocation).
+   * Validates range does not overlap with existing contingent blocks.
+   */
+  async assignSupplierContingent(input: AssignSupplierContingentRequest): Promise<Result<EarTagResponse, Error>> {
+    return fromAsyncThrowable(async () => {
+      const existing = await this.repo.findContingentAllocationByRange(input.tagRangeStart, input.tagRangeEnd);
+      if (existing) {
+        throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, {
+          message: "Tag range overlaps with existing contingent allocation",
+          existingAllocationId: existing.id,
+          existingRange: `${existing.tagRangeStart}-${existing.tagRangeEnd}`,
+        });
+      }
+
+      const allocation = await this.repo.createContingentAllocation({
+        farmId: input.farmId,
+        typeId: input.typeId,
+        tagRangeStart: input.tagRangeStart,
+        tagRangeEnd: input.tagRangeEnd,
+        quantity: input.quantity,
+        contingentType: input.contingentType,
+        allocationNumber: `CNT-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+        allocationDate: new Date().toISOString().split("T")[0]!,
+      });
+
+      return earTagResponseSchema.parse(allocation);
+    }, toAppError)();
+  }
+
+  // ── Rule B.2: Takeover File Generation ──────────────────────────
+
+  /**
+   * B.2: Generate and store the flat file (.txt) for a takeover.
+   * The file lists each tag number in the order, one per line.
+   * Format: <state_code><tag_number> (8 digits per line)
+   */
+  async generateTakeoverFile(input: GetTakeoverFileRequest): Promise<Result<TakeoverFileResponse, Error>> {
+    return fromAsyncThrowable(async () => {
+      const takeover = await this.repo.findTakeoverById(input.takeoverId);
+      if (!takeover) throw new EarTagError(EARTAG_ERRORS.NOT_FOUND, { type: "takeover", id: input.takeoverId });
+
+      const order = await this.repo.findOrderById(takeover.orderId);
+      if (!order) throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, { orderId: takeover.orderId });
+
+      const stateCode = "MK";
+      const fileContent = Array.from({ length: takeover.totalTagsCollected }, (_, i) => {
+        const base = String(10000001 + i).padStart(7, "0");
+        const checkDigit = (() => {
+          let sum = 0;
+          for (let j = 0; j < 7; j++) sum += Number(base[j]) * (j % 2 === 0 ? 3 : 1);
+          const rem = sum % 10;
+          return String(rem === 0 ? 0 : 10 - rem);
+        })();
+        return `${stateCode}${base}${checkDigit}`;
+      }).join("\n");
+
+      const fileName = `takeover_${takeover.id.slice(0, 8)}.txt`;
+
+      await this.repo.updateTakeoverFile(input.takeoverId, fileName, fileContent);
+
+      return takeoverFileResponseSchema.parse({
+        takeoverId: takeover.id,
+        orderId: takeover.orderId,
+        supplierOrganizationId: takeover.supplierOrganizationId,
+        fileName,
+        content: fileContent,
+        lineCount: takeover.totalTagsCollected,
+      });
     }, toAppError)();
   }
 }

@@ -17,10 +17,12 @@ The Cattle Passport is the **central legal document** of the I&R system. Every a
 
 ```
 ISSUED → ACTIVE → SEIZED → ARCHIVED
-  ↓        ↓        ↓
-CANCELLED CANCELLED  ↓
-                   REPRINTED → ACTIVE
+  ↓        ↓        ↓        ↓
+CANCELLED CANCELLED  ↓       CANCELLED
+                   REPRINTED → CANCELLED
 ```
+
+> **Note:** `PASSPORT_STATUS` constant now includes `REPRINTED` and `CANCELLED` (added 2026-07-05). Previously only `ISSUED/ACTIVE/SEIZED/ARCHIVED` existed — `reprint()` used string literals.
 
 ## Architecture
 
@@ -42,6 +44,8 @@ AnimalRepository (animal existence check)
 | 6 | Seized passport sent to CPC by VS | ✅ Implied by seize workflow |
 | 7 | Seized passport stored at CPC for at least 3 years | ✅ `archive()` — SEIZED → ARCHIVED |
 | 8 | On error correction: old passport invalidated, replacement printed | ✅ `reprint()` — ACTIVE → REPRINTED, creates new ACTIVE with isReprint=true |
+| 9 | P1: Seizure retries — idempotent seize (skip instead of throw if already seized) | ✅ `seize()` — returns existing passport if already SEIZED (2026-07-05) |
+| 10 | P2: REPRINTED → CANCELLED transition | ✅ Added to `VALID_TRANSITIONS` (2026-07-05) |
 
 ## Implementation Inventory
 
@@ -84,3 +88,4 @@ AnimalRepository (animal existence check)
 | **Animal Bot** | `packages/domains/animal/` | AnimalRepository for existence checks |
 | **Validation Bot** | `packages/validators/src/api/passport.api.ts` | Passport API schemas |
 | **API Bot** | `apps/api/src/routers/passport.router.ts` | tRPC router |
+| **PDF Bot** | `packages/pdf/` | `PassportTemplate` uses PassportRepository + AnimalRepository + FarmRepository + MovementRepository + HealthRepository |

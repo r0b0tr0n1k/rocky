@@ -103,11 +103,11 @@ function resolveCollisions(entries) {
       const camel = toCamelCase(e.baseName);
       resolved.push({
         ...e,
-        pgEnumName: camel + "PgEnum",
+        pgEnumName: `${camel}PgEnum`,
         pgEnumFile: e.baseName,
         sqlEnumName: toSnakeCase(e.baseName),
-        schemaName: camel + "Schema",
-        typeName: camel + "Type",
+        schemaName: `${camel}Schema`,
+        typeName: `${camel}Type`,
         isCollision: false,
         importAlias: null,
       });
@@ -118,24 +118,24 @@ function resolveCollisions(entries) {
         if (i === 0) {
           resolved.push({
             ...e,
-            pgEnumName: camel + "PgEnum",
+            pgEnumName: `${camel}PgEnum`,
             pgEnumFile: e.baseName,
             sqlEnumName: toSnakeCase(e.baseName),
-            schemaName: camel + "Schema",
-            typeName: camel + "Type",
+            schemaName: `${camel}Schema`,
+            typeName: `${camel}Type`,
             isCollision: true,
             importAlias: null,
           });
         } else {
           resolved.push({
             ...e,
-            pgEnumName: camel + "PgEnum",
+            pgEnumName: `${camel}PgEnum`,
             pgEnumFile: e.baseName,
             sqlEnumName: toSnakeCase(e.baseName),
-            schemaName: camel + "Schema",
-            typeName: camel + "Type",
+            schemaName: `${camel}Schema`,
+            typeName: `${camel}Type`,
             isCollision: true,
-            importAlias: e.valuesName + "_2",
+            importAlias: `${e.valuesName}_2`,
           });
         }
       }
@@ -301,7 +301,7 @@ function generateConstantsBarrel() {
     lines.push(`export { ${exports.join(", ")} } from './${baseName}.js';`);
   }
 
-  return lines.join("\n") + "\n";
+  return `${lines.join("\n")}\n`;
 }
 
 // ── MAIN ─────────────────────────────────────────────────────────────
@@ -323,7 +323,7 @@ fs.mkdirSync(PGENUM_DIR, { recursive: true });
 // ── Write pgEnum definition files ────────────────────────────────────
 
 // First, clear old generated files (only files that match our pattern)
-const generatedFiles = new Set(resolved.map((e) => e.pgEnumFile + ".ts"));
+const generatedFiles = new Set(resolved.map((e) => `${e.pgEnumFile}.ts`));
 let pgEnumCleaned = 0;
 for (const f of fs.readdirSync(PGENUM_DIR)) {
   if (f === "index.ts") continue;
@@ -337,7 +337,7 @@ for (const f of fs.readdirSync(PGENUM_DIR)) {
 // Write each pgEnum file
 for (const e of resolved) {
   fs.writeFileSync(
-    path.join(PGENUM_DIR, e.pgEnumFile + ".ts"),
+    path.join(PGENUM_DIR, `${e.pgEnumFile}.ts`),
     generatePgEnumFile(e),
   );
 }
@@ -348,7 +348,7 @@ fs.writeFileSync(
   generatePgEnumIndex(resolved),
 );
 console.log(
-  `✓ ${resolved.length} pgEnum files → schemas/enums/ (${pgEnumCleaned > 0 ? pgEnumCleaned + " cleaned" : "0 cleaned"})`,
+  `✓ ${resolved.length} pgEnum files → schemas/enums/ (${pgEnumCleaned > 0 ? `${pgEnumCleaned} cleaned` : "0 cleaned"})`,
 );
 
 // ── Write validators ─────────────────────────────────────────────────

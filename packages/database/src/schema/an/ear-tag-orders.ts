@@ -34,6 +34,8 @@ export const earTagOrders = pgTable(
     organizationId: uuid("organization_id")
       .notNull()
       .references(() => organizations.id),
+    supplierOrganizationId: uuid("supplier_organization_id")
+      .references(() => organizations.id),
 
     // Supplier information
     supplierName: varchar("supplier_name", { length: 100 }).notNull(),

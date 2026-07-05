@@ -1,30 +1,18 @@
 import { Inject, Injectable } from "@nestjs/common";
+import { Policy, RegisterPolicy } from "@rocky/authorization/index.js";
+import { NotificationService } from "@rocky/domains-notification/index.js";
+import type { AppContext } from "@rocky/trpc/context.js";
+import { createResultUnwrapper } from "@rocky/trpc/index.js";
 import {
-  NotificationService,
-} from "@rocky/domains-notification";
-import { createResultUnwrapper } from "@rocky/trpc";
-import {
+  type MarkAsReadInput,
   markAsReadSchema,
   notificationOutputSchema,
-  sendNotificationSchema,
-  type MarkAsReadInput,
   type SendNotificationInput,
-} from "@rocky/validators/api";
-import { NOTIFICATION_TRPC_ERROR_MAP } from "@rocky/validators/errors";
-import { TRPCError } from "@trpc/server";
-import {
-  Ctx,
-  Input,
-  Mutation,
-  Query,
-  Router,
-  UseMiddlewares,
-} from "nestjs-trpc";
+  sendNotificationSchema,
+} from "@rocky/validators/api/index.js";
+import { NOTIFICATION_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
+import { Ctx, Input, Mutation, Query, Router } from "nestjs-trpc";
 import { z } from "zod";
-import {
-  ProtectedMiddleware,
-  type ProtectedMiddlewareContext,
-} from "../trpc/middlewares/protected.middleware.js";
 
 // Local type aliases for decorator-safe usage
 type NotificationOutput = z.infer<typeof notificationOutputSchema>;
@@ -32,7 +20,8 @@ type NotificationOutput = z.infer<typeof notificationOutputSchema>;
 const unwrapResult = createResultUnwrapper(NOTIFICATION_TRPC_ERROR_MAP);
 
 @Router({ alias: "notification" })
-@UseMiddlewares(ProtectedMiddleware)
+@RegisterPolicy("notification")
+@Policy({ authenticated: true })
 @Injectable()
 export class NotificationRouter {
   constructor(
@@ -41,34 +30,25 @@ export class NotificationRouter {
   ) { }
 
   @Query({ output: z.object({ count: z.number() }) })
-  async unreadCount(
-    @Ctx() ctx: ProtectedMiddlewareContext,
-  ): Promise<{ count: number }> {
-    const result = await this.notificationService.list({
-      userId: ctx.auth.userId,
-      status: "delivered",
-      limit: 1000,
-      offset: 0,
-    });
+  async unreadCount(@Ctx() ctx: AppContext): Promise<{ count: number }> {
+    const notifications = unwrapResult(
+      await this.notificationService.list({
+        userId: ctx.execution!.principal.id,
+        status: "delivered",
+        limit: 1000,
+        offset: 0,
+      }),
+    );
 
-    if (result.isErr()) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: result.error.message,
-      });
-    }
-
-    return { count: result.value.length };
+    return { count: notifications.length };
   }
 
   @Mutation({
     input: sendNotificationSchema.omit({ userId: true }),
     output: notificationOutputSchema,
   })
-  async send(
-    @Input() input: SendNotificationInput,
-    @Ctx() ctx: ProtectedMiddlewareContext,
-  ): Promise<NotificationOutput> {
+  @Policy({ authenticated: true, roles: ["VD_ADMIN", "VD_STAFF"] })
+  async send(@Input() input: SendNotificationInput, @Ctx() ctx: AppContext): Promise<NotificationOutput> {
     const normalizedInput = {
       type: input.type || "EMAIL",
       category: input.category || "notification",
@@ -78,17 +58,9 @@ export class NotificationRouter {
       data: input.data,
     };
 
-    // Role-based authorization check
-    if (ctx.auth.role !== "VD_ADMIN" && ctx.auth.role !== "VD_STAFF") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Only VD staff can send notifications",
-      });
-    }
-
     return unwrapResult(
       await this.notificationService.send({
-        userId: ctx.auth.userId,
+        userId: ctx.execution!.principal.id,
         ...normalizedInput,
       }),
     );
@@ -100,12 +72,12 @@ export class NotificationRouter {
   })
   async markAsRead(
     @Input() input: Omit<MarkAsReadInput, "userId">,
-    @Ctx() ctx: ProtectedMiddlewareContext,
+    @Ctx() ctx: AppContext,
   ): Promise<NotificationOutput> {
     return unwrapResult(
       await this.notificationService.markAsRead({
         ...input,
-        userId: ctx.auth.userId,
+        userId: ctx.execution!.principal.id,
       }),
     );
   }

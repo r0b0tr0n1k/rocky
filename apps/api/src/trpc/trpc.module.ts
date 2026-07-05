@@ -1,22 +1,43 @@
+// ── tRPC Module ──
+// Central NestJS module for tRPC — handles context, middleware, routing.
+
 import { Module } from "@nestjs/common";
-import { TRPCModule } from 'nestjs-trpc';
-import { LoggerModule, createPinoLogger } from "@rocky/logger";
+import type { Auth } from "@rocky/auth";
+import { AUTH_INSTANCE } from "@rocky/auth";
+import { PrincipalResolver } from "@rocky/authorization/index.js";
+import { ExecutionPipeline, RuntimeBuilder } from "@rocky/execution/index.js";
+import { createPinoLogger, LoggerModule } from "@rocky/logger/index.js";
+import { TRPCModule } from "nestjs-trpc";
 import { AppContextProvider } from "../app.context.js";
+import { ExecutionMiddleware } from "./middlewares/execution.middleware.js";
 import { LoggingMiddleware } from "./middlewares/logging.middleware.js";
-import { ProtectedMiddleware } from "./middlewares/protected.middleware.js";
-import { RLSMiddleware } from "./middlewares/rls.middleware.js";
+import { PolicyResolver } from "./middlewares/policy.resolver.js";
 
 @Module({
   imports: [
     LoggerModule,
     TRPCModule.forRoot({
-      autoSchemaFile: '../@generated',
       context: AppContextProvider,
       basePath: "/trpc",
       logger: createPinoLogger(),
+      globalMiddlewares: [ExecutionMiddleware, PolicyResolver],
     }),
   ],
-  providers: [AppContextProvider, LoggingMiddleware, ProtectedMiddleware, RLSMiddleware],
-  exports: [TRPCModule, LoggingMiddleware, ProtectedMiddleware, RLSMiddleware],
+  providers: [
+    AppContextProvider,
+    LoggingMiddleware,
+    {
+      provide: ExecutionMiddleware,
+      useFactory: (
+        auth: ReturnType<typeof Auth.getInstance>,
+        principalResolver: PrincipalResolver,
+        pipeline: ExecutionPipeline,
+        runtimeBuilder: RuntimeBuilder,
+      ) => new ExecutionMiddleware(auth, principalResolver, pipeline, runtimeBuilder),
+      inject: [AUTH_INSTANCE, PrincipalResolver, ExecutionPipeline, RuntimeBuilder],
+    },
+    PolicyResolver,
+  ],
+  exports: [TRPCModule, LoggingMiddleware, ExecutionMiddleware, PolicyResolver],
 })
-export class TrpcModule { }
+export class TrpcModule {}

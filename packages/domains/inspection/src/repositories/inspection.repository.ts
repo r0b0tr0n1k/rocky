@@ -5,27 +5,23 @@
  */
 
 import { eq, and, desc, sql, type SQL } from "drizzle-orm";
-import type { DB } from "@rocky/database";
 import { inspections as inspectionsTable } from "@rocky/database";
 import { BaseRepository } from "@rocky/domains-shared";
 import { INSPECTION_STATUS } from "@rocky/database/constants";
 
 export class InspectionRepository extends BaseRepository {
-  constructor(db: DB) {
-    super(db);
-  }
 
   // ── Read ──
 
   async findById(id: string) {
-    const [row] = await this.db.select().from(inspectionsTable).where(eq(inspectionsTable.id, id)).limit(1);
+    const [row] = await this.client.select().from(inspectionsTable).where(eq(inspectionsTable.id, id)).limit(1);
     return row ?? null;
   }
 
   async findByFarm(farmId: string, opts?: { status?: string; limit?: number; offset?: number }) {
     const c: SQL<unknown>[] = [eq(inspectionsTable.farmId, farmId)];
     if (opts?.status) c.push(eq(inspectionsTable.status, opts.status));
-    const query = this.db
+    const query = this.client
       .select()
       .from(inspectionsTable)
       .where(and(...c))
@@ -42,15 +38,15 @@ export class InspectionRepository extends BaseRepository {
     if (opts.inspectorId) c.push(eq(inspectionsTable.inspectorId, opts.inspectorId));
     const where = c.length > 0 ? and(...c) : undefined;
     const [data, totalResult] = await Promise.all([
-      this.db.select().from(inspectionsTable).where(where).orderBy(desc(inspectionsTable.createdAt)).limit(opts.limit).offset(opts.offset),
-      this.db.select({ count: sql<number>`count(*)::int` }).from(inspectionsTable).where(where),
+      this.client.select().from(inspectionsTable).where(where).orderBy(desc(inspectionsTable.createdAt)).limit(opts.limit).offset(opts.offset),
+      this.client.select({ count: sql<number>`count(*)::int` }).from(inspectionsTable).where(where),
     ]);
     return { data, total: totalResult[0]?.count ?? 0 };
   }
 
   /** Check if a farm already has an active (non-cancelled) inspection in a given period */
   async hasActiveInspection(farmId: string): Promise<boolean> {
-    const [row] = await this.db
+    const [row] = await this.client
       .select({ id: inspectionsTable.id })
       .from(inspectionsTable)
       .where(
@@ -67,12 +63,12 @@ export class InspectionRepository extends BaseRepository {
   // ── Write ──
 
   async create(data: typeof inspectionsTable.$inferInsert) {
-    const [row] = await this.db.insert(inspectionsTable).values(data).returning();
+    const [row] = await this.client.insert(inspectionsTable).values(data).returning();
     return row ?? null;
   }
 
   async update(id: string, data: Partial<typeof inspectionsTable.$inferInsert>) {
-    const [row] = await this.db
+    const [row] = await this.client
       .update(inspectionsTable)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(inspectionsTable.id, id))

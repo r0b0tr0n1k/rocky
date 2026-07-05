@@ -2,10 +2,10 @@
 
 import * as runtime from "react/jsx-runtime";
 
-import { Bookmark } from "@/components/markdown/bookmark";
-import { YouTube } from "@/components/markdown/youtube";
-import { Media } from "@/components/markdown/media";
-import { Code } from "./code";
+import { Bookmark } from "@/components/markdown/bookmark.js";
+import { YouTube } from "@/components/markdown/youtube.js";
+import { Media } from "@/components/markdown/media.js";
+import { Code } from "./code.js";
 
 import React from "react";
 import type { StaticImageData } from "next/image";

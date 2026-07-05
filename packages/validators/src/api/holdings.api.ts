@@ -5,21 +5,6 @@
 //   HK.PDF - Table hierarchy: States → Zip → Address → Farm → Subject → KMG_SUBJ
 
 import { z } from "zod";
-import {
-  farmTypeSchema as FarmTypeZ,
-  subjectRoleSchema as SubjectRoleZ,
-  dataSourceSchema as DataSourceZ,
-  entityTypeSchema,
-  holdingTypeSchema,
-  approvalActionSchema,
-  deliveryMethodSchema,
-} from "../enums/index.js";
-import { FARM_TYPE, DATA_SOURCE, SUBJECT_ROLE, APPROVAL_ACTION } from "@rocky/database/constants";
-import type {
-  farmTypeType as FarmType,
-  subjectRoleType as SubjectRole,
-  dataSourceType as DataSource,
-} from "../enums/index.js";
 
 // ============================================================================
 // ADDRESS INPUT (with GPS auto-fill - replaces legacy drill-down hierarchy)

@@ -17,9 +17,9 @@
  * ```
  */
 
-import type { TRPCMiddleware, MiddlewareOptions } from "nestjs-trpc";
-import { TRPCError } from "@trpc/server";
 import type { AppContext } from "@rocky/trpc/context.js";
+import { TRPCError } from "@trpc/server";
+import type { MiddlewareOptions, TRPCMiddleware } from "nestjs-trpc";
 
 /**
  * Creates a permission guard middleware class with the required permission baked in.
@@ -27,7 +27,9 @@ import type { AppContext } from "@rocky/trpc/context.js";
  */
 export function createPermissionGuard(permission: string): new () => TRPCMiddleware {
   return class implements TRPCMiddleware {
-    async use(opts: MiddlewareOptions<AppContext & { auth?: { userId: string; role: string; permissions: string[] } }>) {
+    async use(
+      opts: MiddlewareOptions<AppContext & { auth?: { userId: string; role: string; permissions: string[] } }>,
+    ) {
       const { ctx, next } = opts;
 
       const permissions = ctx.auth?.permissions;
@@ -56,7 +58,7 @@ export function createPermissionGuard(permission: string): new () => TRPCMiddlew
  * Prefer createPermissionGuard() for @UseMiddlewares() usage.
  */
 export class PermissionGuard implements TRPCMiddleware {
-  constructor(private readonly requiredPermission: string) { }
+  constructor(private readonly requiredPermission: string) {}
 
   async use(opts: MiddlewareOptions<AppContext & { auth?: { userId: string; role: string; permissions: string[] } }>) {
     const { ctx, next } = opts;

@@ -1,93 +1,105 @@
 /**
- * DOMAIN ENUMS - Single Source of Truth (auto-generated)
+ * DOMAIN ENUMS — Single Source of Truth (auto-generated)
  *
  * Contains ALL internal enum validator schemas. Vendor enums (pgenums)
- * are no longer stored as PostgreSQL ENUM types - they use text() columns
+ * are no longer stored as PostgreSQL ENUM types — they use text() columns
  * and are validated at the Zod boundary by integration schemas.
  *
  * DO NOT EDIT MANUALLY. Run: node scripts/regenerate-enums.mjs
  *
- * Generated: 2026-07-05T01:13:20.864Z
+ * Generated: 2026-07-05T19:30:43.030Z
  */
 
-import {
-  ADMIN_ROLE_VALUES,
-  ADMIN_ROUTE_VALUES,
-  ALLOCATION_STATUS_VALUES,
-  ALLOCATION_TYPE_VALUES,
-  ANIMAL_STATUS_VALUES,
-  APPROVAL_ACTION_VALUES,
-  ARCHIVE_DOCUMENT_TYPE_VALUES,
-  ARCHIVE_LOCATION_VALUES,
-  AUDIT_ACTION_VALUES,
-  BIRTH_NOTIFICATION_STATUS_VALUES,
-  BIRTH_TYPE_VALUES,
-  CONTINGENT_TYPE_VALUES,
-  CORRECTION_CASE_TYPE_VALUES,
-  CORRECTION_STATUS_VALUES,
-  DATA_SOURCE_VALUES,
-  DEATH_CAUSE_VALUES,
-  DELIVERY_METHOD_VALUES,
-  DISTRIBUTION_METHOD_VALUES,
-  DUPLICATE_TYPE_VALUES,
-  EAR_TAG_ORDER_STATUS_VALUES,
-  EAR_TAG_REPLACEMENT_REASON_VALUES,
-  EAR_TAG_REPLACEMENT_STATUS_VALUES,
-  EAR_TAG_STATUS_VALUES,
-  EARTAG_TRANSITION_STATUS_VALUES,
-  EMAIL_STATUS_VALUES,
-  ENTITY_TYPE_VALUES,
-  ENVIRONMENT_VALUES,
-  EVENT_SOURCE_VALUES,
-  FARM_READ_ROLE_VALUES,
-  FARM_TYPE_VALUES,
-  HOLDING_TYPE_VALUES,
-  IMPORT_EXPORT_STATUS_VALUES,
-  IMPORT_TYPE_VALUES,
-  INSPECTION_STATUS_VALUES,
-  LANGUAGE_VALUES,
-  MODULE_TYPE_VALUES,
-  MOVEMENT_TYPE_VALUES,
-  NOTIFICATION_CATEGORY_VALUES,
-  NOTIFICATION_PRIORITY_VALUES,
-  NOTIFICATION_STATUS_VALUES,
-  NOTIFICATION_TYPE_VALUES,
-  ORDER_STATUS_VALUES,
-  ORG_READ_ROLE_VALUES,
-  ORG_TYPE_VALUES,
-  PARENT_TYPE_VALUES,
-  PASSPORT_STATUS_VALUES,
-  PASTURE_TYPE_VALUES,
-  REPRINT_REASON_VALUES,
-  REPRINT_STATUS_VALUES,
-  ROLE_PRIORITY_VALUES,
-  SEVERITY_VALUES,
-  SEX_VALUES,
-  SORT_ANIMAL_BY_VALUES,
-  SORT_BY_EARTAG_VALUES,
-  SORT_BY_FARM_VALUES,
-  SORT_BY_MOVEMENT_VALUES,
-  SORT_BY_USER_VALUES,
-  SORT_ORDER_VALUES,
-  STATE_CODE_VALUES,
-  SUBJECT_ROLE_VALUES,
-  SYNC_ERROR_TYPE_VALUES,
-  TAG_CATEGORY_VALUES,
-  TAKEOVER_STATUS_VALUES,
-  TEST_RESULT_VALUES,
-  TEST_TYPE_VALUES,
-  USER_ROLE_VALUES,
-  USER_STATUS_VALUES,
-  VACCINE_TYPE_VALUES,
-  VERIFICATION_STATUS_VALUES,
-  WEIGHING_TYPE_VALUES,
-  WRITE_ROLE_VALUES,
-} from "@rocky/database/constants";
-import type { z } from "zod";
 import { zEnum } from "../_enum-helper.js";
-import type { ActivateGuillotines, NoDrift } from "../utils/type-bridge.js";
+import { z } from "zod";
+import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 
-// 71 enum schemas
+import { ADMIN_ROLE_VALUES } from "@rocky/database/constants";
+import { ADMIN_ROUTE_VALUES } from "@rocky/database/constants";
+import { ALLOCATION_STATUS_VALUES } from "@rocky/database/constants";
+import { ALLOCATION_TYPE_VALUES } from "@rocky/database/constants";
+import { ANIMAL_STATUS_VALUES } from "@rocky/database/constants";
+import { APPROVAL_ACTION_VALUES } from "@rocky/database/constants";
+import { ARCHIVE_DOCUMENT_TYPE_VALUES } from "@rocky/database/constants";
+import { ARCHIVE_LOCATION_VALUES } from "@rocky/database/constants";
+import { AUDIT_ACTION_VALUES } from "@rocky/database/constants";
+import { BIRTH_NOTIFICATION_STATUS_VALUES } from "@rocky/database/constants";
+import { BIRTH_TYPE_VALUES } from "@rocky/database/constants";
+import { CONTINGENT_TYPE_VALUES } from "@rocky/database/constants";
+import { CORRECTION_CASE_TYPE_VALUES } from "@rocky/database/constants";
+import { CORRECTION_STATUS_VALUES } from "@rocky/database/constants";
+import { DATA_SOURCE_VALUES } from "@rocky/database/constants";
+import { DEATH_CAUSE_VALUES } from "@rocky/database/constants";
+import { DELIVERY_METHOD_VALUES } from "@rocky/database/constants";
+import { DETECTION_SOURCE_VALUES } from "@rocky/database/constants";
+import { DEVICE_STATUS_VALUES } from "@rocky/database/constants";
+import { DISTRIBUTION_METHOD_VALUES } from "@rocky/database/constants";
+import { DUPLICATE_TYPE_VALUES } from "@rocky/database/constants";
+import { EARTAG_TRANSITION_STATUS_VALUES } from "@rocky/database/constants";
+import { EAR_TAG_ORDER_STATUS_VALUES } from "@rocky/database/constants";
+import { EAR_TAG_REPLACEMENT_REASON_VALUES } from "@rocky/database/constants";
+import { EAR_TAG_REPLACEMENT_STATUS_VALUES } from "@rocky/database/constants";
+import { EAR_TAG_STATUS_VALUES } from "@rocky/database/constants";
+import { EMAIL_STATUS_VALUES } from "@rocky/database/constants";
+import { ENTITY_TYPE_VALUES } from "@rocky/database/constants";
+import { ENVIRONMENT_VALUES } from "@rocky/database/constants";
+import { EVENT_SOURCE_VALUES } from "@rocky/database/constants";
+import { FARM_BOOK_STATUS_VALUES } from "@rocky/database/constants";
+import { FARM_READ_ROLE_VALUES } from "@rocky/database/constants";
+import { FARM_TYPE_VALUES } from "@rocky/database/constants";
+import { FENCE_TYPE_VALUES } from "@rocky/database/constants";
+import { GEOFENCE_EVENT_SOURCE_VALUES } from "@rocky/database/constants";
+import { GEOFENCE_EVENT_TYPE_VALUES } from "@rocky/database/constants";
+import { HEALTH_RECORD_TYPE_VALUES } from "@rocky/database/constants";
+import { HEALTH_SEVERITY_VALUES } from "@rocky/database/constants";
+import { HOLDING_TYPE_VALUES } from "@rocky/database/constants";
+import { IMPORT_EXPORT_STATUS_VALUES } from "@rocky/database/constants";
+import { IMPORT_TYPE_VALUES } from "@rocky/database/constants";
+import { INSPECTION_STATUS_VALUES } from "@rocky/database/constants";
+import { IOT_DEVICE_STATUS_VALUES } from "@rocky/database/constants";
+import { LANGUAGE_VALUES } from "@rocky/database/constants";
+import { MODULE_TYPE_VALUES } from "@rocky/database/constants";
+import { MOVEMENT_TYPE_VALUES } from "@rocky/database/constants";
+import { NOTIFICATION_CATEGORY_VALUES } from "@rocky/database/constants";
+import { NOTIFICATION_PRIORITY_VALUES } from "@rocky/database/constants";
+import { NOTIFICATION_STATUS_VALUES } from "@rocky/database/constants";
+import { NOTIFICATION_TYPE_VALUES } from "@rocky/database/constants";
+import { ORDER_STATUS_VALUES } from "@rocky/database/constants";
+import { ORG_READ_ROLE_VALUES } from "@rocky/database/constants";
+import { ORG_TYPE_VALUES } from "@rocky/database/constants";
+import { PARENT_TYPE_VALUES } from "@rocky/database/constants";
+import { PASSPORT_STATUS_VALUES } from "@rocky/database/constants";
+import { PASTURE_TYPE_VALUES } from "@rocky/database/constants";
+import { PROCESSING_STAGE_VALUES } from "@rocky/database/constants";
+import { READING_TYPE_VALUES } from "@rocky/database/constants";
+import { REPRINT_REASON_VALUES } from "@rocky/database/constants";
+import { REPRINT_STATUS_VALUES } from "@rocky/database/constants";
+import { ROLE_PRIORITY_VALUES } from "@rocky/database/constants";
+import { SEVERITY_VALUES } from "@rocky/database/constants";
+import { SEX_VALUES } from "@rocky/database/constants";
+import { SORT_ANIMAL_BY_VALUES } from "@rocky/database/constants";
+import { SORT_BY_EARTAG_VALUES } from "@rocky/database/constants";
+import { SORT_BY_FARM_VALUES } from "@rocky/database/constants";
+import { SORT_BY_MOVEMENT_VALUES } from "@rocky/database/constants";
+import { SORT_BY_USER_VALUES } from "@rocky/database/constants";
+import { SORT_ORDER_VALUES } from "@rocky/database/constants";
+import { STATE_CODE_VALUES } from "@rocky/database/constants";
+import { SUBJECT_ROLE_VALUES } from "@rocky/database/constants";
+import { SYNC_ERROR_TYPE_VALUES } from "@rocky/database/constants";
+import { TAG_CATEGORY_VALUES } from "@rocky/database/constants";
+import { TAKEOVER_STATUS_VALUES } from "@rocky/database/constants";
+import { TEST_RESULT_VALUES } from "@rocky/database/constants";
+import { TEST_TYPE_VALUES } from "@rocky/database/constants";
+import { TRANSMISSION_TYPE_VALUES } from "@rocky/database/constants";
+import { USER_ROLE_VALUES } from "@rocky/database/constants";
+import { USER_STATUS_VALUES } from "@rocky/database/constants";
+import { VACCINE_TYPE_VALUES } from "@rocky/database/constants";
+import { VERIFICATION_STATUS_VALUES } from "@rocky/database/constants";
+import { VS_CONTRACT_STATUS_VALUES } from "@rocky/database/constants";
+import { WEIGHING_TYPE_VALUES } from "@rocky/database/constants";
+import { WRITE_ROLE_VALUES } from "@rocky/database/constants";
+
+// 84 enum schemas
 
 export const adminRolesSchema = zEnum(ADMIN_ROLE_VALUES);
 export type adminRolesType = z.infer<typeof adminRolesSchema>;
@@ -128,10 +140,7 @@ type _nodrift_auditActionSchema = NoDrift<z.infer<typeof auditActionSchema>, aud
 export const birthNotificationStatusSchema = zEnum(BIRTH_NOTIFICATION_STATUS_VALUES);
 export type birthNotificationStatusType = z.infer<typeof birthNotificationStatusSchema>;
 const _satisfies_birthNotificationStatusSchema: z.ZodType<birthNotificationStatusType> = birthNotificationStatusSchema;
-type _nodrift_birthNotificationStatusSchema = NoDrift<
-  z.infer<typeof birthNotificationStatusSchema>,
-  birthNotificationStatusType
->;
+type _nodrift_birthNotificationStatusSchema = NoDrift<z.infer<typeof birthNotificationStatusSchema>, birthNotificationStatusType>;
 export const birthTypeSchema = zEnum(BIRTH_TYPE_VALUES);
 export type birthTypeType = z.infer<typeof birthTypeSchema>;
 const _satisfies_birthTypeSchema: z.ZodType<birthTypeType> = birthTypeSchema;
@@ -160,6 +169,14 @@ export const deliveryMethodSchema = zEnum(DELIVERY_METHOD_VALUES);
 export type deliveryMethodType = z.infer<typeof deliveryMethodSchema>;
 const _satisfies_deliveryMethodSchema: z.ZodType<deliveryMethodType> = deliveryMethodSchema;
 type _nodrift_deliveryMethodSchema = NoDrift<z.infer<typeof deliveryMethodSchema>, deliveryMethodType>;
+export const detectionSourceSchema = zEnum(DETECTION_SOURCE_VALUES);
+export type detectionSourceType = z.infer<typeof detectionSourceSchema>;
+const _satisfies_detectionSourceSchema: z.ZodType<detectionSourceType> = detectionSourceSchema;
+type _nodrift_detectionSourceSchema = NoDrift<z.infer<typeof detectionSourceSchema>, detectionSourceType>;
+export const deviceStatusSchema = zEnum(DEVICE_STATUS_VALUES);
+export type deviceStatusType = z.infer<typeof deviceStatusSchema>;
+const _satisfies_deviceStatusSchema: z.ZodType<deviceStatusType> = deviceStatusSchema;
+type _nodrift_deviceStatusSchema = NoDrift<z.infer<typeof deviceStatusSchema>, deviceStatusType>;
 export const distributionMethodSchema = zEnum(DISTRIBUTION_METHOD_VALUES);
 export type distributionMethodType = z.infer<typeof distributionMethodSchema>;
 const _satisfies_distributionMethodSchema: z.ZodType<distributionMethodType> = distributionMethodSchema;
@@ -175,17 +192,11 @@ type _nodrift_earTagOrderStatusSchema = NoDrift<z.infer<typeof earTagOrderStatus
 export const earTagReplacementReasonSchema = zEnum(EAR_TAG_REPLACEMENT_REASON_VALUES);
 export type earTagReplacementReasonType = z.infer<typeof earTagReplacementReasonSchema>;
 const _satisfies_earTagReplacementReasonSchema: z.ZodType<earTagReplacementReasonType> = earTagReplacementReasonSchema;
-type _nodrift_earTagReplacementReasonSchema = NoDrift<
-  z.infer<typeof earTagReplacementReasonSchema>,
-  earTagReplacementReasonType
->;
+type _nodrift_earTagReplacementReasonSchema = NoDrift<z.infer<typeof earTagReplacementReasonSchema>, earTagReplacementReasonType>;
 export const earTagReplacementStatusSchema = zEnum(EAR_TAG_REPLACEMENT_STATUS_VALUES);
 export type earTagReplacementStatusType = z.infer<typeof earTagReplacementStatusSchema>;
 const _satisfies_earTagReplacementStatusSchema: z.ZodType<earTagReplacementStatusType> = earTagReplacementStatusSchema;
-type _nodrift_earTagReplacementStatusSchema = NoDrift<
-  z.infer<typeof earTagReplacementStatusSchema>,
-  earTagReplacementStatusType
->;
+type _nodrift_earTagReplacementStatusSchema = NoDrift<z.infer<typeof earTagReplacementStatusSchema>, earTagReplacementStatusType>;
 export const earTagStatusSchema = zEnum(EAR_TAG_STATUS_VALUES);
 export type earTagStatusType = z.infer<typeof earTagStatusSchema>;
 const _satisfies_earTagStatusSchema: z.ZodType<earTagStatusType> = earTagStatusSchema;
@@ -193,10 +204,7 @@ type _nodrift_earTagStatusSchema = NoDrift<z.infer<typeof earTagStatusSchema>, e
 export const eartagTransitionStatusSchema = zEnum(EARTAG_TRANSITION_STATUS_VALUES);
 export type eartagTransitionStatusType = z.infer<typeof eartagTransitionStatusSchema>;
 const _satisfies_eartagTransitionStatusSchema: z.ZodType<eartagTransitionStatusType> = eartagTransitionStatusSchema;
-type _nodrift_eartagTransitionStatusSchema = NoDrift<
-  z.infer<typeof eartagTransitionStatusSchema>,
-  eartagTransitionStatusType
->;
+type _nodrift_eartagTransitionStatusSchema = NoDrift<z.infer<typeof eartagTransitionStatusSchema>, eartagTransitionStatusType>;
 export const emailStatusSchema = zEnum(EMAIL_STATUS_VALUES);
 export type emailStatusType = z.infer<typeof emailStatusSchema>;
 const _satisfies_emailStatusSchema: z.ZodType<emailStatusType> = emailStatusSchema;
@@ -213,6 +221,10 @@ export const eventSourceSchema = zEnum(EVENT_SOURCE_VALUES);
 export type eventSourceType = z.infer<typeof eventSourceSchema>;
 const _satisfies_eventSourceSchema: z.ZodType<eventSourceType> = eventSourceSchema;
 type _nodrift_eventSourceSchema = NoDrift<z.infer<typeof eventSourceSchema>, eventSourceType>;
+export const farmBookStatusSchema = zEnum(FARM_BOOK_STATUS_VALUES);
+export type farmBookStatusType = z.infer<typeof farmBookStatusSchema>;
+const _satisfies_farmBookStatusSchema: z.ZodType<farmBookStatusType> = farmBookStatusSchema;
+type _nodrift_farmBookStatusSchema = NoDrift<z.infer<typeof farmBookStatusSchema>, farmBookStatusType>;
 export const farmReadRolesSchema = zEnum(FARM_READ_ROLE_VALUES);
 export type farmReadRolesType = z.infer<typeof farmReadRolesSchema>;
 const _satisfies_farmReadRolesSchema: z.ZodType<farmReadRolesType> = farmReadRolesSchema;
@@ -221,6 +233,26 @@ export const farmTypeSchema = zEnum(FARM_TYPE_VALUES);
 export type farmTypeType = z.infer<typeof farmTypeSchema>;
 const _satisfies_farmTypeSchema: z.ZodType<farmTypeType> = farmTypeSchema;
 type _nodrift_farmTypeSchema = NoDrift<z.infer<typeof farmTypeSchema>, farmTypeType>;
+export const fenceTypeSchema = zEnum(FENCE_TYPE_VALUES);
+export type fenceTypeType = z.infer<typeof fenceTypeSchema>;
+const _satisfies_fenceTypeSchema: z.ZodType<fenceTypeType> = fenceTypeSchema;
+type _nodrift_fenceTypeSchema = NoDrift<z.infer<typeof fenceTypeSchema>, fenceTypeType>;
+export const geofenceEventSourceSchema = zEnum(GEOFENCE_EVENT_SOURCE_VALUES);
+export type geofenceEventSourceType = z.infer<typeof geofenceEventSourceSchema>;
+const _satisfies_geofenceEventSourceSchema: z.ZodType<geofenceEventSourceType> = geofenceEventSourceSchema;
+type _nodrift_geofenceEventSourceSchema = NoDrift<z.infer<typeof geofenceEventSourceSchema>, geofenceEventSourceType>;
+export const geofenceEventTypeSchema = zEnum(GEOFENCE_EVENT_TYPE_VALUES);
+export type geofenceEventTypeType = z.infer<typeof geofenceEventTypeSchema>;
+const _satisfies_geofenceEventTypeSchema: z.ZodType<geofenceEventTypeType> = geofenceEventTypeSchema;
+type _nodrift_geofenceEventTypeSchema = NoDrift<z.infer<typeof geofenceEventTypeSchema>, geofenceEventTypeType>;
+export const healthRecordTypeSchema = zEnum(HEALTH_RECORD_TYPE_VALUES);
+export type healthRecordTypeType = z.infer<typeof healthRecordTypeSchema>;
+const _satisfies_healthRecordTypeSchema: z.ZodType<healthRecordTypeType> = healthRecordTypeSchema;
+type _nodrift_healthRecordTypeSchema = NoDrift<z.infer<typeof healthRecordTypeSchema>, healthRecordTypeType>;
+export const healthSeveritySchema = zEnum(HEALTH_SEVERITY_VALUES);
+export type healthSeverityType = z.infer<typeof healthSeveritySchema>;
+const _satisfies_healthSeveritySchema: z.ZodType<healthSeverityType> = healthSeveritySchema;
+type _nodrift_healthSeveritySchema = NoDrift<z.infer<typeof healthSeveritySchema>, healthSeverityType>;
 export const holdingTypeSchema = zEnum(HOLDING_TYPE_VALUES);
 export type holdingTypeType = z.infer<typeof holdingTypeSchema>;
 const _satisfies_holdingTypeSchema: z.ZodType<holdingTypeType> = holdingTypeSchema;
@@ -237,6 +269,10 @@ export const inspectionStatusSchema = zEnum(INSPECTION_STATUS_VALUES);
 export type inspectionStatusType = z.infer<typeof inspectionStatusSchema>;
 const _satisfies_inspectionStatusSchema: z.ZodType<inspectionStatusType> = inspectionStatusSchema;
 type _nodrift_inspectionStatusSchema = NoDrift<z.infer<typeof inspectionStatusSchema>, inspectionStatusType>;
+export const iotDeviceStatusSchema = zEnum(IOT_DEVICE_STATUS_VALUES);
+export type iotDeviceStatusType = z.infer<typeof iotDeviceStatusSchema>;
+const _satisfies_iotDeviceStatusSchema: z.ZodType<iotDeviceStatusType> = iotDeviceStatusSchema;
+type _nodrift_iotDeviceStatusSchema = NoDrift<z.infer<typeof iotDeviceStatusSchema>, iotDeviceStatusType>;
 export const languageSchema = zEnum(LANGUAGE_VALUES);
 export type languageType = z.infer<typeof languageSchema>;
 const _satisfies_languageSchema: z.ZodType<languageType> = languageSchema;
@@ -252,17 +288,11 @@ type _nodrift_movementTypeSchema = NoDrift<z.infer<typeof movementTypeSchema>, m
 export const notificationCategorySchema = zEnum(NOTIFICATION_CATEGORY_VALUES);
 export type notificationCategoryType = z.infer<typeof notificationCategorySchema>;
 const _satisfies_notificationCategorySchema: z.ZodType<notificationCategoryType> = notificationCategorySchema;
-type _nodrift_notificationCategorySchema = NoDrift<
-  z.infer<typeof notificationCategorySchema>,
-  notificationCategoryType
->;
+type _nodrift_notificationCategorySchema = NoDrift<z.infer<typeof notificationCategorySchema>, notificationCategoryType>;
 export const notificationPrioritySchema = zEnum(NOTIFICATION_PRIORITY_VALUES);
 export type notificationPriorityType = z.infer<typeof notificationPrioritySchema>;
 const _satisfies_notificationPrioritySchema: z.ZodType<notificationPriorityType> = notificationPrioritySchema;
-type _nodrift_notificationPrioritySchema = NoDrift<
-  z.infer<typeof notificationPrioritySchema>,
-  notificationPriorityType
->;
+type _nodrift_notificationPrioritySchema = NoDrift<z.infer<typeof notificationPrioritySchema>, notificationPriorityType>;
 export const notificationStatusSchema = zEnum(NOTIFICATION_STATUS_VALUES);
 export type notificationStatusType = z.infer<typeof notificationStatusSchema>;
 const _satisfies_notificationStatusSchema: z.ZodType<notificationStatusType> = notificationStatusSchema;
@@ -295,6 +325,14 @@ export const pastureTypeSchema = zEnum(PASTURE_TYPE_VALUES);
 export type pastureTypeType = z.infer<typeof pastureTypeSchema>;
 const _satisfies_pastureTypeSchema: z.ZodType<pastureTypeType> = pastureTypeSchema;
 type _nodrift_pastureTypeSchema = NoDrift<z.infer<typeof pastureTypeSchema>, pastureTypeType>;
+export const processingStageSchema = zEnum(PROCESSING_STAGE_VALUES);
+export type processingStageType = z.infer<typeof processingStageSchema>;
+const _satisfies_processingStageSchema: z.ZodType<processingStageType> = processingStageSchema;
+type _nodrift_processingStageSchema = NoDrift<z.infer<typeof processingStageSchema>, processingStageType>;
+export const readingTypeSchema = zEnum(READING_TYPE_VALUES);
+export type readingTypeType = z.infer<typeof readingTypeSchema>;
+const _satisfies_readingTypeSchema: z.ZodType<readingTypeType> = readingTypeSchema;
+type _nodrift_readingTypeSchema = NoDrift<z.infer<typeof readingTypeSchema>, readingTypeType>;
 export const reprintReasonSchema = zEnum(REPRINT_REASON_VALUES);
 export type reprintReasonType = z.infer<typeof reprintReasonSchema>;
 const _satisfies_reprintReasonSchema: z.ZodType<reprintReasonType> = reprintReasonSchema;
@@ -367,6 +405,10 @@ export const testTypeSchema = zEnum(TEST_TYPE_VALUES);
 export type testTypeType = z.infer<typeof testTypeSchema>;
 const _satisfies_testTypeSchema: z.ZodType<testTypeType> = testTypeSchema;
 type _nodrift_testTypeSchema = NoDrift<z.infer<typeof testTypeSchema>, testTypeType>;
+export const transmissionTypeSchema = zEnum(TRANSMISSION_TYPE_VALUES);
+export type transmissionTypeType = z.infer<typeof transmissionTypeSchema>;
+const _satisfies_transmissionTypeSchema: z.ZodType<transmissionTypeType> = transmissionTypeSchema;
+type _nodrift_transmissionTypeSchema = NoDrift<z.infer<typeof transmissionTypeSchema>, transmissionTypeType>;
 export const userRoleSchema = zEnum(USER_ROLE_VALUES);
 export type userRoleType = z.infer<typeof userRoleSchema>;
 const _satisfies_userRoleSchema: z.ZodType<userRoleType> = userRoleSchema;
@@ -383,6 +425,10 @@ export const verificationStatusSchema = zEnum(VERIFICATION_STATUS_VALUES);
 export type verificationStatusType = z.infer<typeof verificationStatusSchema>;
 const _satisfies_verificationStatusSchema: z.ZodType<verificationStatusType> = verificationStatusSchema;
 type _nodrift_verificationStatusSchema = NoDrift<z.infer<typeof verificationStatusSchema>, verificationStatusType>;
+export const vsContractStatusSchema = zEnum(VS_CONTRACT_STATUS_VALUES);
+export type vsContractStatusType = z.infer<typeof vsContractStatusSchema>;
+const _satisfies_vsContractStatusSchema: z.ZodType<vsContractStatusType> = vsContractStatusSchema;
+type _nodrift_vsContractStatusSchema = NoDrift<z.infer<typeof vsContractStatusSchema>, vsContractStatusType>;
 export const weighingTypeSchema = zEnum(WEIGHING_TYPE_VALUES);
 export type weighingTypeType = z.infer<typeof weighingTypeSchema>;
 const _satisfies_weighingTypeSchema: z.ZodType<weighingTypeType> = weighingTypeSchema;
@@ -392,79 +438,90 @@ export type writeRolesType = z.infer<typeof writeRolesSchema>;
 const _satisfies_writeRolesSchema: z.ZodType<writeRolesType> = writeRolesSchema;
 type _nodrift_writeRolesSchema = NoDrift<z.infer<typeof writeRolesSchema>, writeRolesType>;
 
-// ⚔️ Activate ALL 71 guillotine proofs
-export type _Activate = ActivateGuillotines<
-  [
-    _nodrift_adminRolesSchema,
-    _nodrift_administrationRouteSchema,
-    _nodrift_allocationStatusSchema,
-    _nodrift_allocationTypeSchema,
-    _nodrift_animalStatusSchema,
-    _nodrift_approvalActionSchema,
-    _nodrift_archiveDocumentTypeSchema,
-    _nodrift_archiveLocationSchema,
-    _nodrift_auditActionSchema,
-    _nodrift_birthNotificationStatusSchema,
-    _nodrift_birthTypeSchema,
-    _nodrift_contingentTypeSchema,
-    _nodrift_correctionCaseTypeSchema,
-    _nodrift_correctionStatusSchema,
-    _nodrift_dataSourceSchema,
-    _nodrift_deathCauseSchema,
-    _nodrift_deliveryMethodSchema,
-    _nodrift_distributionMethodSchema,
-    _nodrift_duplicateTypeSchema,
-    _nodrift_earTagOrderStatusSchema,
-    _nodrift_earTagReplacementReasonSchema,
-    _nodrift_earTagReplacementStatusSchema,
-    _nodrift_earTagStatusSchema,
-    _nodrift_eartagTransitionStatusSchema,
-    _nodrift_emailStatusSchema,
-    _nodrift_entityTypeSchema,
-    _nodrift_environmentSchema,
-    _nodrift_eventSourceSchema,
-    _nodrift_farmReadRolesSchema,
-    _nodrift_farmTypeSchema,
-    _nodrift_holdingTypeSchema,
-    _nodrift_importExportStatusSchema,
-    _nodrift_importTypeSchema,
-    _nodrift_inspectionStatusSchema,
-    _nodrift_languageSchema,
-    _nodrift_moduleTypeSchema,
-    _nodrift_movementTypeSchema,
-    _nodrift_notificationCategorySchema,
-    _nodrift_notificationPrioritySchema,
-    _nodrift_notificationStatusSchema,
-    _nodrift_notificationTypeSchema,
-    _nodrift_orderStatusSchema,
-    _nodrift_orgReadRolesSchema,
-    _nodrift_orgTypeSchema,
-    _nodrift_parentTypeSchema,
-    _nodrift_passportStatusSchema,
-    _nodrift_pastureTypeSchema,
-    _nodrift_reprintReasonSchema,
-    _nodrift_reprintStatusSchema,
-    _nodrift_rolePrioritySchema,
-    _nodrift_severitySchema,
-    _nodrift_sexSchema,
-    _nodrift_sortAnimalBySchema,
-    _nodrift_sortByEartagSchema,
-    _nodrift_sortByFarmSchema,
-    _nodrift_sortByMovementSchema,
-    _nodrift_sortByUserSchema,
-    _nodrift_sortOrderSchema,
-    _nodrift_stateCodeSchema,
-    _nodrift_subjectRoleSchema,
-    _nodrift_syncErrorTypeSchema,
-    _nodrift_tagCategorySchema,
-    _nodrift_takeoverStatusSchema,
-    _nodrift_testResultSchema,
-    _nodrift_testTypeSchema,
-    _nodrift_userRoleSchema,
-    _nodrift_userStatusSchema,
-    _nodrift_vaccineTypeSchema,
-    _nodrift_verificationStatusSchema,
-    _nodrift_weighingTypeSchema,
-    _nodrift_writeRolesSchema,
-  ]
->;
+// ⚔️ Activate ALL 84 guillotine proofs
+export type _Activate = ActivateGuillotines<[
+  _nodrift_adminRolesSchema,
+  _nodrift_administrationRouteSchema,
+  _nodrift_allocationStatusSchema,
+  _nodrift_allocationTypeSchema,
+  _nodrift_animalStatusSchema,
+  _nodrift_approvalActionSchema,
+  _nodrift_archiveDocumentTypeSchema,
+  _nodrift_archiveLocationSchema,
+  _nodrift_auditActionSchema,
+  _nodrift_birthNotificationStatusSchema,
+  _nodrift_birthTypeSchema,
+  _nodrift_contingentTypeSchema,
+  _nodrift_correctionCaseTypeSchema,
+  _nodrift_correctionStatusSchema,
+  _nodrift_dataSourceSchema,
+  _nodrift_deathCauseSchema,
+  _nodrift_deliveryMethodSchema,
+  _nodrift_detectionSourceSchema,
+  _nodrift_deviceStatusSchema,
+  _nodrift_distributionMethodSchema,
+  _nodrift_duplicateTypeSchema,
+  _nodrift_earTagOrderStatusSchema,
+  _nodrift_earTagReplacementReasonSchema,
+  _nodrift_earTagReplacementStatusSchema,
+  _nodrift_earTagStatusSchema,
+  _nodrift_eartagTransitionStatusSchema,
+  _nodrift_emailStatusSchema,
+  _nodrift_entityTypeSchema,
+  _nodrift_environmentSchema,
+  _nodrift_eventSourceSchema,
+  _nodrift_farmBookStatusSchema,
+  _nodrift_farmReadRolesSchema,
+  _nodrift_farmTypeSchema,
+  _nodrift_fenceTypeSchema,
+  _nodrift_geofenceEventSourceSchema,
+  _nodrift_geofenceEventTypeSchema,
+  _nodrift_healthRecordTypeSchema,
+  _nodrift_healthSeveritySchema,
+  _nodrift_holdingTypeSchema,
+  _nodrift_importExportStatusSchema,
+  _nodrift_importTypeSchema,
+  _nodrift_inspectionStatusSchema,
+  _nodrift_iotDeviceStatusSchema,
+  _nodrift_languageSchema,
+  _nodrift_moduleTypeSchema,
+  _nodrift_movementTypeSchema,
+  _nodrift_notificationCategorySchema,
+  _nodrift_notificationPrioritySchema,
+  _nodrift_notificationStatusSchema,
+  _nodrift_notificationTypeSchema,
+  _nodrift_orderStatusSchema,
+  _nodrift_orgReadRolesSchema,
+  _nodrift_orgTypeSchema,
+  _nodrift_parentTypeSchema,
+  _nodrift_passportStatusSchema,
+  _nodrift_pastureTypeSchema,
+  _nodrift_processingStageSchema,
+  _nodrift_readingTypeSchema,
+  _nodrift_reprintReasonSchema,
+  _nodrift_reprintStatusSchema,
+  _nodrift_rolePrioritySchema,
+  _nodrift_severitySchema,
+  _nodrift_sexSchema,
+  _nodrift_sortAnimalBySchema,
+  _nodrift_sortByEartagSchema,
+  _nodrift_sortByFarmSchema,
+  _nodrift_sortByMovementSchema,
+  _nodrift_sortByUserSchema,
+  _nodrift_sortOrderSchema,
+  _nodrift_stateCodeSchema,
+  _nodrift_subjectRoleSchema,
+  _nodrift_syncErrorTypeSchema,
+  _nodrift_tagCategorySchema,
+  _nodrift_takeoverStatusSchema,
+  _nodrift_testResultSchema,
+  _nodrift_testTypeSchema,
+  _nodrift_transmissionTypeSchema,
+  _nodrift_userRoleSchema,
+  _nodrift_userStatusSchema,
+  _nodrift_vaccineTypeSchema,
+  _nodrift_verificationStatusSchema,
+  _nodrift_vsContractStatusSchema,
+  _nodrift_weighingTypeSchema,
+  _nodrift_writeRolesSchema
+]>;

@@ -72,13 +72,12 @@ export const createArchiveDocumentRequestSchema = archiveDocumentInsertSchema
 
 export type CreateArchiveDocumentRequest = z.infer<typeof createArchiveDocumentRequestSchema>;
 
-export const archiveInspectionFormRequestSchema = z
+export const archiveInspectionFormRequestSchema = z.strictObject(z
   .strictObject({
     inspectionId: z.uuid(),
     farmId: z.uuid(),
     archiveLocation: archiveLocationSchema.optional(),
-  })
-  .strict();
+  }).shape);
 
 export type ArchiveInspectionFormRequest = z.infer<typeof archiveInspectionFormRequestSchema>;
 

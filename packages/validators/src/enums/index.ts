@@ -1,226 +1,259 @@
-/** Auto-generated enum barrel - DO NOT EDIT */
+/** Auto-generated enum barrel — DO NOT EDIT */
 /** LAW XI: Frontend must import dictionaries from here, NOT @rocky/database. */
 
 // ── Dictionary constants (for frontend) ──
-export {
-    ADMIN_ROLE,
-    ADMIN_ROUTE,
-    ALLOCATION_STATUS,
-    ALLOCATION_TYPE,
-    ANIMAL_STATUS,
-    APPROVAL_ACTION,
-    ARCHIVE_DOCUMENT_TYPE,
-    ARCHIVE_LOCATION,
-    AUDIT_ACTION,
-    BIRTH_NOTIFICATION_STATUS,
-    BIRTH_TYPE,
-    CONTINGENT_TYPE,
-    CORRECTION_CASE_TYPE,
-    CORRECTION_STATUS,
-    DATA_SOURCE,
-    DEATH_CAUSE,
-    DELIVERY_METHOD,
-    DISTRIBUTION_METHOD,
-    DUPLICATE_TYPE,
-    EAR_TAG_ORDER_STATUS,
-    EAR_TAG_REPLACEMENT_REASON,
-    EAR_TAG_REPLACEMENT_STATUS,
-    EAR_TAG_STATUS,
-    EARTAG_TRANSITION_STATUS,
-    EMAIL_STATUS,
-    ENTITY_TYPE,
-    ENVIRONMENT,
-    EVENT_SOURCE,
-    FARM_READ_ROLE,
-    FARM_TYPE,
-    HOLDING_TYPE,
-    IMPORT_EXPORT_STATUS,
-    IMPORT_TYPE,
-    INSPECTION_STATUS,
-    LANGUAGE,
-    MODULE_TYPE,
-    MOVEMENT_TYPE,
-    NOTIFICATION_CATEGORY,
-    NOTIFICATION_PRIORITY,
-    NOTIFICATION_STATUS,
-    NOTIFICATION_TYPE,
-    ORDER_STATUS,
-    ORG_READ_ROLE,
-    ORG_TYPE,
-    PARENT_TYPE,
-    PASSPORT_STATUS,
-    PASTURE_TYPE,
-    REPRINT_REASON,
-    REPRINT_STATUS,
-    ROLE_PRIORITY,
-    SEVERITY,
-    SEX,
-    SORT_ANIMAL_BY,
-    SORT_BY_EARTAG,
-    SORT_BY_FARM,
-    SORT_BY_MOVEMENT,
-    SORT_BY_USER,
-    SORT_ORDER,
-    STATE_CODE,
-    SUBJECT_ROLE,
-    SYNC_ERROR_TYPE,
-    TAG_CATEGORY,
-    TAKEOVER_STATUS,
-    TEST_RESULT,
-    TEST_TYPE,
-    USER_ROLE,
-    USER_STATUS,
-    VACCINE_TYPE,
-    VERIFICATION_STATUS,
-    WEIGHING_TYPE,
-    WRITE_ROLE
-} from "@rocky/database/constants";
-// ── Inferred types ──
-export type {
-    administrationRouteType,
-    adminRolesType,
-    allocationStatusType,
-    allocationTypeType,
-    animalStatusType,
-    approvalActionType,
-    archiveDocumentTypeType,
-    archiveLocationType,
-    auditActionType,
-    birthNotificationStatusType,
-    birthTypeType,
-    contingentTypeType,
-    correctionCaseTypeType,
-    correctionStatusType,
-    dataSourceType,
-    deathCauseType,
-    deliveryMethodType,
-    distributionMethodType,
-    duplicateTypeType,
-    earTagOrderStatusType,
-    earTagReplacementReasonType,
-    earTagReplacementStatusType,
-    earTagStatusType,
-    eartagTransitionStatusType,
-    emailStatusType,
-    entityTypeType,
-    environmentType,
-    eventSourceType,
-    farmReadRolesType,
-    farmTypeType,
-    holdingTypeType,
-    importExportStatusType,
-    importTypeType,
-    inspectionStatusType,
-    languageType,
-    moduleTypeType,
-    movementTypeType,
-    notificationCategoryType,
-    notificationPriorityType,
-    notificationStatusType,
-    notificationTypeType,
-    orderStatusType,
-    orgReadRolesType,
-    orgTypeType,
-    parentTypeType,
-    passportStatusType,
-    pastureTypeType,
-    reprintReasonType,
-    reprintStatusType,
-    rolePriorityType,
-    severityType,
-    sexType,
-    sortAnimalByType,
-    sortByEartagType,
-    sortByFarmType,
-    sortByMovementType,
-    sortByUserType,
-    sortOrderType,
-    stateCodeType,
-    subjectRoleType,
-    syncErrorTypeType,
-    tagCategoryType,
-    takeoverStatusType,
-    testResultType,
-    testTypeType,
-    userRoleType,
-    userStatusType,
-    vaccineTypeType,
-    verificationStatusType,
-    weighingTypeType,
-    writeRolesType
-} from "./domain.js";
-// ── Zod schemas ──
-export {
-    administrationRouteSchema,
-    adminRolesSchema,
-    allocationStatusSchema,
-    allocationTypeSchema,
-    animalStatusSchema,
-    approvalActionSchema,
-    archiveDocumentTypeSchema,
-    archiveLocationSchema,
-    auditActionSchema,
-    birthNotificationStatusSchema,
-    birthTypeSchema,
-    contingentTypeSchema,
-    correctionCaseTypeSchema,
-    correctionStatusSchema,
-    dataSourceSchema,
-    deathCauseSchema,
-    deliveryMethodSchema,
-    distributionMethodSchema,
-    duplicateTypeSchema,
-    earTagOrderStatusSchema,
-    earTagReplacementReasonSchema,
-    earTagReplacementStatusSchema,
-    earTagStatusSchema,
-    eartagTransitionStatusSchema,
-    emailStatusSchema,
-    entityTypeSchema,
-    environmentSchema,
-    eventSourceSchema,
-    farmReadRolesSchema,
-    farmTypeSchema,
-    holdingTypeSchema,
-    importExportStatusSchema,
-    importTypeSchema,
-    inspectionStatusSchema,
-    languageSchema,
-    moduleTypeSchema,
-    movementTypeSchema,
-    notificationCategorySchema,
-    notificationPrioritySchema,
-    notificationStatusSchema,
-    notificationTypeSchema,
-    orderStatusSchema,
-    orgReadRolesSchema,
-    orgTypeSchema,
-    parentTypeSchema,
-    passportStatusSchema,
-    pastureTypeSchema,
-    reprintReasonSchema,
-    reprintStatusSchema,
-    rolePrioritySchema,
-    severitySchema,
-    sexSchema,
-    sortAnimalBySchema,
-    sortByEartagSchema,
-    sortByFarmSchema,
-    sortByMovementSchema,
-    sortByUserSchema,
-    sortOrderSchema,
-    stateCodeSchema,
-    subjectRoleSchema,
-    syncErrorTypeSchema,
-    tagCategorySchema,
-    takeoverStatusSchema,
-    testResultSchema,
-    testTypeSchema,
-    userRoleSchema,
-    userStatusSchema,
-    vaccineTypeSchema,
-    verificationStatusSchema,
-    weighingTypeSchema,
-    writeRolesSchema
-} from "./domain.js";
+export { ADMIN_ROLE } from "@rocky/database/constants";
+export { ADMIN_ROUTE } from "@rocky/database/constants";
+export { ALLOCATION_STATUS } from "@rocky/database/constants";
+export { ALLOCATION_TYPE } from "@rocky/database/constants";
+export { ANIMAL_STATUS } from "@rocky/database/constants";
+export { APPROVAL_ACTION } from "@rocky/database/constants";
+export { ARCHIVE_DOCUMENT_TYPE } from "@rocky/database/constants";
+export { ARCHIVE_LOCATION } from "@rocky/database/constants";
+export { AUDIT_ACTION } from "@rocky/database/constants";
+export { BIRTH_NOTIFICATION_STATUS } from "@rocky/database/constants";
+export { BIRTH_TYPE } from "@rocky/database/constants";
+export { CONTINGENT_TYPE } from "@rocky/database/constants";
+export { CORRECTION_CASE_TYPE } from "@rocky/database/constants";
+export { CORRECTION_STATUS } from "@rocky/database/constants";
+export { DATA_SOURCE } from "@rocky/database/constants";
+export { DEATH_CAUSE } from "@rocky/database/constants";
+export { DELIVERY_METHOD } from "@rocky/database/constants";
+export { DETECTION_SOURCE } from "@rocky/database/constants";
+export { DEVICE_STATUS } from "@rocky/database/constants";
+export { DISTRIBUTION_METHOD } from "@rocky/database/constants";
+export { DUPLICATE_TYPE } from "@rocky/database/constants";
+export { EARTAG_TRANSITION_STATUS } from "@rocky/database/constants";
+export { EAR_TAG_ORDER_STATUS } from "@rocky/database/constants";
+export { EAR_TAG_REPLACEMENT_REASON } from "@rocky/database/constants";
+export { EAR_TAG_REPLACEMENT_STATUS } from "@rocky/database/constants";
+export { EAR_TAG_STATUS } from "@rocky/database/constants";
+export { EMAIL_STATUS } from "@rocky/database/constants";
+export { ENTITY_TYPE } from "@rocky/database/constants";
+export { ENVIRONMENT } from "@rocky/database/constants";
+export { EVENT_SOURCE } from "@rocky/database/constants";
+export { FARM_BOOK_STATUS } from "@rocky/database/constants";
+export { FARM_READ_ROLE } from "@rocky/database/constants";
+export { FARM_TYPE } from "@rocky/database/constants";
+export { FENCE_TYPE } from "@rocky/database/constants";
+export { GEOFENCE_EVENT_SOURCE } from "@rocky/database/constants";
+export { GEOFENCE_EVENT_TYPE } from "@rocky/database/constants";
+export { HEALTH_RECORD_TYPE } from "@rocky/database/constants";
+export { HEALTH_SEVERITY } from "@rocky/database/constants";
+export { HOLDING_TYPE } from "@rocky/database/constants";
+export { IMPORT_EXPORT_STATUS } from "@rocky/database/constants";
+export { IMPORT_TYPE } from "@rocky/database/constants";
+export { INSPECTION_STATUS } from "@rocky/database/constants";
+export { IOT_DEVICE_STATUS } from "@rocky/database/constants";
+export { LANGUAGE } from "@rocky/database/constants";
+export { MODULE_TYPE } from "@rocky/database/constants";
+export { MOVEMENT_TYPE } from "@rocky/database/constants";
+export { NOTIFICATION_CATEGORY } from "@rocky/database/constants";
+export { NOTIFICATION_PRIORITY } from "@rocky/database/constants";
+export { NOTIFICATION_STATUS } from "@rocky/database/constants";
+export { NOTIFICATION_TYPE } from "@rocky/database/constants";
+export { ORDER_STATUS } from "@rocky/database/constants";
+export { ORG_READ_ROLE } from "@rocky/database/constants";
+export { ORG_TYPE } from "@rocky/database/constants";
+export { PARENT_TYPE } from "@rocky/database/constants";
+export { PASSPORT_STATUS } from "@rocky/database/constants";
+export { PASTURE_TYPE } from "@rocky/database/constants";
+export { PROCESSING_STAGE } from "@rocky/database/constants";
+export { READING_TYPE } from "@rocky/database/constants";
+export { REPRINT_REASON } from "@rocky/database/constants";
+export { REPRINT_STATUS } from "@rocky/database/constants";
+export { ROLE_PRIORITY } from "@rocky/database/constants";
+export { SEVERITY } from "@rocky/database/constants";
+export { SEX } from "@rocky/database/constants";
+export { SORT_ANIMAL_BY } from "@rocky/database/constants";
+export { SORT_BY_EARTAG } from "@rocky/database/constants";
+export { SORT_BY_FARM } from "@rocky/database/constants";
+export { SORT_BY_MOVEMENT } from "@rocky/database/constants";
+export { SORT_BY_USER } from "@rocky/database/constants";
+export { SORT_ORDER } from "@rocky/database/constants";
+export { STATE_CODE } from "@rocky/database/constants";
+export { SUBJECT_ROLE } from "@rocky/database/constants";
+export { SYNC_ERROR_TYPE } from "@rocky/database/constants";
+export { TAG_CATEGORY } from "@rocky/database/constants";
+export { TAKEOVER_STATUS } from "@rocky/database/constants";
+export { TEST_RESULT } from "@rocky/database/constants";
+export { TEST_TYPE } from "@rocky/database/constants";
+export { TRANSMISSION_TYPE } from "@rocky/database/constants";
+export { USER_ROLE } from "@rocky/database/constants";
+export { USER_STATUS } from "@rocky/database/constants";
+export { VACCINE_TYPE } from "@rocky/database/constants";
+export { VERIFICATION_STATUS } from "@rocky/database/constants";
+export { VS_CONTRACT_STATUS } from "@rocky/database/constants";
+export { WEIGHING_TYPE } from "@rocky/database/constants";
+export { WRITE_ROLE } from "@rocky/database/constants";
 
+// ── Zod schemas ──
+export { adminRolesSchema } from "./domain.js";
+export { administrationRouteSchema } from "./domain.js";
+export { allocationStatusSchema } from "./domain.js";
+export { allocationTypeSchema } from "./domain.js";
+export { animalStatusSchema } from "./domain.js";
+export { approvalActionSchema } from "./domain.js";
+export { archiveDocumentTypeSchema } from "./domain.js";
+export { archiveLocationSchema } from "./domain.js";
+export { auditActionSchema } from "./domain.js";
+export { birthNotificationStatusSchema } from "./domain.js";
+export { birthTypeSchema } from "./domain.js";
+export { contingentTypeSchema } from "./domain.js";
+export { correctionCaseTypeSchema } from "./domain.js";
+export { correctionStatusSchema } from "./domain.js";
+export { dataSourceSchema } from "./domain.js";
+export { deathCauseSchema } from "./domain.js";
+export { deliveryMethodSchema } from "./domain.js";
+export { detectionSourceSchema } from "./domain.js";
+export { deviceStatusSchema } from "./domain.js";
+export { distributionMethodSchema } from "./domain.js";
+export { duplicateTypeSchema } from "./domain.js";
+export { earTagOrderStatusSchema } from "./domain.js";
+export { earTagReplacementReasonSchema } from "./domain.js";
+export { earTagReplacementStatusSchema } from "./domain.js";
+export { earTagStatusSchema } from "./domain.js";
+export { eartagTransitionStatusSchema } from "./domain.js";
+export { emailStatusSchema } from "./domain.js";
+export { entityTypeSchema } from "./domain.js";
+export { environmentSchema } from "./domain.js";
+export { eventSourceSchema } from "./domain.js";
+export { farmBookStatusSchema } from "./domain.js";
+export { farmReadRolesSchema } from "./domain.js";
+export { farmTypeSchema } from "./domain.js";
+export { fenceTypeSchema } from "./domain.js";
+export { geofenceEventSourceSchema } from "./domain.js";
+export { geofenceEventTypeSchema } from "./domain.js";
+export { healthRecordTypeSchema } from "./domain.js";
+export { healthSeveritySchema } from "./domain.js";
+export { holdingTypeSchema } from "./domain.js";
+export { importExportStatusSchema } from "./domain.js";
+export { importTypeSchema } from "./domain.js";
+export { inspectionStatusSchema } from "./domain.js";
+export { iotDeviceStatusSchema } from "./domain.js";
+export { languageSchema } from "./domain.js";
+export { moduleTypeSchema } from "./domain.js";
+export { movementTypeSchema } from "./domain.js";
+export { notificationCategorySchema } from "./domain.js";
+export { notificationPrioritySchema } from "./domain.js";
+export { notificationStatusSchema } from "./domain.js";
+export { notificationTypeSchema } from "./domain.js";
+export { orderStatusSchema } from "./domain.js";
+export { orgReadRolesSchema } from "./domain.js";
+export { orgTypeSchema } from "./domain.js";
+export { parentTypeSchema } from "./domain.js";
+export { passportStatusSchema } from "./domain.js";
+export { pastureTypeSchema } from "./domain.js";
+export { processingStageSchema } from "./domain.js";
+export { readingTypeSchema } from "./domain.js";
+export { reprintReasonSchema } from "./domain.js";
+export { reprintStatusSchema } from "./domain.js";
+export { rolePrioritySchema } from "./domain.js";
+export { severitySchema } from "./domain.js";
+export { sexSchema } from "./domain.js";
+export { sortAnimalBySchema } from "./domain.js";
+export { sortByEartagSchema } from "./domain.js";
+export { sortByFarmSchema } from "./domain.js";
+export { sortByMovementSchema } from "./domain.js";
+export { sortByUserSchema } from "./domain.js";
+export { sortOrderSchema } from "./domain.js";
+export { stateCodeSchema } from "./domain.js";
+export { subjectRoleSchema } from "./domain.js";
+export { syncErrorTypeSchema } from "./domain.js";
+export { tagCategorySchema } from "./domain.js";
+export { takeoverStatusSchema } from "./domain.js";
+export { testResultSchema } from "./domain.js";
+export { testTypeSchema } from "./domain.js";
+export { transmissionTypeSchema } from "./domain.js";
+export { userRoleSchema } from "./domain.js";
+export { userStatusSchema } from "./domain.js";
+export { vaccineTypeSchema } from "./domain.js";
+export { verificationStatusSchema } from "./domain.js";
+export { vsContractStatusSchema } from "./domain.js";
+export { weighingTypeSchema } from "./domain.js";
+export { writeRolesSchema } from "./domain.js";
+// ── Inferred types ──
+export type { adminRolesType } from "./domain.js";
+export type { administrationRouteType } from "./domain.js";
+export type { allocationStatusType } from "./domain.js";
+export type { allocationTypeType } from "./domain.js";
+export type { animalStatusType } from "./domain.js";
+export type { approvalActionType } from "./domain.js";
+export type { archiveDocumentTypeType } from "./domain.js";
+export type { archiveLocationType } from "./domain.js";
+export type { auditActionType } from "./domain.js";
+export type { birthNotificationStatusType } from "./domain.js";
+export type { birthTypeType } from "./domain.js";
+export type { contingentTypeType } from "./domain.js";
+export type { correctionCaseTypeType } from "./domain.js";
+export type { correctionStatusType } from "./domain.js";
+export type { dataSourceType } from "./domain.js";
+export type { deathCauseType } from "./domain.js";
+export type { deliveryMethodType } from "./domain.js";
+export type { detectionSourceType } from "./domain.js";
+export type { deviceStatusType } from "./domain.js";
+export type { distributionMethodType } from "./domain.js";
+export type { duplicateTypeType } from "./domain.js";
+export type { earTagOrderStatusType } from "./domain.js";
+export type { earTagReplacementReasonType } from "./domain.js";
+export type { earTagReplacementStatusType } from "./domain.js";
+export type { earTagStatusType } from "./domain.js";
+export type { eartagTransitionStatusType } from "./domain.js";
+export type { emailStatusType } from "./domain.js";
+export type { entityTypeType } from "./domain.js";
+export type { environmentType } from "./domain.js";
+export type { eventSourceType } from "./domain.js";
+export type { farmBookStatusType } from "./domain.js";
+export type { farmReadRolesType } from "./domain.js";
+export type { farmTypeType } from "./domain.js";
+export type { fenceTypeType } from "./domain.js";
+export type { geofenceEventSourceType } from "./domain.js";
+export type { geofenceEventTypeType } from "./domain.js";
+export type { healthRecordTypeType } from "./domain.js";
+export type { healthSeverityType } from "./domain.js";
+export type { holdingTypeType } from "./domain.js";
+export type { importExportStatusType } from "./domain.js";
+export type { importTypeType } from "./domain.js";
+export type { inspectionStatusType } from "./domain.js";
+export type { iotDeviceStatusType } from "./domain.js";
+export type { languageType } from "./domain.js";
+export type { moduleTypeType } from "./domain.js";
+export type { movementTypeType } from "./domain.js";
+export type { notificationCategoryType } from "./domain.js";
+export type { notificationPriorityType } from "./domain.js";
+export type { notificationStatusType } from "./domain.js";
+export type { notificationTypeType } from "./domain.js";
+export type { orderStatusType } from "./domain.js";
+export type { orgReadRolesType } from "./domain.js";
+export type { orgTypeType } from "./domain.js";
+export type { parentTypeType } from "./domain.js";
+export type { passportStatusType } from "./domain.js";
+export type { pastureTypeType } from "./domain.js";
+export type { processingStageType } from "./domain.js";
+export type { readingTypeType } from "./domain.js";
+export type { reprintReasonType } from "./domain.js";
+export type { reprintStatusType } from "./domain.js";
+export type { rolePriorityType } from "./domain.js";
+export type { severityType } from "./domain.js";
+export type { sexType } from "./domain.js";
+export type { sortAnimalByType } from "./domain.js";
+export type { sortByEartagType } from "./domain.js";
+export type { sortByFarmType } from "./domain.js";
+export type { sortByMovementType } from "./domain.js";
+export type { sortByUserType } from "./domain.js";
+export type { sortOrderType } from "./domain.js";
+export type { stateCodeType } from "./domain.js";
+export type { subjectRoleType } from "./domain.js";
+export type { syncErrorTypeType } from "./domain.js";
+export type { tagCategoryType } from "./domain.js";
+export type { takeoverStatusType } from "./domain.js";
+export type { testResultType } from "./domain.js";
+export type { testTypeType } from "./domain.js";
+export type { transmissionTypeType } from "./domain.js";
+export type { userRoleType } from "./domain.js";
+export type { userStatusType } from "./domain.js";
+export type { vaccineTypeType } from "./domain.js";
+export type { verificationStatusType } from "./domain.js";
+export type { vsContractStatusType } from "./domain.js";
+export type { weighingTypeType } from "./domain.js";
+export type { writeRolesType } from "./domain.js";

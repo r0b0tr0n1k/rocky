@@ -11,6 +11,7 @@ import {
   inspectionStatusSchema,
   animalStatusSchema,
   sexSchema,
+  languageSchema,
   type animalStatusType,
   type sexType,
 } from "../enums/domain.js";
@@ -104,7 +105,7 @@ export const createInspectionRequestSchema = inspectionInsertSchema
 
 export type CreateInspectionRequest = z.infer<typeof createInspectionRequestSchema>;
 
-export const completeInspectionRequestSchema = z
+export const completeInspectionRequestSchema = z.strictObject(z
   .strictObject({
     id: z.uuid(),
     inspectionDate: z.coerce.date(),
@@ -113,17 +114,15 @@ export const completeInspectionRequestSchema = z
     discrepanciesFound: z.boolean().optional(),
     keeperSigned: z.boolean().optional(),
     formReturned: z.boolean().optional(),
-  })
-  .strict();
+  }).shape);
 
 export type CompleteInspectionRequest = z.infer<typeof completeInspectionRequestSchema>;
 
-export const scheduleInspectionRequestSchema = z
+export const scheduleInspectionRequestSchema = z.strictObject(z
   .strictObject({
     id: z.uuid(),
     scheduledDate: z.coerce.date(),
-  })
-  .strict();
+  }).shape);
 
 export type ScheduleInspectionRequest = z.infer<typeof scheduleInspectionRequestSchema>;
 
@@ -131,12 +130,11 @@ export type ScheduleInspectionRequest = z.infer<typeof scheduleInspectionRequest
 // FORM GENERATION SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const printInspectionFormRequestSchema = z
+export const printInspectionFormRequestSchema = z.strictObject(z
   .strictObject({
     id: z.uuid(),
-    language: z.enum(["MK", "EN", "SQ", "SR"]).default("MK"),
-  })
-  .strict();
+    language: languageSchema.default("MK"),
+  }).shape);
 
 export type PrintInspectionFormRequest = z.infer<typeof printInspectionFormRequestSchema>;
 

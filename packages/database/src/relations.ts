@@ -38,10 +38,12 @@ export const relations = defineRelations({ ...sm, ...hk, ...an, ...auth, ...demo
     fromFarm: r.one.farms({
       from: r.movements.fromFarmId,
       to: r.farms.id,
+      alias: 'fromFarm',
     }),
     toFarm: r.one.farms({
       from: r.movements.toFarmId,
       to: r.farms.id,
+      alias: 'toFarm',
     }),
     parentMovement: r.one.movements({
       from: r.movements.parentMovementId,
@@ -59,7 +61,7 @@ export const relations = defineRelations({ ...sm, ...hk, ...an, ...auth, ...demo
       from: r.birthNotifications.farmId,
       to: r.farms.id,
     }),
-    assignedTo: r.one.users({
+    assignedUser: r.one.users({
       from: r.birthNotifications.assignedTo,
       to: r.users.id,
     }),
@@ -80,8 +82,8 @@ export const relations = defineRelations({ ...sm, ...hk, ...an, ...auth, ...demo
     }),
     subjects: r.many.farmSubjects(),
     animals: r.many.animals(),
-    movementsFromFarm: r.many.movements(),
-    movementsToFarm: r.many.movements(),
+    movementsFromFarm: r.many.movements({ alias: 'fromFarm' }),
+    movementsToFarm: r.many.movements({ alias: 'toFarm' }),
     birthNotifications: r.many.birthNotifications(),
   },
 
@@ -90,7 +92,7 @@ export const relations = defineRelations({ ...sm, ...hk, ...an, ...auth, ...demo
   // ==================================================================
 
   addresses: {
-    zipCode: r.one.zipCodes({
+    zipCodeRelation: r.one.zipCodes({
       from: r.addresses.zipCodeId,
       to: r.zipCodes.id,
     }),
@@ -176,6 +178,7 @@ export const relations = defineRelations({ ...sm, ...hk, ...an, ...auth, ...demo
     sessions: r.many.userSessions(),
     notifications: r.many.notifications(),
     notificationPreferences: r.many.notificationPreferences(),
+    devices: r.many.pdaDevices(),
   },
 
   userSessions: {
@@ -235,11 +238,11 @@ export const relations = defineRelations({ ...sm, ...hk, ...an, ...auth, ...demo
       from: r.earTagOrders.organizationId,
       to: r.organizations.id,
     }),
-    requestedBy: r.one.users({
+    requester: r.one.users({
       from: r.earTagOrders.requestedBy,
       to: r.users.id,
     }),
-    approvedBy: r.one.users({
+    approver: r.one.users({
       from: r.earTagOrders.approvedBy,
       to: r.users.id,
     }),
@@ -251,7 +254,7 @@ export const relations = defineRelations({ ...sm, ...hk, ...an, ...auth, ...demo
       from: r.earTagAllocations.farmId,
       to: r.farms.id,
     }),
-    receivedBy: r.one.users({
+    receiver: r.one.users({
       from: r.earTagAllocations.receivedBy,
       to: r.users.id,
     }),
@@ -263,11 +266,11 @@ export const relations = defineRelations({ ...sm, ...hk, ...an, ...auth, ...demo
       from: r.earTagReplacements.farmId,
       to: r.farms.id,
     }),
-    reportedBy: r.one.users({
+    reporter: r.one.users({
       from: r.earTagReplacements.reportedBy,
       to: r.users.id,
     }),
-    approvedBy: r.one.users({
+    approver: r.one.users({
       from: r.earTagReplacements.approvedBy,
       to: r.users.id,
     }),
@@ -320,6 +323,17 @@ export const relations = defineRelations({ ...sm, ...hk, ...an, ...auth, ...demo
   },
 
   verification: {},
+
+  // ==================================================================
+  // PDA DEVICES
+  // ==================================================================
+
+  pdaDevices: {
+    currentUser: r.one.users({
+      from: r.pdaDevices.currentUserId,
+      to: r.users.id,
+    }),
+  },
 
   // ==================================================================
   // DEMO (demo tables)

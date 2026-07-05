@@ -1,0 +1,1 @@
+ALTER TABLE "pda_devices" ADD CONSTRAINT "pda_devices_current_user_id_users_id_fkey" FOREIGN KEY ("current_user_id") REFERENCES "users"("id");

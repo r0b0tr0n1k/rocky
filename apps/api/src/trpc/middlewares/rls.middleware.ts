@@ -20,12 +20,12 @@
  */
 
 import { Injectable } from "@nestjs/common";
-import type { TRPCMiddleware, MiddlewareOptions } from "nestjs-trpc";
+import { ORG_SCOPED_ROLES, RLS_BYPASS_ROLES, ROLE_HIERARCHY } from "@rocky/database/constants/index.js";
+import { db } from "@rocky/database/index.js";
+import type { AppContext } from "@rocky/trpc/context.js";
 import { TRPCError } from "@trpc/server";
 import { sql } from "drizzle-orm";
-import { db } from "@rocky/database";
-import { ROLE_HIERARCHY, RLS_BYPASS_ROLES, ORG_SCOPED_ROLES } from "@rocky/database/constants";
-import type { AppContext } from "@rocky/trpc/context.js";
+import type { MiddlewareOptions, TRPCMiddleware } from "nestjs-trpc";
 
 /** Extended user type after customSession enrichment */
 interface EnrichedUser {
@@ -60,9 +60,7 @@ export class RLSMiddleware implements TRPCMiddleware {
     const orgId = user.organizationId;
     const highestRole =
       user.roles.length > 0
-        ? user.roles.reduce((a, b) =>
-          (ROLE_HIERARCHY[a] ?? 0) >= (ROLE_HIERARCHY[b] ?? 0) ? a : b,
-        )
+        ? user.roles.reduce((a, b) => ((ROLE_HIERARCHY[a] ?? 0) >= (ROLE_HIERARCHY[b] ?? 0) ? a : b))
         : primaryRole;
 
     // ── Calculate access level ─────────────────────────────────

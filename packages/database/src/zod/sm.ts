@@ -1,5 +1,6 @@
 // --- Dumb Zod - System Management Domain ---
 
+import { auditLog } from "../schema/sm/audit-log.js";
 import { businessRules, codeTables, systemParameters } from "../schema/sm/modules.js";
 import { notificationPreferences } from "../schema/sm/notification-preferences.js";
 import { notificationTemplates } from "../schema/sm/notification-templates.js";
@@ -38,3 +39,6 @@ export const notificationTemplateInsertSchema = createInsertSchema(notificationT
 
 export const notificationPreferenceSelectSchema = createSelectSchema(notificationPreferences);
 export const notificationPreferenceInsertSchema = createInsertSchema(notificationPreferences);
+
+export const auditLogSelectSchema = createSelectSchema(auditLog);
+export const auditLogInsertSchema = createInsertSchema(auditLog);

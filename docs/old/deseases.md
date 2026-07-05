@@ -21,12 +21,12 @@ erDiagram
     SM_USERS ||--o{ HD_TREATMENTS : "diagnosed/treated by (Vet)"
     ET_CONT_TAGS ||--o{ HD_VACCINATIONS : "assigned to Animal"
     ET_CONT_TAGS ||--o{ HD_TREATMENTS : "affects Animal"
-    
+
     %% New Entities
     HD_DISEASES ||--o{ HD_TREATMENTS : "diagnosed as"
     HD_VACCINES ||--o{ HD_VACCINATIONS : "used for"
     HD_VACCINE_BATCHES ||--o{ HD_VACCINATIONS : "provides specific batch"
-    
+
     SM_SESSIONS ||--o{ HD_DISEASES : "audits"
     SM_SESSIONS ||--o{ HD_VACCINES : "audits"
     SM_SESSIONS ||--o{ HD_VACCINATIONS : "audits"

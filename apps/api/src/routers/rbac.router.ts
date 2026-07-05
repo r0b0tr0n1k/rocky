@@ -1,35 +1,34 @@
 // --- RBAC Router - tRPC entry point ---
 
 import { Inject, Injectable } from "@nestjs/common";
-import { RbacService } from "@rocky/domains-rbac";
-import { createResultUnwrapper } from "@rocky/trpc";
+import { Policy, RegisterPolicy } from "@rocky/authorization/index.js";
+import { RbacService } from "@rocky/domains-rbac/index.js";
+import { createResultUnwrapper } from "@rocky/trpc/index.js";
 import {
-  assignRoleToUserRequestSchema,
-  permissionResponseSchema,
-  revokeRoleFromUserRequestSchema,
-  roleResponseSchema,
-  roleWithPermissionsResponseSchema,
   type AssignRoleToUserRequest,
+  assignRoleToUserRequestSchema,
   type PermissionResponse,
+  permissionResponseSchema,
   type RevokeRoleFromUserRequest,
   type RoleResponse,
   type RoleWithPermissionsResponse,
-} from "@rocky/validators/api";
-import { RBAC_TRPC_ERROR_MAP } from "@rocky/validators/errors";
-import { Input, Mutation, Query, Router, UseMiddlewares } from "nestjs-trpc";
+  revokeRoleFromUserRequestSchema,
+  roleResponseSchema,
+  roleWithPermissionsResponseSchema,
+} from "@rocky/validators/api/index.js";
+import { RBAC_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
+import { Input, Mutation, Query, Router } from "nestjs-trpc";
 import { z } from "zod";
-import { ProtectedMiddleware } from "../trpc/middlewares/protected.middleware.js";
 
 const roleIdParam = z.object({ roleId: z.uuid() });
 const unwrap = createResultUnwrapper(RBAC_TRPC_ERROR_MAP);
 
 @Router({ alias: "rbac" })
-@UseMiddlewares(ProtectedMiddleware)
+@RegisterPolicy("rbac")
+@Policy({ authenticated: true })
 @Injectable()
 export class RbacRouter {
-  constructor(
-    @Inject(RbacService) private readonly rbacService: RbacService,
-  ) { }
+  constructor(@Inject(RbacService) private readonly rbacService: RbacService) {}
 
   @Query({ output: z.array(roleResponseSchema) })
   async listRoles(): Promise<RoleResponse[]> {

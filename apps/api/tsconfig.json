@@ -21,6 +21,8 @@
       "@rocky/trpc/*": [
         "../../packages/trpc/src/*"
       ],
+      "@rocky/domains-shared": ["../../packages/domains/shared/src/index.ts"],
+      "@rocky/domains-shared/*": ["../../packages/domains/shared/src/*"],
       "@rocky/domains-notification": [
         "../../packages/domains-notification/src/index.ts"
       ],
@@ -65,6 +67,12 @@
       ],
       "@rocky/validators/*": [
         "../../packages/validators/src/*"
+      ],
+      "@rocky/authorization": [
+        "../../packages/authorization/src/index.ts"
+      ],
+      "@rocky/execution": [
+        "../../packages/execution/src/index.ts"
       ]
     }
   }

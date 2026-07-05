@@ -1,7 +1,7 @@
 /**
  * EarTag Domain Errors
  *
- * Following Error Sovereignty Doctrine: 6 error codes.
+ * Following Error Sovereignty Doctrine: 7 error codes.
  * ALREADY_APPLIED + ALREADY_ALLOCATED → ALREADY_ASSIGNED
  * (frontend branches identically on both — "tag already in use").
  */

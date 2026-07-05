@@ -5,17 +5,17 @@
 //
 // Based on: SM.PDF
 
+import { userInsertSchema, userSelectSchema } from "@rocky/database/zod";
 import { z } from "zod";
-import { userSelectSchema, userInsertSchema } from "@rocky/database/zod";
-import { userStatusSchema } from "../enums/domain.js";
-import { sortByUserSchema, sortOrderSchema } from "../enums/domain.js";
-import { STATE_CODE } from "@rocky/database/constants";
+import { languageSchema, sortByUserSchema, sortOrderSchema, userStatusSchema } from "../enums/domain.js";
+import type { NoDrift, NoDriftSimple, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RESPONSE SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const userResponseSchema = userSelectSchema
+  // @deprecated: passwordHash, mfaSecret, role columns are legacy
   .omit({
     passwordHash: true,
     mfaSecret: true,
@@ -29,15 +29,15 @@ export const userResponseSchema = userSelectSchema
 export type UserResponse = z.infer<typeof userResponseSchema>;
 
 export const userSummarySchema = z.strictObject({
-    id: z.uuid(),
-    username: z.string(),
-    email: z.string().nullable(),
-    firstName: z.string().nullable(),
-    lastName: z.string().nullable(),
-    organizationId: z.uuid().nullable(),
-    status: userStatusSchema,
-    lastLoginAt: z.date().nullable(),
-  });
+  id: z.uuid(),
+  username: z.string(),
+  email: z.string().nullable(),
+  firstName: z.string().nullable(),
+  lastName: z.string().nullable(),
+  organizationId: z.uuid().nullable(),
+  status: userStatusSchema,
+  lastLoginAt: z.date().nullable(),
+});
 
 export type UserSummary = z.infer<typeof userSummarySchema>;
 
@@ -59,7 +59,7 @@ export const createUserRequestSchema = userInsertSchema
     username: z.string().min(3).max(50),
     email: z.email().optional(),
     mobilePhone: z.string().max(30).optional(),
-    language: z.string().length(2).default(STATE_CODE.MK),
+    language: languageSchema.default("MK"),
     status: userStatusSchema.optional(),
     password: z.string().min(8).max(100),
   });
@@ -71,7 +71,7 @@ export const updateUserRequestSchema = z.object({
   mobilePhone: z.string().max(30).optional(),
   firstName: z.string().max(50).optional(),
   lastName: z.string().max(50).optional(),
-  language: z.string().length(2).optional(),
+  language: languageSchema.optional(),
   geoUnlimited: z.boolean().optional(),
   status: userStatusSchema.optional(),
 });
@@ -91,3 +91,16 @@ export const userListRequestSchema = z.object({
 export type UserListRequest = z.infer<typeof userListRequestSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════
+// GUILLOTINES
+// ═══════════════════════════════════════════════════════════════════════════
+
+type _drift_userResponse = NoDrift<z.infer<typeof userResponseSchema>, UserResponse>;
+type _drift_userSummary = NoDrift<z.infer<typeof userSummarySchema>, UserSummary>;
+type _drift_createUser = NoDriftSimple<z.infer<typeof createUserRequestSchema>, CreateUserRequest>;
+type _drift_updateUser = NoDrift<z.infer<typeof updateUserRequestSchema>, UpdateUserRequest>;
+type _drift_userList = NoDriftSimple<z.infer<typeof userListRequestSchema>, UserListRequest>;
+
+export type _UserGuillotines = ActivateGuillotines<
+  [_drift_userResponse, _drift_userSummary, _drift_createUser,
+   _drift_updateUser, _drift_userList]
+>;

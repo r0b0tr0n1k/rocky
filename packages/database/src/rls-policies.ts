@@ -17,13 +17,13 @@ const currentOrgId = () => sql.raw(`current_setting('app.current_org_id', true):
 
 /** SQL fragment: IN ('ROLE1', 'ROLE2', ...) */
 function roleIn(...roles: string[]) {
-    const list = roles.map((r) => sql.raw(`'${r}'`)).join(", ");
-    return sql.raw(`(${list})`);
+  const list = roles.map((r) => sql.raw(`'${r}'`)).join(", ");
+  return sql.raw(`(${list})`);
 }
 
 /** SQL literal: current_setting(...) = 'ROLE' */
 function _roleIs(role: string) {
-    return sql.raw(`${currentRole()} = '${role}'`);
+  return sql.raw(`${currentRole()} = '${role}'`);
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -34,8 +34,8 @@ function _roleIs(role: string) {
 // Grants full access to system-wide administrators.
 
 export const adminAllAccess = {
-    using: () => sql`true`,
-    withCheck: () => sql`true`,
+  using: () => sql`true`,
+  withCheck: () => sql`true`,
 };
 
 // ── Self or admin ──
@@ -43,8 +43,8 @@ export const adminAllAccess = {
 // Used by: users, sessions, rbac, audit-log
 
 export const adminOrSelf = (userIdColumn?: string) => {
-    const col = userIdColumn ?? "id";
-    return sql`
+  const col = userIdColumn ?? "id";
+  return sql`
     ${currentRole()} IN ${roleIn(USER_ROLE.SUPER_ADMIN, USER_ROLE.VD_ADMIN)}
     OR ${sql.raw(col)} = ${currentUserId()}
   `;
@@ -67,10 +67,10 @@ export const staffOrVetAccess = () => sql`
 
 export const staffOrVetWrite = () => sql`
   ${currentRole()} IN ${roleIn(
-    USER_ROLE.SUPER_ADMIN,
-    USER_ROLE.VD_ADMIN,
-    USER_ROLE.VD_STAFF,
-    USER_ROLE.VETERINARIAN,
+  USER_ROLE.SUPER_ADMIN,
+  USER_ROLE.VD_ADMIN,
+  USER_ROLE.VD_STAFF,
+  USER_ROLE.VETERINARIAN,
 )}
 `;
 

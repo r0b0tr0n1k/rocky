@@ -5,29 +5,25 @@
  */
 
 import { eq, and, desc, asc, lte, sql, type SQL } from "drizzle-orm";
-import type { DB } from "@rocky/database";
 import { notifications, notificationPreferences, notificationTemplates } from "@rocky/database";
 import { BaseRepository } from "@rocky/domains-shared";
 
 export class NotificationRepository extends BaseRepository {
-  constructor(db: DB) {
-    super(db);
-  }
 
   /** Insert a single notification. Returns the created row. */
   async insert(values: typeof notifications.$inferInsert): Promise<typeof notifications.$inferSelect | null> {
-    const [row] = await this.db.insert(notifications).values(values).returning();
+    const [row] = await this.client.insert(notifications).values(values).returning();
     return row ?? null;
   }
 
   /** Insert multiple notifications. Returns created rows. */
   async insertMany(rows: (typeof notifications.$inferInsert)[]): Promise<(typeof notifications.$inferSelect)[]> {
-    return this.db.insert(notifications).values(rows).returning();
+    return this.client.insert(notifications).values(rows).returning();
   }
 
   /** Find user preferences for a category. */
   async findPreferences(userId: string, category: string) {
-    const [row] = await this.db
+    const [row] = await this.client
       .select()
       .from(notificationPreferences)
       .where(and(eq(notificationPreferences.userId, userId), eq(notificationPreferences.category, category)))
@@ -41,7 +37,7 @@ export class NotificationRepository extends BaseRepository {
     if (filters.status) c.push(eq(notifications.status, filters.status));
     if (filters.category) c.push(eq(notifications.category, filters.category));
 
-    return this.db
+    return this.client
       .select()
       .from(notifications)
       .where(c.length > 1 ? and(...c) : c[0]!)
@@ -56,7 +52,7 @@ export class NotificationRepository extends BaseRepository {
     userId: string,
     data: Partial<typeof notifications.$inferInsert>,
   ): Promise<typeof notifications.$inferSelect | null> {
-    const [row] = await this.db
+    const [row] = await this.client
       .update(notifications)
       .set(data)
       .where(and(eq(notifications.id, id), eq(notifications.userId, userId)))
@@ -69,13 +65,13 @@ export class NotificationRepository extends BaseRepository {
     id: string,
     data: Partial<typeof notifications.$inferInsert>,
   ): Promise<typeof notifications.$inferSelect | null> {
-    const [row] = await this.db.update(notifications).set(data).where(eq(notifications.id, id)).returning();
+    const [row] = await this.client.update(notifications).set(data).where(eq(notifications.id, id)).returning();
     return row ?? null;
   }
 
   /** Get pending notifications for background workers. */
   async findPending(limit: number) {
-    return this.db
+    return this.client
       .select()
       .from(notifications)
       .where(and(eq(notifications.status, "PENDING"), lte(notifications.scheduledAt, new Date())))
@@ -88,7 +84,7 @@ export class NotificationRepository extends BaseRepository {
     id: string,
     updates: Partial<typeof notifications.$inferInsert>,
   ): Promise<typeof notifications.$inferSelect | null> {
-    const [row] = await this.db
+    const [row] = await this.client
       .update(notifications)
       .set({
         ...updates,
@@ -102,7 +98,7 @@ export class NotificationRepository extends BaseRepository {
 
   /** Find a notification template by code. */
   async findTemplateByCode(code: string) {
-    const [row] = await this.db
+    const [row] = await this.client
       .select()
       .from(notificationTemplates)
       .where(eq(notificationTemplates.code, code))

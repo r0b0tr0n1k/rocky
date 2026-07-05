@@ -3,6 +3,7 @@
 
 import {
   boolean,
+  check,
   date,
   index,
   integer,
@@ -13,6 +14,7 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { ANIMAL_STATUS } from "../../constants/animal-status.js";
 import { STATE_CODE } from "../../constants/state-code.js";
 import { animalStatusPgEnum } from "../../schemas/enums/animal-status.js";
@@ -79,6 +81,7 @@ export const animals = pgTable(
       using: rlsForFarmColumn(table.currentFarmId),
       withCheck: adminAndVetWrite,
     }),
+    check("ck_animal_not_own_mother", sql`${table.motherId} IS DISTINCT FROM ${table.id}`),
   ],
 );
 

@@ -1,9 +1,11 @@
-// --- Database Module - provides drizzle connection to NestJS DI ---
+// ── Database Module ──
+// Provides the Drizzle DB instance and the DatabaseProvider for transactional
+// connection management via CLS (AsyncLocalStorage).
 
 import { Global, Module } from "@nestjs/common";
-import { db } from "@rocky/database";
+import { DatabaseProvider, db } from "@rocky/database/index.js";
 
-export const DB_TOKEN = "DB";
+export const DB_TOKEN = "DB_TOKEN";
 
 @Global()
 @Module({
@@ -12,7 +14,8 @@ export const DB_TOKEN = "DB";
       provide: DB_TOKEN,
       useValue: db,
     },
+    DatabaseProvider,
   ],
-  exports: [DB_TOKEN],
+  exports: [DB_TOKEN, DatabaseProvider],
 })
 export class DbModule {}

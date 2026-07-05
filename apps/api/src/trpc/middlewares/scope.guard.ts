@@ -22,26 +22,30 @@
  * ```
  */
 
-import type { TRPCMiddleware, MiddlewareOptions } from "nestjs-trpc";
+import { db } from "@rocky/database/index.js";
+import { farmSubjects } from "@rocky/database/schema/hk/index.js";
 import { TRPCError } from "@trpc/server";
-import { eq, and, sql } from "drizzle-orm";
-import { db } from "@rocky/database";
-import { farmSubjects } from "@rocky/database/schema/hk";
+import { and, eq, sql } from "drizzle-orm";
+import type { MiddlewareOptions, TRPCMiddleware } from "nestjs-trpc";
 
 export class ScopeGuard implements TRPCMiddleware {
   constructor(
     private readonly scopeField: string,
     private readonly scopeType: "farm" | "org" = "farm",
-  ) { }
+  ) {}
 
-  async use(opts: MiddlewareOptions<Record<string, unknown> & {
-      rls?: {
-        userId: string;
-        role: string;
-        roles: string[];
-        accessLevel: "all" | "organization" | "own";
-      };
-    }>) {
+  async use(
+    opts: MiddlewareOptions<
+      Record<string, unknown> & {
+        rls?: {
+          userId: string;
+          role: string;
+          roles: string[];
+          accessLevel: "all" | "organization" | "own";
+        };
+      }
+    >,
+  ) {
     const { ctx, next, input } = opts;
 
     const rls = ctx.rls;
@@ -78,7 +82,7 @@ export class ScopeGuard implements TRPCMiddleware {
       // Org-scoped: verify farm's address commune is in user's org area
       // This is already enforced by RLS, but double-check at app layer
       // for early rejection with clear error message
-      const result = await db.execute<{ count: number }>(
+      const _result = await db.execute<{ count: number }>(
         db
           .select({ count: sql<number>`count(*)::int` })
           .from(farmSubjects)

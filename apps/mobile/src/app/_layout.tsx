@@ -5,11 +5,10 @@ import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { View, Text, StyleSheet } from "react-native";
 
-import { useColorScheme } from "#/hooks/use-color-scheme";
-import { TRPCProvider } from "#/providers/trpc-provider";
-import { SessionProvider } from "#/providers/session-provider";
-import { getConfig } from "#/lib/config";
-import { initAuthClient } from "#/lib/auth";
+import { useColorScheme } from "#/hooks/use-color-scheme.js";
+import { TRPCProvider } from "#/providers/trpc-provider.js";
+import { SessionProvider } from "#/providers/session-provider.js";
+import { getConfig } from "#/lib/config.js";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -39,8 +38,6 @@ export default function RootLayout() {
       <ConfigError message={err instanceof Error ? err.message : "Failed to load configuration"} />
     );
   }
-
-  initAuthClient(config.apiUrl);
 
   return (
     <TRPCProvider apiUrl={config.apiUrl}>

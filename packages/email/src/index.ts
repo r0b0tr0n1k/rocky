@@ -30,6 +30,6 @@
  * 4. Update notification-worker.service.ts to use new implementation
  */
 
-export { EmailService } from "./services/email.service";
-export * from "./types/email.types";
-export * from "./templates";
+export { EmailService } from "./services/email.service.js";
+export * from "./types/email.types.js";
+export * from "./templates/index.js";

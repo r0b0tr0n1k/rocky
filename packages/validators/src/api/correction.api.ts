@@ -2,7 +2,8 @@
 
 import { z } from "zod";
 import { errorCorrectionSelectSchema } from "@rocky/database/zod";
-import { correctionStatusSchema, correctionCaseTypeSchema } from "../enums/domain.js";
+import { correctionStatusSchema, correctionCaseTypeSchema, detectionSourceSchema } from "../enums/domain.js";
+import type { detectionSourceType, correctionCaseTypeType, correctionStatusType } from "../enums/domain.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -10,15 +11,15 @@ import { correctionStatusSchema, correctionCaseTypeSchema } from "../enums/domai
 
 export interface CorrectionResponse {
   id: string;
-  detectionSource: string;
+  detectionSource: detectionSourceType;
   farmId: string | null;
   animalId: string | null;
   errorType: string;
   errorDescription: string;
   originalData: unknown;
   correctedData: unknown;
-  status: "pending" | "under_review" | "resolved" | "escalated" | "rejected";
-  caseType: "technician_resolvable" | "requires_clarification" | "complex" | null;
+  status: correctionStatusType;
+  caseType: correctionCaseTypeType | null;
   resolutionNotes: string | null;
   resolvedBy: string | null;
   resolvedAt: Date | null;
@@ -44,14 +45,14 @@ export interface CorrectionListResponse {
 }
 
 export interface CreateCorrectionRequest {
-  detectionSource: string;
+  detectionSource: detectionSourceType;
   farmId?: string;
   animalId?: string;
   errorType: string;
   errorDescription: string;
   originalData?: unknown;
   correctedData?: unknown;
-  caseType?: string;
+  caseType?: correctionCaseTypeType | undefined;
 }
 
 export interface ReviewCorrectionRequest {
@@ -72,8 +73,8 @@ export interface EscalateCorrectionRequest {
 export interface CorrectionListRequest {
   farmId?: string;
   animalId?: string;
-  status?: string;
-  detectionSource?: string;
+  status?: correctionStatusType;
+  detectionSource?: detectionSourceType;
   limit: number;
   offset: number;
 }
@@ -85,6 +86,7 @@ export interface CorrectionListRequest {
 export const correctionResponseSchema = errorCorrectionSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
+    detectionSource: detectionSourceSchema,
     status: correctionStatusSchema,
     caseType: correctionCaseTypeSchema.nullable(),
     resolvedAt: z.coerce.date().nullable(),
@@ -105,7 +107,7 @@ export const correctionListResponseSchema = z.strictObject({
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const createCorrectionRequestSchema = z.strictObject({
-  detectionSource: z.enum(["field", "a_priori", "a_posteriori"]),
+  detectionSource: detectionSourceSchema,
   farmId: z.uuid().optional(),
   animalId: z.uuid().optional(),
   errorType: z.string().min(1).max(100),
@@ -134,7 +136,7 @@ export const correctionListRequestSchema = z.strictObject({
   farmId: z.uuid().optional(),
   animalId: z.uuid().optional(),
   status: correctionStatusSchema.optional(),
-  detectionSource: z.enum(["field", "a_priori", "a_posteriori"]).optional(),
+  detectionSource: detectionSourceSchema.optional(),
   limit: z.int().min(1).max(100).default(20),
   offset: z.int().min(0).default(0),
 }) satisfies z.ZodType<CorrectionListRequest>;

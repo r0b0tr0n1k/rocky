@@ -97,7 +97,7 @@ inspectionForm:
     riskScore:
       type: string | null
       source: inspections.risk_score
-      example: "HIGH", "MEDIUM", "LOW"
+      example: ["HIGH", "MEDIUM", "LOW"]
     riskCriteria:
       type: string | null
       source: inspections.risk_criteria

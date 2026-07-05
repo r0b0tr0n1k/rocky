@@ -1,54 +1,61 @@
-import { Module } from "@nestjs/common";
+// biome-ignore assist/source/organizeImports: Biome sorting sucks
+import { Inject, Module } from "@nestjs/common";
+import type { OnModuleInit } from "@nestjs/common";
 import { ScheduleModule } from "@nestjs/schedule";
-import type { DB } from "@rocky/database";
-import { LoggerModule } from "@rocky/logger";
-import { AuthModule } from "@thallesp/nestjs-better-auth";
-import { ClsModule } from "nestjs-cls";
+import { AuthorizationModule } from "@rocky/authorization/index.js";
+import { DatabaseProvider } from "@rocky/database/index.js";
 import crypto from "node:crypto";
-import { AuthCoreModule } from "./auth/auth-core.module.js";
-import { auth } from "./auth/auth.js";
-import { DB_TOKEN, DbModule } from "./modules/db.module.js";
-import { TrpcModule } from "./trpc/trpc.module.js";
-
 // ── Repositories ─────────────────────────────────────────────────────
-import { AnimalRepository } from "@rocky/domains-animal";
-import { ArchiveRepository } from "@rocky/domains-archive";
-import { CorrectionRepository } from "@rocky/domains-correction";
-import { EarTagRepository } from "@rocky/domains-eartag";
-import { FarmRepository } from "@rocky/domains-farm";
-import { HealthRepository } from "@rocky/domains-health";
-import { InspectionRepository } from "@rocky/domains-inspection";
-import { MovementRepository } from "@rocky/domains-movement";
-import { NotificationRepository } from "@rocky/domains-notification";
-import { OrganizationRepository } from "@rocky/domains-organization";
-import { PassportRepository } from "@rocky/domains-passport";
-import { RbacRepository } from "@rocky/domains-rbac";
-import { SubjectRepository } from "@rocky/domains-subject";
-import { UserRepository } from "@rocky/domains-user";
-
 // ── Domain Services ─────────────────────────────────────────────────
-import { AnimalService } from "@rocky/domains-animal";
-import { ArchiveService } from "@rocky/domains-archive";
-import { CorrectionService } from "@rocky/domains-correction";
-import { EarTagService } from "@rocky/domains-eartag";
-import { FarmService } from "@rocky/domains-farm";
-import { HealthService } from "@rocky/domains-health";
-import { InspectionService, RiskAnalysisService } from "@rocky/domains-inspection";
-import { MovementService } from "@rocky/domains-movement";
-import { NotificationService } from "@rocky/domains-notification";
-import { OrganizationService } from "@rocky/domains-organization";
-import { PassportService } from "@rocky/domains-passport";
-import { RbacService } from "@rocky/domains-rbac";
-import { SubjectService } from "@rocky/domains-subject";
-import { TodoService } from "@rocky/domains-todo";
-import { UserService } from "@rocky/domains-user";
-
+import { AnimalRepository, AnimalService } from "@rocky/domains-animal";
+import { AuditRepository, AuditService } from "@rocky/domains-audit";
+import { ArchiveRepository, ArchiveService } from "@rocky/domains-archive";
+import { CorrectionRepository, CorrectionService } from "@rocky/domains-correction";
+import { DeviceRepository, DeviceService } from "@rocky/domains-device";
+import { IotRepository, IotService } from "@rocky/domains-iot";
+import { EarTagRepository, EarTagService } from "@rocky/domains-eartag";
+import {
+  FarmBookRepository,
+  FarmBookService,
+  FarmRepository,
+  FarmService,
+  VsAssignmentRepository,
+  VsAssignmentService,
+  VsContractRepository,
+  VsContractService,
+} from "@rocky/domains-farm";
+import { HealthRepository, HealthService } from "@rocky/domains-health";
+import { InspectionRepository, InspectionService, RiskAnalysisService } from "@rocky/domains-inspection";
+import { MovementRepository, MovementService } from "@rocky/domains-movement";
+import { NotificationRepository, NotificationService } from "@rocky/domains-notification/index.js";
+import { OrganizationRepository, OrganizationService } from "@rocky/domains-organization/index.js";
+import { PassportRepository, PassportService } from "@rocky/domains-passport";
+import { RbacRepository, RbacService } from "@rocky/domains-rbac/index.js";
+import { SubjectRepository, SubjectService } from "@rocky/domains-subject";
+import { TodoService } from "@rocky/domains-todo/index.js";
+import { UserRepository, UserService } from "@rocky/domains-user/index.js";
+import { ExecutionModule } from "@rocky/execution/index.js";
+import { LoggerModule } from "@rocky/logger/index.js";
+import { PdfModule, DocumentRegistry, InspectionFormTemplate, PassportTemplate, MovementTemplate } from "@rocky/pdf/index.js";
+import { ClsModule } from "nestjs-cls";
+import { AuthCoreModule } from "./auth/auth-core.module.js";
+// ── Scheduled Jobs ─────────────────────────────────────────────────
+import { CorrectionConsistencyJob } from "./jobs/correction-consistency.job.js";
+import { RetentionJob } from "./jobs/retention.job.js";
+import { RiskAnalysisJob } from "./jobs/risk-analysis.job.js";
+import { DbModule } from "./modules/db.module.js";
 // ── tRPC Routers ────────────────────────────────────────────────────
 import { AnimalRouter } from "./routers/animal.router.js";
 import { ArchiveRouter } from "./routers/archive.router.js";
 import { CorrectionRouter } from "./routers/correction.router.js";
+import { DeviceRouter } from "./routers/device.router.js";
+import { IotRouter } from "./routers/iot.router.js";
+import { DocumentRouter } from "./routers/document.router.js";
 import { EarTagRouter } from "./routers/eartag.router.js";
+import { FarmBookRouter } from "./routers/farm-book.router.js";
 import { FarmRouter } from "./routers/farm.router.js";
+import { VsAssignmentRouter } from "./routers/vs-assignment.router.js";
+import { VsContractRouter } from "./routers/vs-contract.router.js";
 import { HealthRouter } from "./routers/health.router.js";
 import { InspectionRouter } from "./routers/inspection.router.js";
 import { MovementRouter } from "./routers/movement.router.js";
@@ -58,11 +65,7 @@ import { PassportRouter } from "./routers/passport.router.js";
 import { RbacRouter } from "./routers/rbac.router.js";
 import { SubjectRouter } from "./routers/subject.router.js";
 import { UserRouter } from "./routers/user.router.js";
-
-// ── Scheduled Jobs ─────────────────────────────────────────────────
-import { CorrectionConsistencyJob } from "./jobs/correction-consistency.job.js";
-import { RetentionJob } from "./jobs/retention.job.js";
-import { RiskAnalysisJob } from "./jobs/risk-analysis.job.js";
+import { TrpcModule } from "./trpc/trpc.module.js";
 
 @Module({
   imports: [
@@ -72,87 +75,118 @@ import { RiskAnalysisJob } from "./jobs/risk-analysis.job.js";
       middleware: {
         mount: true,
         generateId: true,
-        idGenerator: (req: any) =>
-          req.headers?.["x-correlation-id"] || crypto.randomUUID(),
+        idGenerator: (req: Request) => req.headers?.["x-correlation-id"] || crypto.randomUUID(),
       },
     }),
     ScheduleModule.forRoot(),
     AuthCoreModule,
-    AuthModule.forRoot({ auth }),
+    AuthorizationModule,
+    ExecutionModule,
     TrpcModule,
     DbModule,
+    PdfModule,
   ],
   providers: [
     // ── Repositories (thin DB wrappers) ──
     {
       provide: AnimalRepository,
-      useFactory: (d: DB) => new AnimalRepository(d),
-      inject: [DB_TOKEN],
+      useFactory: (dbp) => new AnimalRepository(dbp),
+      inject: [DatabaseProvider],
     },
     {
       provide: FarmRepository,
-      useFactory: (d: DB) => new FarmRepository(d),
-      inject: [DB_TOKEN],
+      useFactory: (dbp) => new FarmRepository(dbp),
+      inject: [DatabaseProvider],
     },
     {
       provide: MovementRepository,
-      useFactory: (d: DB) => new MovementRepository(d),
-      inject: [DB_TOKEN],
+      useFactory: (dbp) => new MovementRepository(dbp),
+      inject: [DatabaseProvider],
     },
     {
       provide: SubjectRepository,
-      useFactory: (d: DB) => new SubjectRepository(d),
-      inject: [DB_TOKEN],
+      useFactory: (dbp) => new SubjectRepository(dbp),
+      inject: [DatabaseProvider],
     },
     {
       provide: EarTagRepository,
-      useFactory: (d: DB) => new EarTagRepository(d),
-      inject: [DB_TOKEN],
+      useFactory: (dbp) => new EarTagRepository(dbp),
+      inject: [DatabaseProvider],
     },
     {
       provide: NotificationRepository,
-      useFactory: (d: DB) => new NotificationRepository(d),
-      inject: [DB_TOKEN],
+      useFactory: (dbp) => new NotificationRepository(dbp),
+      inject: [DatabaseProvider],
     },
     {
       provide: UserRepository,
-      useFactory: (d: DB) => new UserRepository(d),
-      inject: [DB_TOKEN],
+      useFactory: (dbp) => new UserRepository(dbp),
+      inject: [DatabaseProvider],
     },
     {
       provide: RbacRepository,
-      useFactory: (d: DB) => new RbacRepository(d),
-      inject: [DB_TOKEN],
+      useFactory: (dbp) => new RbacRepository(dbp),
+      inject: [DatabaseProvider],
     },
     {
       provide: OrganizationRepository,
-      useFactory: (d: DB) => new OrganizationRepository(d),
-      inject: [DB_TOKEN],
+      useFactory: (dbp) => new OrganizationRepository(dbp),
+      inject: [DatabaseProvider],
     },
     {
       provide: HealthRepository,
-      useFactory: (d: DB) => new HealthRepository(d),
-      inject: [DB_TOKEN],
+      useFactory: (dbp) => new HealthRepository(dbp),
+      inject: [DatabaseProvider],
     },
     {
       provide: InspectionRepository,
-      useFactory: (d: DB) => new InspectionRepository(d),
-      inject: [DB_TOKEN],
+      useFactory: (dbp) => new InspectionRepository(dbp),
+      inject: [DatabaseProvider],
     },
     {
       provide: ArchiveRepository,
-      useFactory: (d: DB) => new ArchiveRepository(d),
-      inject: [DB_TOKEN],
+      useFactory: (dbp) => new ArchiveRepository(dbp),
+      inject: [DatabaseProvider],
     },
     {
       provide: PassportRepository,
-      useFactory: (d: DB) => new PassportRepository(d),
-      inject: [DB_TOKEN],
+      useFactory: (dbp) => new PassportRepository(dbp),
+      inject: [DatabaseProvider],
     },
     {
       provide: CorrectionRepository,
-      useFactory: (d: DB) => new CorrectionRepository(d),
-      inject: [DB_TOKEN],
+      useFactory: (dbp) => new CorrectionRepository(dbp),
+      inject: [DatabaseProvider],
+    },
+    {
+      provide: AuditRepository,
+      useFactory: (dbp) => new AuditRepository(dbp),
+      inject: [DatabaseProvider],
+    },
+    {
+      provide: DeviceRepository,
+      useFactory: (dbp) => new DeviceRepository(dbp),
+      inject: [DatabaseProvider],
+    },
+    {
+      provide: IotRepository,
+      useFactory: (dbp) => new IotRepository(dbp),
+      inject: [DatabaseProvider],
+    },
+    {
+      provide: FarmBookRepository,
+      useFactory: (dbp) => new FarmBookRepository(dbp),
+      inject: [DatabaseProvider],
+    },
+    {
+      provide: VsContractRepository,
+      useFactory: (dbp) => new VsContractRepository(dbp),
+      inject: [DatabaseProvider],
+    },
+    {
+      provide: VsAssignmentRepository,
+      useFactory: (dbp) => new VsAssignmentRepository(dbp),
+      inject: [DatabaseProvider],
     },
 
     // ── Domain Services (orchestrate repos, no direct DB) ──
@@ -162,26 +196,48 @@ import { RiskAnalysisJob } from "./jobs/risk-analysis.job.js";
       inject: [AnimalRepository],
     },
     {
+      provide: AuditService,
+      useFactory: (repo: AuditRepository) => new AuditService(repo),
+      inject: [AuditRepository],
+    },
+    {
+      provide: FarmBookService,
+      useFactory: (repo: FarmBookRepository) => new FarmBookService(repo),
+      inject: [FarmBookRepository],
+    },
+    {
+      provide: VsContractService,
+      useFactory: (repo: VsContractRepository) => new VsContractService(repo),
+      inject: [VsContractRepository],
+    },
+    {
+      provide: VsAssignmentService,
+      useFactory: (assignmentRepo: VsAssignmentRepository, contractRepo: VsContractRepository) =>
+        new VsAssignmentService(assignmentRepo, contractRepo),
+      inject: [VsAssignmentRepository, VsContractRepository],
+    },
+    {
       provide: FarmService,
-      useFactory: (repo: FarmRepository) => new FarmService(repo),
-      inject: [FarmRepository],
+      useFactory: (repo: FarmRepository, auditService: AuditService) => new FarmService(repo, auditService),
+      inject: [FarmRepository, AuditService],
     },
     {
       provide: MovementService,
-      useFactory: (movRepo: MovementRepository, animalRepo: AnimalRepository) =>
-        new MovementService(movRepo, animalRepo),
-      inject: [MovementRepository, AnimalRepository],
+      useFactory: (movRepo: MovementRepository, animalRepo: AnimalRepository, passportService?: PassportService) =>
+        new MovementService(movRepo, animalRepo, passportService),
+      inject: [MovementRepository, AnimalRepository, { token: PassportService, optional: true }],
     },
     {
       provide: SubjectService,
-      useFactory: (repo: SubjectRepository) => new SubjectService(repo),
-      inject: [SubjectRepository],
+      useFactory: (repo: SubjectRepository, auditService: AuditService, farmBookService: FarmBookService) =>
+        new SubjectService(repo, auditService, farmBookService),
+      inject: [SubjectRepository, AuditService, { token: FarmBookService, optional: true }],
     },
     // Todo still uses direct DB (legacy - pending migration)
     {
       provide: TodoService,
-      useFactory: (d: DB) => new TodoService(d),
-      inject: [DB_TOKEN],
+      useFactory: (dbp) => new TodoService(dbp),
+      inject: [DatabaseProvider],
     },
     {
       provide: NotificationService,
@@ -210,14 +266,22 @@ import { RiskAnalysisJob } from "./jobs/risk-analysis.job.js";
     },
     {
       provide: HealthService,
-      useFactory: (repo: HealthRepository, subjectRepo: SubjectRepository, inspectionRepo: InspectionRepository) =>
-        new HealthService(repo, subjectRepo, inspectionRepo),
-      inject: [HealthRepository, SubjectRepository, InspectionRepository],
+      useFactory: (
+        repo: HealthRepository,
+        subjectRepo: SubjectRepository,
+        animalRepo: AnimalRepository,
+        inspectionRepo: InspectionRepository,
+      ) => new HealthService(repo, subjectRepo, animalRepo, inspectionRepo),
+      inject: [HealthRepository, SubjectRepository, AnimalRepository, InspectionRepository],
     },
     {
       provide: InspectionService,
-      useFactory: (repo: InspectionRepository, animalRepo: AnimalRepository, archiveService: ArchiveService, riskAnalysisService: RiskAnalysisService) =>
-        new InspectionService(repo, animalRepo, archiveService, riskAnalysisService),
+      useFactory: (
+        repo: InspectionRepository,
+        animalRepo: AnimalRepository,
+        archiveService: ArchiveService,
+        riskAnalysisService: RiskAnalysisService,
+      ) => new InspectionService(repo, animalRepo, archiveService, riskAnalysisService),
       inject: [InspectionRepository, AnimalRepository, ArchiveService, RiskAnalysisService],
     },
     {
@@ -227,24 +291,65 @@ import { RiskAnalysisJob } from "./jobs/risk-analysis.job.js";
     },
     {
       provide: RiskAnalysisService,
-      useFactory: (d: DB) => new RiskAnalysisService(d),
-      inject: [DB_TOKEN],
+      useFactory: (dbp) => new RiskAnalysisService(dbp),
+      inject: [DatabaseProvider],
     },
     {
       provide: PassportService,
-      useFactory: (repo: PassportRepository, animalRepo: AnimalRepository) =>
-        new PassportService(repo, animalRepo),
+      useFactory: (repo: PassportRepository, animalRepo: AnimalRepository) => new PassportService(repo, animalRepo),
       inject: [PassportRepository, AnimalRepository],
     },
     {
       provide: CorrectionService,
-      useFactory: (repo: CorrectionRepository) => new CorrectionService(repo),
-      inject: [CorrectionRepository],
+      useFactory: (repo: CorrectionRepository, archiveService: ArchiveService, passportService: PassportService) =>
+        new CorrectionService(repo, archiveService, passportService),
+      inject: [CorrectionRepository, ArchiveService, PassportService],
+    },
+    {
+      provide: DeviceService,
+      useFactory: (repo: DeviceRepository) => new DeviceService(repo),
+      inject: [DeviceRepository],
+    },
+    {
+      provide: IotService,
+      useFactory: (repo: IotRepository) => new IotService(repo),
+      inject: [IotRepository],
+    },
+
+    // ── Document Templates ──
+    {
+      provide: InspectionFormTemplate,
+      useFactory: (inspectionService: InspectionService) => new InspectionFormTemplate(inspectionService),
+      inject: [InspectionService],
+    },
+    {
+      provide: PassportTemplate,
+      useFactory: (
+        passportRepo: PassportRepository,
+        animalRepo: AnimalRepository,
+        farmRepo: FarmRepository,
+        movementRepo: MovementRepository,
+        healthRepo: HealthRepository,
+      ) => new PassportTemplate(passportRepo, animalRepo, farmRepo, movementRepo, healthRepo),
+      inject: [PassportRepository, AnimalRepository, FarmRepository, MovementRepository, HealthRepository],
+    },
+    {
+      provide: MovementTemplate,
+      useFactory: (
+        movementRepo: MovementRepository,
+        animalRepo: AnimalRepository,
+        farmRepo: FarmRepository,
+      ) => new MovementTemplate(movementRepo, animalRepo, farmRepo),
+      inject: [MovementRepository, AnimalRepository, FarmRepository],
     },
 
     // ── tRPC Routers ──
     AnimalRouter,
+    DocumentRouter,
+    FarmBookRouter,
     FarmRouter,
+    VsAssignmentRouter,
+    VsContractRouter,
     MovementRouter,
     SubjectRouter,
     NotificationRouter,
@@ -257,6 +362,8 @@ import { RiskAnalysisJob } from "./jobs/risk-analysis.job.js";
     ArchiveRouter,
     PassportRouter,
     CorrectionRouter,
+    DeviceRouter,
+    IotRouter,
 
     // ── Scheduled Jobs ──
     RetentionJob,
@@ -264,4 +371,17 @@ import { RiskAnalysisJob } from "./jobs/risk-analysis.job.js";
     CorrectionConsistencyJob,
   ],
 })
-export class AppModule { }
+export class AppModule implements OnModuleInit {
+  constructor(
+    @Inject(InspectionFormTemplate) private readonly inspectionFormTemplate: InspectionFormTemplate,
+    @Inject(PassportTemplate) private readonly passportTemplate: PassportTemplate,
+    @Inject(MovementTemplate) private readonly movementTemplate: MovementTemplate,
+  ) {}
+
+  onModuleInit() {
+    const registry = DocumentRegistry.getInstance();
+    registry.register(this.inspectionFormTemplate);
+    registry.register(this.passportTemplate);
+    registry.register(this.movementTemplate);
+  }
+}

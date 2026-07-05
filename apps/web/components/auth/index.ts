@@ -1,7 +1,7 @@
-export { AuthProvider } from "./auth-provider";
-export { ForgotPassword } from "./forgot-password";
-export { ResetPassword } from "./reset-password";
-export { SignIn } from "./sign-in";
-export { SignOut } from "./sign-out";
-export { SignUp } from "./sign-up";
+export { AuthProvider } from "./auth-provider.js";
+export { ForgotPassword } from "./forgot-password.js";
+export { ResetPassword } from "./reset-password.js";
+export { SignIn } from "./sign-in.js";
+export { SignOut } from "./sign-out.js";
+export { SignUp } from "./sign-up.js";
 

@@ -25,6 +25,8 @@ import {
   administrationRouteSchema,
   testTypeSchema,
   testResultSchema,
+  healthRecordTypeSchema,
+  type healthRecordTypeType,
 } from "../enums/domain.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -280,14 +282,85 @@ export const linkVaccineDiseaseRequestSchema = vaccineDiseaseInsertSchema
 
 export type LinkVaccineDiseaseRequest = z.infer<typeof linkVaccineDiseaseRequestSchema>;
 
-export const unlinkVaccineDiseaseRequestSchema = z
+export const unlinkVaccineDiseaseRequestSchema = z.strictObject(z
   .strictObject({
     vaccineId: z.uuid(),
     diseaseId: z.uuid(),
-  })
-  .strict();
+  }).shape);
 
 export type UnlinkVaccineDiseaseRequest = z.infer<typeof unlinkVaccineDiseaseRequestSchema>;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PDA SYNC SCHEMAS (Phase 5)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * PDA sync download — returns all master data the mobile app needs to work offline.
+ */
+export const syncDownloadResponseSchema = z.strictObject({
+  diseases: z.array(diseaseResponseSchema),
+  vaccines: z.array(vaccineResponseSchema),
+  batches: z.array(vaccineBatchResponseSchema),
+  vaccineDiseases: z.array(vaccineDiseaseResponseSchema),
+  syncedAt: z.date(),
+}) satisfies z.ZodType<SyncDownloadResponse>;
+
+export type SyncDownloadResponse = {
+  diseases: DiseaseResponse[];
+  vaccines: VaccineResponse[];
+  batches: VaccineBatchResponse[];
+  vaccineDiseases: VaccineDiseaseResponse[];
+  syncedAt: Date;
+};
+
+/**
+ * Upload record with idempotency key for offline sync.
+ */
+export const syncUploadItemSchema = z.strictObject({
+  idempotencyKey: z.string().max(100),
+  type: healthRecordTypeSchema,
+  data: z.record(z.string(), z.unknown()),
+}) satisfies z.ZodType<SyncUploadItem>;
+
+export type SyncUploadItem = {
+  idempotencyKey: string;
+  type: healthRecordTypeType;
+  data: Record<string, unknown>;
+};
+
+export const syncUploadRequestSchema = z.strictObject({
+  records: z.array(syncUploadItemSchema).min(1).max(500),
+}) satisfies z.ZodType<SyncUploadRequest>;
+
+export type SyncUploadRequest = {
+  records: SyncUploadItem[];
+};
+
+export const syncUploadResultSchema = z.strictObject({
+  idempotencyKey: z.string(),
+  success: z.boolean(),
+  recordId: z.uuid().nullable(),
+  error: z.string().nullable(),
+}) satisfies z.ZodType<SyncUploadResult>;
+
+export type SyncUploadResult = {
+  idempotencyKey: string;
+  success: boolean;
+  recordId: string | null;
+  error: string | null;
+};
+
+export const syncUploadResponseSchema = z.strictObject({
+  results: z.array(syncUploadResultSchema),
+  processed: z.int().nonnegative(),
+  failed: z.int().nonnegative(),
+}) satisfies z.ZodType<SyncUploadResponse>;
+
+export type SyncUploadResponse = {
+  results: SyncUploadResult[];
+  processed: number;
+  failed: number;
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // GUILLLOTINES
@@ -315,6 +388,11 @@ type _drift_recordTreatment = NoDrift<z.infer<typeof recordTreatmentRequestSchem
 type _drift_recordLabTest = NoDrift<z.infer<typeof recordLabTestRequestSchema>, RecordLabTestRequest>;
 type _drift_linkVaccineDisease = NoDrift<z.infer<typeof linkVaccineDiseaseRequestSchema>, LinkVaccineDiseaseRequest>;
 type _drift_unlinkVaccineDisease = NoDrift<z.infer<typeof unlinkVaccineDiseaseRequestSchema>, UnlinkVaccineDiseaseRequest>;
+type _drift_syncDownload = NoDrift<z.infer<typeof syncDownloadResponseSchema>, SyncDownloadResponse>;
+type _drift_syncUploadItem = NoDrift<z.infer<typeof syncUploadItemSchema>, SyncUploadItem>;
+type _drift_syncUploadRequest = NoDrift<z.infer<typeof syncUploadRequestSchema>, SyncUploadRequest>;
+type _drift_syncUploadResult = NoDrift<z.infer<typeof syncUploadResultSchema>, SyncUploadResult>;
+type _drift_syncUploadResponse = NoDrift<z.infer<typeof syncUploadResponseSchema>, SyncUploadResponse>;
 
 export type _HealthGuillotines = ActivateGuillotines<
   [
@@ -338,5 +416,10 @@ export type _HealthGuillotines = ActivateGuillotines<
     _drift_recordLabTest,
     _drift_linkVaccineDisease,
     _drift_unlinkVaccineDisease,
+    _drift_syncDownload,
+    _drift_syncUploadItem,
+    _drift_syncUploadRequest,
+    _drift_syncUploadResult,
+    _drift_syncUploadResponse,
   ]
 >;

@@ -1,5 +1,5 @@
 import { StyleSheet, View } from "react-native";
-import { TodosList } from "#/components/todos/todos-list";
+import { TodosList } from "#/components/todos/todos-list.js";
 
 export default function HomeScreen() {
   return (

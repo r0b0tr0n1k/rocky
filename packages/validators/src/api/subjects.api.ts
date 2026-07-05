@@ -5,9 +5,10 @@
 //
 // Based on: FS - HK_MK(v1.0).pdf, HK.PDF
 
+import { farmSubjectSelectSchema, subjectInsertSchema, subjectSelectSchema } from "@rocky/database/zod";
 import { z } from "zod";
-import { subjectSelectSchema, subjectInsertSchema, farmSubjectSelectSchema } from "@rocky/database/zod";
 import { subjectRoleSchema } from "../enums/domain.js";
+import type { NoDrift, NoDriftSimple, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RESPONSE SCHEMAS
@@ -51,6 +52,25 @@ export const createSubjectRequestSchema = subjectInsertSchema
 
 export type CreateSubjectRequest = z.infer<typeof createSubjectRequestSchema>;
 
+export const updateSubjectRequestSchema = z
+  .strictObject({
+    shortName: z.string().min(1).max(50).optional(),
+    shortNameAlt: z.string().max(50).optional(),
+    firstName: z.string().max(50).optional(),
+    firstNameAlt: z.string().max(50).optional(),
+    lastName: z.string().max(50).optional(),
+    lastNameAlt: z.string().max(50).optional(),
+    companyName: z.string().max(100).optional(),
+    personalId: z.string().max(20).optional(),
+    vatNumber: z.string().max(20).optional(),
+    phoneNumber: z.string().max(30).optional(),
+    email: z.email().optional(),
+    addressId: z.uuid().optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, "At least one field must be updated");
+
+export type UpdateSubjectRequest = z.infer<typeof updateSubjectRequestSchema>;
+
 export const bindSubjectToFarmRequestSchema = z.object({
   farmId: z.uuid(),
   subjectId: z.uuid(),
@@ -68,3 +88,17 @@ export type UnbindSubjectFromFarmRequest = z.infer<typeof unbindSubjectFromFarmR
 // ═══════════════════════════════════════════════════════════════════════════
 // GUILLOTINES
 // ═══════════════════════════════════════════════════════════════════════════
+
+type _drift_subjectResponse = NoDrift<z.infer<typeof subjectResponseSchema>, SubjectResponse>;
+type _drift_subjectSummary = NoDrift<z.infer<typeof subjectSummarySchema>, SubjectSummary>;
+type _drift_farmSubjectBindingResponse = NoDrift<z.infer<typeof farmSubjectBindingResponseSchema>, FarmSubjectBindingResponse>;
+type _drift_createSubject = NoDriftSimple<z.infer<typeof createSubjectRequestSchema>, CreateSubjectRequest>;
+type _drift_updateSubject = NoDrift<z.infer<typeof updateSubjectRequestSchema>, UpdateSubjectRequest>;
+type _drift_bindSubjectToFarm = NoDrift<z.infer<typeof bindSubjectToFarmRequestSchema>, BindSubjectToFarmRequest>;
+type _drift_unbindSubjectFromFarm = NoDrift<z.infer<typeof unbindSubjectFromFarmRequestSchema>, UnbindSubjectFromFarmRequest>;
+
+export type _SubjectGuillotines = ActivateGuillotines<
+  [_drift_subjectResponse, _drift_subjectSummary, _drift_farmSubjectBindingResponse,
+   _drift_createSubject, _drift_updateSubject, _drift_bindSubjectToFarm,
+   _drift_unbindSubjectFromFarm]
+>;

@@ -77,7 +77,7 @@ ArchiveService ← InspectionService.complete()                (10% farm selecti
 
 | Step | Deliverable | Files | Status |
 |------|-------------|-------|--------|
-| B1 | Fix `ORPCProvider` → `TRPCProvider` bug | `apps/mobile/src/app/_layout.tsx:56` | ❌ |
+| B1 | ~~Fix `ORPCProvider` → `TRPCProvider` bug~~ | `apps/mobile/src/app/_layout.tsx` | ✅ **FIXED** — code uses correct `</TRPCProvider>` |
 | B2 | Add `expo-sqlite` + Drizzle SQLite ORM | `apps/mobile/package.json` | ❌ |
 | B3 | Define local SQLite schema (mirrors core domain tables per role profile) | `apps/mobile/src/db/schema.ts` | ❌ |
 | B4 | Build `LocalDbProvider` (init DB, run migrations) | `apps/mobile/src/providers/db-provider.tsx` | ❌ |
@@ -118,10 +118,12 @@ ArchiveService ← InspectionService.complete()                (10% farm selecti
 | D1 | `CheckedAnimal` TypeScript interface + Zod schema (NoDriftSimple) | `packages/validators/src/api/inspection.api.ts` | ✅ |
 | D2 | `generateInspectionForm()` service: query farm's animals, populate `checkedAnimals`, set `formPrinted=true` | `packages/domains/inspection/src/services/inspection.service.ts` | ✅ |
 | D3 | `printForm` tRPC mutation (returns structured data from `models/inspection-form.yaml`) | `apps/api/src/routers/inspection.router.ts` | ✅ |
-| D4 | **Stub:** Install `pdfmake`, create stub `PdfService` that returns YAML/JSON data + TODO for PDF/A | `apps/api/src/services/pdf.service.ts` | ❌ (deferred) |
+| D4 | `InspectionFormTemplate` in `@rocky/pdf` — delegates to `generateInspectionForm()`, maps to YAML model | `packages/pdf/src/templates/inspection-form.template.ts` | ✅ |
 
 **Dependencies:** Animal domain (to query registered animals on farm) — satisfied via `@rocky/domains-animal` DI injection
 **Building blocks ready:** `formPrinted`/`formReturned` columns, `checkedAnimals` jsonb column, form data model (`models/inspection-form.yaml`)
+
+**Document generation integration:** The `InspectionFormTemplate` lives in `@rocky/pdf` and receives `InspectionService` via constructor (plain class, no decorators). It calls `inspectionService.generateInspectionForm()` to get the form data, then maps it to the `models/inspection-form.yaml` structure. The generic `document.generate({ type: "inspection-form", refId })` endpoint handles output — no inspection-specific router changes needed.
 
 ---
 
@@ -226,9 +228,10 @@ Logical dependency chain:
 - Cross-domain injection via NestJS DI: `app.module.ts` passes `InspectionRepository` to `HealthService` factory alongside `HealthRepository` and `SubjectRepository`
 - Notifiable disease flagging is **fire-and-forget** — treatment record creation never fails due to inspection flagging failure
 - Form data model (`models/inspection-form.yaml`) is the SINGLE SOURCE OF TRUTH for inspection form structure — both PDF generation and mobile app consume this
-- PDF generation is stubbed with TODO for PDF/A compliance — YAML/JSON data files are the base, actual PDF rendering deferred
+- PDF generation is handled by `@rocky/pdf` package — `InspectionFormTemplate` delegates to `generateInspectionForm()`, generic `document.generate()` endpoint handles output
 - Mobile SQLite schema uses 3 permission-scoped profiles (FARMER, VETERINARIAN, CPC_ADMIN) — not 9 per-role schemas
 - RiskAnalysisService takes DB directly (not repo) since it queries both `farms` and `risk_analyses` tables
+- **Risk analysis uses weighted random selection.** Farms are scored on animal count (30%), past inspection history (30%), farm type diversity (20%), and random regional factor (20%) via `DEFAULT_WEIGHTS`. Weighted reservoir sampling selects the target count. Implemented 2026-07-05 — replaces previous pure `RANDOM()` approach.
 - `createPermissionGuard()` factory function: nestjs-trpc's `@UseMiddlewares` expects class constructors, not instances — factory returns `new()` class with permission baked in via closure
 - Archive wiring: `InspectionService.complete()` calls `archiveService.archiveInspectionForm()` as fire-and-forget — archive failure never blocks inspection completion
 - Risk analysis cron uses `@Cron("0 0 1 1 *")` (January 1st annually) — `RiskAnalysisService` is injected into `RiskAnalysisJob` via NestJS DI
@@ -240,6 +243,7 @@ Logical dependency chain:
 | **Inspection Bot** | `packages/domains/inspection/` | errors, repo, service |
 | **Health Bot** | `packages/domains/health/` | Calls `InspectionRepository.flagFarmForInspection()` |
 | **Archive Bot** | `packages/domains/archive/` | Inspection completion → archive entry creation |
+| **PDF Bot** | `packages/pdf/` | `InspectionFormTemplate` uses `InspectionService` for form data |
 | **Validation Bot** | `packages/validators/src/api/inspection.api.ts` | Inspection API schemas |
 | **API Bot** | `apps/api/src/routers/inspection.router.ts` | tRPC router |
 | **Mobile Bot** | `apps/mobile/src/` | Offline inspection capture, sync queue |

@@ -1,8 +1,8 @@
 import { Main, Section, Container, Prose } from "@rocky/ui/components/ds";
-import { MDXContent } from "@/components/markdown/mdx-content";
-import { Meta } from "@/components/markdown/meta";
+import { MDXContent } from "@/components/markdown/mdx-content.js";
+import { Meta } from "@/components/markdown/meta.js";
 
-import { getAllPosts, getPostBySlug } from "@/lib/posts";
+import { getAllPosts, getPostBySlug } from "@/lib/posts.js";
 import { notFound } from "next/navigation";
 
 import type { Metadata } from "next";
@@ -43,7 +43,7 @@ export default async function Page(props: PageProps) {
   const slug = params.slug.join("/");
   const post = getPostBySlug(slug);
 
-  if (!post || !post.published) {
+  if (!post?.published) {
     notFound();
   }
 

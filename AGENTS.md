@@ -130,7 +130,10 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 | **Validation Bot** | `packages/@rocky/validators/` | Zod 4 Diamond Seal patterns |
 | **UI Bot** | `packages/@rocky/ui/` | shadcn components, design system |
 | **API Bot** | `apps/api/` | NestJS routers, tRPC generation |
-| **Auth Bot** | `apps/api/src/auth/`, `apps/web/lib/auth.ts` | better-auth, session, RBAC |
+| **Auth Bot** | `packages/auth/` | Better Auth singleton, session resolution, auth client factory |
+| **Authorization Bot** | `packages/authorization/` | Principal, @Policy decorator system, PolicyRegistry, PolicyEngine |
+| **Execution Bot** | `packages/execution/` | ExecutionPipeline, RLS stage, RuntimeBuilder, event emitter |
+| **tRPC Bot** | `packages/trpc/` | AppRouter types, AppContext, superjson, generated server types |
 | **Frontend Bot** | `apps/mobile/src/` | Expo tRPC client, components |
 | **Admin Bot** | `apps/web/` | Next.js admin panel |
 | **Docs Bot** | `apps/mdx-shadcn/` | MDX documentation site |
@@ -143,6 +146,8 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 | **Correction Bot** | `packages/domains/correction/` | Error correction (a priori + a posteriori), plausibility engine, case management |
 | **Archive Bot** | `packages/domains/archive/` | 3-tier document archive (CPC/VS/VI), retention enforcement |
 | **Health Bot** | `packages/domains/health/` | Disease master data, vaccinations, treatments, outbreak alerts |
+| **IoT Bot** | `packages/domains/iot/` | Device registry, sensor readings, geofences, geofence events |
+| **PDF Bot** | `packages/pdf/` | Document generation framework, pluggable templates, YAML/XML output |
 | **Mobile Bot** | `apps/mobile/` | Expo React Native app, offline sync, field data entry |
 
 ### RobotFarm Workflows
@@ -154,6 +159,14 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 **Schema Change** → Database Bot (migration) → Validation Bot (Dumb Zod) → API Bot (router update)
 
 ### Bot Descriptions
+
+**Auth Bot** — Owns the auth package in `packages/auth/`. Manages Better Auth singleton (`Auth.getInstance()` — idempotent), session resolution (`AuthResolver`), and the shared auth client factory (`createRockyAuthClient()` for Next.js + Expo). `AuthResult` crosses the boundary to `@rocky/authorization` — never touches RBAC.
+
+**Authorization Bot** — Owns the authorization package in `packages/authorization/`. Implements the `Principal` class (canonical runtime actor), `PrincipalResolver` (AuthResult → Principal with RBAC), and the `@Policy()` decorator system with `PolicyRegistry` (static metadata map) and `PolicyEngine` (evaluate action/authenticated/roles/admin).
+
+**Execution Bot** — Owns the execution package in `packages/execution/`. Implements the `ExecutionPipeline` (composable stage chain), `RLSStage` (transaction-scoped `SET LOCAL` for pgPolicy), `RuntimeBuilder` (locale, traceId, tenant), and `ExecutionEventEmitter` (lifecycle events).
+
+**tRPC Bot** — Owns the tRPC transport package in `packages/trpc/`. Maintains the `AppContext` type, generated `AppRouter` type (from nestjs-trpc generate — 14 routers, 93 procedures), superjson transformer, and `createResultUnwrapper()`. Frontends (web + mobile) consume `AppRouter` for full type safety.
 
 **Database Bot** — Handles all Drizzle ORM schemas in `@rocky/database`. Manages pgTable definitions, enum chains (constants→pgEnum→zEnum), RLS policies, and migrations via Drizzle Kit.
 
@@ -170,6 +183,14 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 **Admin Bot** — Builds the Next.js admin panel in `apps/web/`. Uses `@trpc/react-query` to connect to the NestJS backend, `@rocky/ui` for shadcn components, and `@rocky/validators` for Zod validation.
 
 **Docs Bot** — Maintains the MDX documentation site in `apps/mdx-shadcn/` using Next.js + Velite. Content is authored in MDX with Velite frontmatter validation. Uses `@rocky/ui` for components.
+
+**Auth Bot** — Owns the auth package in `packages/auth/`. Manages Better Auth singleton (`Auth.getInstance()` — idempotent), session resolution (`AuthResolver`), and the shared auth client factory (`createRockyAuthClient()` for Next.js + Expo). `AuthResult` crosses the boundary to `@rocky/authorization` — never touches RBAC.
+
+**Authorization Bot** — Owns the authorization package in `packages/authorization/`. Implements the `Principal` class (canonical runtime actor), `PrincipalResolver` (AuthResult → Principal with RBAC), and the `@Policy()` decorator system with `PolicyRegistry` (static metadata map) and `PolicyEngine` (evaluate action/authenticated/roles/admin).
+
+**Execution Bot** — Owns the execution package in `packages/execution/`. Implements the `ExecutionPipeline` (composable stage chain), `RLSStage` (transaction-scoped `SET LOCAL` for pgPolicy), `RuntimeBuilder` (locale, traceId, tenant), and `ExecutionEventEmitter` (lifecycle events).
+
+**tRPC Bot** — Owns the tRPC transport package in `packages/trpc/`. Maintains the `AppContext` type, generated `AppRouter` type (from nestjs-trpc generate — 14 routers, 93 procedures), superjson transformer, and `createResultUnwrapper()`. Frontends (web + mobile) consume `AppRouter` for full type safety.
 
 **Mobile Bot** — Manages the Expo React Native mobile app in `apps/mobile/`. Handles offline-first data entry, local SQLite database, tRPC sync queue, network-aware connectivity, and per-role data scoping. See `apps/mobile/AGENTS.md` for offline sync architecture and `models/mobile-schema-profiles.yaml` for SQLite schema profiles.
 
@@ -188,6 +209,10 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 **Archive Bot** — Manages the archive domain in `packages/domains/archive/`. Implements the 3-tier document archive (Central CPC / VS / VI) with full CRUD lifecycle. 3-year retention enforcement via daily `@Cron(EVERY_DAY_AT_2AM)` job that marks expired documents as destroyed. Cross-domain: Inspection completion triggers `archiveInspectionForm()` (fire-and-forget, idempotent). 6 tRPC endpoints including `listExpired` and `markDestroyed`.
 
 **Health Bot** — Manages the health domain in `packages/domains/health/`. Handles disease master data, vaccine catalog + batch inventory (with stock decrement), vaccination recording (with batch expiry + age validation), treatment/diagnosis, lab test results, and vaccine-disease mapping. 10 business rules enforced (batch expiry, age, stock, notifiable triggers). Cross-domain: notifiable disease treatment → `InspectionRepository.flagFarmForInspection()` (fire-and-forget). 4 health events emitted for downstream consumers.
+
+**IoT Bot** — Manages IoT infrastructure in `packages/domains/iot/`. Device registry (`iot_devices`), time-series sensor readings (`sensor_readings`), geofence definitions (`geofences` with GeoJSON geometry), and geofence entry/exit events (`animal_geofence_events`). Basic CRUD — no event queues, no real-time processing, no edge AI. 11 tRPC endpoints across 4 entity groups.
+
+**PDF Bot** — Manages the document generation framework in `packages/pdf/`. Pluggable template system: each document type implements `DocumentTemplate` (fetchData → mapToModel → serializeToYaml). Singleton `DocumentRegistry` maps type strings to templates. Generic `document.generate({ type, refId, format })` tRPC endpoint. Templates are plain classes (no decorators) instantiated via `useFactory` in AppModule. Currently supports 3 document types: inspection-form, passport, movement. PDF/A rendering deferred — YAML/XML intermediate files are the stable API.
 
 ### Context Boundaries
 
@@ -210,7 +235,13 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 | Inspection Bot | `packages/domains/inspection/` | Inspection service, risk analysis |
 | Correction Bot | `packages/domains/correction/` | Correction service, plausibility |
 | Archive Bot | `packages/domains/archive/` | Archive service, retention |
+| Auth Bot | `packages/auth/` | Better Auth singleton, resolver, client |
+| Authorization Bot | `packages/authorization/` | Principal, @Policy, registry, engine |
+| Execution Bot | `packages/execution/` | Pipeline, RLS, runtime, events |
+| tRPC Bot | `packages/trpc/` | AppRouter types, context, superjson, generated |
 | Health Bot | `packages/domains/health/` | Health service, vaccination/disease rules |
+| IoT Bot | `packages/domains/iot/` | Device registry, sensor readings, geofences, geofence events |
+| PDF Bot | `packages/pdf/` | Document generation framework, templates, YAML output |
 
 ### Troubleshooting
 
@@ -222,6 +253,11 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 | Admin plugin returns 403 | User lacks `SUPER_ADMIN` role | Verify role in `customSession` enrichment or adjust `adminRoles` in config |
 | Zod validation mismatch | Schema drift | Run `NoDrift` check |
 | RLS blocking query | Context not injected | Call `injectRlsContext()` before query |
+| Policy denied by `PolicyResolver` | User lacks required permission/role | Check `@Policy({ action: "..." })` matches a seeded permission |
+| `passwordHash` required but missing | Schema column is NOT NULL | `password_hash` was altered to nullable in latest migration — run `scripts/db-recreate.sh` for clean state |
+| tRPC types stale | Router changed but types not regenerated | Run `cd apps/api && npx nestjs-trpc generate --entrypoint src/app.module.ts --output ../../packages/trpc/src/generated` |
+| Policy not firing (request allowed unexpectedly) | Router missing `@RegisterPolicy(alias)` decorator | Add `@RegisterPolicy("alias")` above `@Policy({...})` — decorator order matters |
+| `PolicyRegistry.get()` returns undefined | Procedure path doesn't match registered key | Verify router alias in `@RegisterPolicy("alias")` matches `@Router({ alias })` |
 
 ---
 
@@ -277,7 +313,7 @@ class TodoRouter {
 ## Phase 1 DB Status (July 2026)
 
 ### Push State
-Schema pushed to `192.168.1.109:5432/tbot`. All 43 tables, 57 enums, 8 pgRoles, 110+ indexes, 40+ FKs, 25 RLS policies applied. 52 permissions seeded.
+Schema pushed to `192.168.1.109:5432/tbot`. Latest snapshot: **57 tables**, **71 enums**, 8 pgRoles, **156 indexes**, **68 FKs**, **39 RLS policies** applied. 52 permissions seeded.
 
 ### drizzle-kit v1.0.0-rc.4 Bugs
 - `push` fails with "Interactive prompts require a TTY" in non-interactive shells
@@ -287,7 +323,15 @@ Schema pushed to `192.168.1.109:5432/tbot`. All 43 tables, 57 enums, 8 pgRoles, 
 
 ### Schema Change Workflow
 ```
-pnpm generate  →  node scripts/fix-rls-sql.mjs  →  psql ... -f drizzle/*/migration.fixed.sql
+# Full reset (drops DB, regenerates, seeds):
+./scripts/db-recreate.sh
+
+# Iterative migration (no DB drop, apply incremental):
+cd packages/database
+pnpm generate                    # Create migration SQL
+node ../../scripts/fix-rls-sql.mjs   # Fix RLS $N placeholders
+psql ... -f drizzle/*/migration.fixed.sql
+pnpm seed                        # Re-seed (idempotent)
 ```
 
 ### DB Connection

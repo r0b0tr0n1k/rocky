@@ -7,12 +7,14 @@ import { z } from "zod";
 import type {
   administrationRouteType,
   testResultType,
-  testTypeType
+  testTypeType,
+  healthSeverityType
 } from "../enums/domain.js";
 import {
   administrationRouteSchema,
   testResultSchema,
-  testTypeSchema
+  testTypeSchema,
+  healthSeveritySchema
 } from "../enums/domain.js";
 import type { ActivateGuillotines, NoDrift } from "../utils/type-bridge.js";
 import { eventEnvelopeSchema } from "./base.js";
@@ -101,7 +103,7 @@ export interface NotifiableDiseaseAlertPayload {
   triggerEntityId: string;
   reportedAt: Date;
   reportedBy: string;
-  severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  severity: healthSeverityType;
 }
 
 export const notifiableDiseaseAlertPayloadSchema = z.strictObject({
@@ -114,7 +116,7 @@ export const notifiableDiseaseAlertPayloadSchema = z.strictObject({
   triggerEntityId: z.uuid(),
   reportedAt: z.date(),
   reportedBy: z.uuid(),
-  severity: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
+  severity: healthSeveritySchema,
 }) satisfies z.ZodType<NotifiableDiseaseAlertPayload>;
 
 export const NotifiableDiseaseAlertEvent = eventEnvelopeSchema(notifiableDiseaseAlertPayloadSchema);

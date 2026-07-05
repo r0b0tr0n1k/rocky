@@ -1,0 +1,25 @@
+{
+  "name": "@rocky/authorization",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./policies": "./src/policies/index.ts",
+    "./index.js": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "imports": {
+    "#/*": "./src/*"
+  },
+  "dependencies": {
+    "@nestjs/common": "catalog:",
+    "@rocky/auth": "workspace:*",
+    "@rocky/database": "workspace:*",
+    "drizzle-orm": "catalog:"
+  },
+  "devDependencies": {
+    "@rocky/typescript-config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

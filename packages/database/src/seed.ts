@@ -1,4 +1,4 @@
-// ── Seed: Permissions & Role→Permission Mappings ──
+// ── Seed: Permissions, Role→Permission Mappings & Master Data ──
 // Run: pnpm -C packages/database seed
 //
 // Populates Layer 3 (authorization) of the 3-layer RBAC architecture:
@@ -6,13 +6,19 @@
 //   Layer 2: RLSMiddleware - SET LOCAL session vars
 //   Layer 3: PermissionGuard - action-level checks
 //
-// Based on: SM.PDF (Oracle AIMCS), FS-HK, FS-Eartags, FS-Registration
+// Also seeds domain master data: diseases, vaccines.
+//
+// Based on: SM.PDF (Oracle AIMCS), FS-HK, FS-Eartags, FS-Registration, FS-Health
 
 import "dotenv/config";
 import { sql } from "drizzle-orm";
 import { ROLE_PRIORITY } from "./constants/role-priority.js";
+import { VACCINE_TYPE } from "./constants/vaccine-type.js";
 import { db } from "./index.js";
 import { permissions, rolePermissions, roles } from "./schema/sm/rbac.js";
+import { diseases } from "./schema/hd/diseases.js";
+import { vaccines } from "./schema/hd/vaccines.js";
+import { vaccineDiseases } from "./schema/hd/vaccine-diseases.js";
 
 // ── Permission Definitions ─────────────────────────────────────
 // Each entry: { resource, action, description, scope }
@@ -88,10 +94,35 @@ const PERMISSION_DEFS = [
   { resource: "pda", action: "sync", description: "Sync data with PDA subsystem", scope: "org" },
   { resource: "pda", action: "import", description: "Import PDA field data", scope: "*" },
 
+  // Device Registry
+  { resource: "device", action: "read", description: "View PDA device registry", scope: "org" },
+  { resource: "device", action: "write", description: "Register/update PDA devices", scope: "org" },
+  { resource: "device", action: "admin", description: "Administer PDA devices (block/unblock)", scope: "*" },
+
   // Notifications
   { resource: "notification", action: "read", description: "View notifications", scope: "org" },
   { resource: "notification", action: "write", description: "Send/manage notifications", scope: "org" },
   { resource: "notification", action: "admin", description: "Configure notification templates", scope: "*" },
+
+  // Health Module
+  { resource: "health", action: "read", description: "View health records (diseases, vaccines, treatments, lab tests)", scope: "farm" },
+  { resource: "health", action: "write", description: "Record health events (vaccinations, treatments, lab tests)", scope: "farm" },
+  { resource: "health", action: "admin", description: "Manage disease/vaccine master data", scope: "*" },
+
+  // Archive Module
+  { resource: "archive", action: "read", description: "View archived documents", scope: "org" },
+  { resource: "archive", action: "write", description: "Archive documents", scope: "org" },
+  { resource: "archive", action: "destroy", description: "Mark documents as destroyed", scope: "*" },
+
+  // Correction Module
+  { resource: "correction", action: "read", description: "View correction cases", scope: "org" },
+  { resource: "correction", action: "write", description: "Create correction cases", scope: "farm" },
+  { resource: "correction", action: "resolve", description: "Review/resolve correction cases", scope: "org" },
+
+  // Passport Module
+  { resource: "passport", action: "read", description: "View cattle passports", scope: "org" },
+  { resource: "passport", action: "create", description: "Issue new passports", scope: "org" },
+  { resource: "passport", action: "admin", description: "Seize/reprint/cancel passports", scope: "*" },
 ] as const;
 
 // ── Role→Permission Mapping ────────────────────────────────────
@@ -149,6 +180,20 @@ const ROLE_PERM_MAP: Record<string, string[]> = {
     // PDA
     "pda:sync",
     "pda:import",
+    // Health
+    "health:read",
+    "health:admin",
+    // Archive
+    "archive:read",
+    "archive:write",
+    "archive:destroy",
+    // Correction
+    "correction:read",
+    "correction:resolve",
+    // Passport
+    "passport:read",
+    "passport:create",
+    "passport:admin",
   ],
 
   VETERINARIAN: [
@@ -169,6 +214,9 @@ const ROLE_PERM_MAP: Record<string, string[]> = {
     "hk:farm:read",
     "hk:subject:read",
     "hk:address:read",
+    // Health
+    "health:read",
+    "health:write",
   ],
 
   TECHNICIAN: [
@@ -179,6 +227,8 @@ const ROLE_PERM_MAP: Record<string, string[]> = {
     "eartag:order",
     "hk:farm:read",
     "hk:subject:read",
+    // Health
+    "health:read",
   ],
 
   SUPPLIER: [
@@ -211,6 +261,8 @@ const ROLE_PERM_MAP: Record<string, string[]> = {
     "pasture:read",
     "pasture:declare",
     "hk:farm:read",
+    // Health
+    "health:read",
   ],
 };
 
@@ -305,6 +357,77 @@ async function seed() {
   }
 
   console.log(`  ✓ ${assignments} role→permission assignments created`);
+
+  // ═══════════════════════════════════════════════════════════════
+  // 4. Seed Health Master Data
+  // ═══════════════════════════════════════════════════════════════
+
+  console.log("🌱 Seeding health master data...");
+
+  const DISEASE_DEFS = [
+    { name: "Anthrax", notifiable: true, description: "Bacillus anthracis — acute infectious disease in cattle" },
+    { name: "Bovine Brucellosis", notifiable: true, description: "Brucella abortus — causes abortions, highly contagious" },
+    { name: "Bovine Tuberculosis", notifiable: true, description: "Mycobacterium bovis — chronic respiratory disease, zoonotic" },
+    { name: "Foot and Mouth Disease", notifiable: true, description: "Highly contagious viral vesicular disease (Aphtovirus)" },
+    { name: "Rabies", notifiable: true, description: "Lyssavirus — fatal zoonotic neurological disease" },
+    { name: "Bovine Spongiform Encephalopathy", notifiable: true, description: "Prion disease — fatal neurodegenerative (BSE)" },
+    { name: "Lumpy Skin Disease", notifiable: true, description: "Capripoxvirus — nodular skin lesions, fever" },
+    { name: "Bluetongue", notifiable: true, description: "Orbivirus — vector-borne disease in ruminants" },
+    { name: "Bovine Viral Diarrhea", notifiable: true, description: "Pestivirus — BVD/MD, immunosuppressive" },
+    { name: "Infectious Bovine Rhinotracheitis", notifiable: true, description: "BoHV-1 — IBR/IPV respiratory and reproductive disease" },
+    { name: "Q Fever", notifiable: true, description: "Coxiella burnetii — zoonotic, causes abortions" },
+    { name: "Salmonellosis", notifiable: true, description: "Salmonella enterica — enteric infection, zoonotic" },
+    { name: "Mastitis", notifiable: false, description: "Bacterial udder infection — E. coli, Staph, Strep" },
+    { name: "Bovine Respiratory Disease Complex", notifiable: false, description: "Multifactorial BRDC — shipping fever complex" },
+    { name: "Coccidiosis", notifiable: false, description: "Eimeria spp. — protozoan enteritis in young calves" },
+    { name: "Blackleg", notifiable: false, description: "Clostridium chauvoei — gas gangrene in muscle" },
+  ];
+
+  for (const def of DISEASE_DEFS) {
+    await db.insert(diseases).values(def).onConflictDoNothing({ target: [diseases.name] });
+  }
+
+  const allDiseases = await db.select().from(diseases);
+  const diseaseLookup = new Map(allDiseases.map((d: { name: string; id: string }) => [d.name, d.id]));
+  console.log(`  ✓ ${allDiseases.length} diseases registered`);
+
+  const VACCINE_DEFS = [
+    { name: "Bovilis BVD", manufacturer: "MSD Animal Health", type: VACCINE_TYPE.INACTIVATED },
+    { name: "Bovilis IBR Marker", manufacturer: "MSD Animal Health", type: VACCINE_TYPE.INACTIVATED },
+    { name: "Bovilis BTV8", manufacturer: "MSD Animal Health", type: VACCINE_TYPE.INACTIVATED },
+    { name: "Lumpy Skin Disease Vaccine", manufacturer: "Onderstepoort Biological Products", type: VACCINE_TYPE.LIVE },
+    { name: "Anthrax Spore Vaccine", manufacturer: "Colorado Serum Company", type: VACCINE_TYPE.LIVE },
+    { name: "Foot and Mouth Disease Vaccine", manufacturer: "Boehringer Ingelheim", type: VACCINE_TYPE.INACTIVATED },
+    { name: "Brucella Abortus S19", manufacturer: "Colorado Serum Company", type: VACCINE_TYPE.LIVE },
+    { name: "Pneumosyn", manufacturer: "Boehringer Ingelheim", type: VACCINE_TYPE.INACTIVATED },
+  ];
+
+  for (const def of VACCINE_DEFS) {
+    await db.insert(vaccines).values(def).onConflictDoNothing({ target: [vaccines.name] });
+  }
+
+  const allVaccines = await db.select().from(vaccines);
+  const vaccineLookup = new Map(allVaccines.map((v: { name: string; id: string }) => [v.name, v.id]));
+  console.log(`  ✓ ${allVaccines.length} vaccines registered`);
+
+  const VACCINE_DISEASE_MAPPINGS = [
+    { vaccineId: vaccineLookup.get("Bovilis BVD")!, diseaseId: diseaseLookup.get("Bovine Viral Diarrhea")! },
+    { vaccineId: vaccineLookup.get("Bovilis IBR Marker")!, diseaseId: diseaseLookup.get("Infectious Bovine Rhinotracheitis")! },
+    { vaccineId: vaccineLookup.get("Bovilis BTV8")!, diseaseId: diseaseLookup.get("Bluetongue")! },
+    { vaccineId: vaccineLookup.get("Lumpy Skin Disease Vaccine")!, diseaseId: diseaseLookup.get("Lumpy Skin Disease")! },
+    { vaccineId: vaccineLookup.get("Anthrax Spore Vaccine")!, diseaseId: diseaseLookup.get("Anthrax")! },
+    { vaccineId: vaccineLookup.get("Foot and Mouth Disease Vaccine")!, diseaseId: diseaseLookup.get("Foot and Mouth Disease")! },
+    { vaccineId: vaccineLookup.get("Brucella Abortus S19")!, diseaseId: diseaseLookup.get("Bovine Brucellosis")! },
+    { vaccineId: vaccineLookup.get("Pneumosyn")!, diseaseId: diseaseLookup.get("Bovine Respiratory Disease Complex")! },
+  ];
+
+  for (const mapping of VACCINE_DISEASE_MAPPINGS) {
+    await db.insert(vaccineDiseases).values(mapping).onConflictDoNothing({
+      target: [vaccineDiseases.vaccineId, vaccineDiseases.diseaseId],
+    });
+  }
+  console.log(`  ✓ ${VACCINE_DISEASE_MAPPINGS.length} vaccine→disease mappings created`);
+
   console.log("✅ Seed complete.");
 }
 

@@ -4,19 +4,29 @@
  * Orchestrates: validate → delegate to repository → return Result.
  */
 
+import type { AuditService } from "@rocky/domains-audit";
 import type {
   SubjectResponse,
   CreateSubjectRequest,
+  UpdateSubjectRequest,
   BindSubjectToFarmRequest,
   FarmSubjectBindingResponse,
 } from "@rocky/validators/api";
 import { subjectResponseSchema, farmSubjectBindingResponseSchema } from "@rocky/validators/api";
 import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
 import { SubjectError, SUBJECT_ERRORS } from "../errors/subject.errors.js";
-import { SubjectRepository } from "../repositories/subject.repository.js";
+import type { SubjectRepository } from "../repositories/subject.repository.js";
+
+interface FarmBookServiceLike {
+  create(input: { farmId: string; createdBy?: string }): Promise<any>;
+}
 
 export class SubjectService {
-  constructor(private readonly repo: SubjectRepository) {}
+  constructor(
+    private readonly repo: SubjectRepository,
+    private readonly auditService: AuditService,
+    private readonly farmBookService?: FarmBookServiceLike,
+  ) {}
 
   async getById(id: string): Promise<Result<SubjectResponse, Error>> {
     return fromAsyncThrowable(async () => {
@@ -35,7 +45,35 @@ export class SubjectService {
 
   async create(input: CreateSubjectRequest & { createdBy?: string }): Promise<Result<SubjectResponse, Error>> {
     return fromAsyncThrowable(async () => {
+      if (input.personalId) {
+        const existing = await this.repo.findByPersonalId(input.personalId);
+        if (existing) throw new SubjectError(SUBJECT_ERRORS.DUPLICATE_PERSONAL_ID, { personalId: input.personalId });
+      }
       const subject = await this.repo.insert(input);
+      return subjectResponseSchema.parse(subject);
+    }, toAppError)();
+  }
+
+  async update(id: string, input: UpdateSubjectRequest, updatedBy?: string): Promise<Result<SubjectResponse, Error>> {
+    return fromAsyncThrowable(async () => {
+      const existing = await this.repo.findById(id);
+      if (!existing) throw new SubjectError(SUBJECT_ERRORS.NOT_FOUND, { id });
+      const subject = await this.repo.update(id, input);
+      if (!subject) throw new SubjectError(SUBJECT_ERRORS.INVALID_INPUT);
+      await this.auditService.recordUpdate({
+        resource: "subject",
+        resourceId: subject.id,
+        oldValue: existing,
+        newValue: subject,
+        userId: updatedBy,
+      });
+      // Trigger farm book reprint for keeper info changes (Instance 3 Rule 4)
+      if (this.farmBookService) {
+        const bindings = await this.repo.findSubjectFarms(id);
+        for (const b of bindings) {
+          this.farmBookService.create({ farmId: b.farmId, createdBy: updatedBy }).catch(() => {});
+        }
+      }
       return subjectResponseSchema.parse(subject);
     }, toAppError)();
   }

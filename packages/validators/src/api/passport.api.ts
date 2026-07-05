@@ -15,7 +15,7 @@ export interface PassportResponse {
   stateCode: string;
   animalId: string;
   farmId: string;
-  status: "issued" | "active" | "seized" | "archived";
+  status: "issued" | "active" | "seized" | "archived" | "reprinted" | "cancelled";
   issueDate: Date;
   seizeDate: Date | null;
   archiveDate: Date | null;
@@ -38,7 +38,7 @@ export interface PassportSummary {
   passportNumber: string;
   animalId: string;
   farmId: string;
-  status: "issued" | "active" | "seized" | "archived";
+  status: "issued" | "active" | "seized" | "archived" | "reprinted" | "cancelled";
   issueDate: Date;
   isActive: boolean;
 }

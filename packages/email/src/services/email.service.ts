@@ -1,7 +1,7 @@
-import { writeFile } from "fs/promises";
-import { mkdirSync } from "fs";
-import { join } from "path";
-import type { SendEmailInput, EmailResponse, SendBatchEmailsInput } from "../types/email.types";
+import { writeFile } from "node:fs/promises";
+import { mkdirSync } from "node:fs";
+import { join } from "node:path";
+import type { SendEmailInput, EmailResponse, SendBatchEmailsInput } from "../types/email.types.js";
 
 /**
  * Email Service - Dummy Implementation for Development
@@ -20,12 +20,12 @@ export class EmailService {
   private emailsDir: string;
   private emailCounter: number = 0;
 
-  constructor(private readonly options: EmailServiceOptions = {}) {
+  constructor(readonly _options: EmailServiceOptions = {}) {
     // Set up email storage directory
     this.emailsDir = join(process.cwd(), "emails");
     try {
       mkdirSync(this.emailsDir, { recursive: true });
-    } catch (error) {
+    } catch (_error) {
       // Directory might already exist
     }
   }
@@ -100,7 +100,7 @@ export class EmailService {
    * Log email to console
    */
   private logToConsole(input: SendEmailInput, messageId: string): void {
-    console.log("\n" + "=".repeat(70));
+    console.log(`\n${"=".repeat(70)}`);
     console.log(`📧 EMAIL SENT [${messageId}]`);
     console.log("=".repeat(70));
     console.log(`From: ${this.formatAddress(input.from)}`);
@@ -135,7 +135,7 @@ export class EmailService {
       console.log(`Template Data:`, input.dynamicTemplateData);
     }
 
-    console.log("=".repeat(70) + "\n");
+    console.log(`${"=".repeat(70)}\n`);
   }
 
   /**

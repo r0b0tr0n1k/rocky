@@ -8,7 +8,7 @@
 //   Default input: drizzle/*/migration.sql (latest)
 //   Default output: <input>.fixed.sql
 
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "node:fs";
 
 async function main() {
   const inputPath = process.argv[2];
@@ -43,7 +43,7 @@ function fixPolicies(sql) {
   const ADMIN = ["SUPER_ADMIN", "VD_ADMIN", "VD_STAFF"];
   const ORG_READ = ["VETERINARIAN", "TECHNICIAN"];
   const FARM_READ = ["FARMER", "SLAUGHTERHOUSE_OP", "MARKET_OP", "SUPPLIER"];
-  const WRITE = ["SUPER_ADMIN", "VD_ADMIN", "VD_STAFF", "VETERINARIAN", "SUPPLIER"];
+  const _WRITE = ["SUPER_ADMIN", "VD_ADMIN", "VD_STAFF", "VETERINARIAN", "SUPPLIER"];
 
   // Replace $1-$N with role literals across ALL policy lines
   // Pattern: ($1, $2, $3) → ('SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF')
@@ -76,7 +76,7 @@ function fixPolicies(sql) {
         return `ANY(ARRAY[${replaced}])`;
       });
 
-      // Fix unresolved ${isRoleIn(USER_ROLE.X, USER_ROLE.Y)} templates
+undefined
       fixed = fixed.replace(
         /\$\{isRoleIn\(([^)]+)\)\}/g,
         (_, roles) => {

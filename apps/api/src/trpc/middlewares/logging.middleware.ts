@@ -1,6 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
-import type { TRPCMiddleware, MiddlewareOptions } from "nestjs-trpc";
-import type { AppContext } from "@rocky/trpc/context.js";
+import type { MiddlewareOptions, TRPCMiddleware } from "nestjs-trpc";
 
 /**
  * Logging middleware - tracks request timing and errors via Pino

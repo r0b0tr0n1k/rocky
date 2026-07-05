@@ -10,17 +10,20 @@
     "./context": "./src/context.ts",
     "./superjson": "./src/superjson.ts",
     "./unwrap": "./src/unwrap.ts",
-    "./generated": "./src/generated/index.ts"
+    "./generated": "./src/generated/index.ts",
+    "./index.js": "./src/index.ts",
+    "./*": "./src/*"
   },
   "dependencies": {
     "@rocky/database": "workspace:*",
+    "@rocky/domains-shared": "workspace:*",
+    "@rocky/execution": "workspace:*",
     "@rocky/validators": "workspace:*",
     "@trpc/server": "catalog:",
     "drizzle-orm": "catalog:",
     "neverthrow": "catalog:",
     "superjson": "catalog:",
-    "zod": "catalog:",
-    "@rocky/domains-shared": "workspace:*"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "typescript": "catalog:"

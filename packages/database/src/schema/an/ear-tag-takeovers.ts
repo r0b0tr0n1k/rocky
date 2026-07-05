@@ -44,6 +44,9 @@ export const earTagTakeovers = pgTable(
     // File reference (for generated .txt export)
     exportedFileName: varchar("exported_file_name", { length: 255 }),
 
+    // Generated flat file content (tag list for supplier manufacturing authorization)
+    fileContent: text("file_content"),
+
     // Notes
     notes: text("notes"),
 

@@ -6,11 +6,18 @@
 //
 // Based on: FS - registration_MK(v0.91).pdf §Business rules
 
+import { animalInsertSchema, animalParentSelectSchema, animalSelectSchema } from "@rocky/database/zod";
 import { z } from "zod";
-import { animalSelectSchema, animalInsertSchema, animalParentSelectSchema } from "@rocky/database/zod";
-import { animalStatusSchema, birthTypeSchema, sexSchema } from "../enums/domain.js";
-import { sortAnimalBySchema, sortOrderSchema, stateCodeSchema } from "../enums/domain.js";
+import {
+  animalStatusSchema,
+  birthTypeSchema,
+  sexSchema,
+  sortAnimalBySchema,
+  sortOrderSchema,
+  stateCodeSchema,
+} from "../enums/domain.js";
 import { earTagSchema } from "../utils/check-digit.js";
+import type { ActivateGuillotines, NoDrift, NoDriftSimple } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RESPONSE SCHEMAS (Diamond Seal - what the API returns)
@@ -100,19 +107,21 @@ export const createAnimalRequestSchema = animalInsertSchema
       return true;
     },
     { message: "Birth date cannot be in the future" },
-  );
+  )
+  .strict();
 
 // ── Update Animal Request ──
 
 export type UpdateAnimalRequest = z.infer<typeof updateAnimalRequestSchema>;
 
 export const updateAnimalRequestSchema = z
-  .object({
+  .strictObject({
     breed: z.string().max(50).optional(),
     birthType: birthTypeSchema.optional(),
     birthWeight: z.int().positive().optional(),
     status: animalStatusSchema.optional(),
     currentFarmId: z.uuid().optional(),
+    motherId: z.uuid().optional(),
     taggingDate: z.date().optional(),
     isFirstTagging: z.boolean().optional(),
   })
@@ -146,3 +155,25 @@ export const findAnimalByTagRequestSchema = z.strictObject({
 // ═══════════════════════════════════════════════════════════════════════════
 // GUILLOTINE ACTIVATION
 // ═══════════════════════════════════════════════════════════════════════════
+
+type _drift_animalResponse = NoDrift<z.infer<typeof animalResponseSchema>, AnimalResponse>;
+type _drift_animalSummary = NoDrift<z.infer<typeof animalSummarySchema>, AnimalSummary>;
+type _drift_animalParentResponse = NoDrift<z.infer<typeof animalParentResponseSchema>, AnimalParentResponse>;
+type _drift_animalListResponse = NoDrift<z.infer<typeof animalListResponseSchema>, AnimalListResponse>;
+type _drift_createAnimal = NoDriftSimple<z.infer<typeof createAnimalRequestSchema>, CreateAnimalRequest>;
+type _drift_updateAnimal = NoDrift<z.infer<typeof updateAnimalRequestSchema>, UpdateAnimalRequest>;
+type _drift_animalList = NoDrift<z.infer<typeof animalListRequestSchema>, AnimalListRequest>;
+type _drift_findByTag = NoDrift<z.infer<typeof findAnimalByTagRequestSchema>, FindAnimalByTagRequest>;
+
+export type _AnimalGuillotines = ActivateGuillotines<
+  [
+    _drift_animalResponse,
+    _drift_animalSummary,
+    _drift_animalParentResponse,
+    _drift_animalListResponse,
+    _drift_createAnimal,
+    _drift_updateAnimal,
+    _drift_animalList,
+    _drift_findByTag,
+  ]
+>;

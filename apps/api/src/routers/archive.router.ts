@@ -2,30 +2,30 @@
 // Consumes Diamond Seal schemas from @rocky/validators/api
 
 import { Inject, Injectable } from "@nestjs/common";
+import { Policy, RegisterPolicy } from "@rocky/authorization/index.js";
 import { ArchiveService } from "@rocky/domains-archive";
-import { createResultUnwrapper } from "@rocky/trpc";
+import type { AppContext } from "@rocky/trpc/context.js";
+import { createResultUnwrapper } from "@rocky/trpc/index.js";
 import {
+  type ArchiveInspectionFormRequest,
   archiveDocumentListRequestSchema,
   archiveInspectionFormRequestSchema,
-  createArchiveDocumentRequestSchema,
-  type ArchiveInspectionFormRequest,
   type CreateArchiveDocumentRequest,
-} from "@rocky/validators/api";
-import { ARCHIVE_TRPC_ERROR_MAP } from "@rocky/validators/errors";
-import { Ctx, Input, Mutation, Query, Router, UseMiddlewares } from "nestjs-trpc";
+  createArchiveDocumentRequestSchema,
+} from "@rocky/validators/api/index.js";
+import { ARCHIVE_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
+import { Ctx, Input, Mutation, Query, Router } from "nestjs-trpc";
 import { z } from "zod";
-import { ProtectedMiddleware, type ProtectedMiddlewareContext } from "../trpc/middlewares/protected.middleware.js";
 
 const idParam = z.object({ id: z.uuid() });
 const unwrap = createResultUnwrapper(ARCHIVE_TRPC_ERROR_MAP);
 
 @Router({ alias: "archive" })
-@UseMiddlewares(ProtectedMiddleware)
+@RegisterPolicy("archive")
+@Policy({ authenticated: true })
 @Injectable()
 export class ArchiveRouter {
-  constructor(
-    @Inject(ArchiveService) private readonly archiveService: ArchiveService,
-  ) { }
+  constructor(@Inject(ArchiveService) private readonly archiveService: ArchiveService) {}
 
   // ── CRUD ──
 
@@ -40,16 +40,16 @@ export class ArchiveRouter {
   }
 
   @Mutation({ input: createArchiveDocumentRequestSchema })
-  async create(
-    @Input() input: CreateArchiveDocumentRequest,
-    @Ctx() ctx: ProtectedMiddlewareContext,
-  ) {
-    return unwrap(
-      await this.archiveService.create({ ...input, createdBy: ctx.auth.userId }),
-    );
+  async create(@Input() input: CreateArchiveDocumentRequest, @Ctx() ctx: AppContext) {
+    return unwrap(await this.archiveService.create({ ...input, createdBy: ctx.execution?.principal.id }));
   }
 
   // ── Archival ──
+
+  @Query({ input: z.strictObject({ limit: z.int().min(1).max(1000).default(100) }) })
+  async listExpired(@Input() input: { limit: number }) {
+    return unwrap(await this.archiveService.findExpiredRetention(input.limit));
+  }
 
   @Mutation({ input: idParam })
   async markArchived(@Input() input: { id: string }) {
@@ -64,12 +64,9 @@ export class ArchiveRouter {
   // ── Inspection Form Integration ──
 
   @Mutation({ input: archiveInspectionFormRequestSchema })
-  async archiveInspectionForm(
-    @Input() input: ArchiveInspectionFormRequest,
-    @Ctx() ctx: ProtectedMiddlewareContext,
-  ) {
+  async archiveInspectionForm(@Input() input: ArchiveInspectionFormRequest, @Ctx() ctx: AppContext) {
     return unwrap(
-      await this.archiveService.archiveInspectionForm({ ...input, createdBy: ctx.auth.userId }),
+      await this.archiveService.archiveInspectionForm({ ...input, createdBy: ctx.execution?.principal.id }),
     );
   }
 }

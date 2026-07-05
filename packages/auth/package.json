@@ -1,0 +1,27 @@
+{
+  "name": "@rocky/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./index.js": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "imports": {
+    "#/*": "./src/*"
+  },
+  "dependencies": {
+    "@better-auth/drizzle-adapter": "catalog:",
+    "@better-auth/expo": "catalog:",
+    "@nestjs/common": "catalog:",
+    "@rocky/database": "workspace:*",
+    "better-auth": "catalog:",
+    "drizzle-orm": "catalog:"
+  },
+  "devDependencies": {
+    "@rocky/typescript-config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

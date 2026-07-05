@@ -44,7 +44,7 @@ Sync strategy: download role-appropriate data → store in local SQLite → queu
 
 ## Known Issues
 
-- Root layout `apps/mobile/src/app/_layout.tsx:56` has `</ORPCProvider>` that should be `</TRPCProvider>` — app cannot render in current state
+- ~~Root layout had `</ORPCProvider>` typo~~ ✅ **FIXED** — `_layout.tsx` now uses correct `</TRPCProvider>`
 - `expo-network` is installed but never imported anywhere
 - No offline queue, no local database, no sync engine
 

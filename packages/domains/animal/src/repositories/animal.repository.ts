@@ -4,11 +4,10 @@
  * @description DB access layer for animals.
  */
 
-import { eq, and, ilike, or, desc, asc, sql, type SQL } from "drizzle-orm";
-import type { DB } from "@rocky/database";
 import { animals as animalsTable } from "@rocky/database";
-import { BaseRepository } from "@rocky/domains-shared";
 import { SORT_ANIMAL_BY, SORT_ORDER } from "@rocky/database/constants";
+import { BaseRepository } from "@rocky/domains-shared";
+import { and, asc, desc, eq, ilike, or, type SQL, sql } from "drizzle-orm";
 
 export type SortAnimalBy = (typeof SORT_ANIMAL_BY)[keyof typeof SORT_ANIMAL_BY];
 export type SortOrder = (typeof SORT_ORDER)[keyof typeof SORT_ORDER];
@@ -26,17 +25,14 @@ export interface AnimalFilter {
 }
 
 export class AnimalRepository extends BaseRepository {
-  constructor(db: DB) {
-    super(db);
-  }
 
   async findById(id: string) {
-    const [row] = await this.db.select().from(animalsTable).where(eq(animalsTable.id, id)).limit(1);
+    const [row] = await this.client.select().from(animalsTable).where(eq(animalsTable.id, id)).limit(1);
     return row ?? null;
   }
 
   async findByTag(earTag: string, stateCode: string) {
-    const [row] = await this.db
+    const [row] = await this.client
       .select()
       .from(animalsTable)
       .where(and(eq(animalsTable.earTagNumber, earTag), eq(animalsTable.stateCode, stateCode)))
@@ -66,14 +62,14 @@ export class AnimalRepository extends BaseRepository {
     const orderBy = filter.sortOrder === SORT_ORDER.ASC ? asc(sortCol) : desc(sortCol);
     const where = c.length > 0 ? and(...c) : undefined;
     const [data, totalResult] = await Promise.all([
-      this.db.select().from(animalsTable).where(where).orderBy(orderBy).limit(filter.limit).offset(filter.offset),
-      this.db.select({ count: sql<number>`count(*)::int` }).from(animalsTable).where(where),
+      this.client.select().from(animalsTable).where(where).orderBy(orderBy).limit(filter.limit).offset(filter.offset),
+      this.client.select({ count: sql<number>`count(*)::int` }).from(animalsTable).where(where),
     ]);
     return { data, total: totalResult[0]?.count ?? 0 };
   }
 
   async insert(data: typeof animalsTable.$inferInsert): Promise<typeof animalsTable.$inferSelect | null> {
-    const [row] = await this.db.insert(animalsTable).values(data).returning();
+    const [row] = await this.client.insert(animalsTable).values(data).returning();
     return row ?? null;
   }
 
@@ -81,7 +77,7 @@ export class AnimalRepository extends BaseRepository {
     id: string,
     data: Partial<typeof animalsTable.$inferInsert>,
   ): Promise<typeof animalsTable.$inferSelect | null> {
-    const [row] = await this.db
+    const [row] = await this.client
       .update(animalsTable)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(animalsTable.id, id))
@@ -91,7 +87,7 @@ export class AnimalRepository extends BaseRepository {
 
   /** Used by MovementService for farm-related updates */
   async findAnimalFarm(id: string) {
-    const [row] = await this.db
+    const [row] = await this.client
       .select({ id: animalsTable.id, currentFarmId: animalsTable.currentFarmId })
       .from(animalsTable)
       .where(eq(animalsTable.id, id))
@@ -100,7 +96,7 @@ export class AnimalRepository extends BaseRepository {
   }
 
   async updateFarm(animalId: string, farmId: string) {
-    await this.db
+    await this.client
       .update(animalsTable)
       .set({ currentFarmId: farmId, updatedAt: new Date() })
       .where(eq(animalsTable.id, animalId));
@@ -108,7 +104,7 @@ export class AnimalRepository extends BaseRepository {
 
   /** Find the most recent calf born to a given mother (for calving gap check) */
   async findLastCalfByMother(motherId: string) {
-    const [row] = await this.db
+    const [row] = await this.client
       .select({ id: animalsTable.id, birthDate: animalsTable.birthDate })
       .from(animalsTable)
       .where(eq(animalsTable.motherId, motherId))

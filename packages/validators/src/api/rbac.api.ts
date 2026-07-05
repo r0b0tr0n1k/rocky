@@ -7,6 +7,7 @@
 
 import { z } from "zod";
 import { roleSelectSchema, permissionSelectSchema } from "@rocky/database/zod";
+import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RESPONSE SCHEMAS
@@ -53,3 +54,14 @@ export type RevokeRoleFromUserRequest = z.infer<typeof revokeRoleFromUserRequest
 // ═══════════════════════════════════════════════════════════════════════════
 // GUILLOTINES
 // ═══════════════════════════════════════════════════════════════════════════
+
+type _drift_roleResponse = NoDrift<z.infer<typeof roleResponseSchema>, RoleResponse>;
+type _drift_permissionResponse = NoDrift<z.infer<typeof permissionResponseSchema>, PermissionResponse>;
+type _drift_roleWithPermissionsResponse = NoDrift<z.infer<typeof roleWithPermissionsResponseSchema>, RoleWithPermissionsResponse>;
+type _drift_assignRoleToUser = NoDrift<z.infer<typeof assignRoleToUserRequestSchema>, AssignRoleToUserRequest>;
+type _drift_revokeRoleFromUser = NoDrift<z.infer<typeof revokeRoleFromUserRequestSchema>, RevokeRoleFromUserRequest>;
+
+export type _RbacGuillotines = ActivateGuillotines<
+  [_drift_roleResponse, _drift_permissionResponse, _drift_roleWithPermissionsResponse,
+   _drift_assignRoleToUser, _drift_revokeRoleFromUser]
+>;

@@ -1,0 +1,31 @@
+{
+  "name": "@rocky/testing",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./factory": "./src/factory/index.ts",
+    "./scenarios": "./src/scenarios/index.ts",
+    "./setup": "./src/setup.ts",
+    "./index.js": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@rocky/database": "workspace:*",
+    "@rocky/validators": "workspace:*"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^10.5.0",
+    "@rocky/typescript-config": "workspace:*",
+    "vite-tsconfig-paths": "catalog:",
+    "vitest": "catalog:"
+  }
+}

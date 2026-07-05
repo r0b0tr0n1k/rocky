@@ -1,32 +1,32 @@
 // --- Passport Router - tRPC entry point ---
 
 import { Inject, Injectable } from "@nestjs/common";
+import { Policy, RegisterPolicy } from "@rocky/authorization/index.js";
 import { PassportService } from "@rocky/domains-passport";
-import { createResultUnwrapper } from "@rocky/trpc";
+import type { AppContext } from "@rocky/trpc/context.js";
+import { createResultUnwrapper } from "@rocky/trpc/index.js";
 import {
+  type IssuePassportRequest,
   issuePassportRequestSchema,
   passportListRequestSchema,
-  reprintPassportRequestSchema,
-  seizePassportRequestSchema,
-  type IssuePassportRequest,
   type ReprintPassportRequest,
+  reprintPassportRequestSchema,
   type SeizePassportRequest,
-} from "@rocky/validators/api";
-import { PASSPORT_TRPC_ERROR_MAP } from "@rocky/validators/errors";
-import { Ctx, Input, Mutation, Query, Router, UseMiddlewares } from "nestjs-trpc";
+  seizePassportRequestSchema,
+} from "@rocky/validators/api/index.js";
+import { PASSPORT_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
+import { Ctx, Input, Mutation, Query, Router } from "nestjs-trpc";
 import { z } from "zod";
-import { ProtectedMiddleware, type ProtectedMiddlewareContext } from "../trpc/middlewares/protected.middleware.js";
 
 const idParam = z.object({ id: z.uuid() });
 const unwrap = createResultUnwrapper(PASSPORT_TRPC_ERROR_MAP);
 
 @Router({ alias: "passport" })
-@UseMiddlewares(ProtectedMiddleware)
+@RegisterPolicy("passport")
+@Policy({ authenticated: true })
 @Injectable()
 export class PassportRouter {
-  constructor(
-    @Inject(PassportService) private readonly passportService: PassportService,
-  ) { }
+  constructor(@Inject(PassportService) private readonly passportService: PassportService) {}
 
   // ── CRUD ──
 
@@ -43,13 +43,8 @@ export class PassportRouter {
   // ── Lifecycle ──
 
   @Mutation({ input: issuePassportRequestSchema })
-  async issueForAnimal(
-    @Input() input: IssuePassportRequest,
-    @Ctx() ctx: ProtectedMiddlewareContext,
-  ) {
-    return unwrap(
-      await this.passportService.issueForAnimal({ ...input, createdBy: ctx.auth.userId }),
-    );
+  async issueForAnimal(@Input() input: IssuePassportRequest, @Ctx() ctx: AppContext) {
+    return unwrap(await this.passportService.issueForAnimal({ ...input, createdBy: ctx.execution?.principal.id }));
   }
 
   @Mutation({ input: idParam })
@@ -64,13 +59,9 @@ export class PassportRouter {
 
   @Mutation({ input: seizePassportRequestSchema })
   async seize(@Input() input: SeizePassportRequest) {
-    return unwrap(
-      await this.passportService.seize(
-        input.passportId,
-        input.deathDate.toISOString().split("T")[0]!,
-        input.deathCause,
-      ),
-    );
+    // biome-ignore lint/style/noNonNullAssertion: Zod-validated date guarantees split("T")[0] exists
+    const datePart = input.deathDate.toISOString().split("T")[0]!;
+    return unwrap(await this.passportService.seize(input.passportId, datePart, input.deathCause));
   }
 
   @Mutation({ input: reprintPassportRequestSchema })

@@ -5,7 +5,6 @@
  */
 
 import { eq, and, desc, sql, type SQL } from "drizzle-orm";
-import type { DB } from "@rocky/database";
 import { errorCorrections as errorCorrectionsTable } from "@rocky/database";
 import { BaseRepository } from "@rocky/domains-shared";
 import { CORRECTION_STATUS } from "@rocky/database/constants";
@@ -20,12 +19,9 @@ export interface CorrectionFilter {
 }
 
 export class CorrectionRepository extends BaseRepository {
-  constructor(db: DB) {
-    super(db);
-  }
 
   async findById(id: string) {
-    const [row] = await this.db
+    const [row] = await this.client
       .select()
       .from(errorCorrectionsTable)
       .where(eq(errorCorrectionsTable.id, id))
@@ -41,14 +37,14 @@ export class CorrectionRepository extends BaseRepository {
     if (filter.detectionSource) c.push(eq(errorCorrectionsTable.detectionSource, filter.detectionSource));
     const where = c.length > 0 ? and(...c) : undefined;
     const [data, totalResult] = await Promise.all([
-      this.db.select().from(errorCorrectionsTable).where(where).orderBy(desc(errorCorrectionsTable.createdAt)).limit(filter.limit).offset(filter.offset),
-      this.db.select({ count: sql<number>`count(*)::int` }).from(errorCorrectionsTable).where(where),
+      this.client.select().from(errorCorrectionsTable).where(where).orderBy(desc(errorCorrectionsTable.createdAt)).limit(filter.limit).offset(filter.offset),
+      this.client.select({ count: sql<number>`count(*)::int` }).from(errorCorrectionsTable).where(where),
     ]);
     return { data, total: totalResult[0]?.count ?? 0 };
   }
 
   async create(data: typeof errorCorrectionsTable.$inferInsert) {
-    const [row] = await this.db.insert(errorCorrectionsTable).values(data).returning();
+    const [row] = await this.client.insert(errorCorrectionsTable).values(data).returning();
     return row ?? null;
   }
 
@@ -58,7 +54,7 @@ export class CorrectionRepository extends BaseRepository {
     if (status === CORRECTION_STATUS.RESOLVED) updateData.resolvedAt = new Date();
     if (extra?.resolutionNotes) updateData.resolutionNotes = extra.resolutionNotes;
 
-    const [row] = await this.db
+    const [row] = await this.client
       .update(errorCorrectionsTable)
       .set(updateData)
       .where(eq(errorCorrectionsTable.id, id))
@@ -67,7 +63,7 @@ export class CorrectionRepository extends BaseRepository {
   }
 
   async escalate(id: string, escalatedTo: string, reason?: string) {
-    const [row] = await this.db
+    const [row] = await this.client
       .update(errorCorrectionsTable)
       .set({
         status: CORRECTION_STATUS.ESCALATED,

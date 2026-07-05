@@ -399,8 +399,8 @@ export function renderTemplate(
   language: string,
   variables: Record<string, unknown>,
 ): { subject: string; body: string } {
-  let subject = template.subject[language] || template.subject["EN"] || "";
-  let body = template.body[language] || template.body["EN"] || "";
+  let subject = template.subject[language] || template.subject.EN || "";
+  let body = template.body[language] || template.body.EN || "";
 
   // Replace variables in {{variable}} format
   for (const [key, value] of Object.entries(variables)) {

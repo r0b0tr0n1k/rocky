@@ -46,7 +46,7 @@ InspectionService.complete() → ArchiveService.archiveInspectionForm()
 | Step | Deliverable | Files | Status |
 |------|-------------|-------|--------|
 | 2.1 | `@Cron` daily job: query expired archives, mark as destroyed | `apps/api/src/jobs/retention.job.ts` | ✅ |
-| 2.2 | Retention enforcement tRPC endpoints (query expired, trigger purge manually) | `apps/api/src/routers/archive.router.ts` | ✅ (listExpired endpoint) |
+| 2.2 | Retention enforcement tRPC endpoints (query expired, trigger purge manually) | `apps/api/src/routers/archive.router.ts` | ✅ `listExpired` + `markDestroyed` both exist (listExpired added 2026-07-05) |
 
 ### Phase 3: Domain Integration ✅
 

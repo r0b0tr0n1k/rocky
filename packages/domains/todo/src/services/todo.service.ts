@@ -1,5 +1,5 @@
 import { eq, and } from "drizzle-orm";
-import type { DB } from "@rocky/database";
+import type { DatabaseProvider } from "@rocky/database";
 import { todos } from "@rocky/database/schema/demo";
 import {
   createTodoSchema,
@@ -13,18 +13,18 @@ import {
   type DeleteTodoInput,
   type GetTodoByIdInput,
   type Todo,
-} from "../types/todo.types";
-import { todoErr, TODO_ERRORS } from "../errors/todo.errors";
+} from "../types/todo.types.js";
+import { TODO_ERRORS } from "../errors/todo.errors.js";
 import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
 
 export class TodoService {
-  constructor(private readonly db: DB) {}
+  constructor(private readonly dbp: DatabaseProvider) {}
 
   async create(input: CreateTodoInput): Promise<Result<Todo, Error>> {
     return fromAsyncThrowable(async () => {
       const validated = createTodoSchema.parse(input);
       const now = new Date();
-      const [todo] = await this.db
+      const [todo] = await this.dbp.client
         .insert(todos)
         .values({
           userId: validated.userId,
@@ -45,7 +45,7 @@ export class TodoService {
       if (typeof validated.completed === "boolean") {
         conditions.push(eq(todos.completed, validated.completed));
       }
-      const result = await this.db
+      const result = await this.dbp.client
         .select()
         .from(todos)
         .where(and(...conditions))
@@ -57,7 +57,7 @@ export class TodoService {
   async getById(input: GetTodoByIdInput): Promise<Result<Todo, Error>> {
     return fromAsyncThrowable(async () => {
       const validated = getTodoByIdSchema.parse(input);
-      const [todo] = await this.db
+      const [todo] = await this.dbp.client
         .select()
         .from(todos)
         .where(and(eq(todos.id, validated.id), eq(todos.userId, validated.userId)))
@@ -78,7 +78,7 @@ export class TodoService {
       if (validated.title !== undefined) patch.title = validated.title;
       if (validated.completed !== undefined) patch.completed = validated.completed;
 
-      const [todo] = await this.db
+      const [todo] = await this.dbp.client
         .update(todos)
         .set(patch)
         .where(and(eq(todos.id, validated.id), eq(todos.userId, validated.userId)))
@@ -93,7 +93,7 @@ export class TodoService {
   async delete(input: DeleteTodoInput): Promise<Result<{ deleted: boolean }, Error>> {
     return fromAsyncThrowable(async () => {
       const validated = deleteTodoSchema.parse(input);
-      const [todo] = await this.db
+      const [todo] = await this.dbp.client
         .delete(todos)
         .where(and(eq(todos.id, validated.id), eq(todos.userId, validated.userId)))
         .returning({ id: todos.id });

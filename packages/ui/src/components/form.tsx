@@ -12,8 +12,8 @@ import {
   useFormContext,
 } from "react-hook-form";
 
-import { cn } from "../lib/utils.ts";
-import { Label } from "./label.tsx";
+import { cn } from "../lib/utils.js";
+import { Label } from "./label.js";
 
 const ControllerAny = Controller as unknown as React.FC<any>;
 

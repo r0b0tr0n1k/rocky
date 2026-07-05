@@ -1,0 +1,38 @@
+# User Domain Service
+
+**Scope:** `packages/domains/user/` — service, repository, errors
+**Source spec:** SM.PDF §Users
+**Last verified:** 2026-07-05
+
+## Overview
+
+Manages SM (System Management) users. Users are the system agents — they have login credentials, roles, permissions, and organizational assignments. Each SM user is linked 1:1 to a Better Auth `auth_user` via `authUserId`.
+
+## Service Methods
+
+`packages/domains/user/src/services/user.service.ts`:
+
+| Method              | Purpose                                       | Status |
+| ------------------- | --------------------------------------------- | ------ |
+| `getById(id)`       | Fetch single user with role/permissions       | ✅      |
+| `list(input)`       | List users with filters (org, status, search) | ✅      |
+| `create(input)`     | Create a new SM user                          | ✅      |
+| `update(id, input)` | Update user profile fields                    | ✅      |
+
+## Key Relations
+
+| Relation          | Table                                       | Type             |
+| ----------------- | ------------------------------------------- | ---------------- |
+| Better Auth link  | `users.authUserId` → `auth_user.id`         | 1:1              |
+| Organization      | `users.organizationId` → `organizations.id` | M:1              |
+| Roles (M:N)       | `user_roles.userId` → `users.id`            | M:N              |
+| Sessions (legacy) | `user_sessions.userId` → `users.id`         | 1:M (deprecated) |
+
+## Deprecated Features
+
+| Column                    | Deprecation                     | Replacement                   |
+| ------------------------- | ------------------------------- | ----------------------------- |
+| `passwordHash`            | ✅ Better Auth manages passwords | Better Auth `auth_account`    |
+| `mfaEnabled`/ `mfaSecret` | ✅ Better Auth manages MFA       | Better Auth 2FA               |
+| `role` (flat)             | ✅ RBAC M:N system               | `user_roles` + `roles` tables |
+| `user_sessions` table     | ✅ Better Auth sessions          | `auth_session` table          |

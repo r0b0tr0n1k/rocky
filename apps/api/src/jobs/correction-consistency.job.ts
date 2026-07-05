@@ -12,24 +12,19 @@
 
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
-import { CorrectionService } from "@rocky/domains-correction";
+import type { CorrectionService } from "@rocky/domains-correction";
 
 @Injectable()
 export class CorrectionConsistencyJob {
   private readonly logger = new Logger(CorrectionConsistencyJob.name);
 
-  constructor(
-    private readonly correctionService: CorrectionService,
-  ) {}
+  constructor(readonly _correctionService: CorrectionService) {}
 
   @Cron("0 3 * * 0")
   async runAPosterioriChecks() {
     this.logger.log("Starting a posteriori consistency checks...");
 
-    const results = await Promise.allSettled([
-      this.checkOrphanedAnimals(),
-      this.checkFutureDates(),
-    ]);
+    const results = await Promise.allSettled([this.checkOrphanedAnimals(), this.checkFutureDates()]);
 
     let created = 0;
     for (const r of results) {

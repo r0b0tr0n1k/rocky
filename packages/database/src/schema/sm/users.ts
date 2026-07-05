@@ -23,8 +23,11 @@ export const users = pgTable(
     email: varchar("email", { length: 255 }),
 
     // Authentication
-    passwordHash: varchar("password_hash", { length: 255 }).notNull(),
+    /** @deprecated — Better Auth manages passwords via auth_account. Will be removed in next DB reset. */
+    passwordHash: varchar("password_hash", { length: 255 }),
+    /** @deprecated — MFA handled by Better Auth. Will be removed in next DB reset. */
     mfaEnabled: boolean("mfa_enabled").notNull().default(false),
+    /** @deprecated — MFA secret handled by Better Auth. Will be removed in next DB reset. */
     mfaSecret: varchar("mfa_secret", { length: 100 }),
 
     // Personal info (dual language - legacy FIRST_NAME/FIRST_NAME_1)
@@ -39,6 +42,7 @@ export const users = pgTable(
     deviceId: varchar("device_id", { length: 255 }),
 
     // Role & Organization
+    /** @deprecated — Replaced by RBAC M:N role_permissions + user_roles. Will be removed in next DB reset. */
     role: userRolePgEnum("role").notNull().default(USER_ROLE.FARMER),
     organizationId: uuid("organization_id").references(() => organizations.id),
 
@@ -78,6 +82,8 @@ export const users = pgTable(
 );
 
 // ── USER SESSIONS (JWT tracking, replaces SM_SESSIONS) ──
+/** @deprecated — Better Auth auth_session handles sessions. Will be removed in next DB reset. */
+/** @deprecated — Use Better Auth auth_session instead. */
 export const userSessions = pgTable(
   "user_sessions",
   {

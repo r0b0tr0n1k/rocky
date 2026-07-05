@@ -1,7 +1,7 @@
-import "reflect-metadata";
-import "@total-typescript/ts-reset";
 import { NestFactory } from "@nestjs/core";
+import "@total-typescript/ts-reset";
 import { Logger } from "nestjs-pino";
+import "reflect-metadata";
 import { AppModule } from "./app.module.js";
 import { appConfig } from "./config.js";
 
@@ -12,6 +12,7 @@ async function bootstrap() {
   });
 
   // Single injection point - substitutes NestJS built-in logger
+  // biome-ignore lint/correctness/useHookAtTopLevel: NestJS method, not React hook
   app.useLogger(app.get(Logger));
 
   // Enable shutdown hooks for graceful termination

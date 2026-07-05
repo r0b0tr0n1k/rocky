@@ -9,15 +9,17 @@
     ".": "./src/index.ts",
     "./todo.service": "./src/services/todo.service.ts",
     "./todo.errors": "./src/errors/todo.errors.ts",
-    "./todo.types": "./src/types/todo.types.ts"
+    "./todo.types": "./src/types/todo.types.ts",
+    "./index.js": "./src/index.ts",
+    "./*": "./src/*"
   },
   "dependencies": {
     "@rocky/database": "workspace:*",
+    "@rocky/domains-shared": "workspace:*",
     "@rocky/errors": "workspace:*",
     "drizzle-orm": "catalog:",
     "neverthrow": "catalog:",
-    "zod": "catalog:",
-    "@rocky/domains-shared": "workspace:*"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "typescript": "catalog:"

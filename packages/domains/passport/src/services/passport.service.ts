@@ -5,24 +5,25 @@
  */
 
 import { PASSPORT_STATUS, STATE_CODE } from "@rocky/database/constants";
-import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
-import { PassportError, PASSPORT_ERRORS } from "../errors/passport.errors.js";
-import type { PassportRepository } from "../repositories/passport.repository.js";
 import type { AnimalRepository } from "@rocky/domains-animal";
+import { fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
+import { PASSPORT_ERRORS, PassportError } from "../errors/passport.errors.js";
+import type { PassportRepository } from "../repositories/passport.repository.js";
 
 /** Valid state transitions for the passport lifecycle */
 const VALID_TRANSITIONS: Record<string, string[]> = {
-  [PASSPORT_STATUS.ISSUED]: [PASSPORT_STATUS.ACTIVE, "cancelled"],
-  [PASSPORT_STATUS.ACTIVE]: [PASSPORT_STATUS.SEIZED, "cancelled", "reprinted"],
+  [PASSPORT_STATUS.ISSUED]: [PASSPORT_STATUS.ACTIVE, PASSPORT_STATUS.CANCELLED],
+  [PASSPORT_STATUS.ACTIVE]: [PASSPORT_STATUS.SEIZED, PASSPORT_STATUS.CANCELLED, PASSPORT_STATUS.REPRINTED],
   [PASSPORT_STATUS.SEIZED]: [PASSPORT_STATUS.ARCHIVED],
   [PASSPORT_STATUS.ARCHIVED]: [],
+  [PASSPORT_STATUS.REPRINTED]: [PASSPORT_STATUS.CANCELLED],
 };
 
 export class PassportService {
   constructor(
     private readonly repo: PassportRepository,
     private readonly animalRepo: AnimalRepository,
-  ) {}
+  ) { }
 
   // ── CRUD ──
 
@@ -122,8 +123,10 @@ export class PassportService {
     return fromAsyncThrowable(async () => {
       const passport = await this.repo.findById(passportId);
       if (!passport) throw new PassportError(PASSPORT_ERRORS.NOT_FOUND, { id: passportId });
+
+      // P1: Idempotent — already seized is a no-op skip, not an error
       if (passport.status === PASSPORT_STATUS.SEIZED) {
-        throw new PassportError(PASSPORT_ERRORS.ALREADY_SEIZED, { id: passportId });
+        return passport;
       }
       this.validateTransition(passport.status, PASSPORT_STATUS.SEIZED);
 
@@ -139,10 +142,10 @@ export class PassportService {
     return fromAsyncThrowable(async () => {
       const original = await this.repo.findById(originalPassportId);
       if (!original) throw new PassportError(PASSPORT_ERRORS.NOT_FOUND, { id: originalPassportId });
-      this.validateTransition(original.status, "reprinted");
+      this.validateTransition(original.status, PASSPORT_STATUS.REPRINTED);
 
       // Invalidate original
-      await this.repo.updateStatus(originalPassportId, "reprinted");
+      await this.repo.updateStatus(originalPassportId, PASSPORT_STATUS.REPRINTED);
 
       // Create new passport
       const year = new Date().getFullYear();
@@ -183,7 +186,7 @@ export class PassportService {
 
   private validateTransition(currentStatus: string, targetStatus: string) {
     const allowed = VALID_TRANSITIONS[currentStatus];
-    if (!allowed || !allowed.includes(targetStatus)) {
+    if (!allowed?.includes(targetStatus)) {
       throw new PassportError(PASSPORT_ERRORS.INVALID_STATUS_TRANSITION, {
         currentStatus,
         targetStatus,

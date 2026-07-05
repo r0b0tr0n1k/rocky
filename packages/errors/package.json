@@ -6,11 +6,13 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./index.js": "./src/index.ts",
+    "./*": "./src/*"
   },
   "dependencies": {
-    "neverthrow": "catalog:",
-    "@rocky/domains-shared": "workspace:*"
+    "@rocky/domains-shared": "workspace:*",
+    "neverthrow": "catalog:"
   },
   "devDependencies": {
     "typescript": "catalog:"

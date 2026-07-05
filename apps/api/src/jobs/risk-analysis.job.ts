@@ -9,15 +9,13 @@
 
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
-import { RiskAnalysisService } from "@rocky/domains-inspection";
+import type { RiskAnalysisService } from "@rocky/domains-inspection";
 
 @Injectable()
 export class RiskAnalysisJob {
   private readonly logger = new Logger(RiskAnalysisJob.name);
 
-  constructor(
-    private readonly riskAnalysisService: RiskAnalysisService,
-  ) {}
+  constructor(private readonly riskAnalysisService: RiskAnalysisService) {}
 
   /**
    * Annual risk analysis - selects 10% of farms for inspection.
