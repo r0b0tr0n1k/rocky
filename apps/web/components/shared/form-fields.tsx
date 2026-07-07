@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { type Control } from "react-hook-form";
+import { type Control, type FieldValues } from "react-hook-form";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
@@ -29,7 +29,7 @@ import {
 import { Switch } from "@rocky/ui/components/switch";
 import { Textarea } from "@rocky/ui/components/textarea";
 
-type AnyControl = Control<any>;
+type AnyControl = Control<FieldValues>;
 
 export interface FieldOption {
   label: string;

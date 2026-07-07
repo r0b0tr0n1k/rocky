@@ -7,15 +7,15 @@ import { Alert, AlertDescription, AlertTitle } from "@rocky/ui/components/alert"
 import { Button } from "@rocky/ui/components/button";
 import { Form } from "@rocky/ui/components/form";
 
-export interface ValidatedFormProps<TValues> {
-  form: UseFormReturn<any>;
+export interface ValidatedFormProps<TValues extends FieldValues> {
+  form: UseFormReturn<TValues>;
   onValid: (values: TValues) => void | Promise<void>;
   children: React.ReactNode;
   submitText?: string;
   submitting?: boolean;
 }
 
-export function ValidatedForm<TValues>({
+export function ValidatedForm<TValues extends FieldValues>({
   form,
   onValid,
   children,
@@ -24,11 +24,8 @@ export function ValidatedForm<TValues>({
 }: ValidatedFormProps<TValues>) {
   const showError = form.formState.isSubmitted && !form.formState.isValid;
   return (
-    <Form {...(form as UseFormReturn<FieldValues>)}>
-      <form
-        onSubmit={form.handleSubmit(onValid as (values: any) => void | Promise<void>)}
-        className="space-y-4"
-      >
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onValid)} className="space-y-4">
         {children}
         {showError ? (
           <Alert variant="destructive">
