@@ -10,16 +10,23 @@
     "format": "prettier --write \"**/*.{ts,tsx}\""
   },
   "dependencies": {
+    "@base-ui/react": "^1.6.0",
     "@radix-ui/react-label": "catalog:",
     "@radix-ui/react-slot": "catalog:",
+    "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
+    "cmdk": "^1.1.1",
+    "date-fns": "^4.4.0",
     "lucide-react": "catalog:",
     "next-themes": "catalog:",
     "radix-ui": "^1.6.1",
     "react": "catalog:",
+    "react-day-picker": "^10.0.1",
     "react-dom": "catalog:",
     "react-hook-form": "catalog:",
+    "react-resizable-panels": "^4.12.1",
+    "recharts": "3.8.0",
     "sonner": "catalog:",
     "tailwind-merge": "catalog:"
   },

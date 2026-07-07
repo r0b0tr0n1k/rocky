@@ -18,6 +18,7 @@
 | [0014](0014-cross-domain-event-decoupling.md) | Cross-Domain Event Decoupling via Outbox | Accepted |
 | [0015](0015-pda-sync-conflict-resolution.md) | PDA Sync Conflict Resolution via Error Corrections | Accepted |
 | [0016](0016-subversive-audit-metadata.md) | Subversive Audit Metadata Injection | Accepted |
+| [0017](0017-frontend-architecture.md) | Frontend Architecture — Type-Safe Admin Shell | Accepted |
 
 ## Decision Timeline
 
@@ -40,6 +41,8 @@
       └── Phase 1: Factory + end-to-end z.coerce.date() propagation
 0011 ── Layer Boundaries ─────────────────────────────────────────────
       └── Phase 1: api.ts/router.ts/service.ts/repository.ts contracts
+0017 ── Frontend Shell ──────────────────────────────────────────────────
+      └── Phase 0: shadcn components + AdminShell + ValidatedForm + DataTable
 ```
 
 ## Usage
