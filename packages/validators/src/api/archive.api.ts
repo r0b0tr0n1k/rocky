@@ -23,11 +23,11 @@ export const archiveDocumentResponseSchema = archiveDocumentSelectSchema
   .extend({
     documentType: archiveDocumentTypeSchema,
     archiveLocation: archiveLocationSchema,
-    retentionExpiry: z.coerce.date(),
-    archivedAt: z.coerce.date().nullable(),
-    destroyedAt: z.coerce.date().nullable(),
+    retentionExpiry: z.coerce.date<string>(),
+    archivedAt: z.coerce.date<string>().nullable(),
+    destroyedAt: z.coerce.date<string>().nullable(),
   })
-  .strict();
+  .strip();
 
 export type ArchiveDocumentResponse = z.infer<typeof archiveDocumentResponseSchema>;
 
@@ -66,7 +66,7 @@ export const createArchiveDocumentRequestSchema = archiveDocumentInsertSchema
   .extend({
     documentType: archiveDocumentTypeSchema,
     archiveLocation: archiveLocationSchema.optional(),
-    retentionExpiry: z.coerce.date(),
+    retentionExpiry: z.coerce.date<string>(),
   })
   .strict();
 

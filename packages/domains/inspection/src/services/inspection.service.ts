@@ -119,6 +119,19 @@ export class InspectionService {
     const inspection = await this.repo.findById(input.id);
     if (!inspection) return err(new InspectionError(INSPECTION_ERRORS.NOT_FOUND, { inspectionId: input.id }));
 
+    // Cross-field invariant (Diamond Seal): inspectionDate must be on or after scheduledDate.
+    if (inspection.scheduledDate) {
+      const scheduled = new Date(inspection.scheduledDate);
+      const performed = input.inspectionDate instanceof Date ? input.inspectionDate : new Date(input.inspectionDate);
+      if (performed < scheduled) {
+        return err(new InspectionError(INSPECTION_ERRORS.INVALID_DATE_ORDER, {
+          inspectionId: input.id,
+          scheduledDate: scheduled.toISOString().split("T")[0],
+          inspectionDate: performed.toISOString().split("T")[0],
+        }));
+      }
+    }
+
     const updated = await this.repo.update(input.id, {
       status: INSPECTION_STATUS.COMPLETED,
       inspectionDate: (input.inspectionDate instanceof Date ? input.inspectionDate : new Date(input.inspectionDate)).toISOString().split("T")[0]!,

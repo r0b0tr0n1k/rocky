@@ -36,7 +36,7 @@ import {
 /** Disease master record */
 export const diseaseResponseSchema = diseaseSelectSchema
   .omit({ createdBy: true, validTo: true })
-  .strict();
+  .strip();
 
 export type DiseaseResponse = z.infer<typeof diseaseResponseSchema>;
 
@@ -46,14 +46,14 @@ export const vaccineResponseSchema = vaccineSelectSchema
   .extend({
     type: vaccineTypeSchema,
   })
-  .strict();
+  .strip();
 
 export type VaccineResponse = z.infer<typeof vaccineResponseSchema>;
 
 /** Vaccine batch record */
 export const vaccineBatchResponseSchema = vaccineBatchSelectSchema
   .omit({ createdBy: true, validTo: true })
-  .strict();
+  .strip();
 
 export type VaccineBatchResponse = z.infer<typeof vaccineBatchResponseSchema>;
 
@@ -62,9 +62,9 @@ export const vaccinationResponseSchema = vaccinationSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
     route: administrationRouteSchema,
-    adminDate: z.coerce.date(),
+    adminDate: z.coerce.date<string>(),
   })
-  .strict();
+  .strip();
 
 export type VaccinationResponse = z.infer<typeof vaccinationResponseSchema>;
 
@@ -72,9 +72,9 @@ export type VaccinationResponse = z.infer<typeof vaccinationResponseSchema>;
 export const treatmentResponseSchema = treatmentSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
-    diagnosisDate: z.coerce.date(),
+    diagnosisDate: z.coerce.date<string>(),
   })
-  .strict();
+  .strip();
 
 export type TreatmentResponse = z.infer<typeof treatmentResponseSchema>;
 
@@ -84,17 +84,17 @@ export const labTestResponseSchema = labTestSelectSchema
   .extend({
     testType: testTypeSchema,
     result: testResultSchema,
-    sampleDate: z.coerce.date(),
-    resultDate: z.coerce.date(),
+    sampleDate: z.coerce.date<string>(),
+    resultDate: z.coerce.date<string>(),
   })
-  .strict();
+  .strip();
 
 export type LabTestResponse = z.infer<typeof labTestResponseSchema>;
 
 /** Vaccine-to-disease mapping record */
 export const vaccineDiseaseResponseSchema = vaccineDiseaseSelectSchema
   .omit({ createdBy: true })
-  .strict();
+  .strip();
 
 export type VaccineDiseaseResponse = z.infer<typeof vaccineDiseaseResponseSchema>;
 
@@ -128,10 +128,19 @@ export const vaccinationListRequestSchema = z
     farmId: z.uuid().optional(),
     vaccineId: z.uuid().optional(),
     vetId: z.uuid().optional(),
-    dateFrom: z.coerce.date().optional(),
-    dateTo: z.coerce.date().optional(),
+    dateFrom: z.coerce.date<string>().optional(),
+    dateTo: z.coerce.date<string>().optional(),
     limit: z.int().min(1).max(100).default(20),
     offset: z.int().min(0).default(0),
+  })
+  .superRefine((data, ctx) => {
+    if (data.dateFrom && data.dateTo && data.dateFrom > data.dateTo) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "dateFrom must be on or before dateTo",
+        path: ["dateTo"],
+      });
+    }
   });
 
 export type VaccinationListRequest = z.infer<typeof vaccinationListRequestSchema>;
@@ -142,10 +151,19 @@ export const treatmentListRequestSchema = z
     farmId: z.uuid().optional(),
     diseaseId: z.uuid().optional(),
     vetId: z.uuid().optional(),
-    dateFrom: z.coerce.date().optional(),
-    dateTo: z.coerce.date().optional(),
+    dateFrom: z.coerce.date<string>().optional(),
+    dateTo: z.coerce.date<string>().optional(),
     limit: z.int().min(1).max(100).default(20),
     offset: z.int().min(0).default(0),
+  })
+  .superRefine((data, ctx) => {
+    if (data.dateFrom && data.dateTo && data.dateFrom > data.dateTo) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "dateFrom must be on or before dateTo",
+        path: ["dateTo"],
+      });
+    }
   });
 
 export type TreatmentListRequest = z.infer<typeof treatmentListRequestSchema>;
@@ -157,10 +175,19 @@ export const labTestListRequestSchema = z
     diseaseId: z.uuid().optional(),
     testType: testTypeSchema.optional(),
     result: testResultSchema.optional(),
-    dateFrom: z.coerce.date().optional(),
-    dateTo: z.coerce.date().optional(),
+    dateFrom: z.coerce.date<string>().optional(),
+    dateTo: z.coerce.date<string>().optional(),
     limit: z.int().min(1).max(100).default(20),
     offset: z.int().min(0).default(0),
+  })
+  .superRefine((data, ctx) => {
+    if (data.dateFrom && data.dateTo && data.dateFrom > data.dateTo) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "dateFrom must be on or before dateTo",
+        path: ["dateTo"],
+      });
+    }
   });
 
 export type LabTestListRequest = z.infer<typeof labTestListRequestSchema>;
@@ -216,7 +243,7 @@ export const recordVaccinationRequestSchema = vaccinationInsertSchema
   })
   .extend({
     route: administrationRouteSchema,
-    adminDate: z.coerce.date(),
+    adminDate: z.coerce.date<string>(),
   })
   .refine(
     (data) => data.adminDate <= new Date(),
@@ -258,8 +285,8 @@ export const recordLabTestRequestSchema = labTestInsertSchema
     result: testResultSchema,
     resultNumeric: z.coerce.number().optional(),
     resultUnit: z.string().max(20).optional(),
-    sampleDate: z.coerce.date(),
-    resultDate: z.coerce.date(),
+    sampleDate: z.coerce.date<string>(),
+    resultDate: z.coerce.date<string>(),
   })
   .refine(
     (data) => data.sampleDate <= new Date(),

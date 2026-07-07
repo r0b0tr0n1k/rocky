@@ -4,7 +4,7 @@
   "private": true,
   "description": "AIMCS documentation site — Next.js, MDX, Velite, shadcn/ui",
   "scripts": {
-    "dev": "concurrently \"velite --watch\" \"next dev --turbopack\"",
+    "dev": "concurrently \"velite --watch\" \"next dev --turbopack --port 3002\"",
     "build": "velite && next build",
     "start": "next start",
     "lint": "next lint",

@@ -4,7 +4,7 @@ import { Text } from "@/components/ui/text";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import Network from "expo-network";
+import * as Network from "expo-network";
 
 export default function SyncScreen() {
   const [isConnected, setIsConnected] = useState<boolean | null>(null);

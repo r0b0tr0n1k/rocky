@@ -79,17 +79,17 @@ export interface PassportListRequest {
 export const passportResponseSchema = cattlePassportSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
-    issueDate: z.coerce.date(),
-    seizeDate: z.coerce.date().nullable(),
-    archiveDate: z.coerce.date().nullable(),
-    deathDate: z.coerce.date().nullable(),
+    issueDate: z.coerce.date<string>(),
+    seizeDate: z.coerce.date<string>().nullable(),
+    archiveDate: z.coerce.date<string>().nullable(),
+    deathDate: z.coerce.date<string>().nullable(),
     status: passportStatusSchema,
-    shippedAt: z.coerce.date().nullable(),
-    deliveredAt: z.coerce.date().nullable(),
+    shippedAt: z.coerce.date<string>().nullable(),
+    deliveredAt: z.coerce.date<string>().nullable(),
   })
-  .strict() satisfies z.ZodType<PassportResponse>;
+  .strip() satisfies z.ZodType<PassportResponse>;
 
-export const passportSummarySchema = z.strictObject(
+export const passportSummarySchema = z.object(
   passportResponseSchema
     .pick({
       id: true,
@@ -120,7 +120,7 @@ export const issuePassportRequestSchema = z.strictObject({
 
 export const seizePassportRequestSchema = z.strictObject({
   passportId: z.uuid(),
-  deathDate: z.coerce.date(),
+  deathDate: z.coerce.date<string>(),
   deathCause: z.string().optional(),
 }) satisfies z.ZodType<SeizePassportRequest>;
 

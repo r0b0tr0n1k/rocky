@@ -19,6 +19,7 @@ export type FarmRecord = InferSelectSchema<typeof farmSelectSchema>;
 export class FarmFactory extends SchemaDataFactory<FarmRecord> {
   constructor(addressId: string, createdBy?: string) {
     super(farmSelectSchema, {
+      id: faker.string.uuid(),
       addressId,
       farmId: faker.string.numeric({ length: 9 }),
       name: faker.company.name(),
@@ -28,6 +29,18 @@ export class FarmFactory extends SchemaDataFactory<FarmRecord> {
       isActive: faker.datatype.boolean({ probability: 0.9 }),
       createdAt: faker.date.recent({ days: 365 }),
       createdBy: createdBy ?? null,
+      legacyId: null,
+      parentFarmId: null,
+      verificationNote: null,
+      verifiedAt: null,
+      verifiedBy: null,
+      location: null,
+      digitalSignature: null,
+      signatureCapturedAt: null,
+      photoUrl: null,
+      updatedAt: null,
+      updatedBy: null,
+      validTo: null,
     });
   }
 

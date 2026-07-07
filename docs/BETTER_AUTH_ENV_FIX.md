@@ -1,4 +1,12 @@
-# Better Auth Environment Configuration - Fixed
+# Better Auth Environment Configuration — Historical Reference
+
+> ⚠️ **This document records an early fix from 2026-07-03. The architecture has since evolved.**
+> Current architecture: `apps/api` delegates to `@rocky/auth`'s `Auth.getInstance()` singleton.
+> `apps/web` has **no server-side Better Auth instance** — it uses `createRockyAuthClient()` from `@rocky/auth/client`.
+
+## Historical Context
+
+The issues documented below (missing `BETTER_AUTH_SECRET`, missing `API_URL`) were fixed in the initial setup. They are kept here as reference for anyone setting up a new environment.
 
 ## ✅ Issues Fixed
 
@@ -10,176 +18,76 @@
 [Error [BetterAuthError]: You are using the default secret. Please set `BETTER_AUTH_SECRET` in your environment variables or pass `secret` in your auth config.]
 ```
 
-**Root Cause:** Both the API (NestJS) and the web app (Next.js) had Better Auth instances configured without the required `secret` parameter.
-
-**Solution:**
-1. Added secret validation in `apps/api/src/auth/auth.ts`
-2. Added secret validation in `apps/web/lib/auth.ts`
-3. Created `.env` files with `BETTER_AUTH_SECRET` for both apps
+**Current Architecture:** The API uses `Auth.getInstance()` from `@rocky/auth`, which validates `BETTER_AUTH_SECRET` at construction time. The web app has no server-side Better Auth instance.
 
 ### 2. Missing API_URL Environment Variable
 
-**Problem:** Web app build failed because `API_URL` was not set:
+**Problem:** Web app build failed because `API_URL` was not set.
 
-```
-Error: API_URL required for SSR
-```
+**Current State:** `apps/web/.env` contains `API_URL=http://localhost:8080`. The tRPC client in `apps/web/lib/trpc.ts` falls back to `http://localhost:8080` if `API_URL` is not set.
 
-**Root Cause:** The tRPC client configuration requires `API_URL` for server-side rendering, but no environment variable was set.
+## 📁 Files
 
-**Solution:** Created `.env` file with `API_URL=http://localhost:8080` for the web app.
+| File                    | Status                                                                                                      |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `apps/api/.env`         | ✅ Exists (600 permissions) — contains `BETTER_AUTH_SECRET`, DB config                                       |
+| `apps/web/.env`         | ✅ Exists (600 permissions) — contains `API_URL`, `BETTER_AUTH_SECRET` (historical — unused by current code) |
+| `apps/api/.env.example` | ✅ Exists (644 permissions) — template for new environments                                                  |
+| `apps/web/.env.example` | ✅ Exists — template for new environments                                                                    |
 
-## 📁 Files Created
+## 🔧 Current Architecture
 
-### API Environment Files
-- `apps/api/.env` - Production environment variables
-- `apps/api/.env.example` - Template with documentation
+### API Auth Configuration (`apps/api/src/auth/auth.ts`)
 
-### Web App Environment Files
-- `apps/web/.env` - Production environment variables
-- `apps/web/.env.example` - Template with documentation
-
-## 🔧 Files Modified
-
-### API Auth Configuration
-**File:** `apps/api/src/auth/auth.ts`
+**Delegates to `@rocky/auth`'s singleton — does NOT call `betterAuth()` directly:**
 
 ```typescript
-// Added secret validation and configuration
+import { Auth, type AuthConfig } from "@rocky/auth";
+
 const secret = process.env.BETTER_AUTH_SECRET;
 if (!secret) {
   throw new Error("BETTER_AUTH_SECRET environment variable is not set");
 }
 
-this.instance = betterAuth({
-  baseURL: appConfig.auth.baseUrl,
-  secret,  // ← Added this line
-  database: drizzleAdapter(db, {
-    provider: "pg",
-    schema: { user, session, account, verification },
-  }),
-  // ... rest of config
-});
+export const authConfig: AuthConfig = {
+  baseURL: process.env.BETTER_AUTH_URL ?? process.env.BASE_SERVICE_URL ?? "http://localhost:8080",
+  secret,
+  trustedOrigins: process.env.TRUSTED_ORIGINS?.split(",") ?? ["http://localhost:4000", "mobile://"],
+};
+
+// Auth.getInstance() is idempotent — same config returns same instance
+export const auth = Auth.getInstance(authConfig);
 ```
 
-### Web App Auth Configuration
-**File:** `apps/web/lib/auth.ts`
+### Web App Auth Client (`apps/web/lib/auth-client.ts`)
+
+**No server-side Better Auth instance. Pure client-side proxy:**
 
 ```typescript
-// Added secret validation and configuration
-const secret = process.env.BETTER_AUTH_SECRET;
-if (!secret) {
-  throw new Error("BETTER_AUTH_SECRET environment variable is not set");
-}
+import { createRockyAuthClient } from "@rocky/auth/client";
 
-export const auth = betterAuth({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
-  secret,  // ← Added this line
-  plugins: [nextCookies()],
+export const authClient = createRockyAuthClient({
+  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080",
 });
+
+export const { signIn, signOut, signUp, useSession, getSession } = authClient;
 ```
 
-### Environment Variables Updated
+### Shared Auth Client Factory (`packages/auth/src/client.ts`)
 
-**API (.env):**
-```bash
-ENVIRONMENT=dev
-VERSION=1.0.0
-REQUEST_LOGGING=false
-BETTER_AUTH_SECRET=rocky-dev-secret-key-32chars-long-change-me
-PG_HOST=localhost
-PG_USER=postgres
-PG_PASS=postgres
-PG_DB=postgres
-```
+Both web and mobile consume `createRockyAuthClient()` from `@rocky/auth/client`.
 
-**Web App (.env):**
-```bash
-API_URL=http://localhost:8080
-BETTER_AUTH_SECRET=rocky-dev-secret-key-32chars-long-change-me
-```
+### Why `apps/web/.env` Still Has `BETTER_AUTH_SECRET`
 
-## 📊 Build Results
+This is a **historical artifact** from the initial fix. The web app no longer initializes its own Better Auth instance, so the secret in `apps/web/.env` is **unused** by the current codebase. It can be removed when the `.env` is next updated.
 
-### Before
-```
-❌ [Error [BetterAuthError]: You are using the default secret...]
-❌ Error: API_URL required for SSR
-❌ Build failed
-```
+### Key Changes Since This Doc Was Written
 
-### After
-```
-✓ Compiled successfully in 2.1s
-✓ Generating static pages using 5 workers (4/4) in 330ms
-✓ BUILD SUCCESS
-```
-
-## 🎯 Key Takeaways
-
-### Better Auth Architecture
-
-The Rocky monorepo uses a **centralized auth architecture**:
-
-1. **API (NestJS):** Main Better Auth instance with full configuration
-2. **Web App (Next.js):** Better Auth client that connects to API endpoints
-3. **Shared Secret:** Both apps must use the same `BETTER_AUTH_SECRET` for cookie/token verification
-
-### Why Both Apps Need the Secret
-
-Even though auth is centralized in the API, the Next.js app still needs the secret because:
-1. It verifies session cookies on the server side
-2. It signs/encrypts cookies for the client
-3. It validates tokens from the API
-
-### Environment Variable Strategy
-
-- **Development:** Use `.env` files in each app directory
-- **Production:** Use environment variables in deployment platform
-- **Secret Security:** Generate unique secrets for each environment (32+ characters)
-
-## 🔄 How to Generate Secrets
-
-For production deployments, generate secure random secrets:
-
-```bash
-# Using openssl
-openssl rand -base64 32
-
-# Using node
-node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
-
-# Using python
-python -c "import secrets; print(secrets.token_urlsafe(32))"
-```
-
-## 🚀 Verification
-
-Build now succeeds for both apps:
-
-```bash
-# API build
-cd apps/api && pnpm build
-# ✅ BUILD SUCCESS
-
-# Web app build
-cd apps/web && pnpm build
-# ✅ BUILD SUCCESS
-```
-
-All builds are now passing! 🎉
-
-## 📝 Next Steps
-
-### For Production Deployment
-
-1. **Generate unique secrets** for each environment (dev, staging, production)
-2. **Set environment variables** in your deployment platform (Vercel, AWS, etc.)
-3. **Update .env files** with production values (don't commit secrets to git)
-4. **Add .env to .gitignore** (should already be there)
-
-### For Development
-
-1. **Copy .env.example to .env** in each app directory
-2. **Update values** as needed for your local setup
-3. **Never commit .env files** to version control
+| Change                             | Old (doc)                                | Current                                           |
+| ---------------------------------- | ---------------------------------------- | ------------------------------------------------- |
+| `apps/api` auth                    | Direct `betterAuth({...})` call          | `Auth.getInstance()` from `@rocky/auth`           |
+| `apps/web` auth                    | Server-side `betterAuth({...})` instance | Client-side `createRockyAuthClient()` only        |
+| `@thallesp/nestjs-better-auth`     | Used for session middleware              | **Removed** — zero references in code             |
+| web server-side session validation | Own better-auth instance                 | Proxied to API via Next.js rewrite                |
+| "rocky-dev-secret" in `.env`       | Dev placeholder                          | `apps/api/.env` has a generated secret            |
+| `apps/web/lib/auth.ts`             | Existed with server auth                 | **Does not exist** — replaced by `auth-client.ts` |

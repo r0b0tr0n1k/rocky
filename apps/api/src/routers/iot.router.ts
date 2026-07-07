@@ -1,6 +1,6 @@
-// ── IoT Router — Device Registry, Sensor Readings, Geofences ──
+// -- IoT Router - Device Registry, Sensor Readings, Geofences --
 //
-// Thin controller — delegates to IotService, unwraps Result<T,E>.
+// Thin controller - delegates to IotService, unwraps Result<T,E>.
 // Endpoints:
 //   - iot.registerDevice, iot.listDevices, iot.getDevice
 //   - iot.ingestReading, iot.ingestReadings, iot.listReadings
@@ -39,7 +39,7 @@ const unwrap = createResultUnwrapper(IOT_TRPC_ERROR_MAP);
 export class IotRouter {
   constructor(@Inject(IotService) private readonly iotService: IotService) { }
 
-  // ── Devices ──
+  // -- Devices --
 
   @Mutation({ input: registerDeviceRequestSchema })
   async registerDevice(@Input() input: RegisterDeviceRequest, @Ctx() ctx: AppContext) {
@@ -56,7 +56,7 @@ export class IotRouter {
     return unwrap(await this.iotService.getDevice(input.id));
   }
 
-  // ── Sensor Readings ──
+  // -- Sensor Readings --
 
   @Mutation({ input: ingestReadingRequestSchema })
   async ingestReading(@Input() input: IngestReadingRequest) {
@@ -73,7 +73,7 @@ export class IotRouter {
     return unwrap(await this.iotService.listReadings(input));
   }
 
-  // ── Geofences ──
+  // -- Geofences --
 
   @Mutation({ input: createGeofenceRequestSchema })
   async createGeofence(@Input() input: CreateGeofenceRequest) {
@@ -90,7 +90,7 @@ export class IotRouter {
     return unwrap(await this.iotService.deleteGeofence(input.id));
   }
 
-  // ── Geofence Events ──
+  // -- Geofence Events --
 
   @Mutation({ input: logGeofenceEventRequestSchema })
   async logGeofenceEvent(@Input() input: LogGeofenceEventRequest) {

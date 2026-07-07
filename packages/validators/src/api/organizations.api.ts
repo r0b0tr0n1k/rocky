@@ -22,11 +22,11 @@ export const organizationResponseSchema = organizationSelectSchema
       })
       .nullable(),
   })
-  .strict();
+  .strip();
 
 export type OrganizationResponse = z.infer<typeof organizationResponseSchema>;
 
-export const organizationSummarySchema = z.strictObject({
+export const organizationSummarySchema = z.object({
   id: z.uuid(),
   name1: z.string(),
   orgType: z.string(),

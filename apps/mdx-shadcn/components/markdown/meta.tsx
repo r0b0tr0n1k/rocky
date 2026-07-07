@@ -1,12 +1,11 @@
-import { Prose, Section, Container } from "@rocky/ui/components/ds";
-import { type PageMeta, formatDate } from "@/lib/mdx.js";
-import { Button } from "@rocky/ui/components/button";
+import { formatDate, type PageMeta } from "@/lib/mdx";
 import { Badge } from "@rocky/ui/components/badge";
-import { CopyArticleButton } from "./copy-article-button.js";
-import { ShareButton } from "./share-button.js";
-
-import Link from "next/link";
+import { Button } from "@rocky/ui/components/button";
+import { Container, Prose, Section } from "@rocky/ui/components/ds";
 import { Home } from "lucide-react";
+import Link from "next/link";
+import { CopyArticleButton } from "./copy-article-button";
+import { ShareButton } from "./share-button";
 
 interface MetaProps extends PageMeta {
   className?: string;

@@ -18,7 +18,7 @@ export const iotDeviceResponseSchema = iotDeviceSelectSchema
     status: iotDeviceStatusSchema,
     transmissionType: transmissionTypeSchema.nullable(),
   })
-  .strict() satisfies z.ZodType<IotDeviceResponse>;
+  .strip() satisfies z.ZodType<IotDeviceResponse>;
 
 export interface IotDeviceResponse {
   id: string;
@@ -47,7 +47,7 @@ export const iotDeviceSummarySchema = iotDeviceSelectSchema
   .extend({
     status: iotDeviceStatusSchema,
   })
-  .strict() satisfies z.ZodType<IotDeviceSummary>;
+  .strip() satisfies z.ZodType<IotDeviceSummary>;
 
 export interface IotDeviceSummary {
   id: string;
@@ -88,7 +88,7 @@ export const geofenceResponseSchema = geofenceSelectSchema
   .extend({
     fenceType: fenceTypeSchema,
   })
-  .strict() satisfies z.ZodType<GeofenceResponse>;
+  .strip() satisfies z.ZodType<GeofenceResponse>;
 
 export interface GeofenceResponse {
   id: string;
@@ -108,7 +108,7 @@ export const geofenceEventResponseSchema = animalGeofenceEventSelectSchema
     eventType: geofenceEventTypeSchema,
     source: geofenceEventSourceSchema.nullable(),
   })
-  .strict() satisfies z.ZodType<GeofenceEventResponse>;
+  .strip() satisfies z.ZodType<GeofenceEventResponse>;
 
 export interface GeofenceEventResponse {
   id: string;

@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit"
+  },
   "exports": {
     ".": "./src/index.ts",
     "./index.js": "./src/index.ts",

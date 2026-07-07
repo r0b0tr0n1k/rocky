@@ -31,7 +31,7 @@ const unwrap = createResultUnwrapper(INSPECTION_TRPC_ERROR_MAP);
 export class InspectionRouter {
   constructor(@Inject(InspectionService) private readonly inspectionService: InspectionService) {}
 
-  // ── CRUD ──
+  // -- CRUD --
 
   @Query({ input: idParam })
   async getById(@Input() input: { id: string }) {
@@ -48,7 +48,7 @@ export class InspectionRouter {
     return unwrap(await this.inspectionService.create({ ...input, createdBy: ctx.execution?.principal.id }));
   }
 
-  // ── Lifecycle ──
+  // -- Lifecycle --
 
   @Mutation({ input: scheduleInspectionRequestSchema })
   async schedule(@Input() input: ScheduleInspectionRequest) {
@@ -60,7 +60,7 @@ export class InspectionRouter {
     return unwrap(await this.inspectionService.complete(input));
   }
 
-  // ── Form Generation ──
+  // -- Form Generation --
 
   @Mutation({ input: printInspectionFormRequestSchema })
   async printForm(@Input() input: PrintInspectionFormRequest) {
@@ -72,7 +72,7 @@ export class InspectionRouter {
     );
   }
 
-  // ── Risk Analysis (permission-gated) ──
+  // -- Risk Analysis (permission-gated) --
 
   @Query({
     input: z.object({

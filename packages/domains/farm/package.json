@@ -17,7 +17,8 @@
     "@rocky/trpc": "workspace:*",
     "@rocky/validators": "workspace:*",
     "drizzle-orm": "catalog:",
-    "neverthrow": "catalog:"
+    "neverthrow": "catalog:",
+    "@rocky/execution": "workspace:*"
   },
   "devDependencies": {
     "typescript": "catalog:"

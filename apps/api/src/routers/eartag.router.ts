@@ -58,7 +58,7 @@ export class EarTagRouter {
 
   constructor(@Inject(EarTagService) private readonly earTagService: EarTagService) {}
 
-  // ─── Queries ───────────────────────────────────────────────────────
+  // --- Queries -------------------------------------------------------
 
   @Query({ input: idParam, output: earTagResponseSchema })
   async getById(@Input() input: { id: string }): Promise<EarTagResponse> {
@@ -113,7 +113,7 @@ export class EarTagRouter {
     return { tags };
   }
 
-  // ─── Mutations ─────────────────────────────────────────────────────
+  // --- Mutations -----------------------------------------------------
 
   @Mutation({ input: orderStatusTransitionSchema, output: earTagResponseSchema })
   async transitionStatus(@Input() input: OrderStatusTransition): Promise<EarTagResponse> {
@@ -198,7 +198,7 @@ export class EarTagRouter {
     return unwrap(result);
   }
 
-  // ─── B.1: Supplier Contingent ──────────────────────────────────────
+  // --- B.1: Supplier Contingent --------------------------------------
 
   @Mutation({ input: assignSupplierContingentRequestSchema, output: earTagResponseSchema })
   @Policy({ action: "eartag:supply" })
@@ -210,7 +210,7 @@ export class EarTagRouter {
     return unwrap(await this.earTagService.assignSupplierContingent(input));
   }
 
-  // ─── B.2: Takeover File ────────────────────────────────────────────
+  // --- B.2: Takeover File --------------------------------------------
 
   @Query({ input: getTakeoverFileRequestSchema, output: takeoverFileResponseSchema })
   async getTakeoverFile(@Input() input: GetTakeoverFileRequest): Promise<TakeoverFileResponse> {

@@ -13,6 +13,11 @@
 | [0009](0009-document-generation-architecture.md) | Document Generation Architecture | Accepted |
 | [0010](0010-date-coercion-architecture.md) | Date Coercion Architecture | Accepted |
 | [0011](0011-diamond-seal-layer-boundaries.md) | Diamond Seal Layer Boundaries | Accepted |
+| [0012](0012-transactional-outbox-domain-events.md) | Transactional Outbox for Domain Events | Accepted |
+| [0013](0013-principal-caching.md) | Principal Caching Strategy | Accepted |
+| [0014](0014-cross-domain-event-decoupling.md) | Cross-Domain Event Decoupling via Outbox | Accepted |
+| [0015](0015-pda-sync-conflict-resolution.md) | PDA Sync Conflict Resolution via Error Corrections | Accepted |
+| [0016](0016-subversive-audit-metadata.md) | Subversive Audit Metadata Injection | Accepted |
 
 ## Decision Timeline
 

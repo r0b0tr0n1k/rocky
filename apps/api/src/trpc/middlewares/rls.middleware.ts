@@ -63,21 +63,21 @@ export class RLSMiddleware implements TRPCMiddleware {
         ? user.roles.reduce((a, b) => ((ROLE_HIERARCHY[a] ?? 0) >= (ROLE_HIERARCHY[b] ?? 0) ? a : b))
         : primaryRole;
 
-    // ── Calculate access level ─────────────────────────────────
+    // -- Calculate access level ---------------------------------
     const accessLevel = RLS_BYPASS_ROLES.some((r: string) => r === highestRole)
       ? ("all" as const)
       : ORG_SCOPED_ROLES.some((r: string) => user.roles.includes(r))
         ? ("organization" as const)
         : ("own" as const);
 
-    // ── Execute PostgreSQL SET LOCAL - this is what makes pgPolicy work ──
+    // -- Execute PostgreSQL SET LOCAL - this is what makes pgPolicy work --
     await db.execute(sql`
       SELECT set_config('app.current_user_id', ${user.smUserId}, true);
       SELECT set_config('app.current_role', ${highestRole}, true);
       SELECT set_config('app.current_org_id', ${orgId ?? ""}, true);
     `);
 
-    // ── Inject rls context for application-level filtering ─────
+    // -- Inject rls context for application-level filtering -----
     return next({
       ctx: {
         ...ctx,

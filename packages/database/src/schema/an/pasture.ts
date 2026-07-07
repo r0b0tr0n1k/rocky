@@ -3,8 +3,10 @@
 // Types: MOUNTAIN (seasonal), VILLAGE (daily)
 
 import { sql } from "drizzle-orm";
-import { boolean, date, index, pgPolicy, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, date, index, pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { pastureTypePgEnum } from "../../schemas/enums/pasture-type.js";
+import { conflictResolutionStatusPgEnum } from "../../schemas/enums/conflict-resolution-status.js";
+import { CONFLICT_RESOLUTION_STATUS } from "../../constants/conflict-resolution-status.js";
 import { ADMIN_ROLES, farmInOrgArea, farmOwnedByUser, isRole, isRoleIn, USER_ROLE } from "../rls-helpers.js";
 
 export const pastureDeclarations = pgTable(
@@ -23,6 +25,10 @@ export const pastureDeclarations = pgTable(
 
     isActive: boolean("is_active").notNull().default(true),
     completedAt: date("completed_at"),
+
+    // Conflict resolution (pasture invalidation audit trail)
+    conflictResolutionStatus: conflictResolutionStatusPgEnum("conflict_resolution_status").notNull().default(CONFLICT_RESOLUTION_STATUS.NONE),
+    invalidatedReason: text("invalidated_reason"),
 
     createdAt: timestamp("created_at").notNull().defaultNow(),
     createdBy: uuid("created_by"),

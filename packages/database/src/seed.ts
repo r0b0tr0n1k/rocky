@@ -11,6 +11,7 @@
 // Based on: SM.PDF (Oracle AIMCS), FS-HK, FS-Eartags, FS-Registration, FS-Health
 
 import "dotenv/config";
+import { hashPassword } from "@better-auth/utils/password";
 import { sql } from "drizzle-orm";
 import { ROLE_PRIORITY } from "./constants/role-priority.js";
 import { VACCINE_TYPE } from "./constants/vaccine-type.js";
@@ -19,6 +20,19 @@ import { permissions, rolePermissions, roles } from "./schema/sm/rbac.js";
 import { diseases } from "./schema/hd/diseases.js";
 import { vaccines } from "./schema/hd/vaccines.js";
 import { vaccineDiseases } from "./schema/hd/vaccine-diseases.js";
+import { eventSubscriptions } from "./schema/events/event-subscriptions.js";
+import { user as authUser, account as authAccount } from "./schema/auth/index.js";
+import { users } from "./schema/sm/users.js";
+import { userRoles } from "./schema/sm/rbac.js";
+import { organizations } from "./schema/sm/organizations.js";
+import { states, zipCodes, addresses } from "./schema/hk/addresses.js";
+import { farms } from "./schema/hk/farms.js";
+import { USER_STATUS } from "./constants/user-status.js";
+import { LANGUAGE } from "./constants/language.js";
+import { ORG_TYPE } from "./constants/org-type.js";
+import { FARM_TYPE } from "./constants/farm-type.js";
+import { DATA_SOURCE } from "./constants/data-source.js";
+import { VERIFICATION_STATUS } from "./constants/verification-status.js";
 
 // ── Permission Definitions ─────────────────────────────────────
 // Each entry: { resource, action, description, scope }
@@ -427,6 +441,194 @@ async function seed() {
     });
   }
   console.log(`  ✓ ${VACCINE_DISEASE_MAPPINGS.length} vaccine→disease mappings created`);
+
+  // ═══════════════════════════════════════════════════════════════
+  // 5. Seed Default Event Subscriptions
+  // ═══════════════════════════════════════════════════════════════
+
+  console.log("🌱 Seeding default event subscriptions...");
+
+  const SUBSCRIPTION_EVENT_TYPES = [
+    "disease_detected",
+    "animal_registered",
+    "approval_requested",
+    "movement_recorded",
+    "inspection_scheduled",
+    "foreign_passport_expiring",
+  ] as const;
+
+  const SUBSCRIPTION_ROLES = ["VD_ADMIN", "VETERINARIAN"] as const;
+
+  let subscriptions = 0;
+  try {
+    for (const roleName of SUBSCRIPTION_ROLES) {
+      const roleId = roleLookup.get(roleName);
+      if (!roleId) {
+        console.warn(`  ⚠ Role "${roleName}" not found - skipping subscription seeding`);
+        continue;
+      }
+
+      for (const eventType of SUBSCRIPTION_EVENT_TYPES) {
+        await db
+          .insert(eventSubscriptions)
+          .values({
+            eventType,
+            targetType: "role",
+            targetId: roleId,
+            conditions: [],
+            channels: { inApp: true, email: false, push: false },
+            delayMinutes: 0,
+            reminderEnabled: false,
+            reminderOffsetDays: 0,
+            isActive: true,
+          });
+        subscriptions++;
+      }
+    }
+  } catch (e: any) {
+    const msg = e.message || e.cause?.message || '';
+    if (msg.includes('does not exist') || e.cause?.code === '42P01') {
+      console.warn(`  ⚠ event_subscriptions table not found - skipping subscription seeding`);
+    } else {
+      throw e;
+    }
+  }
+
+  console.log(`  ✓ ${subscriptions} default event subscriptions created`);
+
+  // ═══════════════════════════════════════════════════════════════
+  // 6. Seed Test Accounts (auth + SM + HK)
+  // ═══════════════════════════════════════════════════════════════
+
+  console.log("🌱 Seeding test accounts...");
+
+  const TEST_PASSWORD = "test123456";
+  const passwordHash = await hashPassword(TEST_PASSWORD);
+
+  await db.transaction(async (tx) => {
+    // Bypass RLS — SUPER_ADMIN can write everywhere
+    await tx.execute(sql`SET LOCAL "app.current_role" = 'SUPER_ADMIN'`);
+
+    // 6a. State + ZipCode + Address (required FK chain)
+    const [state] = await tx
+      .insert(states)
+      .values({ name: "Test State", shortName: "TS" })
+      .returning();
+
+    const [zip] = await tx
+      .insert(zipCodes)
+      .values({ name: "Test City", zipCode: "1000", stateId: state!.id })
+      .returning();
+
+    const [addr] = await tx
+      .insert(addresses)
+      .values({ city: "Test City", street: "Test Street", houseNumber: "1", zipCodeId: zip!.id })
+      .returning();
+
+    // 6b. Organization (VD)
+    const [org] = await tx
+      .insert(organizations)
+      .values({
+        name1: "Test Veterinary Directorate",
+        orgType: ORG_TYPE.VD,
+        address: { street: "Test Street", city: "Test City", zipCode: "1000" },
+        isActive: true,
+      })
+      .returning();
+
+    // 6c. Test accounts — auth_user + auth_account + sm.users + user_roles
+    const TEST_ACCOUNTS = [
+      { email: "admin@test.com", name: "Admin User", roleName: "SUPER_ADMIN" as const },
+      { email: "vet@test.com", name: "Dr. Vet", roleName: "VETERINARIAN" as const },
+      { email: "farmer@test.com", name: "Test Farmer", roleName: "FARMER" as const },
+      { email: "staff@test.com", name: "VD Staff", roleName: "VD_STAFF" as const },
+    ];
+
+    for (const acct of TEST_ACCOUNTS) {
+      const authId = crypto.randomUUID();
+
+      await tx.insert(authUser).values({
+        id: authId,
+        name: acct.name,
+        email: acct.email,
+        emailVerified: true,
+      });
+
+      await tx.insert(authAccount).values({
+        id: crypto.randomUUID(),
+        accountId: acct.email,
+        providerId: "credential",
+        userId: authId,
+        password: passwordHash,
+      });
+
+      const [smUser] = await tx
+        .insert(users)
+        .values({
+          authUserId: authId,
+          username: acct.email.split("@")[0],
+          email: acct.email,
+          firstName: acct.name.split(" ")[0],
+          lastName: acct.name.split(" ").slice(1).join(" ") || acct.name,
+          organizationId: org!.id,
+          status: USER_STATUS.ACTIVE,
+          language: LANGUAGE.MK,
+        } as any)
+        .returning();
+
+      const roleRow = await tx
+        .select({ id: roles.id })
+        .from(roles)
+        .where(sql`${roles.name} = ${acct.roleName}`)
+        .limit(1);
+
+      if (roleRow[0]) {
+        await tx.insert(userRoles).values({
+          userId: smUser!.id,
+          roleId: roleRow[0].id,
+        });
+      }
+    }
+
+    console.log(`  ✓ ${TEST_ACCOUNTS.length} test accounts created (auth + SM + roles)`);
+  });
+
+  // 6d. Test farm (separate transaction — table may not exist yet)
+  try {
+    await db.transaction(async (tx) => {
+      await tx.execute(sql`SET LOCAL "app.current_role" = 'SUPER_ADMIN'`);
+
+      const stateRow = await tx.select().from(states).limit(1);
+      const zipRow = await tx.select().from(zipCodes).limit(1);
+      const addrRow = await tx.select().from(addresses).limit(1);
+
+      const [farm] = await tx
+        .insert(farms)
+        .values({
+          farmId: "100000001",
+          addressId: addrRow[0]!.id,
+          name: "Test Farm",
+          type: FARM_TYPE.FARM,
+          verificationStatus: VERIFICATION_STATUS.APPROVED,
+          dataSource: DATA_SOURCE.MOBILE,
+          isActive: true,
+        })
+        .returning();
+
+      if (farm) {
+        console.log(`  ✓ Test farm created (id: ${farm.id}, farmId: ${farm.farmId})`);
+      }
+    });
+  } catch (e: any) {
+    if (e.cause?.code === '42P01') {
+      console.warn(`  ⚠ farms table not found - skipping test farm`);
+    } else {
+      throw e;
+    }
+  }
+
+  console.log("  ℹ Test accounts: admin@test.com, vet@test.com, farmer@test.com, staff@test.com");
+  console.log("  ℹ Password for all: test123456");
 
   console.log("✅ Seed complete.");
 }

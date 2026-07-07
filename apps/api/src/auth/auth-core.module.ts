@@ -1,4 +1,4 @@
-// ── Auth Core Module ──
+// -- Auth Core Module --
 // Thin wrapper that registers @rocky/auth's AuthModule with app config.
 // Export AUTH_INSTANCE for DI injection in app middlewares.
 

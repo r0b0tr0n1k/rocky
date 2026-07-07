@@ -27,7 +27,7 @@ const unwrap = createResultUnwrapper(ARCHIVE_TRPC_ERROR_MAP);
 export class ArchiveRouter {
   constructor(@Inject(ArchiveService) private readonly archiveService: ArchiveService) {}
 
-  // ── CRUD ──
+  // -- CRUD --
 
   @Query({ input: idParam })
   async getById(@Input() input: { id: string }) {
@@ -44,7 +44,7 @@ export class ArchiveRouter {
     return unwrap(await this.archiveService.create({ ...input, createdBy: ctx.execution?.principal.id }));
   }
 
-  // ── Archival ──
+  // -- Archival --
 
   @Query({ input: z.strictObject({ limit: z.int().min(1).max(1000).default(100) }) })
   async listExpired(@Input() input: { limit: number }) {
@@ -61,7 +61,7 @@ export class ArchiveRouter {
     return unwrap(await this.archiveService.markDestroyed(input.id));
   }
 
-  // ── Inspection Form Integration ──
+  // -- Inspection Form Integration --
 
   @Mutation({ input: archiveInspectionFormRequestSchema })
   async archiveInspectionForm(@Input() input: ArchiveInspectionFormRequest, @Ctx() ctx: AppContext) {

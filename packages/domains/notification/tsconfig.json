@@ -1,5 +1,5 @@
 {
-  "extends": "@rocky/typescript-config/react-library.json",
+  "extends": "@rocky/typescript-config/base.json",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",

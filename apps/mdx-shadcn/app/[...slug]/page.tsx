@@ -1,12 +1,11 @@
-import { Main, Section, Container, Prose } from "@rocky/ui/components/ds";
-import { MDXContent } from "@/components/markdown/mdx-content.js";
-import { Meta } from "@/components/markdown/meta.js";
-
-import { getAllPosts, getPostBySlug } from "@/lib/posts.js";
-import { notFound } from "next/navigation";
-
+// biome-ignore assist/source/organizeImports: biome
+import { MDXContent } from "@/components/markdown/mdx-content";
+import { Meta } from "@/components/markdown/meta";
+import { getAllPosts, getPostBySlug } from "@/lib/posts";
+import { Container, Main, Prose, Section } from "@rocky/ui/components/ds";
 import type { Metadata } from "next";
-import type { Post } from ".velite";
+import { notFound } from "next/navigation";
+import type { Post } from "../../.velite";
 
 interface PageProps {
   params: Promise<{

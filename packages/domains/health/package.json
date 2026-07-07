@@ -17,7 +17,9 @@
     "@rocky/domains-shared": "workspace:*",
     "@rocky/domains-subject": "workspace:*",
     "drizzle-orm": "catalog:",
-    "neverthrow": "catalog:"
+    "neverthrow": "catalog:",
+    "@rocky/execution": "workspace:*",
+    "@rocky/domains-correction": "workspace:*"
   },
   "devDependencies": {
     "typescript": "catalog:"

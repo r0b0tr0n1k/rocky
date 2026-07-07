@@ -23,11 +23,11 @@ export const pdaDeviceResponseSchema = pdaDeviceSelectSchema
       inspections: z.boolean().optional(),
     }).nullable().optional(),
   })
-  .strict();
+  .strip();
 
 export type PdaDeviceResponse = z.infer<typeof pdaDeviceResponseSchema>;
 
-export const pdaDeviceSummarySchema = z.strictObject({
+export const pdaDeviceSummarySchema = z.object({
   id: z.uuid(),
   deviceIdentifier: z.string(),
   name: z.string().nullable(),

@@ -2,6 +2,10 @@
   "name": "@rocky/domains-passport",
   "version": "0.1.0",
   "private": true,
+  "scripts": {
+    "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit"
+  },
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

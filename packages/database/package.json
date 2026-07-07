@@ -15,6 +15,7 @@
     "./schema/hk": "./src/schema/hk/index.ts",
     "./schema/an": "./src/schema/an/index.ts",
     "./schema/hd": "./src/schema/hd/index.ts",
+    "./schema/events": "./src/schema/events/index.ts",
     "./schema/auth": "./src/schema/auth/index.ts",
     "./schema/demo": "./src/schema/demo/index.ts",
     "./geometry": "./src/geometry/index.ts",
@@ -22,6 +23,8 @@
     "./*": "./src/*"
   },
   "scripts": {
+    "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit",
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
     "seed": "tsx src/seed.ts",
@@ -29,6 +32,7 @@
     "studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@better-auth/utils": "^0.4.2",
     "@nestjs/common": "catalog:",
     "dotenv": "^17.4.2",
     "drizzle-orm": "catalog:",

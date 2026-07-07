@@ -14,12 +14,15 @@ import type {
   CreateMovementRequest,
   MovementListRequest,
 } from "@rocky/validators/api";
-import type { animals as animalsTable, movements as movementsTable, } from "@rocky/database";
+import type { animals as animalsTable, movements as movementsTable } from "@rocky/database";
 import { ANIMAL_STATUS, FARM_TYPE, MOVEMENT_TYPE, PASTURE_TYPE, STATE_CODE } from "@rocky/database/constants";
 import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
 import { MovementError, MOVEMENT_ERRORS } from "../errors/movement.errors.js";
 import type { MovementRepository } from "../repositories/movement.repository.js";
 import type { AnimalRepository } from "@rocky/domains-animal";
+import type { OutboxEventPublisher } from "@rocky/execution";
+import { EVENT_TYPE_IDS } from "@rocky/domains-notification/index.js";
+import crypto from "node:crypto";
 import type { PassportService } from "@rocky/domains-passport";
 
 /** System parameters for movement validation */
@@ -36,7 +39,6 @@ function daysBetween(d1: Date, d2: Date): number {
 }
 
 export class MovementService {
-
   private readonly NON_PASTURE_SKIP_TYPES: ReadonlySet<string> = new Set([
     MOVEMENT_TYPE.BIRTH_REGISTRATION,
     MOVEMENT_TYPE.CORRECTION,
@@ -50,13 +52,14 @@ export class MovementService {
     private readonly repo: MovementRepository,
     private readonly animalRepo: AnimalRepository,
     private readonly passportService?: PassportService,
+    private readonly outboxPublisher?: OutboxEventPublisher,
   ) {}
 
   /** ── Rule C.4: Invalidate active pasture declaration before unexpected movement ── */
-  private async invalidatePastureIfNeeded(animalId: string): Promise<void> {
+  private async invalidatePastureIfNeeded(animalId: string, reason?: string): Promise<void> {
     const active = await this.repo.findActivePastureDeclaration(animalId);
     if (active) {
-      await this.repo.deactivatePastureDeclaration(active.id);
+      await this.repo.deactivatePastureDeclaration(active.id, reason ?? `Invalidated by movement of animal ${animalId}`);
     }
   }
 
@@ -363,7 +366,8 @@ export class MovementService {
 
       await this.animalRepo.updateFarm(input.animalId, input.toFarmId);
 
-      if (!mov) throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, { reason: "Failed to create alpine return movement" });
+      if (!mov)
+        throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, { reason: "Failed to create alpine return movement" });
       return movementResponseSchema.parse(mov);
     }, toAppError)();
   }
@@ -542,7 +546,8 @@ export class MovementService {
         createdBy: input.createdBy,
       } as unknown as typeof animalsTable.$inferInsert);
 
-      if (!newAnimal) throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, { reason: "Failed to create animal record" });
+      if (!newAnimal)
+        throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, { reason: "Failed to create animal record" });
       const newAnimalId = newAnimal.id;
 
       // Create IMPORT movement for the new national animal
@@ -654,7 +659,7 @@ export class MovementService {
   }): Promise<Result<MovementResponse[], Error>> {
     return fromAsyncThrowable(async () => {
       // ── Rule C.4: Market sale invalidates active pasture declaration ──
-      await this.invalidatePastureIfNeeded(input.animalId);
+      await this.invalidatePastureIfNeeded(input.animalId, `Market sale at ${input.marketFarmId}`);
 
       const animal = await this.animalRepo.findById(input.animalId);
       if (!animal) throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
@@ -662,7 +667,8 @@ export class MovementService {
         throw new MovementError(MOVEMENT_ERRORS.ANIMAL_NOT_ALIVE, { animalId: input.animalId });
       }
 
-      const legs: typeof movementsTable.$inferInsert[] = [];
+      const movementGroupId = crypto.randomUUID();
+      const legs: (typeof movementsTable.$inferInsert)[] = [];
 
       // Leg 1: Seller → Market (MARKET_SALE)
       legs.push({
@@ -672,6 +678,7 @@ export class MovementService {
         type: MOVEMENT_TYPE.MARKET_SALE,
         movementDate: input.movementDate,
         legOrder: 1,
+        movementGroupId,
         createdBy: input.createdBy,
       });
 
@@ -683,6 +690,7 @@ export class MovementService {
         type: MOVEMENT_TYPE.MARKET_PURCHASE,
         movementDate: input.movementDate,
         legOrder: 2,
+        movementGroupId,
         createdBy: input.createdBy,
       });
 
@@ -698,6 +706,24 @@ export class MovementService {
 
       // Update animal's current farm to buyer
       await this.animalRepo.updateFarm(input.animalId, input.buyerFarmId);
+
+      // Publish outbox event
+      if (this.outboxPublisher) {
+        await this.outboxPublisher.publish({
+          type: EVENT_TYPE_IDS.MOVEMENT_RECORDED,
+          aggregateType: "movement",
+          aggregateId: leg1.id,
+          payload: {
+            animalId: input.animalId,
+            sellerFarmId: input.sellerFarmId,
+            buyerFarmId: input.buyerFarmId,
+            marketFarmId: input.marketFarmId,
+            movementGroupId,
+            movementDate: input.movementDate,
+          },
+          createdBy: input.createdBy,
+        });
+      }
 
       const results: MovementResponse[] = [movementResponseSchema.parse(leg1)];
       if (leg2) results.push(movementResponseSchema.parse(leg2));
@@ -775,7 +801,10 @@ export class MovementService {
       // Update animal status
       await this.animalRepo.update(input.animalId, { status: ANIMAL_STATUS.SLAUGHTERED });
 
-      if (!mov) throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, { reason: "Failed to create market slaughter movement" });
+      if (!mov)
+        throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, {
+          reason: "Failed to create market slaughter movement",
+        });
       return movementResponseSchema.parse(mov);
     }, toAppError)();
   }

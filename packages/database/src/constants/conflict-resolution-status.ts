@@ -1,0 +1,15 @@
+import { createEnumValues } from "./_brand.js";
+
+export const CONFLICT_RESOLUTION_STATUS = {
+  NONE: "none",
+  INVALIDATED_NATURAL: "invalidated_natural",
+  INVALIDATED_DATA_ERROR: "invalidated_data_error",
+  REINSTATED: "reinstated",
+} as const;
+
+export const CONFLICT_RESOLUTION_STATUS_VALUES = createEnumValues([
+  CONFLICT_RESOLUTION_STATUS.NONE,
+  CONFLICT_RESOLUTION_STATUS.INVALIDATED_NATURAL,
+  CONFLICT_RESOLUTION_STATUS.INVALIDATED_DATA_ERROR,
+  CONFLICT_RESOLUTION_STATUS.REINSTATED,
+] as const);

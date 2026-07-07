@@ -1,32 +1,19 @@
 "use client";
 
-import * as runtime from "react/jsx-runtime";
-
-import { Bookmark } from "@/components/markdown/bookmark.js";
-import { YouTube } from "@/components/markdown/youtube.js";
-import { Media } from "@/components/markdown/media.js";
-import { Code } from "./code.js";
-
-import React from "react";
+import { Bookmark } from "@/components/markdown/bookmark";
+import { Media } from "@/components/markdown/media";
+import { YouTube } from "@/components/markdown/youtube";
 import type { StaticImageData } from "next/image";
+import React from "react";
+import * as runtime from "react/jsx-runtime";
+import { Code } from "./code";
 
 const sharedComponents = {
-  pre: ({ children }: { children: React.ReactNode }) =>
-    children as React.ReactElement,
-  code: ({
-    children,
-    className,
-  }: {
-    children: React.ReactNode;
-    className?: string;
-  }) => {
+  pre: ({ children }: { children: React.ReactNode }) => children as React.ReactElement,
+  code: ({ children, className }: { children: React.ReactNode; className?: string }) => {
     const isInlineCode = !className;
     if (isInlineCode) {
-      return (
-        <code className="rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
-          {children}
-        </code>
-      );
+      return <code className="rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">{children}</code>;
     }
 
     const language = className?.replace("language-", "");
@@ -36,10 +23,7 @@ const sharedComponents = {
     if (
       React.Children.toArray(children).some(
         (child) =>
-          React.isValidElement(child) &&
-          /^(pre|div|table)$/.test(
-            (child.type as any)?.name || child.type || ""
-          )
+          React.isValidElement(child) && /^(pre|div|table)$/.test((child.type as any)?.name || child.type || ""),
       )
     ) {
       return <>{children}</>;

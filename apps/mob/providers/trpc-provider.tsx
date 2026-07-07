@@ -1,10 +1,11 @@
 import { authClient } from "@/lib/auth";
-import type { AppRouter } from "@rocky/trpc";
-import { transformer } from "@rocky/trpc";
+import type { AppRouter } from "../../trpc/server";
+import superjson from "superjson";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, httpSubscriptionLink, loggerLink, splitLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
 import { createContext, type ReactNode, useState } from "react";
+import { Platform } from "react-native";
 
 export const trpc = createTRPCReact<AppRouter>();
 
@@ -20,18 +21,22 @@ export function TRPCProvider({ children, apiUrl }: { children: ReactNode; apiUrl
           condition: (op) => op.type === "subscription",
           true: httpSubscriptionLink({
             url: `${apiUrl}/trpc`,
-            transformer: transformer as any,
+            transformer: superjson as any,
           }),
           false: httpBatchLink({
             url: `${apiUrl}/trpc`,
-            transformer: transformer as any,
+            transformer: superjson as any,
             async headers() {
+              if (Platform.OS === "web") return {};
               const cookie = (authClient as unknown as { getCookie: () => string }).getCookie();
               if (cookie) {
                 return { cookie };
               }
               return {};
             },
+            ...(Platform.OS === "web"
+              ? { fetch: (url, opts) => fetch(url, { ...opts, credentials: "include" as const }) }
+              : {}),
           }),
         }),
       ],

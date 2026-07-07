@@ -24,11 +24,11 @@ export const userResponseSchema = userSelectSchema
     role: true,
   })
   .extend({ status: userStatusSchema })
-  .strict();
+  .strip();
 
 export type UserResponse = z.infer<typeof userResponseSchema>;
 
-export const userSummarySchema = z.strictObject({
+export const userSummarySchema = z.object({
   id: z.uuid(),
   username: z.string(),
   email: z.string().nullable(),
@@ -59,7 +59,7 @@ export const createUserRequestSchema = userInsertSchema
     username: z.string().min(3).max(50),
     email: z.email().optional(),
     mobilePhone: z.string().max(30).optional(),
-    language: languageSchema.default("MK"),
+    language: languageSchema.nullable().optional().transform((v) => (v ?? "MK") as z.infer<typeof languageSchema>),
     status: userStatusSchema.optional(),
     password: z.string().min(8).max(100),
   });

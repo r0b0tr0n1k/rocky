@@ -4,9 +4,10 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit",
     "lint": "eslint",
-    "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit"
+    "format": "prettier --write \"**/*.{ts,tsx}\""
   },
   "dependencies": {
     "@radix-ui/react-label": "catalog:",

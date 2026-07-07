@@ -22,16 +22,16 @@ import {
 export const earTagResponseSchema = earTagSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
-    appliedDate: z.coerce.date().nullable(),
-    manufactureDate: z.coerce.date().nullable(),
-    expiryDate: z.coerce.date().nullable(),
+    appliedDate: z.coerce.date<string>().nullable(),
+    manufactureDate: z.coerce.date<string>().nullable(),
+    expiryDate: z.coerce.date<string>().nullable(),
     status: earTagStatusSchema,
   })
-  .strict();
+  .strip();
 
 export type EarTagResponse = z.infer<typeof earTagResponseSchema>;
 
-export const earTagSummarySchema = z.strictObject(
+export const earTagSummarySchema = z.object(
   earTagResponseSchema.pick({
     id: true,
     stateCode: true,
@@ -45,7 +45,7 @@ export const earTagSummarySchema = z.strictObject(
 
 export type EarTagSummary = z.infer<typeof earTagSummarySchema>;
 
-export const earTagTypeResponseSchema = earTagTypeSelectSchema.omit({ createdBy: true, validTo: true }).strict();
+export const earTagTypeResponseSchema = earTagTypeSelectSchema.omit({ createdBy: true, validTo: true }).strip();
 
 export type EarTagTypeResponse = z.infer<typeof earTagTypeResponseSchema>;
 

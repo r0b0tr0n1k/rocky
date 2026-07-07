@@ -14,11 +14,11 @@ import type { NoDrift, NoDriftSimple, ActivateGuillotines } from "../utils/type-
 // RESPONSE SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const subjectResponseSchema = subjectSelectSchema.omit({ createdBy: true, validTo: true }).strict();
+export const subjectResponseSchema = subjectSelectSchema.omit({ createdBy: true, validTo: true }).strip();
 
 export type SubjectResponse = z.infer<typeof subjectResponseSchema>;
 
-export const subjectSummarySchema = z.strictObject({
+export const subjectSummarySchema = z.object({
   id: z.uuid(),
   shortName: z.string(),
   firstName: z.string().nullable(),
@@ -33,7 +33,7 @@ export type SubjectSummary = z.infer<typeof subjectSummarySchema>;
 
 export const farmSubjectBindingResponseSchema = farmSubjectSelectSchema
   .omit({ createdBy: true, validTo: true })
-  .strict();
+  .strip();
 
 export type FarmSubjectBindingResponse = z.infer<typeof farmSubjectBindingResponseSchema>;
 

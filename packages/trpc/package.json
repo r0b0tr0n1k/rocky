@@ -3,16 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "scripts": {
+    "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit"
+  },
+  "main": "./src/index.js",
+  "types": "./src/index.js",
   "exports": {
-    ".": "./src/index.ts",
-    "./context": "./src/context.ts",
-    "./superjson": "./src/superjson.ts",
-    "./unwrap": "./src/unwrap.ts",
-    "./generated": "./src/generated/index.ts",
-    "./index.js": "./src/index.ts",
-    "./*": "./src/*"
+    "./context": "./src/context.js",
+    "./superjson": "./src/superjson.js",
+    "./unwrap": "./src/unwrap.js",
+    "./generated": "./src/generated/index.js",
+    "./index.js": "./src/index.js"
   },
   "dependencies": {
     "@rocky/database": "workspace:*",

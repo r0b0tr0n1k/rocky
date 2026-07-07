@@ -27,19 +27,19 @@ import type { ActivateGuillotines, NoDrift, NoDriftSimple } from "../utils/type-
 export const animalResponseSchema = animalSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
-    birthDate: z.coerce.date(),
-    taggingDate: z.coerce.date().nullable(),
-    importDate: z.coerce.date().nullable(),
+    birthDate: z.coerce.date<string>(),
+    taggingDate: z.coerce.date<string>().nullable(),
+    importDate: z.coerce.date<string>().nullable(),
     status: animalStatusSchema,
     sex: sexSchema,
     birthType: birthTypeSchema.nullable(),
   })
-  .strict();
+  .strip();
 
 export type AnimalResponse = z.infer<typeof animalResponseSchema>;
 
 /** Animal record embedded in list/parent responses (lighter than full response) */
-export const animalSummarySchema = z.strictObject({
+export const animalSummarySchema = z.object({
   id: z.uuid(),
   stateCode: z.string().length(3),
   earTagNumber: z.string().length(8),
@@ -53,7 +53,7 @@ export const animalSummarySchema = z.strictObject({
 export type AnimalSummary = z.infer<typeof animalSummarySchema>;
 
 /** Parent record embedded in lineage responses */
-export const animalParentResponseSchema = animalParentSelectSchema.strict();
+export const animalParentResponseSchema = animalParentSelectSchema.strip();
 
 export type AnimalParentResponse = z.infer<typeof animalParentResponseSchema>;
 
@@ -122,7 +122,7 @@ export const updateAnimalRequestSchema = z
     status: animalStatusSchema.optional(),
     currentFarmId: z.uuid().optional(),
     motherId: z.uuid().optional(),
-    taggingDate: z.date().optional(),
+    taggingDate: z.coerce.date<string>().optional(),
     isFirstTagging: z.boolean().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, "At least one field must be updated");

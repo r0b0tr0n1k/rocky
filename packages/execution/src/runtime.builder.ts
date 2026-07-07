@@ -10,10 +10,12 @@
 //     ↓ (fallback)
 //   System default ("MK")
 
+import { Injectable } from "@nestjs/common";
 import { randomUUID } from "node:crypto";
 import type { Principal } from "@rocky/authorization";
 import type { RequestContext, RuntimeContext } from "./execution-context.js";
 
+@Injectable()
 export class RuntimeBuilder {
   /**
    * Build runtime context from request and principal.
@@ -26,9 +28,9 @@ export class RuntimeBuilder {
   resolve(request: RequestContext, principal: Principal, tenant?: string | null): RuntimeContext {
     return {
       traceId: randomUUID(),
-      requestId: request.headers.get("x-request-id") ?? randomUUID(),
+      requestId: request.headers?.get?.("x-request-id") ?? randomUUID(),
       locale: this.resolveLocale(request, principal),
-      tenant: tenant ?? request.headers.get("x-tenant") ?? null,
+      tenant: tenant ?? request.headers?.get?.("x-tenant") ?? null,
       clock: new Date(),
     };
   }
@@ -38,7 +40,7 @@ export class RuntimeBuilder {
   }
 
   private fromAcceptLanguage(request: RequestContext): string | null {
-    const acceptLanguage = request.headers.get("accept-language");
+    const acceptLanguage = request.headers?.get?.("accept-language");
     if (!acceptLanguage) return null;
 
     // Parse first language tag (e.g. "en-US,en;q=0.9" → "en-US")

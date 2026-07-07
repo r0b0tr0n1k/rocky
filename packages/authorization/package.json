@@ -12,6 +12,10 @@
   "imports": {
     "#/*": "./src/*"
   },
+  "scripts": {
+    "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit"
+  },
   "dependencies": {
     "@nestjs/common": "catalog:",
     "@rocky/auth": "workspace:*",

@@ -62,14 +62,14 @@ export const normalRegistrationSchema = z.strictObject({
 
   // Insemination data (from legacy forms)
   inseminationDocNumber: z.string().max(50).optional(),
-  inseminationDate: z.date().optional(),
+  inseminationDate: z.coerce.date<string>().optional(),
 
   // Tagging data
   markerId: z.string().max(50).optional(),
-  markingDate: z.date().optional(),
+  markingDate: z.coerce.date<string>().optional(),
 
   // Import data (optional)
   importCountry: z.string().length(3).optional(),
-  importDate: z.date().optional(),
+  importDate: z.coerce.date<string>().optional(),
 });
 

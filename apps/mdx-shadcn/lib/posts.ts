@@ -1,4 +1,4 @@
-import { posts, type Post } from "../.velite.js";
+import { type Post, posts } from "../.velite";
 
 /**
  * Get all published posts sorted by date (newest first)
@@ -32,11 +32,13 @@ export function getPostsByPrefix(prefix: string): Post[] {
  */
 export function getAllTags(): string[] {
   const tags = new Set<string>();
-  posts.forEach((post: Post) => {
+  for (const post of posts) {
     if (post.published && post.tags) {
-      post.tags.forEach((tag: string) => tags.add(tag));
+      for (const tag of post.tags) {
+        tags.add(tag);
+      }
     }
-  });
+  }
   return Array.from(tags).sort();
 }
 

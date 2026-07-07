@@ -1,4 +1,4 @@
-// ── Policy Resolver (tRPC Middleware) ──
+// -- Policy Resolver (tRPC Middleware) --
 // Reads @Policy() metadata from router classes via PolicyRegistry
 // and evaluates the policy against ctx.execution.principal.
 //
@@ -11,7 +11,7 @@ import { TRPCError } from "@trpc/server";
 import type { MiddlewareOptions } from "nestjs-trpc";
 
 /**
- * Policy resolver middleware — applied as global middleware.
+  * Policy resolver middleware - applied as global middleware.
  *
  * Uses structural typing instead of `implements TRPCMiddleware`
  * because nestjs-trpc's MiddlewareResponse type is opaque and
@@ -33,7 +33,7 @@ export class PolicyResolver {
     const policy = path ? PolicyRegistry.get(path) : undefined;
 
     if (!policy) {
-      // No policy defined — RLS/pgPolicy still enforces row-level
+      // No policy defined - RLS/pgPolicy still enforces row-level
       return next(opts);
     }
 

@@ -1,8 +1,8 @@
-// ── Principal Guard ──
+// -- Principal Guard --
 // Phase 3 migration: replace stacked middleware with Principal-based checks.
 //
 // Unlike the old ProtectedMiddleware (which checks ctx.user for Better Auth),
-// this middleware checks ctx.execution.principal — the canonical runtime actor.
+// this middleware checks ctx.execution.principal - the canonical runtime actor.
 //
 // Usage:
 //   @Router({ alias: "farm" })
@@ -20,7 +20,7 @@ import type { MiddlewareOptions, TRPCMiddleware } from "nestjs-trpc";
 
 /**
  * Guard that checks the request has an authenticated (non-anonymous) Principal.
- * Uses ctx.execution.principal — the canonical runtime actor.
+  * Uses ctx.execution.principal - the canonical runtime actor.
  */
 export class PrincipalGuard implements TRPCMiddleware {
   async use(opts: MiddlewareOptions<AppContext>) {

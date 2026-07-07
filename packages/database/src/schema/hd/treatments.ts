@@ -1,7 +1,7 @@
 // ── Drizzle Schema: Treatment / Diagnosis Events ──
 // Replaces: docs/old/deseases.md HD_TREATMENTS
 
-import { boolean, date, index, pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, date, index, pgPolicy, pgTable, text, timestamp, uuid, varchar, integer } from "drizzle-orm/pg-core";
 import { animals } from "../an/animals.js";
 import { farms } from "../hk/farms.js";
 import { adminAndVetWrite, rlsForFarmColumn } from "../rls-helpers.js";
@@ -30,6 +30,14 @@ export const treatments = pgTable(
     diagnosisDate: date("diagnosis_date").notNull(),
     treatmentDesc: text("treatment_desc"),
     isolated: boolean("isolated").notNull().default(false),
+
+    // Antimicrobial resistance (AMR) tracking
+    antibioticName: varchar("antibiotic_name", { length: 100 }),
+    amrFlag: boolean("amr_flag").notNull().default(false),
+    withdrawalPeriod: integer("withdrawal_period"),
+
+    // Notifiable disease alert linkage
+    alertTriggeredAt: timestamp("alert_triggered_at", { withTimezone: true }),
 
     // Audit
     isActive: boolean("is_active").notNull().default(true),

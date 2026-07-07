@@ -15,6 +15,7 @@
 
 import { Injectable } from "@nestjs/common";
 import type { AuthResult } from "@rocky/auth";
+import { PrincipalCache } from "./principal.cache.js";
 import {
   db,
   permissions as permTable,
@@ -30,6 +31,8 @@ import { ANONYMOUS_PRINCIPAL } from "./principals.js";
 
 @Injectable()
 export class PrincipalResolver {
+  constructor(private readonly cache: PrincipalCache) {}
+
   /**
    * Resolve authentication result → full Principal with RBAC.
    *
@@ -42,6 +45,12 @@ export class PrincipalResolver {
     }
 
     const authUser = authResult.user;
+
+    // Check cache first (avoids 4-table JOIN on every request)
+    const cached = this.cache.get(authUser.id);
+    if (cached) {
+      return cached;
+    }
 
     // Step 1: Find SM user linked to this Better Auth identity
     const [smUser] = await db.select().from(smUsers).where(eq(smUsers.authUserId, authUser.id)).limit(1);
@@ -106,7 +115,7 @@ export class PrincipalResolver {
       status: smUser?.status ?? "ACTIVE",
     };
 
-    return Principal.create({
+    const principal = Principal.create({
       id: smUserId,
       username,
       roles: roleNames,
@@ -115,5 +124,15 @@ export class PrincipalResolver {
       accessLevel,
       claims,
     });
+
+    // Cache for 5 minutes
+    this.cache.set(authUser.id, principal);
+
+    return principal;
+  }
+
+  /** Invalidate cache for a user (call after role changes) */
+  invalidate(userId: string): void {
+    this.cache.invalidate(userId);
   }
 }

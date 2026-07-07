@@ -3,6 +3,7 @@
 
 import { sql } from "drizzle-orm";
 import { boolean, index, integer, pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { syncStatusPgEnum } from "../../schemas/enums/sync-status.js";
 import { syncErrorTypePgEnum } from "../../schemas/enums/sync-error-type.js";
 import { ADMIN_ROLES, farmInOrgArea, isRole, isRoleIn, USER_ROLE } from "../rls-helpers.js";
 
@@ -17,6 +18,7 @@ export const syncErrors = pgTable(
     subjectId: uuid("subject_id"),
 
     errorType: syncErrorTypePgEnum("error_type").notNull(),
+    syncStatus: syncStatusPgEnum("sync_status").notNull().default("WARNING"),
     note: text("note"),
 
     resolved: boolean("resolved").notNull().default(false),

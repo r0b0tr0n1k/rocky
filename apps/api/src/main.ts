@@ -1,7 +1,8 @@
 import { NestFactory } from "@nestjs/core";
-import "@total-typescript/ts-reset";
+import { toNodeHandler } from "better-auth/node";
 import { Logger } from "nestjs-pino";
 import "reflect-metadata";
+import { auth } from "./auth/auth.js";
 import { AppModule } from "./app.module.js";
 import { appConfig } from "./config.js";
 
@@ -22,6 +23,9 @@ async function bootstrap() {
     origin: appConfig.cors.origins,
     credentials: true,
   });
+
+  // Mount Better Auth HTTP handler — must come after CORS, before listen
+  app.getHttpAdapter().use("/api/auth", toNodeHandler(auth));
 
   await app.listen(appConfig.port, "0.0.0.0");
 

@@ -1,5 +1,6 @@
 // biome-ignore assist/source/organizeImports: hm
 export { auditLog } from "./audit-log.js";
+export { outboxEvents } from "./outbox-events.js";
 export {
 	businessRules,
 	codeTables,

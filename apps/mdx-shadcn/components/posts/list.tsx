@@ -1,7 +1,6 @@
-import { Section, Container } from "@rocky/ui/components/ds";
-import { Item } from "@/components/posts/item.js";
-
 import type { Post } from "#site/content";
+import { Item } from "@/components/posts/item";
+import { Container, Section } from "@rocky/ui/components/ds";
 
 export const List = ({ posts }: { posts: Post[] }) => {
   return (
@@ -33,9 +32,7 @@ const NoPosts = () => {
   return (
     <p className="text-muted-foreground">
       No posts yet. Create your first post in the{" "}
-      <code className="rounded bg-muted px-2 py-1 font-mono text-sm">
-        content/
-      </code>
+      <code className="rounded bg-muted px-2 py-1 font-mono text-sm">content/</code>
       directory.
     </p>
   );

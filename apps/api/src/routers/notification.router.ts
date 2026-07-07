@@ -31,16 +31,11 @@ export class NotificationRouter {
 
   @Query({ output: z.object({ count: z.number() }) })
   async unreadCount(@Ctx() ctx: AppContext): Promise<{ count: number }> {
-    const notifications = unwrapResult(
-      await this.notificationService.list({
-        userId: ctx.execution!.principal.id,
-        status: "delivered",
-        limit: 1000,
-        offset: 0,
-      }),
+    const count = unwrapResult(
+      await this.notificationService.getUnreadCount(ctx.execution!.principal.id),
     );
 
-    return { count: notifications.length };
+    return { count };
   }
 
   @Mutation({

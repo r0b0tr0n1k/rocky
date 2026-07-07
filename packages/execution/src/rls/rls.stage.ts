@@ -17,7 +17,7 @@
 import { Injectable } from "@nestjs/common";
 import { db, TX_KEY, type Tx } from "@rocky/database";
 import { sql } from "drizzle-orm";
-import type { ClsService } from "nestjs-cls";
+import { ClsService } from "nestjs-cls";
 import type { ExecutionContext } from "../execution-context.js";
 
 /**
@@ -43,31 +43,24 @@ export class RLSStage {
    * @returns The callback's return value
    */
   async run<T>(config: RlsStageConfig, callback: (tx: Tx) => Promise<T>): Promise<T> {
-    return db.transaction(async (tx) => {
-      // 1. Store transactional connection in AsyncLocalStorage
-      //    DatabaseProvider.client will return THIS tx for all downstream queries
-      this.cls.set(TX_KEY, tx);
+    return this.cls.run(async () => {
+      return db.transaction(async (tx) => {
+        this.cls.set(TX_KEY, tx);
 
-      // 2. Execute SET LOCAL on the TRANSACTIONAL connection
-      await tx.execute(sql`
-        SELECT set_config('app.current_user_id', ${config.ctx.principal.id}, true);
-        SELECT set_config('app.current_role', ${config.ctx.principal.roles[0] ?? "SYSTEM"}, true);
-        SELECT set_config('app.current_org_id', ${config.ctx.principal.organization?.id ?? ""}, true);
-        SELECT set_config('app.current_permissions', ${config.ctx.principal.permissions.join(",")}, true);
-        SELECT set_config('app.current_trace_id', ${config.ctx.runtime.traceId}, true);
-        SELECT set_config('app.current_locale', ${config.ctx.runtime.locale}, true);
-        SELECT set_config('app.current_tenant', ${config.ctx.runtime.tenant ?? ""}, true);
-      `);
+        await tx.execute(sql`SELECT set_config('app.current_user_id', ${config.ctx.principal.id}, true)`);
+        await tx.execute(sql`SELECT set_config('app.current_role', ${config.ctx.principal.roles[0] ?? "SYSTEM"}, true)`);
+        await tx.execute(sql`SELECT set_config('app.current_org_id', ${config.ctx.principal.organization?.id ?? ""}, true)`);
+        await tx.execute(sql`SELECT set_config('app.current_permissions', ${config.ctx.principal.permissions.join(",")}, true)`);
+        await tx.execute(sql`SELECT set_config('app.current_trace_id', ${config.ctx.runtime.traceId}, true)`);
+        await tx.execute(sql`SELECT set_config('app.current_locale', ${config.ctx.runtime.locale}, true)`);
+        await tx.execute(sql`SELECT set_config('app.current_tenant', ${config.ctx.runtime.tenant ?? ""}, true)`);
 
-      // 3. Execute business logic
-      //    All downstream query calls go through DatabaseProvider which reads TX_KEY
-      //    from AsyncLocalStorage, guaranteeing they use THIS transactional connection
-      try {
-        return await callback(tx);
-      } finally {
-        // 4. Clean up AsyncLocalStorage after transaction
-        this.cls.set(TX_KEY, undefined);
-      }
+        try {
+          return await callback(tx);
+        } finally {
+          this.cls.set(TX_KEY, undefined);
+        }
+      });
     });
   }
 }

@@ -1,6 +1,6 @@
-### UserRouter Example
+# UserRouter Example
 
-Source: https://www.nestjs-trpc.io/docs/routers
+Source: <https://www.nestjs-trpc.io/docs/routers>
 
 An example of a UserRouter demonstrating a query to fetch a user by ID, including input validation, middleware, and error handling.
 
@@ -28,12 +28,15 @@ GET
 ```
 
 ### Response
+
 #### Success Response (200)
+
 - **name** (string) - The name of the user.
 - **email** (string) - The email of the user.
 - **password** (string) - The password of the user (should be handled securely).
 
 #### Response Example
+
 ```json
 {
   "name": "John Doe",
@@ -43,8 +46,10 @@ GET
 ```
 
 #### Error Response (404)
+
 - **message** (string) - "Could not find user."
 - **code** (string) - "NOT_FOUND"
+
 ```
 
 --------------------------------
@@ -63,7 +68,7 @@ npm i -g @nestjs/cli
 
 ### Apply Middlewares to tRPC Subscriptions
 
-Source: https://www.nestjs-trpc.io/docs/subscriptions
+Source: <https://www.nestjs-trpc.io/docs/subscriptions>
 
 This example shows how to apply middlewares, such as authentication, to tRPC subscription routes using the `@UseMiddlewares` decorator. Middlewares execute before the subscription generator starts, ensuring that only authenticated users can access the subscription.
 
@@ -81,7 +86,7 @@ async *onMessage(@Input('channelId') channelId: string) {
 
 ### Run NestJS Application
 
-Source: https://www.nestjs-trpc.io/docs/nestjs
+Source: <https://www.nestjs-trpc.io/docs/nestjs>
 
 Navigate to the project directory and start the NestJS application using npm.
 
@@ -94,7 +99,7 @@ npm run start
 
 ### Client Usage Example
 
-Source: https://www.nestjs-trpc.io/docs/subscriptions
+Source: <https://www.nestjs-trpc.io/docs/subscriptions>
 
 Provides an example of how to consume subscriptions on the client side using the `subscription` method from a tRPC client, specifically with `@trpc/react-query`.
 
@@ -116,6 +121,7 @@ const { data } = trpc.events.onMessage.useSubscription(
   },
 );
 ```
+
 ```
 
 --------------------------------
@@ -165,6 +171,7 @@ A router to handle requests related to dogs, including fetching a list of dogs.
   }
 ]
 ```
+
 ```
 
 --------------------------------
@@ -183,7 +190,7 @@ npm install nestjs-trpc
 
 ### Consume tRPC Subscription on the Client (React Example)
 
-Source: https://www.nestjs-trpc.io/docs/subscriptions
+Source: <https://www.nestjs-trpc.io/docs/subscriptions>
 
 This React example demonstrates how to consume a tRPC subscription using the `@trpc/react-query` package. The `useSubscription` hook handles receiving real-time data and provides callbacks for data updates. Refer to tRPC client documentation for other frameworks.
 
@@ -203,7 +210,7 @@ const { data } = trpc.events.onMessage.useSubscription(
 
 ### Middlewares
 
-Source: https://www.nestjs-trpc.io/docs/subscriptions
+Source: <https://www.nestjs-trpc.io/docs/subscriptions>
 
 Illustrates how to apply middlewares to subscriptions using the `@UseMiddlewares()` decorator, ensuring that middlewares execute before the subscription generator starts.
 
@@ -223,6 +230,7 @@ async *onMessage(@Input('channelId') channelId: string) {
   // Only authenticated users reach this point
 }
 ```
+
 ```
 
 --------------------------------
@@ -236,7 +244,7 @@ When a context class is applied, a 'Context' type is generated. This example sho
 ```typescript
 import { Injectable } from '@nestjs/common';
 import { ContextOptions, TRPCContext } from 'nestjs-trpc';
- 
+
 @Injectable()
 export class AppContext implements TRPCContext {
   create(opts: ContextOptions): Record<string, unknown> {
@@ -251,7 +259,7 @@ export class AppContext implements TRPCContext {
 
 ### Install trpc-ui Package
 
-Source: https://www.nestjs-trpc.io/docs/integrations
+Source: <https://www.nestjs-trpc.io/docs/integrations>
 
 Install the trpc-ui package using npm, yarn, or bun. This package is used for creating a tRPC UI panel.
 
@@ -263,7 +271,7 @@ npm install trpc-ui
 
 ### User Router Example with Middleware and Input Validation
 
-Source: https://www.nestjs-trpc.io/docs/routers
+Source: <https://www.nestjs-trpc.io/docs/routers>
 
 Defines a UserRouter with an alias 'users', uses Zod for input validation and output schema, and applies a ProtectedMiddleware to the getUserById query. It also demonstrates throwing a TRPCError for not found users.
 
@@ -274,19 +282,19 @@ import { UserService } from './user.service';
 import { ProtectedMiddleware } from './protected.middleware';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
- 
+
 const userSchema = z.object({
   name: z.string(),
   email: z.string(),
   password: z.string(),
 });
- 
+
 type User = z.infer<typeof userSchema>;
- 
+
 @Router({ alias: 'users' })
 export class UserRouter {
   constructor(@Inject(UserService) private readonly userService: UserService) {}
- 
+
   @Query({
     input: z.object({ userId: z.string() }),
     output: userSchema,
@@ -294,14 +302,14 @@ export class UserRouter {
   @UseMiddlewares(ProtectedMiddleware)
   async getUserById(@Input('userId') userId: string): Promise<User> {
     const user = await this.userService.getUser(userId);
- 
+
     if (user == null) {
       throw new TRPCError({
         message: 'Could not find user.',
         code: 'NOT_FOUND',
       });
     }
- 
+
     return user;
   }
 }
@@ -311,7 +319,7 @@ export class UserRouter {
 
 ### Implement a Logger Middleware
 
-Source: https://www.nestjs-trpc.io/docs/middlewares
+Source: <https://www.nestjs-trpc.io/docs/middlewares>
 
 Create a middleware class that implements the `TRPCMiddleware` interface. This example logs request timing and status.
 
@@ -365,7 +373,7 @@ export class LoggedMiddleware implements TRPCMiddleware<Context> {
 
 ### Implement Subscription Cleanup with AbortSignal
 
-Source: https://www.nestjs-trpc.io/docs/subscriptions
+Source: <https://www.nestjs-trpc.io/docs/subscriptions>
 
 This example demonstrates how to handle client disconnections by using the `opts.signal`. The generator stops yielding events when the signal is aborted, allowing for resource cleanup. This requires tRPC v11 or later.
 
@@ -389,7 +397,7 @@ async *onMessage(
 
 ### Define TRPCModule Options with TypeScript
 
-Source: https://www.nestjs-trpc.io/docs
+Source: <https://www.nestjs-trpc.io/docs>
 
 Import TRPCModuleOptions to safely define options for the TRPCModule. This example sets a custom basePath.
 
@@ -404,7 +412,7 @@ const trpcOptions: TRPCModuleOptions = {
 
 ### Configure Custom Logger for TRPCModule
 
-Source: https://www.nestjs-trpc.io/docs
+Source: <https://www.nestjs-trpc.io/docs>
 
 Provide a custom logger implementation that adheres to the NestJS LoggerService interface when configuring TRPCModule. This example uses a hypothetical MyLogger class.
 
@@ -429,7 +437,7 @@ export class AppModule {}
 
 ### Define a NestJS tRPC Router
 
-Source: https://www.nestjs-trpc.io/docs/client
+Source: <https://www.nestjs-trpc.io/docs/client>
 
 Example of a tRPC router definition in NestJS using decorators for queries, input validation with Zod, and middleware. Ensure to inject necessary services and handle potential errors like 'NOT_FOUND'.
 
@@ -441,11 +449,11 @@ import { ProtectedMiddleware } from './protected.middleware';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { User, userSchema } from './user.schema';
- 
+
 @Router({ alias: 'users' })
 export class UserRouter {
     constructor(@Inject(UserService) private readonly userService: UserService) {}
- 
+
     @Query({
         input: z.object({ userId: z.string() }),
         output: userSchema,
@@ -453,14 +461,14 @@ export class UserRouter {
     @UseMiddlewares(ProtectedMiddleware)
     async getUserById(@Input('userId') userId: string): Promise<User> {
         const user = await this.userService.getUser(userId);
- 
+
         if (user == null) {
             throw new TRPCError({
                 message: 'Could not find user.',
                 code: 'NOT_FOUND',
             });
         }
- 
+
         return user;
     }
 }
@@ -470,7 +478,7 @@ export class UserRouter {
 
 ### Define a tRPC Subscription Router in NestJS
 
-Source: https://www.nestjs-trpc.io/docs/subscriptions
+Source: <https://www.nestjs-trpc.io/docs/subscriptions>
 
 This snippet shows how to define a subscription router using the `@Router` and `@Subscription` decorators. It injects a service to listen for events on a specific channel. Ensure tRPC v11 or later is installed.
 
@@ -479,11 +487,11 @@ import { Router, Subscription, Input, Options } from 'nestjs-trpc';
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { EventService } from './event.service';
- 
+
 @Router({ alias: 'events' })
 export class EventRouter {
   constructor(@Inject(EventService) private eventService: EventService) {}
- 
+
   @Subscription({
     input: z.object({ channelId: z.string() }),
   })
@@ -502,7 +510,7 @@ export class EventRouter {
 
 ### Writing a Subscription
 
-Source: https://www.nestjs-trpc.io/docs/subscriptions
+Source: <https://www.nestjs-trpc.io/docs/subscriptions>
 
 Demonstrates how to define a subscription using the `@Subscription()` decorator and an async generator method. The generator yields values that are streamed to the client as SSE events.
 
@@ -518,7 +526,7 @@ import { Router, Subscription, Input, Options } from 'nestjs-trpc';
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { EventService } from './event.service';
- 
+
 @Router({ alias: 'events' })
 export class EventRouter {
   constructor(@Inject(EventService) private eventService: EventService) {}
@@ -536,6 +544,7 @@ export class EventRouter {
   }
 }
 ```
+
 ```
 
 --------------------------------
@@ -554,7 +563,7 @@ nest new project-name
 
 ### Cleanup with AbortSignal
 
-Source: https://www.nestjs-trpc.io/docs/subscriptions
+Source: <https://www.nestjs-trpc.io/docs/subscriptions>
 
 Shows how to handle client disconnections by using the `opts.signal` to clean up resources when the subscription is no longer active.
 
@@ -580,6 +589,7 @@ async *onMessage(
   }
 }
 ```
+
 ```
 
 --------------------------------
@@ -595,16 +605,16 @@ import { DatabaseService } from "./database.service.ts";
 import { Router, Query } from 'nestjs-trpc';
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
- 
+
 const dogsSchema = z.object({
   name: z.string(),
   breed: z.enum(["Labrador", "Corgi", "Beagle", "Golden Retriver"])
 });
- 
+
 @Router()
 export class DogsRouter {
   constructor(@Inject(DatabaseService) private databaseService: DatabaseService){}
- 
+
   @Query({ output: z.array(dogsSchema) })
   async findAll(): string {
     const dogs = await this.databaseService.dogs.findMany();
@@ -617,7 +627,7 @@ export class DogsRouter {
 
 ### Dependency Injection
 
-Source: https://www.nestjs-trpc.io/docs/subscriptions
+Source: <https://www.nestjs-trpc.io/docs/subscriptions>
 
 Highlights that subscription routers fully support Dependency Injection, allowing services to be injected via the constructor for accessing business logic.
 
@@ -631,7 +641,7 @@ Subscription routers fully support Dependency Injection, just like query and mut
 
 ### Initialize TRPCModule in AppModule
 
-Source: https://www.nestjs-trpc.io/docs
+Source: <https://www.nestjs-trpc.io/docs>
 
 Import and configure the TRPCModule using the forRoot() static method in your AppModule. The basePath option is optional and defaults to '/trpc'.
 
@@ -656,7 +666,7 @@ export class AppModule {}
 
 ### Middleware Decorator
 
-Source: https://www.nestjs-trpc.io/docs/routers
+Source: <https://www.nestjs-trpc.io/docs/routers>
 
 Explains how to apply custom middlewares to router routes using the `@UseMiddlewares()` decorator.
 
@@ -672,7 +682,9 @@ Applies one or more custom middlewares to a router or specific procedure.
 ```
 
 ### Parameters
+
 - `middleware` (TRPCMiddleware) - Required - The middleware function or an array of middleware functions to apply.
+
 ```
 
 --------------------------------
@@ -712,7 +724,7 @@ Decorators used to access request parameters and context within router methods.
 
 ### Apply Middlewares to a Router Procedure
 
-Source: https://www.nestjs-trpc.io/docs/middlewares
+Source: <https://www.nestjs-trpc.io/docs/middlewares>
 
 Use the `@UseMiddlewares()` decorator on a procedure to apply specific middlewares. Middlewares are executed in the order they are provided.
 
@@ -760,7 +772,7 @@ export class DogsRouter {
 
 ### Register Global Middlewares
 
-Source: https://www.nestjs-trpc.io/docs/middlewares
+Source: <https://www.nestjs-trpc.io/docs/middlewares>
 
 Configure global middlewares in the `TRPCModule.forRoot()` options to apply them to all procedures in the application. Ensure middlewares are also listed in the module's `providers`.
 
@@ -794,7 +806,7 @@ export class AppModule {}
 
 ### Procedure Decorators
 
-Source: https://www.nestjs-trpc.io/docs/routers
+Source: <https://www.nestjs-trpc.io/docs/routers>
 
 Lists the available decorators for defining tRPC procedures (Query, Mutation, Subscription) and their corresponding tRPC procedure types.
 
@@ -826,7 +838,7 @@ Decorators used to define tRPC procedures within a NestJS router.
 
 ### Generate AppRouter Types with CLI
 
-Source: https://www.nestjs-trpc.io/docs
+Source: <https://www.nestjs-trpc.io/docs>
 
 Run the nestjs-trpc generate command to scan your routers and create TypeScript types for your AppRouter. Use the 'watch' command for development mode.
 
@@ -842,29 +854,29 @@ npx nestjs-trpc watch
 
 ### Define tRPC Router with Query and Mutation
 
-Source: https://www.nestjs-trpc.io/docs/trpc
+Source: <https://www.nestjs-trpc.io/docs/trpc>
 
 Define a tRPC router containing a query to fetch a user by ID and a mutation to create a new user. Requires @trpc/server and Zod for input validation.
 
 ```typescript
 import { initTRPC } from '@trpc/server';
- 
+
 const t = initTRPC.create();
- 
+
 const appRouter = t.router({
   getUser: t.procedure
     .input(z.string())
     .query(({ input }) => {
       return { id: input, name: 'John Doe' };
     }),
- 
+
   createUser: t.procedure
     .input(z.object({ name: z.string() }))
     .mutation(({ input }) => {
       return { id: '1', ...input };
     }),
 });
- 
+
 export type AppRouter = typeof appRouter;
 ```
 
@@ -872,7 +884,7 @@ export type AppRouter = typeof appRouter;
 
 ### Reading Procedure Metadata in RolesMiddleware
 
-Source: https://www.nestjs-trpc.io/docs/middlewares
+Source: <https://www.nestjs-trpc.io/docs/middlewares>
 
 Implement `TRPCMiddleware` and use generics for `meta` to safely access procedure metadata within the middleware's `use` method, enabling role-based access control.
 
@@ -911,7 +923,7 @@ export class RolesMiddleware implements TRPCMiddleware<RolesMeta> {
 
 ### Create trpc-ui Panel Controller
 
-Source: https://www.nestjs-trpc.io/docs/integrations
+Source: <https://www.nestjs-trpc.io/docs/integrations>
 
 Implement a NestJS controller to serve the tRPC UI panel. This controller uses `renderTrpcPanel` to generate the panel, ensuring the AppRouter is available via `onModuleInit`.
 
@@ -946,7 +958,7 @@ export class TrpcPanelController implements OnModuleInit {
 
 ### Input Validation
 
-Source: https://www.nestjs-trpc.io/docs/subscriptions
+Source: <https://www.nestjs-trpc.io/docs/subscriptions>
 
 Explains how to validate subscription input using Zod schemas, similar to how queries and mutations are validated.
 
@@ -971,6 +983,7 @@ async *onMessage(
   // ...
 }
 ```
+
 ```
 
 --------------------------------
@@ -1012,14 +1025,14 @@ export class UserRouter {
 
 ### Create Type-Safe tRPC Client
 
-Source: https://www.nestjs-trpc.io/docs/trpc
+Source: <https://www.nestjs-trpc.io/docs/trpc>
 
 Create a tRPC client that connects to a server endpoint and provides type-safe access to defined queries and mutations. Requires @trpc/client.
 
 ```typescript
 import { createTRPCProxyClient, httpLink } from '@trpc/client';
 import type { AppRouter } from './path/to/server';
- 
+
 const trpc = createTRPCProxyClient<AppRouter>({
   links: [
     httpLink({
@@ -1027,15 +1040,15 @@ const trpc = createTRPCProxyClient<AppRouter>({
     }),
   ],
 });
- 
+
 async function main() {
   const user = await trpc.getUser.query('1');
   console.log(user); // { id: '1', name: 'John Doe' }
- 
+
   const newUser = await trpc.createUser.mutation({ name: 'Jane Doe' });
   console.log(newUser); // { id: '1', name: 'Jane Doe' }
 }
- 
+
 main();
 ```
 
@@ -1043,7 +1056,7 @@ main();
 
 ### Register Context in AppModule
 
-Source: https://www.nestjs-trpc.io/docs/context
+Source: <https://www.nestjs-trpc.io/docs/context>
 
 Register your custom context class within the TRPCModule's forRoot options in your main application module.
 
@@ -1051,7 +1064,7 @@ Register your custom context class within the TRPCModule's forRoot options in yo
 import { Module } from '@nestjs/common';
 import { TRPCModule } from 'nestjs-trpc';
 import { AppContext } from 'app.context';
- 
+
 @Module({
   imports: [
     TRPCModule.forRoot({
@@ -1067,7 +1080,7 @@ export class AppModule {}
 
 ### Define a Custom tRPC Context Class
 
-Source: https://www.nestjs-trpc.io/docs/context
+Source: <https://www.nestjs-trpc.io/docs/context>
 
 Create a class that implements TRPCContext and its create() method to define your custom context. This class can inject other NestJS providers.
 
@@ -1075,11 +1088,11 @@ Create a class that implements TRPCContext and its create() method to define you
 import { Inject, Injectable } from '@nestjs/common';
 import { ContextOptions, TRPCContext } from 'nestjs-trpc';
 import { InnerContext } from './inner.context';
- 
+
 @Injectable()
 export class AppContext implements TRPCContext {
   constructor(@Inject(InnerContext) private readonly innerContext: InnerContext){}
- 
+
   async create(opts: ContextOptions): Promise<Record<string, unknown>> {
     const contextInner = await this.innerContext.create(opts);
     return {
@@ -1095,7 +1108,7 @@ export class AppContext implements TRPCContext {
 
 ### Defining Procedure Metadata with Roles
 
-Source: https://www.nestjs-trpc.io/docs/middlewares
+Source: <https://www.nestjs-trpc.io/docs/middlewares>
 
 Pass a `meta` object to tRPC decorators like `@Query()` or `@Mutation()` to define metadata, such as required roles for authorization, which can be read by middlewares.
 
@@ -1128,7 +1141,7 @@ export class AdminRouter {
 
 ### Typed Return Context in MiddlewareOptions
 
-Source: https://www.nestjs-trpc.io/docs/middlewares
+Source: <https://www.nestjs-trpc.io/docs/middlewares>
 
 Use the `TReturnContext` generic in `MiddlewareOptions` to type the context passed to `next()`, ensuring compile-time safety for downstream procedures.
 
@@ -1140,7 +1153,7 @@ MiddlewareOptions<TContext, TReturnContext, TMeta>
 
 ### Customize Type Generation Output Path
 
-Source: https://www.nestjs-trpc.io/docs
+Source: <https://www.nestjs-trpc.io/docs>
 
 Use the --output flag with the nestjs-trpc generate command to specify a custom path for the generated TypeScript types.
 
@@ -1152,7 +1165,7 @@ npx nestjs-trpc generate --output ./src/trpc/types.ts
 
 ### Validate Subscription Input with Zod
 
-Source: https://www.nestjs-trpc.io/docs/subscriptions
+Source: <https://www.nestjs-trpc.io/docs/subscriptions>
 
 This snippet shows how to validate subscription input using Zod schemas. The `input` option within the `@Subscription` decorator ensures that incoming data conforms to the defined schema, including optional fields. This requires tRPC v11 or later.
 
@@ -1175,7 +1188,7 @@ async *onMessage(
 
 ### Injecting a Service in a Constructor
 
-Source: https://www.nestjs-trpc.io/docs/dependency-injection
+Source: <https://www.nestjs-trpc.io/docs/dependency-injection>
 
 Use the @Inject() decorator to inject an instance of CatsService into the constructor of another class. NestJS will automatically resolve and provide the dependency.
 
@@ -1187,7 +1200,7 @@ constructor(@Inject(CatsService) private catsService: CatsService) {}
 
 ### Register trpc-ui Controller in AppModule
 
-Source: https://www.nestjs-trpc.io/docs/integrations
+Source: <https://www.nestjs-trpc.io/docs/integrations>
 
 Register the `TrpcPanelController` within your NestJS application's `AppModule` to enable the tRPC panel routes. This is typically done in the `controllers` array.
 
@@ -1209,7 +1222,7 @@ export class AppModule {}
 
 ### Access AppRouter in NestJS
 
-Source: https://www.nestjs-trpc.io/docs/integrations
+Source: <https://www.nestjs-trpc.io/docs/integrations>
 
 Retrieve the AppRouter instance from the application context. This is useful for end-to-end testing or integrating with other tRPC plugins. Ensure this is called after the application has been initialized.
 
@@ -1221,7 +1234,7 @@ const { appRouter } = app.get(AppRouterHost);
 
 ### Register and Configure Error Handler in TRPCModule
 
-Source: https://www.nestjs-trpc.io/docs/error-handling
+Source: <https://www.nestjs-trpc.io/docs/error-handling>
 
 Register the custom error handler as a NestJS provider and pass it to the `onError` option in the `TRPCModule.forRoot` configuration.
 
@@ -1245,7 +1258,7 @@ export class AppModule {}
 
 ### Define Custom tRPC Error Handler
 
-Source: https://www.nestjs-trpc.io/docs/error-handling
+Source: <https://www.nestjs-trpc.io/docs/error-handling>
 
 Implement the `TRPCErrorHandler` interface to create a custom error handler. This class can inject NestJS services for logging or reporting errors.
 

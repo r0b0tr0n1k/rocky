@@ -6,6 +6,7 @@
 
 import type { AuditService } from "@rocky/domains-audit";
 import { fromAsyncThrowable, type Result, toAppError } from "@rocky/domains-shared";
+import type { OutboxEventPublisher } from "@rocky/execution";
 import type {
   AddressResponse,
   CreateFarmRequest,
@@ -22,6 +23,7 @@ export class FarmService {
   constructor(
     private readonly repo: FarmRepository,
     private readonly auditService: AuditService,
+    private readonly outboxPublisher?: OutboxEventPublisher,
   ) { }
 
   async getById(id: string): Promise<Result<FarmResponse, Error>> {
@@ -71,6 +73,22 @@ export class FarmService {
         newValue: farm,
         userId: updatedBy,
       });
+
+      if (this.outboxPublisher && input.verificationStatus === "approved") {
+        await this.outboxPublisher.publish({
+          type: "approval_requested",
+          aggregateType: "farm",
+          aggregateId: farm.id,
+          payload: {
+            farmId: farm.id,
+            verificationNote: input.verificationNote,
+            previousStatus: old.verificationStatus,
+            createdBy: updatedBy,
+          },
+          createdBy: updatedBy,
+        });
+      }
+
       return farmResponseSchema.parse(farm);
     }, toAppError)();
   }

@@ -37,6 +37,7 @@ export * from "./schema/auth/index.js";
 export * from "./schema/demo/index.js";
 export * from "./schema/hd/index.js";
 export * from "./schema/hk/index.js";
+export * from "./schema/events/index.js";
 // Re-export all schemas
 export * from "./schema/sm/index.js";
 

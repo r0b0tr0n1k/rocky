@@ -1,4 +1,4 @@
-import type { AppRouter } from "@rocky/trpc";
+import type { AppRouter } from "./server";
 import type { TRPCLink } from "@trpc/client";
 import type { CreateTRPCReact } from "@trpc/react-query";
 

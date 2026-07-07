@@ -2,21 +2,46 @@
   "name": "@rocky/validators",
   "version": "0.1.0",
   "private": true,
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit"
+  },
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./api": "./src/api/index.ts",
-    "./api/*": "./src/api/*.ts",
-    "./enums": "./src/enums/index.ts",
-    "./events": "./src/events/index.ts",
-    "./errors": "./src/errors/index.ts",
-    "./utils": "./src/utils/index.ts",
-    "./utils/check-digit": "./src/utils/check-digit.ts",
-    "./utils/type-bridge": "./src/utils/type-bridge.ts",
-    "./index.js": "./src/index.ts",
-    "./*": "./src/*"
+    "./api": {
+      "types": "./dist/api/index.d.ts",
+      "default": "./dist/api/index.js"
+    },
+    "./enums": {
+      "types": "./dist/enums/index.d.ts",
+      "default": "./dist/enums/index.js"
+    },
+    "./events": {
+      "types": "./dist/events/index.d.ts",
+      "default": "./dist/events/index.js"
+    },
+    "./errors": {
+      "types": "./dist/errors/index.d.ts",
+      "default": "./dist/errors/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "default": "./dist/utils/index.js"
+    },
+    "./utils/check-digit": {
+      "types": "./dist/utils/check-digit.d.ts",
+      "default": "./dist/utils/check-digit.js"
+    },
+    "./utils/type-bridge": {
+      "types": "./dist/utils/type-bridge.d.ts",
+      "default": "./dist/utils/type-bridge.js"
+    }
   },
   "dependencies": {
     "@rocky/database": "workspace:*",

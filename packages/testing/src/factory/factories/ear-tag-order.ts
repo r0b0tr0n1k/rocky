@@ -15,6 +15,7 @@ export type EarTagOrderRecord = InferSelectSchema<typeof earTagOrderSelectSchema
 export class EarTagOrderFactory extends SchemaDataFactory<EarTagOrderRecord> {
   constructor(organizationId: string, requestedBy?: string) {
     super(earTagOrderSelectSchema, {
+      id: faker.string.uuid(),
       organizationId,
       orderNumber: faker.string.alphanumeric({ length: 12 }).toUpperCase(),
       orderDate: faker.date.recent({ days: 30 }).toISOString().split("T")[0],
@@ -33,6 +34,17 @@ export class EarTagOrderFactory extends SchemaDataFactory<EarTagOrderRecord> {
       requestedBy: requestedBy ?? null,
       notes: faker.lorem.sentence(),
       createdAt: faker.date.recent({ days: 30 }),
+      legacyId: null,
+      supplierOrganizationId: null,
+      expectedDeliveryDate: null,
+      actualDeliveryDate: null,
+      approvedBy: null,
+      approvedAt: null,
+      rejectionReason: null,
+      internalNotes: null,
+      createdBy: null,
+      updatedAt: null,
+      validTo: null,
     });
   }
 

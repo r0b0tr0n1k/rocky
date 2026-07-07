@@ -1,13 +1,13 @@
-import "@total-typescript/ts-reset";
-import { ThemeProvider } from "@/components/theme/theme-provider.js";
+/** biome-ignore-all assist/source/organizeImports: biome */
+import { Footer } from "@/components/site/footer";
+import { ThemeProvider } from "@/components/theme/theme-provider";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Layout, Main } from "@rocky/ui/components/ds";
-import { ThemeToggle } from "@/components/theme/theme-toggle.js";
 import { Toaster } from "@rocky/ui/components/sonner";
-import { Footer } from "@/components/site/footer.js";
-
+import "@total-typescript/ts-reset";
 import type { Metadata } from "next";
 
-import "./globals.js";
+import "./globals.css";
 
 import { cn } from "@rocky/ui/lib/utils";
 
@@ -16,28 +16,14 @@ export const metadata: Metadata = {
     default: "MDX Starter Template for Building Websites",
     template: "%s | MDX Starter",
   },
-  description:
-    "MDX and Next.js Starter made by Bridger Tower at 9d8 and WIP / AC",
+  description: "MDX and Next.js Starter made by Bridger Tower at 9d8 and WIP / AC",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <Layout>
-      <body
-        className={cn(
-          "min-h-screen bg-background font-sans antialiased w-screen flex flex-col",
-        )}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+      <body className={cn("min-h-screen bg-background font-sans antialiased w-screen flex flex-col")}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <Main className="flex-1">{children}</Main>
           <Footer />
           <div className="fixed bottom-6 right-6">

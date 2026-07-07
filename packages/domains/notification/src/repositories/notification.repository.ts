@@ -96,6 +96,15 @@ export class NotificationRepository extends BaseRepository {
     return row ?? null;
   }
 
+  /** Count notifications by userId and status. */
+  async countByUserAndStatus(userId: string, status: string): Promise<number> {
+    const [result] = await this.client
+      .select({ count: sql<number>`count(*)::int` })
+      .from(notifications)
+      .where(and(eq(notifications.userId, userId), eq(notifications.status, status)));
+    return result?.count ?? 0;
+  }
+
   /** Find a notification template by code. */
   async findTemplateByCode(code: string) {
     const [row] = await this.client

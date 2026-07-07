@@ -43,6 +43,7 @@ export const movements = pgTable(
     // Multi-leg (market transactions: 4 legs linked)
     parentMovementId: uuid("parent_movement_id"),
     legOrder: integer("leg_order").default(0),
+    movementGroupId: uuid("movement_group_id"),
 
     // Documentation
     reason: varchar("reason", { length: 100 }),

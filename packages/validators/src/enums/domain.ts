@@ -7,7 +7,7 @@
  *
  * DO NOT EDIT MANUALLY. Run: node scripts/regenerate-enums.mjs
  *
- * Generated: 2026-07-05T19:30:43.030Z
+ * Generated: 2026-07-06T01:12:41.628Z
  */
 
 import { zEnum } from "../_enum-helper.js";
@@ -25,6 +25,7 @@ import { ARCHIVE_LOCATION_VALUES } from "@rocky/database/constants";
 import { AUDIT_ACTION_VALUES } from "@rocky/database/constants";
 import { BIRTH_NOTIFICATION_STATUS_VALUES } from "@rocky/database/constants";
 import { BIRTH_TYPE_VALUES } from "@rocky/database/constants";
+import { CONFLICT_RESOLUTION_STATUS_VALUES } from "@rocky/database/constants";
 import { CONTINGENT_TYPE_VALUES } from "@rocky/database/constants";
 import { CORRECTION_CASE_TYPE_VALUES } from "@rocky/database/constants";
 import { CORRECTION_STATUS_VALUES } from "@rocky/database/constants";
@@ -67,6 +68,7 @@ import { NOTIFICATION_TYPE_VALUES } from "@rocky/database/constants";
 import { ORDER_STATUS_VALUES } from "@rocky/database/constants";
 import { ORG_READ_ROLE_VALUES } from "@rocky/database/constants";
 import { ORG_TYPE_VALUES } from "@rocky/database/constants";
+import { OUTBOX_EVENT_STATUS_VALUES } from "@rocky/database/constants";
 import { PARENT_TYPE_VALUES } from "@rocky/database/constants";
 import { PASSPORT_STATUS_VALUES } from "@rocky/database/constants";
 import { PASTURE_TYPE_VALUES } from "@rocky/database/constants";
@@ -86,6 +88,7 @@ import { SORT_ORDER_VALUES } from "@rocky/database/constants";
 import { STATE_CODE_VALUES } from "@rocky/database/constants";
 import { SUBJECT_ROLE_VALUES } from "@rocky/database/constants";
 import { SYNC_ERROR_TYPE_VALUES } from "@rocky/database/constants";
+import { SYNC_STATUS_VALUES } from "@rocky/database/constants";
 import { TAG_CATEGORY_VALUES } from "@rocky/database/constants";
 import { TAKEOVER_STATUS_VALUES } from "@rocky/database/constants";
 import { TEST_RESULT_VALUES } from "@rocky/database/constants";
@@ -99,7 +102,7 @@ import { VS_CONTRACT_STATUS_VALUES } from "@rocky/database/constants";
 import { WEIGHING_TYPE_VALUES } from "@rocky/database/constants";
 import { WRITE_ROLE_VALUES } from "@rocky/database/constants";
 
-// 84 enum schemas
+// 87 enum schemas
 
 export const adminRolesSchema = zEnum(ADMIN_ROLE_VALUES);
 export type adminRolesType = z.infer<typeof adminRolesSchema>;
@@ -145,6 +148,10 @@ export const birthTypeSchema = zEnum(BIRTH_TYPE_VALUES);
 export type birthTypeType = z.infer<typeof birthTypeSchema>;
 const _satisfies_birthTypeSchema: z.ZodType<birthTypeType> = birthTypeSchema;
 type _nodrift_birthTypeSchema = NoDrift<z.infer<typeof birthTypeSchema>, birthTypeType>;
+export const conflictResolutionStatusSchema = zEnum(CONFLICT_RESOLUTION_STATUS_VALUES);
+export type conflictResolutionStatusType = z.infer<typeof conflictResolutionStatusSchema>;
+const _satisfies_conflictResolutionStatusSchema: z.ZodType<conflictResolutionStatusType> = conflictResolutionStatusSchema;
+type _nodrift_conflictResolutionStatusSchema = NoDrift<z.infer<typeof conflictResolutionStatusSchema>, conflictResolutionStatusType>;
 export const contingentTypeSchema = zEnum(CONTINGENT_TYPE_VALUES);
 export type contingentTypeType = z.infer<typeof contingentTypeSchema>;
 const _satisfies_contingentTypeSchema: z.ZodType<contingentTypeType> = contingentTypeSchema;
@@ -313,6 +320,10 @@ export const orgTypeSchema = zEnum(ORG_TYPE_VALUES);
 export type orgTypeType = z.infer<typeof orgTypeSchema>;
 const _satisfies_orgTypeSchema: z.ZodType<orgTypeType> = orgTypeSchema;
 type _nodrift_orgTypeSchema = NoDrift<z.infer<typeof orgTypeSchema>, orgTypeType>;
+export const outboxEventStatusSchema = zEnum(OUTBOX_EVENT_STATUS_VALUES);
+export type outboxEventStatusType = z.infer<typeof outboxEventStatusSchema>;
+const _satisfies_outboxEventStatusSchema: z.ZodType<outboxEventStatusType> = outboxEventStatusSchema;
+type _nodrift_outboxEventStatusSchema = NoDrift<z.infer<typeof outboxEventStatusSchema>, outboxEventStatusType>;
 export const parentTypeSchema = zEnum(PARENT_TYPE_VALUES);
 export type parentTypeType = z.infer<typeof parentTypeSchema>;
 const _satisfies_parentTypeSchema: z.ZodType<parentTypeType> = parentTypeSchema;
@@ -389,6 +400,10 @@ export const syncErrorTypeSchema = zEnum(SYNC_ERROR_TYPE_VALUES);
 export type syncErrorTypeType = z.infer<typeof syncErrorTypeSchema>;
 const _satisfies_syncErrorTypeSchema: z.ZodType<syncErrorTypeType> = syncErrorTypeSchema;
 type _nodrift_syncErrorTypeSchema = NoDrift<z.infer<typeof syncErrorTypeSchema>, syncErrorTypeType>;
+export const syncStatusSchema = zEnum(SYNC_STATUS_VALUES);
+export type syncStatusType = z.infer<typeof syncStatusSchema>;
+const _satisfies_syncStatusSchema: z.ZodType<syncStatusType> = syncStatusSchema;
+type _nodrift_syncStatusSchema = NoDrift<z.infer<typeof syncStatusSchema>, syncStatusType>;
 export const tagCategorySchema = zEnum(TAG_CATEGORY_VALUES);
 export type tagCategoryType = z.infer<typeof tagCategorySchema>;
 const _satisfies_tagCategorySchema: z.ZodType<tagCategoryType> = tagCategorySchema;
@@ -438,7 +453,7 @@ export type writeRolesType = z.infer<typeof writeRolesSchema>;
 const _satisfies_writeRolesSchema: z.ZodType<writeRolesType> = writeRolesSchema;
 type _nodrift_writeRolesSchema = NoDrift<z.infer<typeof writeRolesSchema>, writeRolesType>;
 
-// ⚔️ Activate ALL 84 guillotine proofs
+// ⚔️ Activate ALL 87 guillotine proofs
 export type _Activate = ActivateGuillotines<[
   _nodrift_adminRolesSchema,
   _nodrift_administrationRouteSchema,
@@ -451,6 +466,7 @@ export type _Activate = ActivateGuillotines<[
   _nodrift_auditActionSchema,
   _nodrift_birthNotificationStatusSchema,
   _nodrift_birthTypeSchema,
+  _nodrift_conflictResolutionStatusSchema,
   _nodrift_contingentTypeSchema,
   _nodrift_correctionCaseTypeSchema,
   _nodrift_correctionStatusSchema,
@@ -493,6 +509,7 @@ export type _Activate = ActivateGuillotines<[
   _nodrift_orderStatusSchema,
   _nodrift_orgReadRolesSchema,
   _nodrift_orgTypeSchema,
+  _nodrift_outboxEventStatusSchema,
   _nodrift_parentTypeSchema,
   _nodrift_passportStatusSchema,
   _nodrift_pastureTypeSchema,
@@ -512,6 +529,7 @@ export type _Activate = ActivateGuillotines<[
   _nodrift_stateCodeSchema,
   _nodrift_subjectRoleSchema,
   _nodrift_syncErrorTypeSchema,
+  _nodrift_syncStatusSchema,
   _nodrift_tagCategorySchema,
   _nodrift_takeoverStatusSchema,
   _nodrift_testResultSchema,

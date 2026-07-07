@@ -1,5 +1,5 @@
 // biome-ignore assist/source/organizeImports: OK
-import { ForgotPassword, ResetPassword, SignIn, SignOut, SignUp } from "#components/auth/index.js";
+import { ForgotPassword, ResetPassword, SignIn, SignOut, SignUp } from "#components/auth/index";
 import { viewPaths } from "@better-auth-ui/core";
 import { notFound } from "next/navigation";
 

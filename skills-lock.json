@@ -37,6 +37,12 @@
       "skillPath": "skills/react-native-reusables/SKILL.md",
       "computedHash": "f37d8d5a20779994c9e84d527521a3727a2968a57fa6d5485f281623e8ff5c31"
     },
+    "shadcn": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "skillPath": "skills/shadcn/SKILL.md",
+      "computedHash": "d81caa0f86aabab65b25e302d454f23a3328760386ed9078345584c0d5c8058e"
+    },
     "two-factor-authentication-best-practices": {
       "source": "better-auth/skills",
       "sourceType": "github",

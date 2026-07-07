@@ -10,7 +10,11 @@ import crypto from "node:crypto";
 import { AnimalRepository, AnimalService } from "@rocky/domains-animal";
 import { AuditRepository, AuditService } from "@rocky/domains-audit";
 import { ArchiveRepository, ArchiveService } from "@rocky/domains-archive";
-import { CorrectionRepository, CorrectionService } from "@rocky/domains-correction";
+import {
+  CorrectionRepository,
+  CorrectionService,
+} from "@rocky/domains-correction";
+import { OutboxEventPublisher } from "@rocky/execution";
 import { DeviceRepository, DeviceService } from "@rocky/domains-device";
 import { IotRepository, IotService } from "@rocky/domains-iot";
 import { EarTagRepository, EarTagService } from "@rocky/domains-eartag";
@@ -25,22 +29,39 @@ import {
   VsContractService,
 } from "@rocky/domains-farm";
 import { HealthRepository, HealthService } from "@rocky/domains-health";
-import { InspectionRepository, InspectionService, RiskAnalysisService } from "@rocky/domains-inspection";
+import {
+  InspectionRepository,
+  InspectionService,
+  RiskAnalysisService,
+} from "@rocky/domains-inspection";
 import { MovementRepository, MovementService } from "@rocky/domains-movement";
-import { NotificationRepository, NotificationService } from "@rocky/domains-notification/index.js";
-import { OrganizationRepository, OrganizationService } from "@rocky/domains-organization/index.js";
+import {
+  NotificationRepository,
+  NotificationService,
+} from "@rocky/domains-notification/index.js";
+import {
+  OrganizationRepository,
+  OrganizationService,
+} from "@rocky/domains-organization/index.js";
 import { PassportRepository, PassportService } from "@rocky/domains-passport";
 import { RbacRepository, RbacService } from "@rocky/domains-rbac/index.js";
 import { SubjectRepository, SubjectService } from "@rocky/domains-subject";
-import { TodoService } from "@rocky/domains-todo/index.js";
 import { UserRepository, UserService } from "@rocky/domains-user/index.js";
 import { ExecutionModule } from "@rocky/execution/index.js";
 import { LoggerModule } from "@rocky/logger/index.js";
-import { PdfModule, DocumentRegistry, InspectionFormTemplate, PassportTemplate, MovementTemplate } from "@rocky/pdf/index.js";
+import {
+  PdfModule,
+  DocumentRegistry,
+  InspectionFormTemplate,
+  PassportTemplate,
+  MovementTemplate,
+} from "@rocky/pdf/index.js";
 import { ClsModule } from "nestjs-cls";
 import { AuthCoreModule } from "./auth/auth-core.module.js";
 // ── Scheduled Jobs ─────────────────────────────────────────────────
 import { CorrectionConsistencyJob } from "./jobs/correction-consistency.job.js";
+import { OutboxEventHandlers } from "./jobs/outbox-handlers.js";
+import { OutboxProcessorJob } from "./jobs/outbox-processor.job.js";
 import { RetentionJob } from "./jobs/retention.job.js";
 import { RiskAnalysisJob } from "./jobs/risk-analysis.job.js";
 import { DbModule } from "./modules/db.module.js";
@@ -75,7 +96,8 @@ import { TrpcModule } from "./trpc/trpc.module.js";
       middleware: {
         mount: true,
         generateId: true,
-        idGenerator: (req: Request) => req.headers?.["x-correlation-id"] || crypto.randomUUID(),
+        idGenerator: (req: Request) =>
+          (req.headers as unknown as Record<string, string | undefined>)?.["x-correlation-id"] || crypto.randomUUID(),
       },
     }),
     ScheduleModule.forRoot(),
@@ -212,36 +234,59 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     },
     {
       provide: VsAssignmentService,
-      useFactory: (assignmentRepo: VsAssignmentRepository, contractRepo: VsContractRepository) =>
-        new VsAssignmentService(assignmentRepo, contractRepo),
+      useFactory: (
+        assignmentRepo: VsAssignmentRepository,
+        contractRepo: VsContractRepository,
+      ) => new VsAssignmentService(assignmentRepo, contractRepo),
       inject: [VsAssignmentRepository, VsContractRepository],
     },
     {
       provide: FarmService,
-      useFactory: (repo: FarmRepository, auditService: AuditService) => new FarmService(repo, auditService),
+      useFactory: (repo: FarmRepository, auditService: AuditService) =>
+        new FarmService(repo, auditService),
       inject: [FarmRepository, AuditService],
     },
     {
       provide: MovementService,
-      useFactory: (movRepo: MovementRepository, animalRepo: AnimalRepository, passportService?: PassportService) =>
-        new MovementService(movRepo, animalRepo, passportService),
-      inject: [MovementRepository, AnimalRepository, { token: PassportService, optional: true }],
+      useFactory: (
+        movRepo: MovementRepository,
+        animalRepo: AnimalRepository,
+        passportService?: PassportService,
+        outboxPublisher?: import("@rocky/execution").OutboxEventPublisher,
+      ) =>
+        new MovementService(
+          movRepo,
+          animalRepo,
+          passportService,
+          outboxPublisher,
+        ),
+      inject: [
+        MovementRepository,
+        AnimalRepository,
+        { token: PassportService, optional: true },
+        {
+          token: OutboxEventPublisher,
+          optional: true,
+        },
+      ],
     },
     {
       provide: SubjectService,
-      useFactory: (repo: SubjectRepository, auditService: AuditService, farmBookService: FarmBookService) =>
-        new SubjectService(repo, auditService, farmBookService),
-      inject: [SubjectRepository, AuditService, { token: FarmBookService, optional: true }],
-    },
-    // Todo still uses direct DB (legacy - pending migration)
-    {
-      provide: TodoService,
-      useFactory: (dbp) => new TodoService(dbp),
-      inject: [DatabaseProvider],
+      useFactory: (
+        repo: SubjectRepository,
+        auditService: AuditService,
+        farmBookService: FarmBookService,
+      ) => new SubjectService(repo, auditService, farmBookService),
+      inject: [
+        SubjectRepository,
+        AuditService,
+        { token: FarmBookService, optional: true },
+      ],
     },
     {
       provide: NotificationService,
-      useFactory: (repo: NotificationRepository) => new NotificationService(repo),
+      useFactory: (repo: NotificationRepository) =>
+        new NotificationService(repo),
       inject: [NotificationRepository],
     },
     {
@@ -261,7 +306,8 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     },
     {
       provide: OrganizationService,
-      useFactory: (repo: OrganizationRepository) => new OrganizationService(repo),
+      useFactory: (repo: OrganizationRepository) =>
+        new OrganizationService(repo),
       inject: [OrganizationRepository],
     },
     {
@@ -270,9 +316,23 @@ import { TrpcModule } from "./trpc/trpc.module.js";
         repo: HealthRepository,
         subjectRepo: SubjectRepository,
         animalRepo: AnimalRepository,
-        inspectionRepo: InspectionRepository,
-      ) => new HealthService(repo, subjectRepo, animalRepo, inspectionRepo),
-      inject: [HealthRepository, SubjectRepository, AnimalRepository, InspectionRepository],
+        outboxPublisher: OutboxEventPublisher,
+        correctionService: CorrectionService,
+      ) =>
+        new HealthService(
+          repo,
+          subjectRepo,
+          animalRepo,
+          outboxPublisher,
+          correctionService,
+        ),
+      inject: [
+        HealthRepository,
+        SubjectRepository,
+        AnimalRepository,
+        OutboxEventPublisher,
+        CorrectionService,
+      ],
     },
     {
       provide: InspectionService,
@@ -281,8 +341,19 @@ import { TrpcModule } from "./trpc/trpc.module.js";
         animalRepo: AnimalRepository,
         archiveService: ArchiveService,
         riskAnalysisService: RiskAnalysisService,
-      ) => new InspectionService(repo, animalRepo, archiveService, riskAnalysisService),
-      inject: [InspectionRepository, AnimalRepository, ArchiveService, RiskAnalysisService],
+      ) =>
+        new InspectionService(
+          repo,
+          animalRepo,
+          archiveService,
+          riskAnalysisService,
+        ),
+      inject: [
+        InspectionRepository,
+        AnimalRepository,
+        ArchiveService,
+        RiskAnalysisService,
+      ],
     },
     {
       provide: ArchiveService,
@@ -296,13 +367,17 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     },
     {
       provide: PassportService,
-      useFactory: (repo: PassportRepository, animalRepo: AnimalRepository) => new PassportService(repo, animalRepo),
+      useFactory: (repo: PassportRepository, animalRepo: AnimalRepository) =>
+        new PassportService(repo, animalRepo),
       inject: [PassportRepository, AnimalRepository],
     },
     {
       provide: CorrectionService,
-      useFactory: (repo: CorrectionRepository, archiveService: ArchiveService, passportService: PassportService) =>
-        new CorrectionService(repo, archiveService, passportService),
+      useFactory: (
+        repo: CorrectionRepository,
+        archiveService: ArchiveService,
+        passportService: PassportService,
+      ) => new CorrectionService(repo, archiveService, passportService),
       inject: [CorrectionRepository, ArchiveService, PassportService],
     },
     {
@@ -319,7 +394,8 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     // ── Document Templates ──
     {
       provide: InspectionFormTemplate,
-      useFactory: (inspectionService: InspectionService) => new InspectionFormTemplate(inspectionService),
+      useFactory: (inspectionService: InspectionService) =>
+        new InspectionFormTemplate(inspectionService),
       inject: [InspectionService],
     },
     {
@@ -330,8 +406,21 @@ import { TrpcModule } from "./trpc/trpc.module.js";
         farmRepo: FarmRepository,
         movementRepo: MovementRepository,
         healthRepo: HealthRepository,
-      ) => new PassportTemplate(passportRepo, animalRepo, farmRepo, movementRepo, healthRepo),
-      inject: [PassportRepository, AnimalRepository, FarmRepository, MovementRepository, HealthRepository],
+      ) =>
+        new PassportTemplate(
+          passportRepo,
+          animalRepo,
+          farmRepo,
+          movementRepo,
+          healthRepo,
+        ),
+      inject: [
+        PassportRepository,
+        AnimalRepository,
+        FarmRepository,
+        MovementRepository,
+        HealthRepository,
+      ],
     },
     {
       provide: MovementTemplate,
@@ -369,13 +458,18 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     RetentionJob,
     RiskAnalysisJob,
     CorrectionConsistencyJob,
+    OutboxEventHandlers,
+    OutboxProcessorJob,
   ],
 })
 export class AppModule implements OnModuleInit {
   constructor(
-    @Inject(InspectionFormTemplate) private readonly inspectionFormTemplate: InspectionFormTemplate,
-    @Inject(PassportTemplate) private readonly passportTemplate: PassportTemplate,
-    @Inject(MovementTemplate) private readonly movementTemplate: MovementTemplate,
+    @Inject(InspectionFormTemplate)
+    private readonly inspectionFormTemplate: InspectionFormTemplate,
+    @Inject(PassportTemplate)
+    private readonly passportTemplate: PassportTemplate,
+    @Inject(MovementTemplate)
+    private readonly movementTemplate: MovementTemplate,
   ) {}
 
   onModuleInit() {

@@ -1,7 +1,7 @@
 "use client";
 
 // biome-ignore assist/source/organizeImports: OK
-import { trpc, trpcClientConfig } from "#/lib/trpc.js";
+import { trpc, trpcClientConfig } from "#/lib/trpc";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { loggerLink } from "@trpc/client";
 import { useState } from "react";

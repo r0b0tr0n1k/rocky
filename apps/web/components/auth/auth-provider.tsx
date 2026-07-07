@@ -1,7 +1,7 @@
 "use client";
 
 // biome-ignore assist/source/organizeImports: ok
-import { authClient } from "#lib/auth-client.js";
+import { authClient } from "#lib/auth-client";
 import type { AuthClient } from "@better-auth-ui/react";
 import { AuthProvider as AuthUIProvider } from "@better-auth-ui/react";
 import { useRouter } from "next/navigation";

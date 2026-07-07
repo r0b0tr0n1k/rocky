@@ -20,17 +20,17 @@ export const farmResponseSchema = farmSelectSchema
   .omit({ createdBy: true, updatedBy: true, validTo: true })
   .extend({
     location: z.unknown().nullable(),
-    signatureCapturedAt: z.coerce.date().nullable(),
-    verifiedAt: z.coerce.date().nullable(),
+    signatureCapturedAt: z.coerce.date<string>().nullable(),
+    verifiedAt: z.coerce.date<string>().nullable(),
     type: farmTypeSchema,
     verificationStatus: verificationStatusSchema,
     dataSource: dataSourceSchema,
   })
-  .strict();
+  .strip();
 
 export type FarmResponse = z.infer<typeof farmResponseSchema>;
 
-export const farmSummarySchema = z.strictObject(farmResponseSchema
+export const farmSummarySchema = z.object(farmResponseSchema
   .pick({
     id: true,
     farmId: true,
@@ -48,9 +48,9 @@ export const addressResponseSchema = addressSelectSchema
   .extend({
     location: z.string().nullable(),
     geocodedAddress: z.string().nullable(),
-    geocodedAt: z.coerce.date().nullable(),
+    geocodedAt: z.coerce.date<string>().nullable(),
   })
-  .strict();
+  .strip();
 
 export type AddressResponse = z.infer<typeof addressResponseSchema>;
 
@@ -141,7 +141,7 @@ export interface FarmBookResponse {
 export const farmBookResponseSchema = farmBookSelectSchema
   .omit({ createdBy: true, updatedAt: true, validTo: true })
   .extend({ status: farmBookStatusSchema })
-  .strict() satisfies z.ZodType<FarmBookResponse>;
+  .strip() satisfies z.ZodType<FarmBookResponse>;
 
 type _nodrift_farmBookResponse = NoDrift<z.infer<typeof farmBookResponseSchema>, FarmBookResponse>;
 
@@ -189,7 +189,7 @@ export interface VsContractResponse {
 export const vsContractResponseSchema = vsContractSelectSchema
   .omit({ createdBy: true, updatedAt: true, validTo: true })
   .extend({ status: vsContractStatusSchema })
-  .strict() satisfies z.ZodType<VsContractResponse>;
+  .strip() satisfies z.ZodType<VsContractResponse>;
 
 type _nodrift_vsContractResponse = NoDrift<z.infer<typeof vsContractResponseSchema>, VsContractResponse>;
 
@@ -206,8 +206,8 @@ export const createVsContractRequestSchema = z.strictObject({
   subjectId: z.uuid(),
   contractNumber: z.string().min(1).max(50),
   region: z.string().min(1).max(100),
-  startDate: z.date(),
-  endDate: z.date().optional(),
+  startDate: z.coerce.date<string>(),
+  endDate: z.coerce.date<string>().optional(),
   notes: z.string().optional(),
 }) satisfies z.ZodType<CreateVsContractRequest>;
 
@@ -241,7 +241,7 @@ export interface VsAssignmentResponse {
 
 export const vsAssignmentResponseSchema = vsAssignmentSelectSchema
   .omit({ createdBy: true, updatedAt: true, validTo: true })
-  .strict() satisfies z.ZodType<VsAssignmentResponse>;
+  .strip() satisfies z.ZodType<VsAssignmentResponse>;
 
 type _nodrift_vsAssignmentResponse = NoDrift<z.infer<typeof vsAssignmentResponseSchema>, VsAssignmentResponse>;
 
@@ -257,8 +257,8 @@ export interface CreateVsAssignmentRequest {
 export const createVsAssignmentRequestSchema = z.strictObject({
   contractId: z.uuid(),
   farmId: z.uuid(),
-  startDate: z.date(),
-  endDate: z.date().optional(),
+  startDate: z.coerce.date<string>(),
+  endDate: z.coerce.date<string>().optional(),
   isPrimary: z.boolean().optional(),
   notes: z.string().optional(),
 }) satisfies z.ZodType<CreateVsAssignmentRequest>;
@@ -271,7 +271,7 @@ export interface UpdateVsAssignmentRequest {
 }
 
 export const updateVsAssignmentRequestSchema = z.strictObject({
-  endDate: z.date().optional(),
+  endDate: z.coerce.date<string>().optional(),
   notes: z.string().optional(),
 }).refine((data) => Object.keys(data).length > 0, "At least one field must be updated") satisfies z.ZodType<UpdateVsAssignmentRequest>;
 

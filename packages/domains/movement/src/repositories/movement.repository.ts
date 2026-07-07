@@ -114,10 +114,14 @@ export class MovementRepository extends BaseRepository {
     return row ?? null;
   }
 
-  async deactivatePastureDeclaration(id: string) {
+  async deactivatePastureDeclaration(id: string, reason?: string) {
     const [row] = await this.client
       .update(pastureDeclarationsTable)
-      .set({ isActive: false, completedAt: new Date().toISOString().split("T")[0] })
+      .set({
+        isActive: false,
+        completedAt: new Date().toISOString().split("T")[0],
+        invalidatedReason: reason ?? null,
+      })
       .where(eq(pastureDeclarationsTable.id, id))
       .returning();
     return row ?? null;

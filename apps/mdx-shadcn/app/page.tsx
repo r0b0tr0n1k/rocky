@@ -1,8 +1,8 @@
-import { List } from "@/components/posts/list.js";
-import { Hero } from "@/components/site/hero.js";
+import { List } from "@/components/posts/list";
+import { Hero } from "@/components/site/hero";
 import { Main } from "@rocky/ui/components/ds";
 
-import { getAllPosts } from "@/lib/posts.js";
+import { getAllPosts } from "@/lib/posts";
 
 export default function HomePage() {
   const posts = getAllPosts();

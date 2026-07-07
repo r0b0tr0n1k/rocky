@@ -16,11 +16,7 @@ import type {
   GetTakeoverFileRequest,
   TakeoverFileResponse,
 } from "@rocky/validators/api";
-import {
-  earTagResponseSchema,
-  earTagTypeResponseSchema,
-  takeoverFileResponseSchema
-} from "@rocky/validators/api";
+import { earTagResponseSchema, earTagTypeResponseSchema, takeoverFileResponseSchema } from "@rocky/validators/api";
 import { EARTAG_ERRORS, EarTagError } from "../errors/eartag.errors.js";
 import type { EarTagRepository } from "../repositories/eartag.repository.js";
 
@@ -55,7 +51,7 @@ function daysBetween(a: Date, b: Date): number {
 }
 
 export class EarTagService {
-  constructor(private readonly repo: EarTagRepository) { }
+  constructor(private readonly repo: EarTagRepository) {}
 
   async getById(id: string): Promise<Result<EarTagResponse, Error>> {
     return fromAsyncThrowable(async () => {
@@ -80,7 +76,12 @@ export class EarTagService {
   async findByTag(stateCode: string, tagNumber: string): Promise<Result<EarTagResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const tag = await this.repo.findByTag(stateCode, tagNumber);
-      if (!tag) throw new EarTagError(EARTAG_ERRORS.NOT_FOUND, { type: "earTag", stateCode, tagNumber });
+      if (!tag)
+        throw new EarTagError(EARTAG_ERRORS.NOT_FOUND, {
+          type: "earTag",
+          stateCode,
+          tagNumber,
+        });
       return earTagResponseSchema.parse(tag);
     }, toAppError)();
   }
@@ -108,7 +109,11 @@ export class EarTagService {
   async getTypeById(id: string): Promise<Result<EarTagTypeResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const type = await this.repo.findTypeById(id);
-      if (!type) throw new EarTagError(EARTAG_ERRORS.NOT_FOUND, { type: "earTagType", id });
+      if (!type)
+        throw new EarTagError(EARTAG_ERRORS.NOT_FOUND, {
+          type: "earTagType",
+          id,
+        });
       return earTagTypeResponseSchema.parse(type);
     }, toAppError)();
   }
@@ -147,9 +152,15 @@ export class EarTagService {
       if (input.farmId) {
         const farm = await this.repo.findFarmById(input.farmId);
         if (!farm)
-          throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, { message: "Farm not found", farmId: input.farmId });
+          throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, {
+            message: "Farm not found",
+            farmId: input.farmId,
+          });
         if (!farm.isActive)
-          throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, { message: "Farm is inactive", farmId: input.farmId });
+          throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, {
+            message: "Farm is inactive",
+            farmId: input.farmId,
+          });
         if (farm.type === FARM_TYPE.SLAUGHTERHOUSE)
           throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, {
             message: "Cannot order ear tags for slaughterhouse",
@@ -229,7 +240,10 @@ export class EarTagService {
     return fromAsyncThrowable(async () => {
       // D.2: Animal must be alive
       const animal = await this.repo.findAnimalById(input.animalId);
-      if (!animal) throw new EarTagError(EARTAG_ERRORS.NOT_FOUND, { animalId: input.animalId });
+      if (!animal)
+        throw new EarTagError(EARTAG_ERRORS.NOT_FOUND, {
+          animalId: input.animalId,
+        });
       if (animal.status !== ANIMAL_STATUS.ALIVE) {
         throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, {
           message: "Cannot order duplicate ear tag for a non-alive animal",
@@ -250,9 +264,15 @@ export class EarTagService {
 
       // D.5: Farm must be valid (not slaughterhouse)
       const farm = await this.repo.findFarmById(input.farmId);
-      if (!farm) throw new EarTagError(EARTAG_ERRORS.NOT_FOUND, { farmId: input.farmId });
+      if (!farm)
+        throw new EarTagError(EARTAG_ERRORS.NOT_FOUND, {
+          farmId: input.farmId,
+        });
       if (!farm.isActive)
-        throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, { message: "Farm is inactive", farmId: input.farmId });
+        throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, {
+          message: "Farm is inactive",
+          farmId: input.farmId,
+        });
       if (farm.type === FARM_TYPE.SLAUGHTERHOUSE || farm.type === FARM_TYPE.QUARANTINE) {
         throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, {
           message: "Cannot order duplicate ear tag for this farm type",
@@ -309,7 +329,9 @@ export class EarTagService {
       if (order.status !== EAR_TAG_ORDER_STATUS.APPROVED)
         throw INVALID_TRANSITION(order.status, EAR_TAG_ORDER_STATUS.ORDERED);
       if (order.supplierOrganizationId !== supplierOrgId)
-        throw new EarTagError(EARTAG_ERRORS.FORBIDDEN, { message: "Order belongs to another supplier" });
+        throw new EarTagError(EARTAG_ERRORS.FORBIDDEN, {
+          message: "Order belongs to another supplier",
+        });
 
       const available = await this.repo.findAvailableEarTags(order.totalQuantity);
       if (available.length < order.totalQuantity) {
@@ -398,7 +420,10 @@ export class EarTagService {
   }): Promise<Result<EarTagResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const order = await this.repo.findOrderById(input.orderId);
-      if (!order) throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, { orderId: input.orderId });
+      if (!order)
+        throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, {
+          orderId: input.orderId,
+        });
 
       // F.1: Only order owner can append
       if (order.organizationId !== input.organizationId) {
@@ -418,7 +443,10 @@ export class EarTagService {
       }
 
       const updated = await this.repo.updateOrderQuantity(input.orderId, input.additionalQuantity);
-      if (!updated) throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, { orderId: input.orderId });
+      if (!updated)
+        throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, {
+          orderId: input.orderId,
+        });
       return earTagResponseSchema.parse(updated);
     }, toAppError)();
   }
@@ -431,7 +459,7 @@ export class EarTagService {
    */
   async generateTagNumbers(count: number, startFrom = 10000001): Promise<Result<string[], Error>> {
     return fromAsyncThrowable(async () => {
-      const { calculateEarTagCheckDigit } = await import("@rocky/validators/utils/check-digit.js");
+      const { calculateEarTagCheckDigit } = await import("@rocky/validators/utils/check-digit");
       const tags: string[] = [];
       for (let i = 0; i < count; i++) {
         const base = String(startFrom + i).padStart(7, "0");
@@ -484,10 +512,17 @@ export class EarTagService {
   async generateTakeoverFile(input: GetTakeoverFileRequest): Promise<Result<TakeoverFileResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const takeover = await this.repo.findTakeoverById(input.takeoverId);
-      if (!takeover) throw new EarTagError(EARTAG_ERRORS.NOT_FOUND, { type: "takeover", id: input.takeoverId });
+      if (!takeover)
+        throw new EarTagError(EARTAG_ERRORS.NOT_FOUND, {
+          type: "takeover",
+          id: input.takeoverId,
+        });
 
       const order = await this.repo.findOrderById(takeover.orderId);
-      if (!order) throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, { orderId: takeover.orderId });
+      if (!order)
+        throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, {
+          orderId: takeover.orderId,
+        });
 
       const stateCode = "MK";
       const fileContent = Array.from({ length: takeover.totalTagsCollected }, (_, i) => {

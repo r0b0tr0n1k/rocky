@@ -1,0 +1,89 @@
+---
+title: "ADR-0012: Transactional Outbox for Domain Events"
+description: "PostgreSQL-based outbox pattern for exactly-once event delivery"
+date: "2026-07-06"
+author: "RobotFarm"
+published: true
+---
+
+# ADR-0012: Transactional Outbox for Domain Events
+
+**Status:** Accepted  
+**Date:** 2026-07-06  
+**Author:** RobotFarm  
+**Supersedes:** ADR-0007 (Audit via Lifecycle Events)
+
+## Context
+
+ADR-0007 proposed in-memory `ExecutionEventEmitter` for audit and lifecycle events. This works for **intra-process** telemetry, but fails for **cross-process** side effects:
+
+- Events are lost if the NestJS worker crashes between DB commit and subscriber execution
+- No retry semantics — a failed email send means the notification is gone forever
+- No ordering guarantee when multiple events are emitted in one transaction
+- The existing `ExecutionEventEmitter` is synchronous; a slow subscriber blocks the request thread
+
+## Decision
+
+We adopt the **Transactional Outbox Pattern** using PostgreSQL as the sole message broker.
+
+### Architecture
+
+```
+Service Layer (transaction)
+├── Insert business record (e.g., treatment)
+├── Insert outbox event (same transaction)
+└── Commit (both succeed or both rollback)
+
+OutboxProcessorJob (cron, every 5s)
+├── SELECT pending events FOR UPDATE SKIP LOCKED
+├── Dispatch to handlers
+└── Mark completed / dead-letter
+```
+
+### Components
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| `outbox_events` table | `packages/database/src/schema/sm/outbox-events.ts` | Persistent event queue |
+| `OutboxEventPublisher` | `packages/execution/src/outbox/outbox-publisher.ts` | In-transaction publisher |
+| `OutboxProcessorJob` | `apps/api/src/jobs/outbox-processor.job.ts` | 5-second cron poller |
+| `OutboxEventHandlers` | `apps/api/src/jobs/outbox-handlers.ts` | Handler registry |
+
+### Event Flow
+
+1. Service publishes event via `OutboxEventPublisher.publish()` within existing DB transaction
+2. Event stored in `outbox_events(status='pending')`
+3. `OutboxProcessorJob` polls every 5 seconds, fetches batch of 50 with `SKIP LOCKED`
+4. Event dispatched to registered handler
+5. On success: `status='completed'`, `processedAt` set
+6. On failure: exponential backoff retry (1min → 2min → 4min), then `status='dead_letter'` after 3 attempts
+
+## Consequences
+
+### Positive
+
+- **Reliability:** Events survive process crashes and restarts
+- **Observability:** Failed events visible in `audit_log` + dead-letter metrics
+- **Simplicity:** Zero infrastructure — just a table and a cron job
+- **Decoupling:** Health → Inspection via events, not direct service calls
+
+### Negative
+
+- **Latency:** 5-second poll interval for routine events
+- **Throughput:** Single poller process; horizontal scaling requires `SKIP LOCKED` + multiple workers
+- **Complexity:** Event handlers must be idempotent and handle retries
+
+## Current Event Emitters
+
+| Service | Event Type | Trigger |
+|---------|-----------|---------|
+| `AnimalService` | `animal_registered` | First tagging, import, birth notification |
+| `FarmService` | `approval_requested` | Farm submitted for VD approval |
+| `MovementService` | `animal.moved` / `movement_recorded` | Any non-pasture movement |
+| `HealthService` | `notifiable_disease.detected` | Notifiable disease treatment recorded |
+| `ForeignPassportRetentionJob` | `foreign_passport_expiring` | Monthly retention scan |
+
+## Related
+
+- [ADR-0014: Cross-Domain Event Decoupling](/docs/adr/0014-cross-domain-event-decoupling)
+- [ADR-0006: RLS via Transactional Connection](/docs/adr/0006-rls-via-transactional-connection)

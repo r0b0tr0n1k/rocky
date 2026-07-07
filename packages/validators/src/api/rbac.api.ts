@@ -13,7 +13,7 @@ import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 // RESPONSE SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const roleResponseSchema = roleSelectSchema.omit({ createdBy: true, validTo: true }).strict();
+export const roleResponseSchema = roleSelectSchema.omit({ createdBy: true, validTo: true }).strip();
 
 export type RoleResponse = z.infer<typeof roleResponseSchema>;
 
@@ -38,8 +38,8 @@ export const assignRoleToUserRequestSchema = z.object({
   roleId: z.uuid(),
   scopeOrgId: z.uuid().optional(),
   scopeFarmId: z.uuid().optional(),
-  validFrom: z.date().optional(),
-  validTo: z.date().optional(),
+  validFrom: z.coerce.date<string>().optional(),
+  validTo: z.coerce.date<string>().optional(),
 });
 
 export type AssignRoleToUserRequest = z.infer<typeof assignRoleToUserRequestSchema>;

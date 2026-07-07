@@ -1,0 +1,103 @@
+---
+title: "ADR-0014: Cross-Domain Event Decoupling via Outbox"
+description: "How Health → Inspection communication was decoupled using outbox events"
+date: "2026-07-06"
+author: "RobotFarm"
+published: true
+---
+
+# ADR-0014: Cross-Domain Event Decoupling via Outbox
+
+**Status:** Accepted  
+**Date:** 2026-07-06  
+**Author:** RobotFarm  
+**Supersedes:** Direct `InspectionRepository` call in `HealthService`
+
+## Context
+
+`HealthService.recordTreatment()` contained a direct dependency on `InspectionRepository`:
+
+```typescript
+// BEFORE — tight coupling
+constructor(
+  private readonly inspectionRepo?: { flagFarmForInspection: ... }
+) {}
+
+if (isNotifiable && this.inspectionRepo) {
+  await this.inspectionRepo.flagFarmForInspection({...});
+}
+```
+
+This created three problems:
+
+1. **Health domain imports Inspection domain** — violates Diamond Seal layer boundaries (ADR-0011)
+2. **Single responsibility violation** — HealthService manages treatments AND inspection flagging
+3. **Extension point blocked** — adding "send SMS to farmer" requires modifying HealthService again
+
+## Decision
+
+We replace the direct service-to-service call with an **outbox event**:
+
+```
+HealthService.recordTreatment()
+├── Insert treatment (DB)
+├── Publish 'notifiable_disease.detected' to outbox_events
+└── OutboxProcessorJob dispatches to:
+    ├── InspectionService.flagFarmForInspection()
+    └── (future) NotificationService.sendSMS()
+```
+
+### Implementation
+
+**Before:**
+```typescript
+await this.inspectionRepo.flagFarmForInspection({
+  farmId: input.farmId,
+  riskScore: "HIGH",
+  riskCriteria: `notifiable_disease:${input.diseaseId}`,
+  ...
+});
+```
+
+**After:**
+```typescript
+await this.outboxPublisher.publish({
+  type: "notifiable_disease.detected",
+  aggregateType: "treatment",
+  aggregateId: treatment.id,
+  payload: { diseaseId, diseaseName, farmId, animalId, vetId, createdBy },
+  createdBy: input.createdBy,
+});
+```
+
+**Handler in `OutboxEventHandlers`:**
+```typescript
+private async handleNotifiableDisease(event) {
+  await this.inspectionService.flagFarmForInspection({
+    farmId: event.payload.farmId,
+    riskScore: "HIGH",
+    riskCriteria: `notifiable_disease:${event.payload.diseaseId}`,
+    ...
+  });
+}
+```
+
+## Consequences
+
+### Positive
+
+- **Zero coupling:** HealthService has no import of InspectionService
+- **Extensible:** New handlers added without touching HealthService
+- **Reliable:** Event persisted in same transaction as treatment; retried on failure
+- **Testable:** Handler tested independently of HealthService
+
+### Negative
+
+- **Eventual consistency:** Inspection flagged ~5 seconds after treatment recorded
+- **More files:** Outbox publisher + handler + job vs. single direct call
+- **Debugging complexity:** Must trace through outbox table to see full flow
+
+## Related
+
+- [ADR-0012: Transactional Outbox for Domain Events](/docs/adr/0012-transactional-outbox-domain-events)
+- [ADR-0007: Audit via Lifecycle Events](/docs/adr/0007-audit-via-lifecycle-events)

@@ -32,8 +32,7 @@ HTTP / Cron / RabbitMQ / CLI
 │              Execution Pipeline                  │
 │                                                  │
 │  ExecutionMiddleware  →  begin pipeline          │
-│  ├─ TransactionStage  →  BEGIN                   │
-│  ├─ RLSStage          →  SET LOCAL (on tx)       │
+│  ├─ RLSStage          →  BEGIN + SET LOCAL (tx)   │
 │  ├─ PolicyStage       →  PolicyResolver (global) │
 │  │   └─ Reads @Policy() + @RegisterPolicy()      │
 │  │   └─ Evaluates action/authenticated/roles     │
@@ -76,8 +75,14 @@ packages/
       events/
         execution-events.ts     ← ExecutionStarted/Completed/Failed
         event-emitter.ts        ← In-process pub/sub
+      outbox/
+        outbox-publisher.ts     ← OutboxEventPublisher
+      repositories/
+        business-rule.repository.ts ← BusinessRuleRepository
+      services/
+        execution.service.ts    ← ExecutionService
       rls/
-        rls.stage.ts            ← SET LOCAL via transaction
+        rls.stage.ts            ← BEGIN + SET LOCAL via transaction
       execution.module.ts       ← @Global() NestJS module
 
   database/                     ← Schemas, migrations
@@ -97,7 +102,7 @@ apps/
           execution.middleware.ts  ← Pipeline entry point
           policy.resolver.ts      ← Global policy evaluation
           logging.middleware.ts
-      routers/                    ← 14 tRPC routers (use @Policy decorators)
+      routers/                    ← 20 tRPC routers (use @Policy decorators)
       jobs/                       ← Cron jobs (CorrectionConsistency, Retention, RiskAnalysis)
 ```
 
@@ -174,29 +179,29 @@ EXECUTION (packages/execution)
 
 ## Migration Status (July 2026)
 
-| Phase | Status | Notes |
-|-------|--------|-------|
-| 1: Scaffold Packages | ✅ Done | auth, authorization, execution packages created |
-| 2: Principal + Pipeline | ✅ Done | Principal, PrincipalResolver, ExecutionPipeline, DatabaseProvider |
-| 3: Migrate Routers | ✅ Done | All 14 routers use ctx.execution.principal — stacked middleware removed |
-| 4: @Policy Decorator | ✅ Done | PolicyRegistry, @RegisterPolicy(), PolicyResolver global middleware |
-| 5: Cleanup | ✅ Done | Legacy columns deprecated (@deprecated tags), passwordHash nullable, auth relations in central relations.ts, tRPC types regenerated (14 routers, 93 procedures) |
+| Phase                   | Status | Notes                                                                                                                                                            |
+| ----------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1: Scaffold Packages    | ✅ Done | auth, authorization, execution packages created                                                                                                                  |
+| 2: Principal + Pipeline | ✅ Done | Principal, PrincipalResolver, ExecutionPipeline, DatabaseProvider                                                                                                |
+| 3: Migrate Routers      | ✅ Done | All 20 routers use ctx.execution.principal — stacked middleware removed                                                                                          |
+| 4: @Policy Decorator    | ✅ Done | PolicyRegistry, @RegisterPolicy(), PolicyResolver global middleware                                                                                              |
+| 5: Cleanup              | ✅ Done | Legacy columns deprecated (@deprecated tags), passwordHash nullable, auth relations in central relations.ts, tRPC types regenerated (20 routers, 93+ procedures) |
 
 ## Database
 
-- 56 tables, 57 enums, 8 pgRoles, 110+ indexes, 40+ FKs, 25 RLS policies
+- 68 tables, 87 enums, 8 pgRoles, 156 indexes, 68 FKs, 39 RLS policies
 - Host: `192.168.1.109:5432/tbot`, User: `tbot`
 - Schema changes: `scripts/db-recreate.sh` (full reset) or Drizzle Kit migrations
 
 ## Key Architecture Decisions
 
-| ADR | Decision |
-|-----|----------|
-| 0001 | Auth vs Authorization: separate packages |
-| 0002 | Principal as canonical actor |
-| 0003 | Composable execution pipeline stages |
-| 0004 | Policy actions not permissions |
+| ADR  | Decision                                            |
+| ---- | --------------------------------------------------- |
+| 0001 | Auth vs Authorization: separate packages            |
+| 0002 | Principal as canonical actor                        |
+| 0003 | Composable execution pipeline stages                |
+| 0004 | Policy actions not permissions                      |
 | 0005 | Transport adapters in apps/ (not reusable packages) |
-| 0006 | RLS via transactional connection (SET LOCAL) |
-| 0007 | Audit via lifecycle events |
-| 0008 | Testing Doctrine |
+| 0006 | RLS via transactional connection (SET LOCAL)        |
+| 0007 | Audit via lifecycle events                          |
+| 0008 | Testing Doctrine                                    |

@@ -127,6 +127,13 @@ export class NotificationService {
     }, toAppError)();
   }
 
+  /** Count unread notifications for a user (efficient SQL COUNT, no row fetching). */
+  async getUnreadCount(userId: string): Promise<Result<number, Error>> {
+    return fromAsyncThrowable(async () => {
+      return this.repo.countByUserAndStatus(userId, "delivered");
+    }, toAppError)();
+  }
+
   /** List user's notifications */
   async list(input: ListNotificationsInput): Promise<Result<Notification[], Error>> {
     return fromAsyncThrowable(async () => {

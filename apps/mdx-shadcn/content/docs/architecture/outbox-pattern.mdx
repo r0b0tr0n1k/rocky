@@ -1,0 +1,139 @@
+---
+title: "Transactional Outbox Pattern"
+description: "How AIMCS achieves exactly-once event delivery without Kafka"
+date: "2026-07-06"
+author: "RobotFarm"
+published: true
+---
+
+# Transactional Outbox Pattern
+
+The **Transactional Outbox** is the backbone of AIMCS event-driven architecture. It provides **exactly-once delivery** using only PostgreSQL — no Kafka, no RabbitMQ, no Redis.
+
+## Why Not Kafka?
+
+Kafka is the **enterprise architecture fantasy** — complex, expensive, and unjustified for our scale. We process less than 10K events/day. A single PostgreSQL table + cron job is simpler, more reliable, and easier to debug.
+
+## The Problem This Solves
+
+When a veterinarian records a treatment for a notifiable disease, we need to:
+
+1. Insert the treatment record
+2. Flag the farm for inspection
+3. Notify the VI
+4. Update the dashboard
+
+If the server crashes between step 1 and step 2, the treatment exists but the inspection is never flagged. The outbox ensures **atomicity** — step 2 is durably queued in the same transaction as step 1.
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     NestJS API Server                       │
+│                                                             │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐  │
+│  │ HealthService │    │ MovementServ │    │   FarmServ   │  │
+│  └──────┬───────┘    └──────┬───────┘    └──────┬───────┘  │
+│         │                   │                    │          │
+│         └───────────────────┼────────────────────┘          │
+│                             │                               │
+│                    ┌────────▼────────┐                      │
+│                    │ OutboxPublisher │                      │
+│                    │ (same tx)       │                      │
+│                    └────────┬────────┘                      │
+└─────────────────────────────┼──────────────────────────────┘
+                              │
+                    INSERT INTO outbox_events
+                              │
+┌─────────────────────────────▼──────────────────────────────┐
+│                      PostgreSQL                             │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │                    outbox_events                      │  │
+│  │  id | type | status | delivery_attempts | payload     │  │
+│  │  --- | ----- | ------ | ---------------- | -------    │  │
+│  │  1   | '...' | pending | 0                | ( ... )   │  │
+│  │  2   | '...' | pending | 0                | ( ... )   │  │
+│  └──────────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────────┘
+                              │
+                    Every 5 seconds
+                              │
+┌─────────────────────────────▼──────────────────────────────┐
+│                    OutboxProcessorJob                       │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │ SELECT * FROM outbox_events                          │  │
+│  │ WHERE status = 'pending'                             │  │
+│  │ ORDER BY created_at LIMIT 50                         │  │
+│  │ FOR UPDATE SKIP LOCKED                               │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌─────────────────┐  │
+│  │ Handler:     │  │ Handler:     │  │ Handler:        │  │
+│  │ Inspection   │  │ Notification │  │ Audit           │  │
+│  │ flagFarm()   │  │ sendSMS()    │  │ log()           │  │
+│  └──────────────┘  └──────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Event Flow
+
+```typescript
+// 1. Veterinarian records treatment
+await healthService.recordTreatment({ diseaseId: 'fmd', ... });
+
+// 2. Inside the same DB transaction:
+//    a. INSERT INTO treatments ...
+//    b. INSERT INTO outbox_events (type='notifiable_disease.detected', ...)
+
+// 3. Transaction commits — both records are durably stored
+
+// 4. 5 seconds later, OutboxProcessorJob:
+//    a. SELECT * FROM outbox_events WHERE status='pending' FOR UPDATE SKIP LOCKED
+//    b. Dispatch to OutboxEventHandlers.handleNotifiableDisease()
+//    c. inspectionService.flagFarmForInspection()
+//    d. UPDATE outbox_events SET status='completed'
+
+// 5. If handler fails:
+//    a. UPDATE outbox_events SET status='pending', delivery_attempts += 1
+//    b. nextAttemptAt = now() + 2^(attempts-1) * 60000
+//    c. After 3 failures: status='dead_letter'
+```
+
+## Retry Strategy
+
+| Attempt | Wait Time | Rationale |
+|---------|-----------|-----------|
+| 1 | Immediate | Try again now |
+| 2 | 1 minute | Brief pause for transient errors |
+| 3 | 2 minutes | Longer pause for rate limits |
+| 4+ | Dead-letter | Manual intervention required |
+
+## Idempotency
+
+Handlers MUST be idempotent. The same event may be retried due to:
+
+- Worker crash after processing but before marking `completed`
+- Duplicate `pg_notify` wakeups (future optimization)
+- Manual retry from dead-letter queue
+
+**Pattern:**
+```typescript
+// Check if already processed
+const existing = await db.select().from(notifications)
+  .where(eq(notifications.outboxEventId, event.id)).limit(1);
+if (existing.length > 0) return; // Already sent
+```
+
+## Monitoring
+
+| Metric | Source | Alert |
+|--------|--------|-------|
+| `outbox_events.status='pending'` count | DB query | >1000 |
+| `outbox_events.status='dead_letter'` count | DB query | >0 |
+| Processing duration | Job logs | >30s per batch |
+| Handler failures | Job logs | >10% failure rate |
+
+## Related
+
+- [ADR-0012: Transactional Outbox](/docs/adr/0012-transactional-outbox-domain-events)
+- [ADR-0014: Cross-Domain Decoupling](/docs/adr/0014-cross-domain-event-decoupling)

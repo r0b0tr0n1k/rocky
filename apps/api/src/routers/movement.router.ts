@@ -55,7 +55,7 @@ export class MovementRouter {
     private readonly movementService: MovementService,
   ) {}
 
-  // ── CRUD ──
+  // -- CRUD --
 
   @Query({ input: idParam, output: movementResponseSchema })
   async getById(@Input() input: { id: string }): Promise<MovementResponse> {
@@ -72,14 +72,14 @@ export class MovementRouter {
     return unwrap(await this.movementService.create({ ...input, createdBy: ctx.execution?.principal.id }));
   }
 
-  // ── Rule Group B: Death Scenarios ──
+  // -- Rule Group B: Death Scenarios --
 
   @Mutation({ input: recordDeathRequestSchema, output: movementResponseSchema })
   async recordDeath(@Input() input: RecordDeathRequest, @Ctx() ctx: AppContext): Promise<MovementResponse> {
     return unwrap(await this.movementService.recordDeath({ ...input, createdBy: ctx.execution?.principal.id }));
   }
 
-  // ── Rule Group C: Pasture Movements ──
+  // -- Rule Group C: Pasture Movements --
 
   @Mutation({ input: declarePastureRequestSchema, output: z.array(movementResponseSchema) })
   async declarePasture(@Input() input: DeclarePastureRequest, @Ctx() ctx: AppContext): Promise<MovementResponse[]> {
@@ -96,14 +96,14 @@ export class MovementRouter {
     return unwrap(await this.movementService.returnFromAlpine({ ...input, createdBy: ctx.execution?.principal.id }));
   }
 
-  // ── Rule Group D: Slaughter ──
+  // -- Rule Group D: Slaughter --
 
   @Mutation({ input: recordSlaughterRequestSchema, output: movementResponseSchema })
   async recordSlaughter(@Input() input: RecordSlaughterRequest, @Ctx() ctx: AppContext): Promise<MovementResponse> {
     return unwrap(await this.movementService.recordSlaughter({ ...input, createdBy: ctx.execution?.principal.id }));
   }
 
-  // ── Rule Group IE: Import/Export ──
+  // -- Rule Group IE: Import/Export --
 
   @Mutation({ input: importEURequestSchema, output: movementResponseSchema })
   async importEU(@Input() input: ImportEURequest, @Ctx() ctx: AppContext): Promise<MovementResponse> {
@@ -123,7 +123,7 @@ export class MovementRouter {
     return unwrap(await this.movementService.exportAnimal({ ...input, createdBy: ctx.execution?.principal.id }));
   }
 
-  // ── Rule Group M: Market Movements ──
+  // -- Rule Group M: Market Movements --
 
   @Mutation({ input: recordMarketTransactionRequestSchema, output: z.array(movementResponseSchema) })
   async recordMarketTransaction(

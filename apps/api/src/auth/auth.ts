@@ -1,8 +1,8 @@
-// ── Auth Configuration & Instance ──
+// -- Auth Configuration & Instance --
 // Provides auth config to AuthModule.register() and the auth instance
 // to @thallesp/nestjs-better-auth's AuthModule.forRoot().
 //
-// SINGLE INSTANCE: Auth.getInstance() is idempotent — calling it multiple
+// SINGLE INSTANCE: Auth.getInstance() is idempotent - calling it multiple
 // times with the same config returns the same singleton.
 
 import { Auth, type AuthConfig } from "@rocky/auth";
@@ -22,5 +22,5 @@ export const authConfig: AuthConfig = {
   trustedOrigins,
 };
 
-// Create the singleton instance — Auth.getInstance() is idempotent
+// Create the singleton instance - Auth.getInstance() is idempotent
 export const auth = Auth.getInstance(authConfig);

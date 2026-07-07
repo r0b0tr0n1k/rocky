@@ -49,7 +49,7 @@ const unwrap = createResultUnwrapper(HEALTH_TRPC_ERROR_MAP);
 export class HealthRouter {
   constructor(@Inject(HealthService) private readonly healthService: HealthService) { }
 
-  // ── Disease ──
+  // -- Disease --
 
   @Query({ input: idParam })
   async getDisease(@Input() input: { id: string }) {
@@ -66,7 +66,7 @@ export class HealthRouter {
     return unwrap(await this.healthService.createDisease(input));
   }
 
-  // ── Vaccine ──
+  // -- Vaccine --
 
   @Query({ input: idParam })
   async getVaccine(@Input() input: { id: string }) {
@@ -83,14 +83,14 @@ export class HealthRouter {
     return unwrap(await this.healthService.createVaccine(input));
   }
 
-  // ── Vaccine Batch ──
+  // -- Vaccine Batch --
 
   @Mutation({ input: createVaccineBatchRequestSchema })
   async createVaccineBatch(@Input() input: CreateVaccineBatchRequest) {
     return unwrap(await this.healthService.createVaccineBatch(input));
   }
 
-  // ── Vaccination (vet-authorized) ──
+  // -- Vaccination (vet-authorized) --
 
   @Query({ input: idParam })
   async getVaccination(@Input() input: { id: string }) {
@@ -107,7 +107,7 @@ export class HealthRouter {
     return unwrap(await this.healthService.recordVaccination({ ...input, createdBy: ctx.execution!.principal.id }));
   }
 
-  // ── Treatment (vet-authorized) ──
+  // -- Treatment (vet-authorized) --
 
   @Query({ input: idParam })
   async getTreatment(@Input() input: { id: string }) {
@@ -124,7 +124,7 @@ export class HealthRouter {
     return unwrap(await this.healthService.recordTreatment({ ...input, createdBy: ctx.execution!.principal.id }));
   }
 
-  // ── Vaccine Batch Listing ──
+  // -- Vaccine Batch Listing --
 
   @Query({
     input: z.strictObject({
@@ -137,7 +137,7 @@ export class HealthRouter {
     return unwrap(await this.healthService.listBatches(input));
   }
 
-  // ── Lab Test ──
+  // -- Lab Test --
 
   @Query({ input: idParam })
   async getLabTest(@Input() input: { id: string }) {
@@ -154,7 +154,7 @@ export class HealthRouter {
     return unwrap(await this.healthService.recordLabTest({ ...input, createdBy: ctx.execution!.principal.id }));
   }
 
-  // ── Vaccine-Disease Links ──
+  // -- Vaccine-Disease Links --
 
   @Query({ input: z.strictObject({ vaccineId: z.uuid() }) })
   async getVaccineDiseases(@Input() input: { vaccineId: string }) {
@@ -171,7 +171,7 @@ export class HealthRouter {
     return unwrap(await this.healthService.unlinkVaccineDisease(input.vaccineId, input.diseaseId));
   }
 
-  // ── PDA Sync (Phase 5) ──────────────────────────────────────────
+  // -- PDA Sync (Phase 5) ------------------------------------------
 
   @Query({ input: z.strictObject({}), output: syncDownloadResponseSchema })
   async syncDownload(): Promise<SyncDownloadResponse> {

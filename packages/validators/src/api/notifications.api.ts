@@ -128,17 +128,17 @@ export const notificationResponseSchema = notificationSelectSchema
   })
   .extend({
     data: z.unknown(),
-    scheduledAt: z.coerce.date().nullable(),
-    sentAt: z.coerce.date().nullable(),
-    deliveredAt: z.coerce.date().nullable(),
-    expiresAt: z.coerce.date().nullable(),
+    scheduledAt: z.coerce.date<string>().nullable(),
+    sentAt: z.coerce.date<string>().nullable(),
+    deliveredAt: z.coerce.date<string>().nullable(),
+    expiresAt: z.coerce.date<string>().nullable(),
     type: notificationTypeSchema,
     category: notificationCategorySchema,
     priority: notificationPrioritySchema,
     status: notificationStatusSchema,
     source: eventSourceSchema,
   })
-  .strict() satisfies z.ZodType<NotificationResponse>;
+  .strip() satisfies z.ZodType<NotificationResponse>;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // REQUEST SCHEMAS
@@ -167,7 +167,7 @@ export const notificationListRequestSchema = z.strictObject({
   category: notificationCategorySchema.optional(),
   status: notificationStatusSchema.optional(),
   priority: notificationPrioritySchema.optional(),
-  fromDate: z.date().optional(),
+  fromDate: z.coerce.date<string>().optional(),
   limit: z.int().min(1).max(100).default(20),
   offset: z.int().min(0).default(0),
 }) satisfies z.ZodType<NotificationListRequest>;

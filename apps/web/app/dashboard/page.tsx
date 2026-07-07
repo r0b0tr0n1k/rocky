@@ -1,4 +1,4 @@
-import { Container, Main, Prose } from "#components/layout.js";
+import { Container, Main, Prose } from "#components/layout";
 
 export default function DashboardPage() {
   return (

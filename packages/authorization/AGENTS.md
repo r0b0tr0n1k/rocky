@@ -51,3 +51,4 @@ At runtime (every tRPC request):
 2. **`@RegisterPolicy` MUST appear AFTER `@Policy`** in the decorator stack. TypeScript decorator evaluation is bottom-to-top for class decorators.
 3. **`PolicyRegistry` is static.** No DI required at decorator time — populated during module import.
 4. **`Principal` survives any provider change.** Switch Better Auth → Keycloak? Keep `Principal`. Rename `sm.users` → `app_users`? Keep `Principal.username`.
+5. **`PrincipalResolver` uses `useFactory`** in `AuthorizationModule` because `tsx`/`esbuild` does not emit `design:paramtypes` metadata. Any `@Injectable()` class with constructor parameters MUST be provided via `useFactory` — see `ExecutionModule` for the same pattern.

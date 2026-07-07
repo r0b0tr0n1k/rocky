@@ -61,7 +61,7 @@ export class ScopeGuard implements TRPCMiddleware {
       return next(opts);
     }
 
-    const resourceId = input?.[this.scopeField] as string | undefined;
+    const resourceId = (input as Record<string, unknown>)?.[this.scopeField] as string | undefined;
     if (!resourceId) {
       // No scoped field in input - let RLS handle it downstream
       return next(opts);

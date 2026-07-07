@@ -184,15 +184,15 @@ export interface RecordMarketSlaughterRequest {
 export const movementResponseSchema = movementSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
-    movementDate: z.coerce.date(),
-    arrivalDate: z.coerce.date().nullable(),
-    deathDate: z.coerce.date().nullable(),
+    movementDate: z.coerce.date<string>(),
+    arrivalDate: z.coerce.date<string>().nullable(),
+    deathDate: z.coerce.date<string>().nullable(),
     deathCause: deathCauseSchema.nullable(),
     type: movementTypeSchema,
   })
-  .strict() satisfies z.ZodType<MovementResponse>;
+  .strip() satisfies z.ZodType<MovementResponse>;
 
-export const movementSummarySchema = z.strictObject(
+export const movementSummarySchema = z.object(
   movementResponseSchema.pick({
     id: true,
     animalId: true,
@@ -231,9 +231,9 @@ export const createMovementRequestSchema = movementInsertSchema
   })
   .extend({
     type: movementTypeSchema.optional(),
-    movementDate: z.coerce.date(),
-    arrivalDate: z.coerce.date().optional(),
-    deathDate: z.coerce.date().optional().nullable(),
+    movementDate: z.coerce.date<string>(),
+    arrivalDate: z.coerce.date<string>().optional(),
+    deathDate: z.coerce.date<string>().optional().nullable(),
     deathCause: deathCauseSchema.nullable().optional(),
   })
   .strict() satisfies z.ZodType<CreateMovementRequest>;
@@ -243,13 +243,22 @@ export const movementListRequestSchema = z.strictObject({
   fromFarmId: z.uuid().optional(),
   toFarmId: z.uuid().optional(),
   type: movementTypeSchema.optional(),
-  fromDate: z.coerce.date().optional(),
-  toDate: z.coerce.date().optional(),
+  fromDate: z.coerce.date<string>().optional(),
+  toDate: z.coerce.date<string>().optional(),
   sortBy: sortByMovementSchema.default("movementDate"),
   sortOrder: sortOrderSchema.default("desc"),
   limit: z.int().min(1).max(100).default(20),
   offset: z.int().min(0).default(0),
-}) satisfies z.ZodType<MovementListRequest>;
+})
+  .superRefine((data, ctx) => {
+    if (data.fromDate && data.toDate && data.fromDate > data.toDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "fromDate must be on or before toDate",
+        path: ["toDate"],
+      });
+    }
+  }) satisfies z.ZodType<MovementListRequest>;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // DEATH SCHEMAS

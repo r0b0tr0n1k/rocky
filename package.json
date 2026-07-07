@@ -7,11 +7,14 @@
   "license": "UNLICENSED",
   "scripts": {
     "dev": "turbo run dev",
+    "dev:stop": "bash scripts/stop-dev.sh",
     "build": "turbo run build",
+    "clean:src-compiled": "bash scripts/detect-src-compiled-files.sh --clean",
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "generate:trpc": "pnpx nestjs-trpc generate --entrypoint apps/api/src/app.module.ts --output apps/web/lib/ --import-extension=none && pnpx nestjs-trpc generate --entrypoint apps/api/src/app.module.ts --output apps/api/src/trpc --import-extension=js && pnpx nestjs-trpc generate --entrypoint apps/api/src/app.module.ts --output apps/mob/trpc/ --import-extension=none"
   },
   "devDependencies": {
     "@rocky/typescript-config": "workspace:*",

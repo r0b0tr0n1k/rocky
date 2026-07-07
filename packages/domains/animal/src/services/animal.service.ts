@@ -6,6 +6,7 @@
 
 import { ANIMAL_STATUS, STATE_CODE } from "@rocky/database/constants";
 import { fromAsyncThrowable, type Result, toAppError } from "@rocky/domains-shared";
+import type { OutboxEventPublisher } from "@rocky/execution";
 import type {
   AnimalListRequest,
   AnimalListResponse,
@@ -34,7 +35,10 @@ function daysBetween(d1: Date, d2: Date): number {
 }
 
 export class AnimalService {
-  constructor(private readonly repo: AnimalRepository) {}
+  constructor(
+    private readonly repo: AnimalRepository,
+    private readonly outboxPublisher?: OutboxEventPublisher,
+  ) {}
 
   async getById(id: string): Promise<Result<AnimalResponse, Error>> {
     return fromAsyncThrowable(async () => {
@@ -156,6 +160,31 @@ export class AnimalService {
         id: animalId,
         createdBy: input.createdBy,
       } as typeof import("@rocky/database").animals.$inferInsert);
+
+      if (!animal) {
+        throw new AnimalError(ANIMAL_ERRORS.INVALID_INPUT, { reason: "Failed to create animal record" });
+      }
+
+      if (this.outboxPublisher) {
+        await this.outboxPublisher.publish({
+          type: "animal_registered",
+          aggregateType: "animal",
+          aggregateId: animal.id,
+          payload: {
+            animalId: animal.id,
+            farmId: input.currentFarmId,
+            earTagNumber: input.earTagNumber,
+            birthDate: input.birthDate,
+            sex: animal.sex,
+            stateCode: input.stateCode,
+            motherId: input.motherId,
+            fatherId: input.fatherId,
+            createdBy: input.createdBy,
+          },
+          createdBy: input.createdBy,
+        });
+      }
+
       return animalResponseSchema.parse(animal);
     }, toAppError)();
   }

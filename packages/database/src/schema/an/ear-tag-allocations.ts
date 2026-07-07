@@ -20,6 +20,7 @@ import { allocationStatusPgEnum } from "../../schemas/enums/allocation-status.js
 import { contingentTypePgEnum } from "../../schemas/enums/contingent-type.js";
 import { distributionMethodPgEnum } from "../../schemas/enums/distribution-method.js";
 import { farms } from "../hk/farms.js";
+import { organizations } from "../sm/organizations.js";
 import { adminWrite, rlsForFarmColumn } from "../rls-helpers.js";
 import { users } from "../sm/users.js";
 
@@ -36,6 +37,9 @@ export const earTagAllocations = pgTable(
     farmId: uuid("farm_id")
       .notNull()
       .references(() => farms.id),
+
+    // Supplier (nullable for central reserves)
+    supplierOrganizationId: uuid("supplier_organization_id").references(() => organizations.id),
 
     // Allocation reference
     allocationNumber: varchar("allocation_number", { length: 50 }).notNull().unique(),

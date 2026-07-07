@@ -9,6 +9,7 @@
     "eslint.config.mjs",
     "jest.config.mjs",
     "jest.config.ts",
+    "webpack.config.cjs"
   ],
   "compilerOptions": {
     "strictNullChecks": true,

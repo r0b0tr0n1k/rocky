@@ -1,8 +1,9 @@
+// biome-ignore assist/source/organizeImports: biome
 import Image from "next/image";
 import Link from "next/link";
 
-import LogoLight from "@/public/logo.js";
-import LogoDark from "@/public/logo-dark.js";
+import LogoDark from "@/public/logo-dark.svg";
+import LogoLight from "@/public/logo.svg";
 
 export const Logo = ({
   href = "/",
@@ -17,20 +18,8 @@ export const Logo = ({
 }) => {
   return (
     <Link href={href} className={className}>
-      <Image
-        width={width}
-        height={height}
-        src={LogoLight}
-        alt="Italy Vita Logo"
-        className="block dark:hidden invert"
-      />
-      <Image
-        width={width}
-        height={height}
-        src={LogoDark}
-        alt="Italy Vita Logo"
-        className="hidden dark:block"
-      />
+      <Image width={width} height={height} src={LogoLight} alt="Italy Vita Logo" className="block dark:hidden invert" />
+      <Image width={width} height={height} src={LogoDark} alt="Italy Vita Logo" className="hidden dark:block" />
     </Link>
   );
 };

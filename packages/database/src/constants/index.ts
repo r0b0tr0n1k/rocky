@@ -12,6 +12,7 @@ export { ARCHIVE_LOCATION, ARCHIVE_LOCATION_VALUES } from './archive-location.js
 export { AUDIT_ACTION, AUDIT_ACTION_VALUES } from './audit-action.js';
 export { BIRTH_NOTIFICATION_STATUS, BIRTH_NOTIFICATION_STATUS_VALUES } from './birth-notification-status.js';
 export { BIRTH_TYPE, BIRTH_TYPE_VALUES } from './birth-type.js';
+export { CONFLICT_RESOLUTION_STATUS, CONFLICT_RESOLUTION_STATUS_VALUES } from './conflict-resolution-status.js';
 export { CONTINGENT_TYPE, CONTINGENT_TYPE_VALUES } from './contingent-type.js';
 export { CORRECTION_CASE_TYPE, CORRECTION_CASE_TYPE_VALUES } from './correction-case-type.js';
 export { CORRECTION_STATUS, CORRECTION_STATUS_VALUES } from './correction-status.js';
@@ -44,6 +45,7 @@ export { IMPORT_EXPORT_STATUS, IMPORT_EXPORT_STATUS_VALUES } from './import-expo
 export { IMPORT_TYPE, IMPORT_TYPE_VALUES } from './import-type.js';
 export { INSPECTION_STATUS, INSPECTION_STATUS_VALUES } from './inspection-status.js';
 export { IOT_DEVICE_STATUS, IOT_DEVICE_STATUS_VALUES } from './iot-device-status.js';
+export { IOT_DEVICE_TYPE, IOT_DEVICE_TYPE_VALUES } from './device-type.js';
 export { LANGUAGE, LANGUAGE_VALUES } from './language.js';
 export { MODULE_TYPE, MODULE_TYPE_VALUES } from './module-type.js';
 export { MOVEMENT_TYPE, MOVEMENT_TYPE_VALUES } from './movement-type.js';
@@ -54,6 +56,7 @@ export { NOTIFICATION_TYPE, NOTIFICATION_TYPE_VALUES } from './notification-type
 export { ORDER_STATUS, ORDER_STATUS_VALUES } from './order-status.js';
 export { ORG_READ_ROLE, ORG_READ_ROLE_VALUES } from './org-read-roles.js';
 export { ORG_TYPE, ORG_TYPE_VALUES } from './org-type.js';
+export { OUTBOX_EVENT_STATUS, OUTBOX_EVENT_STATUS_VALUES } from './outbox-event-status.js';
 export { PARENT_TYPE, PARENT_TYPE_VALUES } from './parent-type.js';
 export { PASSPORT_STATUS, PASSPORT_STATUS_VALUES } from './passport-status.js';
 export { PASTURE_TYPE, PASTURE_TYPE_VALUES } from './pasture-type.js';
@@ -75,6 +78,7 @@ export { SORT_ORDER, SORT_ORDER_VALUES } from './sort-order.js';
 export { STATE_CODE, STATE_CODE_VALUES } from './state-code.js';
 export { SUBJECT_ROLE, SUBJECT_ROLE_VALUES } from './subject-role.js';
 export { SYNC_ERROR_TYPE, SYNC_ERROR_TYPE_VALUES } from './sync-error-type.js';
+export { SYNC_STATUS, SYNC_STATUS_VALUES } from './sync-status.js';
 export { TAG_CATEGORY, TAG_CATEGORY_VALUES } from './tag-category.js';
 export { TAKEOVER_STATUS, TAKEOVER_STATUS_VALUES } from './takeover-status.js';
 export { TEST_RESULT, TEST_RESULT_VALUES } from './test-result.js';

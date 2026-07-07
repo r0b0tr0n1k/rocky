@@ -1,6 +1,6 @@
-// ── Execution Middleware ──
+// -- Execution Middleware --
 // Wraps every tRPC request in the full execution pipeline:
-//   AuthResolver → PrincipalResolver → RuntimeBuilder → ExecutionPipeline (RLS + events)
+//   AuthResolver -> PrincipalResolver -> RuntimeBuilder -> ExecutionPipeline (RLS + events)
 //
 // This is the CENTRAL ENTRY POINT for the new architecture.
 //

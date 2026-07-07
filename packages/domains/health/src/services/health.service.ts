@@ -95,7 +95,8 @@ export class HealthService {
     private readonly repo: HealthRepository,
     private readonly subjectRepo: SubjectRepository,
     private readonly animalRepo: AnimalRepository,
-    private readonly inspectionRepo?: { flagFarmForInspection: (input: { farmId: string; riskScore?: string | null; riskCriteria?: string | null; notes?: string | null; triggeredBy?: string }) => Promise<any> },
+    private readonly outboxPublisher?: import("@rocky/execution").OutboxEventPublisher,
+    private readonly correctionService?: import("@rocky/domains-correction").CorrectionService,
   ) {}
 
   // ── Disease CRUD ──
@@ -241,17 +242,25 @@ export class HealthService {
     });
     if (!treatment) return err(new HealthError(HEALTH_ERRORS.INVALID_INPUT));
 
-    // 4. If notifiable disease, flag farm for inspection
-    if (isNotifiable && this.inspectionRepo) {
-      await this.inspectionRepo.flagFarmForInspection({
-        farmId: input.farmId,
-        riskScore: "HIGH",
-        riskCriteria: `notifiable_disease:${input.diseaseId}`,
-        notes: `Notifiable disease "${diseaseName}" diagnosed in animal ${input.animalId}. Inspection flagged automatically.`,
-        triggeredBy: input.createdBy,
+    // 4. If notifiable disease, emit event to outbox for async inspection flagging
+    if (isNotifiable && this.outboxPublisher) {
+      await this.outboxPublisher.publish({
+        type: "notifiable_disease.detected",
+        aggregateType: "treatment",
+        aggregateId: treatment.id,
+        payload: {
+          diseaseId: input.diseaseId,
+          diseaseName,
+          farmId: input.farmId,
+          animalId: input.animalId,
+          vetId: input.vetId,
+          createdBy: input.createdBy,
+        },
+        createdBy: input.createdBy,
       });
-      // Note: We intentionally don't fail the treatment if flagging fails.
-      // The treatment record is the primary action; inspection flagging is secondary.
+      // Note: Event is emitted in the same transaction as the treatment.
+      // If the transaction rolls back, the event is never emitted.
+      // The OutboxProcessorJob will dispatch asynchronously.
     }
 
     return ok(treatment);
@@ -396,17 +405,23 @@ export class HealthService {
             result = await this.recordLabTest(record.data as never);
             break;
           default:
-            results.push({ idempotencyKey: record.idempotencyKey, success: false, recordId: null, error: `Unknown type: ${record.type}` });
+            const unknownError = `Unknown type: ${record.type}`;
+            results.push({ idempotencyKey: record.idempotencyKey, success: false, recordId: null, error: unknownError });
+            await this.createSyncErrorCorrection(record, unknownError, input.createdBy);
             continue;
         }
 
         if (result.isOk()) {
           results.push({ idempotencyKey: record.idempotencyKey, success: true, recordId: result.value.id, error: null });
         } else {
-          results.push({ idempotencyKey: record.idempotencyKey, success: false, recordId: null, error: result.error.message });
+          const errorMsg = result.error.message;
+          results.push({ idempotencyKey: record.idempotencyKey, success: false, recordId: null, error: errorMsg });
+          await this.createSyncErrorCorrection(record, errorMsg, input.createdBy);
         }
       } catch (e) {
-        results.push({ idempotencyKey: record.idempotencyKey, success: false, recordId: null, error: e instanceof Error ? e.message : "Unknown error" });
+        const errorMsg = e instanceof Error ? e.message : "Unknown error";
+        results.push({ idempotencyKey: record.idempotencyKey, success: false, recordId: null, error: errorMsg });
+        await this.createSyncErrorCorrection(record, errorMsg, input.createdBy);
       }
     }
 
@@ -415,5 +430,32 @@ export class HealthService {
       processed: results.filter(r => r.success).length,
       failed: results.filter(r => !r.success).length,
     });
+  }
+
+  /** Create error correction for failed sync record */
+  private async createSyncErrorCorrection(
+    record: { idempotencyKey: string; type: string; data: Record<string, unknown> },
+    errorMessage: string,
+    createdBy: string,
+  ): Promise<void> {
+    if (!this.correctionService) return;
+
+    try {
+      await this.correctionService.create({
+        detectionSource: "field",
+        errorType: `sync_upload_${record.type}_failed`,
+        errorDescription: `PDA sync failed: ${errorMessage}`,
+        originalData: {
+          idempotencyKey: record.idempotencyKey,
+          type: record.type,
+          data: record.data,
+        },
+        caseType: "TECHNICIAN_RESOLVABLE",
+        createdBy,
+      });
+    } catch (e) {
+      // Log but don't fail the sync — correction creation is secondary
+      console.error(`Failed to create sync error correction for ${record.idempotencyKey}:`, e);
+    }
   }
 }

@@ -1,11 +1,13 @@
 import { createEnumValues } from "./_brand.js";
 
 export const READING_TYPE = {
+	ACCELEROMETER: "accelerometer",
 	TEMPERATURE: "temperature",
 	HEART_RATE: "heart_rate",
 	GPS_COORDINATE: "gps_coordinate",
 	ACTIVITY_LEVEL: "activity_level",
 	RUMINATION_TIME: "rumination_time",
+	RUMINAL_PH: "ruminal_ph",
 	WEIGHT: "weight",
 	BATTERY_LEVEL: "battery_level",
 	SIGNAL_STRENGTH: "signal_strength",
@@ -14,11 +16,13 @@ export const READING_TYPE = {
 } as const;
 
 export const READING_TYPE_VALUES = createEnumValues([
+	READING_TYPE.ACCELEROMETER,
 	READING_TYPE.TEMPERATURE,
 	READING_TYPE.HEART_RATE,
 	READING_TYPE.GPS_COORDINATE,
 	READING_TYPE.ACTIVITY_LEVEL,
 	READING_TYPE.RUMINATION_TIME,
+	READING_TYPE.RUMINAL_PH,
 	READING_TYPE.WEIGHT,
 	READING_TYPE.BATTERY_LEVEL,
 	READING_TYPE.SIGNAL_STRENGTH,

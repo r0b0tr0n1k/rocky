@@ -11,6 +11,7 @@
     "PG_DB",
     "API_PORT",
     "WEB_PORT",
+    "DOCS_PORT",
     "LANDING_PORT",
     "API_URL",
     "WEB_URL",
@@ -21,9 +22,19 @@
       "cache": false,
       "persistent": true
     },
+    "generate:trpc": {
+      "dependsOn": [],
+      "cache": false,
+      "outputs": [
+        "apps/web/lib/server.ts",
+        "apps/api/src/trpc/server.ts",
+        "apps/mob/trpc/server.ts"
+      ]
+    },
     "build": {
       "dependsOn": [
-        "^build"
+        "^build",
+        "generate:trpc"
       ],
       "outputs": [
         ".next/**",

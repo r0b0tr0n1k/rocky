@@ -28,7 +28,7 @@ const unwrap = createResultUnwrapper(PASSPORT_TRPC_ERROR_MAP);
 export class PassportRouter {
   constructor(@Inject(PassportService) private readonly passportService: PassportService) {}
 
-  // ── CRUD ──
+  // -- CRUD --
 
   @Query({ input: idParam })
   async getById(@Input() input: { id: string }) {
@@ -40,7 +40,7 @@ export class PassportRouter {
     return unwrap(await this.passportService.list(input));
   }
 
-  // ── Lifecycle ──
+  // -- Lifecycle --
 
   @Mutation({ input: issuePassportRequestSchema })
   async issueForAnimal(@Input() input: IssuePassportRequest, @Ctx() ctx: AppContext) {

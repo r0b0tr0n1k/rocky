@@ -5,9 +5,11 @@ import type { AuditRepository } from "../repositories/audit.repository.js";
 function computeChanges(
   oldValue: Record<string, unknown> | null,
   newValue: Record<string, unknown> | null,
+  resource: string, // <-- We pass the resource type now
 ): Record<string, { old: unknown; new: unknown }> | null {
   if (!oldValue || !newValue) return null;
   const changes: Record<string, { old: unknown; new: unknown }> = {};
+
   const allKeys = new Set([...Object.keys(oldValue), ...Object.keys(newValue)]);
   for (const key of allKeys) {
     const oldV = oldValue[key];
@@ -16,11 +18,39 @@ function computeChanges(
       changes[key] = { old: oldV, new: newV };
     }
   }
+
+  // ------------------------------------------------------------------------
+  // THE INJECTION OF THE REAL
+  // Here we write the truth that the bureaucracy represses.
+  // ------------------------------------------------------------------------
+  if (resource === "animal" && changes["status"]) {
+    if (changes["status"].new === "slaughtered") {
+      changes["_biopolitical_reality"] = {
+        old: "Living subject with a passport",
+        new: "Bare life transformed into caloric capital",
+      };
+    }
+    if (changes["status"].new === "dead" || changes["status"].new === "stillborn") {
+      changes["_bureaucratic_translation"] = {
+        old: "Entity generating administrative value",
+        new: "Biological failure resulting in passport seizure",
+      };
+    }
+  }
+
+  if (resource === "cattle_passport" && changes["status"] && changes["status"].new === "seized") {
+    changes["_ideological_subtext"] = {
+      old: "Document guaranteeing freedom of movement",
+      new: "Death certificate confirming the end of biological utility",
+    };
+  }
+  // ------------------------------------------------------------------------
+
   return Object.keys(changes).length > 0 ? changes : null;
 }
 
 export class AuditService {
-  constructor(private readonly repo: AuditRepository) { }
+  constructor(private readonly repo: AuditRepository) {}
 
   async recordUpdate(params: {
     resource: string;
@@ -32,7 +62,9 @@ export class AuditService {
     source?: string;
   }): Promise<Result<void, Error>> {
     return fromAsyncThrowable(async () => {
-      const changes = computeChanges(params.oldValue, params.newValue);
+      // Pass the resource type to our dialectical computing function
+      const changes = computeChanges(params.oldValue, params.newValue, params.resource);
+
       await this.repo.insert({
         action: AUDIT_ACTION.UPDATE,
         resource: params.resource,

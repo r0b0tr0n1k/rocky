@@ -89,11 +89,11 @@ export const correctionResponseSchema = errorCorrectionSelectSchema
     detectionSource: detectionSourceSchema,
     status: correctionStatusSchema,
     caseType: correctionCaseTypeSchema.nullable(),
-    resolvedAt: z.coerce.date().nullable(),
-    escalatedAt: z.coerce.date().nullable(),
-    assignedAt: z.coerce.date().nullable(),
+    resolvedAt: z.coerce.date<string>().nullable(),
+    escalatedAt: z.coerce.date<string>().nullable(),
+    assignedAt: z.coerce.date<string>().nullable(),
   })
-  .strict() satisfies z.ZodType<CorrectionResponse>;
+  .strip() satisfies z.ZodType<CorrectionResponse>;
 
 export const correctionListResponseSchema = z.strictObject({
   data: z.array(correctionResponseSchema),

@@ -27,7 +27,7 @@ export const inspectionResponseSchema = inspectionSelectSchema
   .extend({
     status: inspectionStatusSchema,
   })
-  .strict();
+  .strip();
 
 export type InspectionResponse = z.infer<typeof inspectionResponseSchema>;
 
@@ -57,7 +57,7 @@ export const checkedAnimalSchema = z.strictObject({
   stateCode: z.string(),
   sex: sexSchema,
   breed: z.string().nullable(),
-  birthDate: z.coerce.date().nullable(),
+  birthDate: z.coerce.date<string>().nullable(),
   motherId: z.uuid().nullable(),
   currentStatus: animalStatusSchema,
   tagPresent: z.boolean().nullable(),
@@ -99,7 +99,7 @@ export const createInspectionRequestSchema = inspectionInsertSchema
     notes: true,
   })
   .extend({
-    scheduledDate: z.coerce.date().optional(),
+    scheduledDate: z.coerce.date<string>().optional(),
   })
   .strict();
 
@@ -108,7 +108,7 @@ export type CreateInspectionRequest = z.infer<typeof createInspectionRequestSche
 export const completeInspectionRequestSchema = z.strictObject(z
   .strictObject({
     id: z.uuid(),
-    inspectionDate: z.coerce.date(),
+    inspectionDate: z.coerce.date<string>(),
     result: z.string().max(50).optional(),
     notes: z.string().optional(),
     discrepanciesFound: z.boolean().optional(),
@@ -121,7 +121,7 @@ export type CompleteInspectionRequest = z.infer<typeof completeInspectionRequest
 export const scheduleInspectionRequestSchema = z.strictObject(z
   .strictObject({
     id: z.uuid(),
-    scheduledDate: z.coerce.date(),
+    scheduledDate: z.coerce.date<string>(),
   }).shape);
 
 export type ScheduleInspectionRequest = z.infer<typeof scheduleInspectionRequestSchema>;
@@ -133,7 +133,7 @@ export type ScheduleInspectionRequest = z.infer<typeof scheduleInspectionRequest
 export const printInspectionFormRequestSchema = z.strictObject(z
   .strictObject({
     id: z.uuid(),
-    language: languageSchema.default("MK"),
+    language: languageSchema.nullable().optional().transform((v) => (v ?? "MK") as z.infer<typeof languageSchema>),
   }).shape);
 
 export type PrintInspectionFormRequest = z.infer<typeof printInspectionFormRequestSchema>;

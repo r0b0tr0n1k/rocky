@@ -1,5 +1,5 @@
+import { getAllPosts } from "@/lib/posts";
 import type { MetadataRoute } from "next";
-import { getAllPosts } from "@/lib/posts.js";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";

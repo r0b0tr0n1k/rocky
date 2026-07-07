@@ -77,11 +77,16 @@ load_db_url() {
 # ── Step 1: Drop & Recreate Database ─────────────────────────────────────────
 drop_and_create_db() {
 	info "Step 1: Drop & recreate database «${DB_NAME}»"
+	# Terminate all existing connections first
+	run psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d postgres \
+		-c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${DB_NAME}' AND pid <> pg_backend_pid();" 2>&1 | tail -1
 	run psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d postgres \
 		-c "DROP DATABASE IF EXISTS \"${DB_NAME}\";" 2>&1 | tail -1
 	run psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d postgres \
 		-c "CREATE DATABASE \"${DB_NAME}\";" 2>&1 | tail -1
-	ok "Database «${DB_NAME}» recreated"
+	run psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+		-c "CREATE EXTENSION IF NOT EXISTS postgis;" 2>&1 | tail -1
+	ok "Database «${DB_NAME}» recreated (with PostGIS)"
 }
 
 # ── Step 2: Destroy old migration artifacts ──────────────────────────────────
@@ -95,7 +100,7 @@ destroy_migrations() {
 generate_schema() {
 	info "Step 3: Generate fresh migration from current code"
 	cd "$DB_PKG"
-	run pnpm generate 2>&1
+	echo "" | run pnpm generate 2>&1
 	cd "$SCRIPT_DIR"
 
 	local dirs=("$DB_PKG"/drizzle/*/)
