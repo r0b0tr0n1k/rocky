@@ -30,7 +30,10 @@
     "superjson": "catalog:",
     "zod": "catalog:",
     "lucide-react": "catalog:",
-    "next-themes": "catalog:"
+    "next-themes": "catalog:",
+    "react-hook-form": "catalog:",
+    "@hookform/resolvers": "catalog:",
+    "date-fns": "catalog:"
   },
   "devDependencies": {
     "@rocky/typescript-config": "workspace:*",
