@@ -28,7 +28,9 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "superjson": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "lucide-react": "catalog:",
+    "next-themes": "catalog:"
   },
   "devDependencies": {
     "@rocky/typescript-config": "workspace:*",
