@@ -15,12 +15,15 @@ import { DataTable } from "#components/shared/data-table";
 import { ComboboxField, DateField } from "#components/shared/form-fields";
 import { PageHeader } from "#components/shared/page-header";
 import { useTRPC } from "#lib/trpc";
+import { usePermissions } from "#lib/permissions";
 
 const PAGE_SIZE = 20;
 
 export default function RbacPage() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const { roles: principalRoles } = usePermissions();
+  const isSuperAdmin = principalRoles.includes("SUPER_ADMIN");
 
   const roles = useQuery(trpc.rbac.listRoles.queryOptions());
   const permissions = useQuery(trpc.rbac.listPermissions.queryOptions());
@@ -86,6 +89,7 @@ export default function RbacPage() {
     <div className="flex flex-col gap-6">
       <PageHeader title="RBAC" description="Roles and permissions governing access." />
       <div className="flex flex-wrap gap-2">
+        {isSuperAdmin && (
         <ActionDialog
           triggerLabel="Assign role"
           schema={assignRoleToUserRequestSchema}
@@ -127,6 +131,8 @@ export default function RbacPage() {
             </>
           )}
         />
+        )}
+        {isSuperAdmin && (
         <ActionDialog
           triggerLabel="Revoke role"
           schema={revokeRoleFromUserRequestSchema}
@@ -152,6 +158,7 @@ export default function RbacPage() {
             </>
           )}
         />
+        )}
       </div>
 
       <div className="flex flex-col gap-8">
