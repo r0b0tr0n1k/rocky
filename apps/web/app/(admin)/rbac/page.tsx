@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@rocky/ui/components/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@rocky/ui/components/card";
 
 import {
   assignRoleToUserRequestSchema,
@@ -164,22 +165,40 @@ export default function RbacPage() {
       </div>
 
       <div className="flex flex-col gap-8">
-        <DataTable
-          columns={roleColumns}
-          data={(roles.data ?? []) as RoleResponse[]}
-          total={(roles.data ?? []).length}
-          isLoading={roles.isLoading}
-          page={0}
-          pageSize={PAGE_SIZE}
-        />
-        <DataTable
-          columns={permissionColumns}
-          data={(permissions.data ?? []) as PermissionResponse[]}
-          total={(permissions.data ?? []).length}
-          isLoading={permissions.isLoading}
-          page={0}
-          pageSize={PAGE_SIZE}
-        />
+        <Card>
+          <CardHeader>
+            <CardTitle>Roles</CardTitle>
+            <CardDescription>Role definitions and their permission assignments.</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <DataTable
+              columns={roleColumns}
+              data={(roles.data ?? []) as RoleResponse[]}
+              total={(roles.data ?? []).length}
+              isLoading={roles.isLoading}
+              page={0}
+              pageSize={PAGE_SIZE}
+              bordered={false}
+            />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Permissions</CardTitle>
+            <CardDescription>Available permission codes across the system.</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <DataTable
+              columns={permissionColumns}
+              data={(permissions.data ?? []) as PermissionResponse[]}
+              total={(permissions.data ?? []).length}
+              isLoading={permissions.isLoading}
+              page={0}
+              pageSize={PAGE_SIZE}
+              bordered={false}
+            />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

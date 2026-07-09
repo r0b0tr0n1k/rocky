@@ -18,6 +18,7 @@ import { enumToOptions } from "#lib/options";
 import { correctionColumns } from "#components/corrections/columns";
 import { DataTable } from "#components/shared/data-table";
 import { PageHeader } from "#components/shared/page-header";
+import { Card, CardContent } from "@rocky/ui/components/card";
 import { ActionDialog } from "#components/shared/action-dialog";
 import { ComboboxField, SelectField, TextareaField, TextField } from "#components/shared/form-fields";
 import { useTRPC } from "#lib/trpc";
@@ -88,15 +89,20 @@ export default function CorrectionsPage() {
           </SelectContent>
         </Select>
       </div>
-      <DataTable
-        columns={correctionColumns({ review, resolve, escalate })}
-        data={rows}
-        total={total}
-        isLoading={listQuery.isLoading}
-        page={page}
-        pageSize={pageSize}
-        onPageChange={setPage}
-      />
+      <Card>
+        <CardContent className="p-0">
+          <DataTable
+            columns={correctionColumns({ review, resolve, escalate })}
+            data={rows}
+            total={total}
+            isLoading={listQuery.isLoading}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            bordered={false}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

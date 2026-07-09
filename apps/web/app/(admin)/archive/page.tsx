@@ -14,6 +14,7 @@ import {
 } from "@rocky/ui/components/select";
 import { DataTable } from "#components/shared/data-table";
 import { PageHeader } from "#components/shared/page-header";
+import { Card, CardContent } from "@rocky/ui/components/card";
 import { archiveColumns, type ArchiveDocumentResponse } from "#components/archive/columns";
 import { ARCHIVE_DOCUMENT_TYPE, ARCHIVE_LOCATION } from "@rocky/validators/enums";
 import type { AnimalSummary, FarmResponse } from "@rocky/validators/api";
@@ -107,15 +108,20 @@ export default function ArchivePage() {
           </SelectContent>
         </Select>
       </div>
-      <DataTable
-        columns={archiveColumns({ animalLabel, farmLabel })}
-        data={rows}
-        total={total}
-        isLoading={listQuery.isLoading}
-        page={page}
-        pageSize={pageSize}
-        onPageChange={setPage}
-      />
+      <Card>
+        <CardContent className="p-0">
+          <DataTable
+            columns={archiveColumns({ animalLabel, farmLabel })}
+            data={rows}
+            total={total}
+            isLoading={listQuery.isLoading}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            bordered={false}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-table";
 import { ChevronLeft, ChevronRight, ChevronsUpDown } from "lucide-react";
 
+import { cn } from "@rocky/ui/lib/utils";
 import { Button } from "@rocky/ui/components/button";
 import { Empty } from "@rocky/ui/components/empty";
 import { Pagination, PaginationContent, PaginationItem } from "@rocky/ui/components/pagination";
@@ -25,6 +26,8 @@ export interface DataTableProps<TData> {
   page?: number;
   pageSize?: number;
   onPageChange?: (page: number) => void;
+  /** When false, drop the outer border (used when nested inside a Card). */
+  bordered?: boolean;
 }
 
 export function DataTable<TData>({
@@ -37,6 +40,7 @@ export function DataTable<TData>({
   page = 0,
   pageSize = 20,
   onPageChange,
+  bordered = true,
 }: DataTableProps<TData>) {
   const table = useReactTable({
     data,
@@ -53,7 +57,7 @@ export function DataTable<TData>({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="rounded-md border">
+      <div className={cn("rounded-md border", !bordered && "border-0 rounded-none")}>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
