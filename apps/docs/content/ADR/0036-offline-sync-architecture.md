@@ -175,6 +175,64 @@ rg -n "WO-082|WO-081" apps/docs/content/workorder.md
 
 ---
 
+## WO-081 — Top-level `sync` router formalization
+
+> *sniffs* Look at what is actually being formalized: the health-router sync stub (ADR-0034 §Context) is
+> being promoted into a real cross-cutting transport — the client's lifeline to the server's reality.
+> The offline phone is a **castrated** client: it holds a *materialized cache* of the server's world, never
+> the full 57-table schema. These eight decisions are the dialectic between local autonomy and server authority.
+
+### The castrated client (design decisions)
+
+1. **SQLite engine** — `expo-sqlite` (modern JSI API, Expo SDK 50+). TanStack Query is persisted via
+   `@tanstack/react-query-persist-client` over a synchronous `expo-sqlite` persister. **No ORM on the phone.**
+2. **Mobile schema = castrated** — the phone receives *field entities* (animals, farms, movements, health
+   records, ear_tags) plus locally-invented `outbox_queue` and `sync_meta` (last_sync_cursor). It is
+   **DENIED** `rbac` / `users` / `audit_log` / `system_parameters`.
+3. **Offline permissions = internalized police** — at login, the server sends the `Principal`
+   (roles + permissions) via `rbac.myPermissions`; it is cached in SecureStore. Offline, the app checks the
+   cached `Principal` (Imaginary check) and writes to the outbox optimistically. At sync, the server
+   re-evaluates `@Policy` + RLS (`SET LOCAL`) and **REJECTS** unauthorized mutations (e.g. a fired user → 403).
+4. **Admin banishment** — `syncDownload` runs inside the ExecutionPipeline → RLS auto-filters SELECTs to the
+   user's org. `rbac.*` / `user.*` routers are `@Policy({ roles: ["SUPER_ADMIN"] })` → blocked even if a
+   malicious mobile build calls them.
+5. **Nudge to go online** — `expo-background-fetch` drains the outbox on network regain (silently heals);
+   Expo Push (WO-091) + deep-link (WO-093) carry server-initiated attention ("3 new corrections — open to sync").
+6. **Conflict = LWW + authoritative reconciliation** — every synced row carries `updatedAt`. Pull: the server
+   overwrites the local cache (LWW). Push: the outbox carries `baseUpdatedAt`; if the server row moved on, the
+   server rejects with a conflict → the outbox item is marked FAILED + a Correction is created.
+7. **Multi-device** — each install gets a `device_id`; every outbox item carries
+   `idempotencyKey = device_id + local_uuid`. Two phones editing the same entity → first sync wins (LWW),
+   second gets a conflict toast.
+8. **Sync Control Center** — the `outbox_queue` table holds `status` (pending/syncing/failed) + `error_message`;
+   a global badge shows the pending count; failures surface a "Sync Issues" screen with dismissible items.
+
+### Server contract
+
+**`syncDownload(since?: watermark)`** — query. Returns the RLS-scoped field entities plus health master data,
+and a `watermark` (the `updatedAt` delta used for last-write-wins). Pull is authoritative: the server's rows
+overwrite the local cache.
+
+**`syncUpload(records: SyncRecord[])`** — mutation, where each record is:
+
+```ts
+type SyncRecord = {
+  idempotencyKey: string;   // device_id + local_uuid (decision 7)
+  type: string;             // entity type, e.g. "animal"
+  data: unknown;            // the field payload
+  baseUpdatedAt?: string;   // for conflict detection (decision 6)
+};
+```
+
+Records are processed **sequentially** with four stages per record:
+
+- **(a) Idempotency dedupe** by `idempotencyKey` — duplicate submissions (retries) are collapsed, no double-write.
+- **(b) Version / `updatedAt` conflict check** — if the server row moved past `baseUpdatedAt`, the record is rejected as a conflict.
+- **(c) Per-record `Result` + `SyncUploadResult`** — each record yields its own success/failure so the client can update the outbox item individually (decision 8).
+- **(d) `createSyncErrorCorrection` on failure** — a rejected/unauthorized record (decisions 3/6) spawns an `error_corrections` ticket (ADR-0015), and the outbox item is marked FAILED.
+
+The phone never sees the 57-table schema — only the castrated field set, the outbox, and the watermark.
+
 ## Related ADRs
 
 - **ADR-0015** (seed spec — conflict → `error_corrections`; this ADR builds its client layer).

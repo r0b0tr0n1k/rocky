@@ -58,7 +58,7 @@
 | WO-070 | Deferral register: AMR, 10 km buffer, genetic lineage, blockchain, notification SMS | 0023 / 0014 | Future | Deferred |
 | WO-071 | Confirm animal calving-gap divergence (365 d vs legacy 120 d) | 0025       | P3       | Open   |
 | WO-080 | Author frontend/mobile ADR set per ADR-0033 (0034–0043; domain features 0044+) | 0033       | P1       | Done    |
-| WO-081 | Promote mobile sync to top-level `sync` router (syncDownload/syncUpload under `health`) | 0034       | P2       | Open   |
+| WO-081 | Promote mobile sync to top-level `sync` router (syncDownload/syncUpload under `health`) | 0034       | P2       | In Progress |
 | WO-082 | Implement mobile offline-first cache + sync queue (expo-sqlite, persistQueryClient, NetInfo, sync router) | 0035       | P2       | Open   |
 | WO-083 | Reconcile AGENTS.md Mobile Bot path apps/mobile -> apps/mob (contract vs reality) | 0035       | P3       | Done    |
 | WO-085 | Filter mobile tabs by RBAC permission (mirror web `filterNavByPermissions`) | 0039       | P2       | Done    |
@@ -114,6 +114,11 @@
   inside the `health` router (found while building the client inventory, ADR-0034). Sync is a
   cross-cutting transport concern (ADR-0015 / ADR-0032), not a health domain operation.
 - Promote them to a top-level `sync` router; update mobile client consumption (ADR-0015 / 0036).
+- **Formalized server contract** documented in ADR-0036 §"WO-081 — Top-level `sync` router formalization":
+  `syncDownload(since?)` returns RLS-scoped field entities + health master data + a `watermark`
+  (last-write-wins `updatedAt` delta); `syncUpload(records[])` processes each record `{idempotencyKey,
+  type, data, baseUpdatedAt}` sequentially with idempotency dedupe, version/conflict check, per-record
+  `Result`/`SyncUploadResult`, and `createSyncErrorCorrection` on failure. Status bumped to In Progress.
 - **Source:** ADR-0034 (§Context "A Real found while inventorying" / Master table footnote \*).
 
 ### WO-082 — Implement mobile offline-first data-fetching — P2
@@ -199,11 +204,11 @@
 ### WO-089 — Implementation Sketch
 
 **Implemented (2026-07-09):** client permission plumbing delivered end-to-end.
+
 - Server: `rbac.myPermissions` returns `ctx.execution!.principal.permissions` (`[...]` spread for `ReadonlyArray`). Regenerated `AppRouter` (23 routers / 155 procedures); `myPermissions` re-exported via `packages/trpc`.
 - Web: `lib/permissions.tsx` (`PermissionsProvider` + `usePermissions()` + pure `clientCan`/`clientCanAny`/`clientCanRole` + `useCan`); `app/layout.tsx` wraps the tree in `<PermissionsProvider>`; `nav-config.ts#filterNavByPermissions` is **fail-CLOSED**; `admin-shell.tsx` consumes `usePermissions()`; 403 surfaces via the existing `notifyError` (sonner) convention.
 - Mobile: `providers/permissions-provider.tsx` (legacy `useQuery` mirror); `app/_layout.tsx` wraps the tree; `(tabs)/_layout.tsx` gates the 8 permissioned tabs (`animal:read`, `health:read`, `movement:read`, `analysis:read`, `eartag:read`, `passport:read`, `correction:read`, `notification:read`) and shows a loading spinner while permissions resolve (fail-closed).
 - **Deferred:** `myRoles` query not added — `roles` on both surfaces is best-effort from `session.user.roles` (drift-prone; documented in `lib/permissions.tsx`). `clientCanRole` exists as a pure helper; authoritative role enforcement stays server-side via `@Policy({ roles })` (proven by WO-098). WO-085 (mobile tab gating) is satisfied by this work.
-
 
 **Server — deliver permissions without re-coupling auth ↔ RBAC.**
 `packages/auth/src/better-auth.ts` deliberately keeps auth identity-only (header: "does NOT import ... RBAC"),
@@ -383,10 +388,12 @@ rg -n "Tabs.Screen" "apps/mob/app/(tabs)/_layout.tsx"   # now conditional
   `roles: ["SUPER_ADMIN"]` leaked into `myPermissions`, making it SUPER_ADMIN-gated. Every non-admin
   (vet/farmer) would get FORBIDDEN on the permission fetch → client fails closed → zero tabs. Fixed by
   `@Policy({ authenticated: true, roles: [] })` (explicit relaxation) — WO-089 now works for all roles.
-- **Remaining (separate infra):** a guard on the _real_ `RbacRouter` class (assert
-  `PolicyRegistry.get("rbac.myPermissions")` is auth-only) needs apps/api test infra, currently
-  non-functional (no `jest.config`, no ts-jest transform, zero test files despite a `test` script).
+- **Remaining (DELIVERED via WO-104):** the guard on the _real_ `RbacRouter` class
+  (`PolicyRegistry.get("rbac.myPermissions")` is auth-only) is now implemented — WO-104 added the
+  `@OverridePolicy` decorator (root-cause fix for the merge trap) and stood up the `apps/api` vitest
+  harness, with `apps/api/src/routers/rbac.router.policy.test.ts` asserting the gate end-to-end.
 - **Source:** ADR-0020 §I/§IV; `packages/authorization/src/{policies,principal}/*.test.ts`; `apps/api/src/routers/rbac.router.ts`.
+
 ### WO-100 — Permission catalog single source (Authorization) — P1
 
 - **Why:** permission identifiers are scattered across four places that can disagree — seed
@@ -449,10 +456,37 @@ rg -n "Tabs.Screen" "apps/mob/app/(tabs)/_layout.tsx"   # now conditional
 - **Gate (regenerate + check):** `pnpm generate:trpc && pnpm check:trpc-boundary`.
 - **Delivery verification:** `pnpm check:trpc-boundary` → ok; `pnpm -C packages/trpc typecheck` → exit 0
   (literal TS6059 test); `pnpm -C apps/api build` (nest build, 50 files, **0 issues**) → exit 0.
-- **Remaining:** wire `pnpm check:trpc-boundary` (or the regen gate) into the team's external CI / pre-commit.
-  The repo has **no** in-repo `.github/workflows` or `.husky` yet, so the script + root command are the
-  deliverable; the external CI must invoke them. (Optional) register as a `turbo` task.
+- **Remaining:** register `pnpm ci:checks` in the team's external CI / pre-commit — the script now
+  exists and runs `generate:trpc` → `check:trpc-boundary` → the auth-relevant suites (authorization / web /
+  api). The repo has **no** in-repo `.github/workflows` or `.husky` yet, so external CI must invoke
+  `pnpm ci:checks`. (Optional) register as a `turbo` task. Also fixed the root `generate:trpc` script, which
+  pointed at a non-existent entrypoint and omitted the `patch-trpc-transformer` step, so the canonical
+  command now works.
 - **Source:** `scripts/check-trpc-boundary.mjs`; `package.json` (`check:trpc-boundary`); ADR-0032 §D1/D2/CI Guard.
+
+### WO-104 — @OverridePolicy decorator (root-cause fix for merge trap) — P1
+
+- **Why:** `PolicyRegistry.register` merges `{...classPolicy, ...methodPolicy}`, so a method can only
+  ADD restrictions — never relax one the class sets. `RbacRouter` class-gates `SUPER_ADMIN`; `myPermissions`
+  relied on the `@Policy({ authenticated: true, roles: [] })` band-aid (WO-089/ADR-0042 §11) and would
+  silently re-leak the SUPER_ADMIN gate if anyone changed the class policy. ADR-0042 flagged a proper
+  override as future work.
+- **Delivered (2026-07-09):** added `@OverridePolicy(options)` (method decorator, new
+  `POLICY_OVERRIDE_KEY`). In `PolicyRegistry.register`, an `@OverridePolicy` method REPLACES the class
+  policy entirely (no merge); `@Policy` keeps its merge behavior. `rbac.myPermissions` now uses
+  `@OverridePolicy({ authenticated: true })` — auth-only, independent of the class gate. Exported from
+  `@rocky/authorization`.
+- **Coverage:** `packages/authorization/src/policies/policy-override.test.ts` (merge vs replace);
+  `apps/api/src/routers/rbac.router.policy.test.ts` asserts `PolicyRegistry.get("rbac.myPermissions")`
+  is auth-only and `rbac.listRoles` keeps SUPER_ADMIN (real router, no boot).
+- **Also:** stood up the `apps/api` vitest harness (`vitest.config.ts`; `test` script → `vitest run`) —
+  previously the `test` script pointed at a non-configured jest. This unblocks the WO-103 router-level guard.
+- **Verified:** `pnpm ci:checks` → generate:trpc (clean) + check:trpc-boundary (0/0) + authorization 27 /
+  web 7 / api 2 passed.
+- **Status:** Done.
+- **Source:** `packages/authorization/src/policies/policy.decorator.ts`, `policy.registry.ts`,
+  `packages/authorization/src/index.ts`; `apps/api/src/routers/rbac.router.ts`; `apps/api/vitest.config.ts`;
+  ADR-0042 §11.
 
 ### WO-105 — Web client permission test suite (vitest) — P2
 
@@ -967,4 +1001,3 @@ permission / parity); (B) screen inventory with ✅/🟡 status (existing vs pla
 Key finding: mobile is the field-data-entry surface, web is the back-office — COMPLEMENTARY,
 not 1:1 (informs ADR-0052 parity contract). Extends ADR-0034/0039; cites ADR-0022/0032/0042/
 0049/0050. 🟡 gaps (web detail pages, mobile create/edit flows) map to WO-094/095/096.
-
