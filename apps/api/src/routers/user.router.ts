@@ -26,7 +26,7 @@ const unwrap = createResultUnwrapper(USER_TRPC_ERROR_MAP);
 
 @Router({ alias: "user" })
 @RegisterPolicy("user")
-@Policy({ authenticated: true })
+@Policy({ authenticated: true, roles: ["SUPER_ADMIN"] })
 @Injectable()
 export class UserRouter {
   constructor(@Inject(UserService) private readonly userService: UserService) {}

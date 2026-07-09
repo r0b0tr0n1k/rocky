@@ -74,7 +74,7 @@
 | WO-096 | Inspections/Corrections parity + offline/permission sweep (bind completeInspection to sync queue WO-082; useCan analysis:read/run WO-089; flag-in/archived-out toasts WO-088) | 0046 | P2 | Open   |
 | WO-097 | Infrastructure (IoT/device) admin parity + device-sync touchpoint (bind admin forms to Diamond Seal; WO-082 sync→recordSync; document web-only parity in ADR-0033) | 0047 | P2 | Open   |
 | WO-098 | Administration SUPER_ADMIN gate: rbac+user DONE (ADR-0022 roles); farm/subject/org deferred (RLS-scoped, role decision → ADR-0027); bind admin forms to Diamond Seal; document web-only parity in ADR-0033 | 0048 | P1 | Open   |
-| WO-090 | Commit an ADR-0032-compliant `AppRouter` (regenerated client with `transformer: superjson` + 0 `ReturnType<`); the _committed_ `HEAD` version fails ADR-0032's own Definition-of-Done guard, so it must not ship | 0032   | P2       | Open   |
+| WO-090 | Commit an ADR-0032-compliant `AppRouter` (regenerated client with `transformer: superjson` + 0 `ReturnType<`); the _committed_ `HEAD` version fails ADR-0032's own Definition-of-Done guard, so it must not ship | 0032   | P2       | Done    |
 
 ---
 
@@ -343,7 +343,7 @@ rg -n "Tabs.Screen" "apps/mob/app/(tabs)/_layout.tsx"   # now conditional
   pattern and using the seeded RBAC `SUPER_ADMIN` role (seed.ts:315/641 → `principal.roles`). This closes the
   live gap (any authenticated session could reassign roles / create users). **Deferred:** `farm`/`subject`/
   `organization` routers remain `@Policy({ authenticated: true })` — their isolation is row-level (RLS, ADR-0027),
-  and their correct *delegated* admin role needs a separate decision (fold into ADR-0027); gating them to
+  and their correct _delegated_ admin role needs a separate decision (fold into ADR-0027); gating them to
   SUPER_ADMIN only would risk breaking farm-manager workflows.
 - **Progress (2026-07-09):** rbac+user SUPER_ADMIN gate DONE. Remaining: farm/subject/org role
   decision (deferred) + the Diamond Seal admin-forms binding + ADR-0033 web-only-parity doc (below).
@@ -732,6 +732,16 @@ Gaps closed this pass: **0037 / 0041 / 0043** lacked a backend citation (D4 dial
 added ADR-0032 (+ ADR-0018 to 0037). The domain-feature ADRs **0044–0048** were verified
 DoD-compliant (numbered skeleton, backend-cited, mermaid balanced); **0045/0046/0047/0048** were
 untracked and are committed as part of this deliverable.
+
+### WO-090 — ADR-0032-compliant AppRouter (done)
+
+The `AppRouter` (`packages/trpc/src/generated/server.ts`) was regenerated with
+`transformer: superjson` and **0 `ReturnType<`** usages — satisfying ADR-0032's own
+Definition-of-Done guard (the previously-committed `HEAD` version failed it). Bundled in
+the same change: SUPER_ADMIN gates added to `rbac.router.ts` + `user.router.ts` (any
+authenticated session could previously reassign roles / create users — live gap closed;
+farm/subject/organization routers remain `@Policy({ authenticated: true })` with row-level
+RLS isolation, deferred per ADR-0027).
 
  (migration.fixed.sql already corrected; code now generates correctly).
 

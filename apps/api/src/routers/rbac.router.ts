@@ -25,7 +25,7 @@ const unwrap = createResultUnwrapper(RBAC_TRPC_ERROR_MAP);
 
 @Router({ alias: "rbac" })
 @RegisterPolicy("rbac")
-@Policy({ authenticated: true })
+@Policy({ authenticated: true, roles: ["SUPER_ADMIN"] })
 @Injectable()
 export class RbacRouter {
   constructor(@Inject(RbacService) private readonly rbacService: RbacService) {}
