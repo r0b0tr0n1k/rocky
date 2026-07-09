@@ -8,6 +8,7 @@ import { LANGUAGE, USER_STATUS } from "@rocky/validators/enums";
 import { createUserRequestSchema } from "@rocky/validators/api";
 import { SelectField, SwitchField, TextField } from "#components/shared/form-fields";
 import { ValidatedForm } from "#components/shared/validated-form";
+import { FieldGroup } from "@rocky/ui/components/field";
 import { enumToOptions } from "#lib/options";
 import { useTRPC } from "#lib/trpc";
 import { notifyError, notifySuccess } from "#lib/notify";
@@ -34,14 +35,14 @@ export function UserCreateForm() {
 
   return (
     <ValidatedForm form={form} submitting={create.isPending} onValid={(values) => create.mutate(values)}>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <FieldGroup>
         <TextField control={form.control} name="username" label="Username" placeholder="jdoe" />
         <TextField control={form.control} name="email" label="Email" placeholder="jdoe@example.com" />
         <TextField control={form.control} name="mobilePhone" label="Mobile phone" placeholder="+389..." />
         <SelectField control={form.control} name="language" label="Language" options={enumToOptions(Object.values(LANGUAGE))} />
         <SelectField control={form.control} name="status" label="Status" options={enumToOptions(Object.values(USER_STATUS))} />
         <TextField control={form.control} name="password" label="Password" type="password" placeholder="Min. 8 characters" />
-      </div>
-    </ValidatedForm>
+      </FieldGroup>
+</ValidatedForm>
   );
 }

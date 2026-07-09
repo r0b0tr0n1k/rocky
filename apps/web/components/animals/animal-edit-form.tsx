@@ -7,6 +7,7 @@ import { ANIMAL_STATUS, BIRTH_TYPE } from "@rocky/validators/enums";
 import { updateAnimalRequestSchema, type FarmResponse, type AnimalSummary } from "@rocky/validators/api";
 import { ComboboxField, DateField, NumberField, SelectField, SwitchField, TextField } from "#components/shared/form-fields";
 import { ValidatedForm } from "#components/shared/validated-form";
+import { FieldGroup } from "@rocky/ui/components/field";
 import { enumToOptions } from "#lib/options";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "#lib/trpc";
@@ -71,7 +72,7 @@ export function AnimalEditForm({ id }: { id: string }) {
 
   return (
     <ValidatedForm form={form} submitting={update.isPending} onValid={(values) => update.mutate(values)}>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <FieldGroup>
         <TextField control={form.control} name="breed" label="Breed" placeholder="Limousine" />
         <SelectField control={form.control} name="birthType" label="Birth type" options={enumToOptions(Object.values(BIRTH_TYPE))} />
         <NumberField control={form.control} name="birthWeight" label="Birth weight (g)" placeholder="40000" />
@@ -80,7 +81,7 @@ export function AnimalEditForm({ id }: { id: string }) {
         <ComboboxField control={form.control} name="motherId" label="Mother" placeholder="Search animals…" options={motherOptions} />
         <DateField control={form.control} name="taggingDate" label="Tagging date" />
         <SwitchField control={form.control} name="isFirstTagging" label="First tagging campaign" />
-      </div>
-    </ValidatedForm>
+      </FieldGroup>
+</ValidatedForm>
   );
 }

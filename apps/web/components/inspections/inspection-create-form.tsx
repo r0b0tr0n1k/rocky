@@ -16,6 +16,7 @@ import {
   TextField,
 } from "#components/shared/form-fields";
 import { ValidatedForm } from "#components/shared/validated-form";
+import { FieldGroup } from "@rocky/ui/components/field";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "#lib/trpc";
 import { notifyError, notifySuccess } from "#lib/notify";
@@ -51,7 +52,7 @@ export function InspectionCreateForm() {
 
   return (
     <ValidatedForm form={form} submitting={create.isPending} onValid={(values) => create.mutate(values)}>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <FieldGroup>
         <ComboboxField
           control={form.control}
           name="farmId"
@@ -80,7 +81,7 @@ export function InspectionCreateForm() {
           label="Notes"
           placeholder="Optional"
         />
-      </div>
-    </ValidatedForm>
+      </FieldGroup>
+</ValidatedForm>
   );
 }

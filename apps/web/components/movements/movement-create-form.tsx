@@ -18,6 +18,7 @@ import {
   TextField,
 } from "#components/shared/form-fields";
 import { ValidatedForm } from "#components/shared/validated-form";
+import { FieldGroup } from "@rocky/ui/components/field";
 import { enumToOptions } from "#lib/options";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "#lib/trpc";
@@ -54,7 +55,7 @@ export function MovementCreateForm() {
 
   return (
     <ValidatedForm form={form} submitting={create.isPending} onValid={(values) => create.mutate(values)}>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <FieldGroup>
         <ComboboxField
           control={form.control}
           name="animalId"
@@ -97,7 +98,7 @@ export function MovementCreateForm() {
         <TextareaField control={form.control} name="reason" label="Reason" placeholder="Optional" />
         <SwitchField control={form.control} name="isVerified" label="Verified" />
         <SwitchField control={form.control} name="isActive" label="Active" />
-      </div>
-    </ValidatedForm>
+      </FieldGroup>
+</ValidatedForm>
   );
 }

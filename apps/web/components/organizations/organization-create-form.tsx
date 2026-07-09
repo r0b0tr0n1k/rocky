@@ -8,6 +8,7 @@ import { ORG_TYPE } from "@rocky/validators/enums";
 import { createOrganizationRequestSchema, type OrganizationSummary } from "@rocky/validators/api";
 import { ComboboxField, SelectField, TextField } from "#components/shared/form-fields";
 import { ValidatedForm } from "#components/shared/validated-form";
+import { FieldGroup } from "@rocky/ui/components/field";
 import { enumToOptions } from "#lib/options";
 import { useTRPC } from "#lib/trpc";
 import { notifyError, notifySuccess } from "#lib/notify";
@@ -38,7 +39,7 @@ export function OrganizationCreateForm() {
 
   return (
     <ValidatedForm form={form} submitting={create.isPending} onValid={(values) => create.mutate(values)}>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <FieldGroup>
         <TextField control={form.control} name="name1" label="Name (line 1)" placeholder="Veterinary Directorate" />
         <SelectField control={form.control} name="orgType" label="Type" options={enumToOptions(Object.values(ORG_TYPE))} />
         <TextField control={form.control} name="name2" label="Name (line 2)" />
@@ -46,7 +47,7 @@ export function OrganizationCreateForm() {
         <TextField control={form.control} name="phone" label="Phone" placeholder="+389..." />
         <TextField control={form.control} name="email" label="Email" placeholder="contact@example.com" />
         <ComboboxField control={form.control} name="parentId" label="Parent organization" placeholder="Search…" options={parentOptions} />
-      </div>
-    </ValidatedForm>
+      </FieldGroup>
+</ValidatedForm>
   );
 }

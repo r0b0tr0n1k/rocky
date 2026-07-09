@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { updateSubjectRequestSchema } from "@rocky/validators/api";
 import { TextField } from "#components/shared/form-fields";
 import { ValidatedForm } from "#components/shared/validated-form";
+import { FieldGroup } from "@rocky/ui/components/field";
 import { useTRPC } from "#lib/trpc";
 import { notifyError, notifySuccess } from "#lib/notify";
 import { useValidatedForm } from "#lib/use-validated-form";
@@ -60,7 +61,7 @@ export function SubjectEditForm({ id }: { id: string }) {
 
   return (
     <ValidatedForm form={form} submitting={update.isPending} onValid={(values) => update.mutate({ id, data: values })}>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <FieldGroup>
         <TextField control={form.control} name="shortName" label="Short name" />
         <TextField control={form.control} name="companyName" label="Company name" />
         <TextField control={form.control} name="firstName" label="First name" />
@@ -69,7 +70,7 @@ export function SubjectEditForm({ id }: { id: string }) {
         <TextField control={form.control} name="vatNumber" label="VAT number" />
         <TextField control={form.control} name="phoneNumber" label="Phone" />
         <TextField control={form.control} name="email" label="Email" />
-      </div>
-    </ValidatedForm>
+      </FieldGroup>
+</ValidatedForm>
   );
 }

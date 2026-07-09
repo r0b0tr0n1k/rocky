@@ -17,16 +17,16 @@ import {
 } from "@rocky/ui/components/combobox";
 import { Calendar } from "@rocky/ui/components/calendar";
 import { Checkbox } from "@rocky/ui/components/checkbox";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@rocky/ui/components/field";
+import { FormControl, FormField } from "@rocky/ui/components/form";
 import { Input } from "@rocky/ui/components/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@rocky/ui/components/popover";
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@rocky/ui/components/form";
 import {
   Select,
   SelectContent,
@@ -62,9 +62,9 @@ export function TextField<TValues extends FieldValues>({
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
+      render={({ field, fieldState }) => (
+        <Field data-invalid={fieldState.error ? true : undefined}>
+          <FieldLabel>{label}</FieldLabel>
           <FormControl>
             <Input
               type={type}
@@ -76,9 +76,9 @@ export function TextField<TValues extends FieldValues>({
               ref={field.ref}
             />
           </FormControl>
-          {description ? <FormDescription>{description}</FormDescription> : null}
-          <FormMessage />
-        </FormItem>
+          {description ? <FieldDescription>{description}</FieldDescription> : null}
+          <FieldError errors={[fieldState.error]} />
+        </Field>
       )}
     />
   );
@@ -95,9 +95,9 @@ export function TextareaField<TValues extends FieldValues>({
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
+      render={({ field, fieldState }) => (
+        <Field data-invalid={fieldState.error ? true : undefined}>
+          <FieldLabel>{label}</FieldLabel>
           <FormControl>
             <Textarea
               placeholder={placeholder}
@@ -108,9 +108,9 @@ export function TextareaField<TValues extends FieldValues>({
               ref={field.ref}
             />
           </FormControl>
-          {description ? <FormDescription>{description}</FormDescription> : null}
-          <FormMessage />
-        </FormItem>
+          {description ? <FieldDescription>{description}</FieldDescription> : null}
+          <FieldError errors={[fieldState.error]} />
+        </Field>
       )}
     />
   );
@@ -127,9 +127,9 @@ export function NumberField<TValues extends FieldValues>({
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
+      render={({ field, fieldState }) => (
+        <Field data-invalid={fieldState.error ? true : undefined}>
+          <FieldLabel>{label}</FieldLabel>
           <FormControl>
             <Input
               type="number"
@@ -143,9 +143,9 @@ export function NumberField<TValues extends FieldValues>({
               }
             />
           </FormControl>
-          {description ? <FormDescription>{description}</FormDescription> : null}
-          <FormMessage />
-        </FormItem>
+          {description ? <FieldDescription>{description}</FieldDescription> : null}
+          <FieldError errors={[fieldState.error]} />
+        </Field>
       )}
     />
   );
@@ -163,9 +163,9 @@ export function SelectField<TValues extends FieldValues>({
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
+      render={({ field, fieldState }) => (
+        <Field data-invalid={fieldState.error ? true : undefined}>
+          <FieldLabel>{label}</FieldLabel>
           <Select value={field.value ?? ""} onValueChange={field.onChange}>
             <FormControl>
               <SelectTrigger>
@@ -180,9 +180,9 @@ export function SelectField<TValues extends FieldValues>({
               ))}
             </SelectContent>
           </Select>
-          {description ? <FormDescription>{description}</FormDescription> : null}
-          <FormMessage />
-        </FormItem>
+          {description ? <FieldDescription>{description}</FieldDescription> : null}
+          <FieldError errors={[fieldState.error]} />
+        </Field>
       )}
     />
   );
@@ -198,17 +198,21 @@ export function CheckboxField<TValues extends FieldValues>({
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
-        <FormItem className="flex flex-row items-start gap-3 rounded-md border p-3">
+      render={({ field, fieldState }) => (
+        <Field
+          data-invalid={fieldState.error ? true : undefined}
+          orientation="horizontal"
+          className="items-start gap-3 rounded-md border p-3"
+        >
           <FormControl>
             <Checkbox checked={Boolean(field.value)} onCheckedChange={field.onChange} />
           </FormControl>
-          <div className="flex flex-col gap-1 leading-none">
-            <FormLabel>{label}</FormLabel>
-            {description ? <FormDescription>{description}</FormDescription> : null}
-          </div>
-          <FormMessage />
-        </FormItem>
+          <FieldContent>
+            <FieldLabel>{label}</FieldLabel>
+            {description ? <FieldDescription>{description}</FieldDescription> : null}
+          </FieldContent>
+          <FieldError errors={[fieldState.error]} />
+        </Field>
       )}
     />
   );
@@ -224,17 +228,21 @@ export function SwitchField<TValues extends FieldValues>({
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
-        <FormItem className="flex flex-row items-center justify-between rounded-md border p-3">
-          <div className="flex flex-col gap-1">
-            <FormLabel>{label}</FormLabel>
-            {description ? <FormDescription>{description}</FormDescription> : null}
-          </div>
+      render={({ field, fieldState }) => (
+        <Field
+          data-invalid={fieldState.error ? true : undefined}
+          orientation="horizontal"
+          className="items-center justify-between gap-3 rounded-md border p-3"
+        >
+          <FieldContent>
+            <FieldLabel>{label}</FieldLabel>
+            {description ? <FieldDescription>{description}</FieldDescription> : null}
+          </FieldContent>
           <FormControl>
             <Switch checked={Boolean(field.value)} onCheckedChange={field.onChange} />
           </FormControl>
-          <FormMessage />
-        </FormItem>
+          <FieldError errors={[fieldState.error]} />
+        </Field>
       )}
     />
   );
@@ -255,13 +263,16 @@ export function DateField<TValues extends FieldValues>({
     <FormField
       control={control}
       name={name}
-      render={({ field }) => {
+      render={({ field, fieldState }) => {
         const raw = field.value as unknown;
         const selected: Date | undefined =
           raw instanceof Date ? raw : raw ? new Date(raw as string | number) : undefined;
         return (
-          <FormItem className="flex flex-col gap-1">
-            <FormLabel>{label}</FormLabel>
+          <Field
+            data-invalid={fieldState.error ? true : undefined}
+            className="flex flex-col gap-1"
+          >
+            <FieldLabel>{label}</FieldLabel>
             <Popover>
               <PopoverTrigger asChild>
                 <FormControl>
@@ -279,12 +290,16 @@ export function DateField<TValues extends FieldValues>({
                 </FormControl>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={selected} onSelect={(d) => field.onChange(d ?? undefined)} />
+                <Calendar
+                  mode="single"
+                  selected={selected}
+                  onSelect={(d) => field.onChange(d ?? undefined)}
+                />
               </PopoverContent>
             </Popover>
-            {description ? <FormDescription>{description}</FormDescription> : null}
-            <FormMessage />
-          </FormItem>
+            {description ? <FieldDescription>{description}</FieldDescription> : null}
+            <FieldError errors={[fieldState.error]} />
+          </Field>
         );
       }}
     />
@@ -308,9 +323,9 @@ export function ComboboxField<TValues extends FieldValues>({
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
+      render={({ field, fieldState }) => (
+        <Field data-invalid={fieldState.error ? true : undefined}>
+          <FieldLabel>{label}</FieldLabel>
           <FormControl>
             <Combobox
               value={(field.value as string | undefined) ?? null}
@@ -329,9 +344,9 @@ export function ComboboxField<TValues extends FieldValues>({
               </ComboboxContent>
             </Combobox>
           </FormControl>
-          {description ? <FormDescription>{description}</FormDescription> : null}
-          <FormMessage />
-        </FormItem>
+          {description ? <FieldDescription>{description}</FieldDescription> : null}
+          <FieldError errors={[fieldState.error]} />
+        </Field>
       )}
     />
   );

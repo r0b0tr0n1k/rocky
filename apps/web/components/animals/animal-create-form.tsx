@@ -7,6 +7,7 @@ import { ANIMAL_STATUS, BIRTH_TYPE, SEX, STATE_CODE } from "@rocky/validators/en
 import { createAnimalRequestSchema, type FarmResponse, type AnimalSummary } from "@rocky/validators/api";
 import { ComboboxField, DateField, NumberField, SelectField, SwitchField, TextField } from "#components/shared/form-fields";
 import { ValidatedForm } from "#components/shared/validated-form";
+import { FieldGroup } from "@rocky/ui/components/field";
 import { enumToOptions } from "#lib/options";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "#lib/trpc";
@@ -43,7 +44,7 @@ export function AnimalCreateForm() {
 
   return (
     <ValidatedForm form={form} submitting={create.isPending} onValid={(values) => create.mutate(values)}>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <FieldGroup>
         <SelectField control={form.control} name="stateCode" label="State code" options={enumToOptions(Object.values(STATE_CODE))} />
         <TextField control={form.control} name="earTagNumber" label="Ear tag number" placeholder="12345678" description="8-digit ear tag." />
         <DateField control={form.control} name="birthDate" label="Birth date" />
@@ -57,7 +58,7 @@ export function AnimalCreateForm() {
         <DateField control={form.control} name="taggingDate" label="Tagging date" />
         <SwitchField control={form.control} name="isFirstTagging" label="First tagging campaign" />
         <SwitchField control={form.control} name="imported" label="Imported" />
-      </div>
-    </ValidatedForm>
+      </FieldGroup>
+</ValidatedForm>
   );
 }

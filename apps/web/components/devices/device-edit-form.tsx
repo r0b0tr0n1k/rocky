@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { updatePdaDeviceRequestSchema, type UserSummary } from "@rocky/validators/api";
 import { ComboboxField, TextField } from "#components/shared/form-fields";
 import { ValidatedForm } from "#components/shared/validated-form";
+import { FieldGroup } from "@rocky/ui/components/field";
 import { useTRPC } from "#lib/trpc";
 import { notifyError, notifySuccess } from "#lib/notify";
 import { useValidatedForm } from "#lib/use-validated-form";
@@ -58,12 +59,12 @@ export function DeviceEditForm({ id }: { id: string }) {
 
   return (
     <ValidatedForm form={form} submitting={update.isPending} onValid={(values) => update.mutate(values)}>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <FieldGroup>
         <TextField control={form.control} name="name" label="Name" placeholder="Field tablet A" />
         <TextField control={form.control} name="appVersion" label="App version" placeholder="1.4.2" />
         <TextField control={form.control} name="osVersion" label="OS version" placeholder="17.5" />
         <ComboboxField control={form.control} name="currentUserId" label="Assigned user" placeholder="Search users…" options={userOptions} />
-      </div>
-    </ValidatedForm>
+      </FieldGroup>
+</ValidatedForm>
   );
 }

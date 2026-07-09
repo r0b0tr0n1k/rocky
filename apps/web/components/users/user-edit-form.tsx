@@ -8,6 +8,7 @@ import { LANGUAGE, USER_STATUS } from "@rocky/validators/enums";
 import { updateUserRequestSchema, type UpdateUserRequest } from "@rocky/validators/api";
 import { SelectField, SwitchField, TextField } from "#components/shared/form-fields";
 import { ValidatedForm } from "#components/shared/validated-form";
+import { FieldGroup } from "@rocky/ui/components/field";
 import { enumToOptions } from "#lib/options";
 import { useTRPC } from "#lib/trpc";
 import { notifyError, notifySuccess } from "#lib/notify";
@@ -60,7 +61,7 @@ export function UserEditForm({ id }: { id: string }) {
 
   return (
     <ValidatedForm form={form} submitting={update.isPending} onValid={(values) => update.mutate({ id, ...values })}>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <FieldGroup>
         <TextField control={form.control} name="firstName" label="First name" />
         <TextField control={form.control} name="lastName" label="Last name" />
         <TextField control={form.control} name="email" label="Email" placeholder="name@example.com" />
@@ -68,7 +69,7 @@ export function UserEditForm({ id }: { id: string }) {
         <SelectField control={form.control} name="language" label="Language" options={enumToOptions(Object.values(LANGUAGE))} />
         <SelectField control={form.control} name="status" label="Status" options={enumToOptions(Object.values(USER_STATUS))} />
         <SwitchField control={form.control} name="geoUnlimited" label="Geo-unlimited" />
-      </div>
-    </ValidatedForm>
+      </FieldGroup>
+</ValidatedForm>
   );
 }
