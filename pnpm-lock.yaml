@@ -816,6 +816,12 @@ importers:
         specifier: 4.4.3
         version: 4.4.3
     devDependencies:
+      '@rocky/authorization':
+        specifier: workspace:*
+        version: link:../../packages/authorization
+      '@rocky/testing':
+        specifier: workspace:*
+        version: link:../../packages/testing
       '@rocky/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
@@ -831,6 +837,12 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
+      vite-tsconfig-paths:
+        specifier: 'catalog:'
+        version: 6.1.1(typescript@5.9.3)(vite@8.1.3(@types/node@26.1.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.10(@types/node@26.1.0)(vite@8.1.3(@types/node@26.1.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))
 
   packages/auth:
     dependencies:
@@ -878,12 +890,21 @@ importers:
         specifier: 'catalog:'
         version: 1.0.0-rc.4-5d5b77c(@sinclair/typebox@0.34.49)(postgres@3.4.9)(zod@4.4.3)
     devDependencies:
+      '@rocky/testing':
+        specifier: workspace:*
+        version: link:../testing
       '@rocky/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
+      vite-tsconfig-paths:
+        specifier: 'catalog:'
+        version: 6.1.1(typescript@5.9.3)(vite@8.1.3(@types/node@26.1.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.10(@types/node@26.1.0)(vite@8.1.3(@types/node@26.1.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))
 
   packages/database:
     dependencies:

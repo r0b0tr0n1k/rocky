@@ -64,9 +64,9 @@ export const navSections: NavSection[] = [
   {
     title: "Infrastructure",
     items: [
-      { title: "Farms", href: "/farms", permission: "hk:farm", icon: Building2 },
+      { title: "Farms", href: "/farms", permission: "hk:farm:read", icon: Building2 },
       { title: "Organizations", href: "/organizations", permission: "sm:orgs:read", icon: Users },
-      { title: "Subjects", href: "/subjects", permission: "hk:subject", icon: UserCircle },
+      { title: "Subjects", href: "/subjects", permission: "hk:subject:read", icon: UserCircle },
       { title: "PDA Devices", href: "/devices", permission: "pda:sync", icon: TabletSmartphone },
       { title: "IoT", href: "/iot", permission: "pda:sync", icon: RadioTower },
     ],
@@ -86,16 +86,6 @@ export const navSections: NavSection[] = [
   },
 ];
 
-export function filterNavByPermissions(sections: NavSection[], permissions: readonly string[]): NavSection[] {
-  // `permissions` come from the server `rbac.myPermissions` query via the
-  // PermissionsProvider (ADR-0042/WO-089) — the client-side mirror of
-  // `principal.permissions`. Fail CLOSED: items with a `permission` requirement
-  // are hidden unless the principal holds it; items with no `permission` are
-  // always visible. Server `@Policy` remains the authoritative backstop.
-  return sections
-    .map((s) => ({
-      ...s,
-      items: s.items.filter((i) => !i.permission || permissions.includes(i.permission)),
-    }))
-    .filter((s) => s.items.length > 0);
-}
+// Pure filtering logic lives in `permissions-core.ts` (no React/Next pull-in).
+// Re-exported so existing imports from this module keep working.
+export { filterNavByPermissions } from "./permissions-core.js";

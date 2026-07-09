@@ -8,7 +8,7 @@
 //
 // Pure static map — no DI needed at decorator time.
 
-import { POLICY_METADATA_KEY, type PolicyMetadata } from "./policy.decorator.js";
+import { POLICY_METADATA_KEY, POLICY_OVERRIDE_KEY, type PolicyMetadata } from "./policy.decorator.js";
 
 /**
  * Static registry mapping "alias.methodName" → merged PolicyMetadata.
@@ -35,10 +35,14 @@ export class PolicyRegistry {
 
     for (const methodName of methodNames) {
       const methodFn = proto[methodName] as object;
+      const override = Reflect.getMetadata(POLICY_OVERRIDE_KEY, methodFn) as PolicyMetadata | undefined;
       const methodPolicy = Reflect.getMetadata(POLICY_METADATA_KEY, methodFn) as PolicyMetadata | undefined;
 
-      // Merge: method-level overrides class-level defaults
-      const merged: PolicyMetadata = { ...classPolicy, ...methodPolicy };
+      // @OverridePolicy fully REPLACES the class policy (no merge) — used when a
+      // method must relax a restriction the class enforces (e.g. class gates
+      // SUPER_ADMIN but one query is auth-only). @Policy still merges method over
+      // class (adds restrictions). WO-104.
+      const merged: PolicyMetadata = override ? { ...override } : { ...classPolicy, ...methodPolicy };
 
       // Only register if there's actually a policy defined (non-empty)
       if (Object.keys(merged).length > 0) {

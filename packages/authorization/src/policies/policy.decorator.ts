@@ -13,6 +13,7 @@
 import "reflect-metadata";
 
 export const POLICY_METADATA_KEY = "rocky:policy";
+export const POLICY_OVERRIDE_KEY = "rocky:policy:override";
 
 export interface PolicyMetadata {
   /** Action to authorize — NEVER "permission", always "action" */
@@ -65,6 +66,43 @@ export function Policy(options: PolicyMetadata): MethodDecorator & ClassDecorato
  * Read @Policy metadata from a class constructor or method.
  * Returns merged metadata: method-level overrides class-level.
  */
+
+
+/**
+ * Fully REPLACE the class-level @Policy() for a single method — no merge.
+ *
+ * @Policy() merges method metadata over the class policy, so a method can only
+ * ADD restrictions, never relax one the class already sets. When a class enforces
+ * a gate (e.g. SUPER_ADMIN) but one method must be open to any authenticated
+ * user, `@Policy({ authenticated: true, roles: [] })` is a fragile band-aid that
+ * only works because you remember to zero every inherited array. @OverridePolicy
+ * makes the intent explicit: this method's policy is exactly what you pass,
+ * independent of the class (WO-104).
+ *
+ * @example
+ * ```typescript
+ * @Router({ alias: "rbac" })
+ * @RegisterPolicy("rbac")
+ * @Policy({ authenticated: true, roles: ["SUPER_ADMIN"] })
+ * export class RbacRouter {
+ *   @Query(...)
+ *   @OverridePolicy({ authenticated: true })   // any authenticated user
+ *   async myPermissions() {}
+ * }
+ * ```
+ */
+export function OverridePolicy(options: PolicyMetadata): MethodDecorator {
+  return (
+    _target: object | Function,
+    _propertyKey: string | symbol,
+    descriptor?: PropertyDescriptor,
+  ) => {
+    if (descriptor) {
+      Reflect.defineMetadata(POLICY_OVERRIDE_KEY, options, descriptor.value);
+    }
+  };
+}
+
 export function getPolicyMetadata(target: object, methodName?: string): PolicyMetadata | undefined {
   // Try method-level first
   if (methodName) {

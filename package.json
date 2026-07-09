@@ -17,7 +17,9 @@
     "generate:trpc": "pnpx nestjs-trpc generate --entrypoint apps/api/src/trpc/trpc.module.ts --output packages/trpc/src/generated/ --import-extension=js",
     "generate:enums": "node scripts/regenerate-enums.mjs",
     "generate:zod": "node scripts/generate-dumb-zod.mjs",
-    "generate:all": "node scripts/regenerate-enums.mjs && node scripts/generate-dumb-zod.mjs"
+    "generate:all": "node scripts/regenerate-enums.mjs && node scripts/generate-dumb-zod.mjs",
+    "check:trpc-boundary": "node scripts/check-trpc-boundary.mjs",
+    "ci:checks": "pnpm generate:trpc && pnpm check:trpc-boundary && pnpm test"
   },
   "devDependencies": {
     "@rocky/typescript-config": "workspace:*",

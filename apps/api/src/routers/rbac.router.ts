@@ -1,7 +1,7 @@
 // --- RBAC Router - tRPC entry point ---
 
 import { Inject, Injectable } from "@nestjs/common";
-import { Policy, RegisterPolicy } from "@rocky/authorization/index.js";
+import { OverridePolicy, Policy, RegisterPolicy } from "@rocky/authorization/index.js";
 import { RbacService } from "@rocky/domains-rbac/index.js";
 import { createResultUnwrapper } from "@rocky/trpc/index.js";
 import type { AppContext } from "@rocky/trpc/index.js";
@@ -57,6 +57,11 @@ export class RbacRouter {
   }
 
   /**
+   * @OverridePolicy replaces the class-level SUPER_ADMIN gate entirely (no merge)
+   * so any authenticated user may read their own permissions (ADR-0042 / WO-104).
+   * Without this, PolicyRegistry would merge the class gate through and non-admins
+   * could not read their own permissions — WO-089 would collapse to fail-closed.
+   *
    * @description Returns the current principal's permission + role strings.
    * Server stays authoritative (ADR-0042): permissions/roles are derived from
    * RBAC seed via `PrincipalResolver` in the execution middleware, NOT from a
@@ -65,7 +70,7 @@ export class RbacRouter {
   @Query({
     output: z.object({ permissions: z.array(z.string()), roles: z.array(z.string()) }),
   })
-  @Policy({ authenticated: true })
+  @OverridePolicy({ authenticated: true })
   async myPermissions(@Ctx() ctx: AppContext) {
     const principal = ctx.execution!.principal;
     return { permissions: [...principal.permissions], roles: [...principal.roles] };

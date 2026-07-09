@@ -45,21 +45,10 @@ export function usePermissions(): PermissionsContextValue {
 }
 
 // ── Pure client-side authorization mirrors (ADR-0042 §7) ──
-
-/** Mirror of `Principal.hasPermission`. */
-export function clientCan(permissions: readonly string[], required: string): boolean {
-  return permissions.includes(required);
-}
-
-/** Any-of variant. */
-export function clientCanAny(permissions: readonly string[], required: readonly string[]): boolean {
-  return required.some((p) => permissions.includes(p));
-}
-
-/** Role + RuleSet variant for Health (ADR-0045): require any of `requiredRoles`. */
-export function clientCanRole(roles: readonly string[], requiredRoles: readonly string[]): boolean {
-  return requiredRoles.some((r) => roles.includes(r));
-}
+// Extracted to `permissions-core.ts` (pure, node-runnable). Re-exported so
+// imports from `#lib/permissions` keep working.
+export { clientCan, clientCanAny, clientCanRole } from "./permissions-core.js";
+import { clientCan } from "./permissions-core.js";
 
 /** Hook form of `clientCan`. */
 export function useCan(permission: string): boolean {

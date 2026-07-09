@@ -183,7 +183,7 @@ const ROLE_PERM_MAP: Record<string, string[]> = {
     "hk:subject:write",
     "hk:address:write",
     "hk:binding:write",
-    "hk:import",
+    "hk:import:admin",
     // Ear tag management
     "eartag:generate",
     "eartag:supply",

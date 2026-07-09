@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "biome check .",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@better-auth-ui/core": "^1.6.27",
@@ -42,6 +43,10 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "@rocky/authorization": "workspace:*",
+    "@rocky/testing": "workspace:*",
+    "vite-tsconfig-paths": "catalog:",
+    "vitest": "catalog:"
   }
 }

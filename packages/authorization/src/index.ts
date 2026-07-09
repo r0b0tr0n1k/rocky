@@ -11,7 +11,7 @@ export { ANONYMOUS_PRINCIPAL, SYSTEM_PRINCIPAL } from "./principal/principals.js
 
 export { AuthorizationModule } from "./authorization.module.js";
 export { PolicyEngine, type PolicyDecision } from "./policies/engine.js";
-export { getPolicyMetadata, Policy, POLICY_METADATA_KEY, type PolicyMetadata } from "./policies/policy.decorator.js";
+export { getPolicyMetadata, OverridePolicy, Policy, POLICY_METADATA_KEY, POLICY_OVERRIDE_KEY, type PolicyMetadata } from "./policies/policy.decorator.js";
 export { PolicyRegistry } from "./policies/policy.registry.js";
 export { RegisterPolicy } from "./policies/register-policy.decorator.js";
-
+export { Permissions, ALL_PERMISSIONS, isPermission, formatPermission, type Permission } from "./permissions.js";

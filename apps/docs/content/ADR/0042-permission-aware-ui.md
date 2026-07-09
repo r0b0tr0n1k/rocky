@@ -1,7 +1,8 @@
 ---
 title: ADR-0042 — Permission-Aware UI (Web + Mobile)
-status: proposed
+status: accepted
 date: 2026-07-09
+updated: 2026-07-09
 deciders: [Rocky Architecture Board]
 tags: [frontend, mobile, authorization, rbac, permissions, adr-standard, client-surface]
 ---
@@ -54,8 +55,8 @@ permission-gating while doing nothing. ADR-0042 proposes to make the Visible equ
 
 **Deliver permissions to the client _without_ re-coupling auth ↔ RBAC; keep the server authoritative.**
 
-1. **Server delivers permissions via a `rbac.myPermissions` query** (WO-089): the existing `rbac` router gains a
-   query that calls `PrincipalResolver.resolve(session)` server-side and returns `principal.permissions`. This
+1. **Server delivers permissions via a `rbac.myPermissions` query** (WO-089): the existing `rbac` router has a query (implemented, WO-089)
+   that calls `PrincipalResolver.resolve(session)` server-side and returns `principal.permissions`. This
    respects the deliberate split — auth stays identity-only; RBAC is delivered through a domain query, reusing the
    _same_ resolver the `PolicyEngine` uses (single source of truth). It does **not** add `customSession` to
    `packages/auth/src/better-auth.ts` (that would re-couple auth with RBAC, violating the documented boundary).
@@ -82,8 +83,8 @@ graph TD
     RBAC --> PR --> RQ
   end
   subgraph C["Client permissions context"]
-    SESS["session.permissions : string[]<br/>⚠️ NO source today (auth split from RBAC)"]
-    RQ -.->|fetched post-login| SESS
+    SESS["session.permissions : string[]<br/>delivered via rbac.myPermissions (WO-089)"]
+    RQ -.->|fetched post-login (WO-089)| SESS
   end
   subgraph W["apps/web"]
     WU["useCan(permission)"]
@@ -103,13 +104,13 @@ graph TD
   classDef src fill:#1e3a8a,color:#ffffff,stroke:#1e40af,stroke-width:2px
   classDef auth fill:#15803d,color:#ffffff,stroke:#166534,stroke-width:2px
   classDef gap fill:#7f1d1d,color:#ffffff,stroke:#991b1b,stroke-width:2px
-  class SESS gap
+  class SESS auth
   class RBAC,PR,PE,RQ auth
   class WU,WN,WA,MU,MN,MA,TOAST src
 ```
 
 _Fig. 1 — Permissions flow from RBAC seed → `PrincipalResolver` → `rbac.myPermissions` query → client
-`PermissionsProvider` → `useCan` → nav/tab filtering + action gating. Red node is the present gap (WO-089).
+`PermissionsProvider` → `useCan` → nav/tab filtering + action gating. The client `session.permissions` node (previously the red gap) is now delivered via `myPermissions` (WO-089).
 The `403` loop (server → toast) stays; the client only makes the permitted rooms visible._
 
 ### Rejected alternatives
@@ -236,6 +237,108 @@ rg -n "Tabs.Screen" "apps/mob/app/(tabs)/_layout.tsx"
 # 403 surfaces as a toast, not a swallowed rejection:
 rg -n "sonner|toast" apps/web apps/mob
 ```
+
+## 11. Post-implementation revisions & open decisions (2026-07-09)
+
+> _sniffs_ — the client is no longer permission-blind; WO-089 delivered the mechanism. But implementation
+> surfaced a repressed contradiction in the authorization layer that this ADR must record so it is never
+> silently reintroduced.
+
+### 11.1 Implementation status
+
+- **WO-089 Done:** `rbac.myPermissions` query exists (returns `principal.permissions` + `principal.roles`);
+  both surfaces ship `PermissionsProvider` + `useCan`; web `filterNavByPermissions` is **fail-closed**;
+  mobile `(tabs)/_layout.tsx` gates the 8 permissioned tabs. ADR-0042 is therefore **accepted**, not proposed.
+- **WO-098 Done:** `rbac` + `user` routers are `@Policy({ authenticated: true, roles: ["SUPER_ADMIN"] })`
+  (ADR-0022 roles); the `myPermissions` method is explicitly relaxed (see 11.2).
+
+### 11.2 The `@Policy` merge trap (security-critical)
+
+`PolicyRegistry.register` builds each procedure's effective policy by **shallow merge** of the class-level
+and method-level `@Policy` metadata:
+
+```ts
+const merged: PolicyMetadata = { ...classPolicy, ...methodPolicy };
+```
+
+Consequence: a method-level `@Policy` can only **add** restrictions relative to the class — it can never
+**relax** one, because any field the method omits is inherited from the class. The only way to relax an
+inherited restrictive field is to **explicitly set it to empty** on the method.
+
+This bit us on `rbac.myPermissions`. The class is `@Policy({ authenticated: true, roles: ["SUPER_ADMIN"] })`
+(WO-098). `myPermissions` was `@Policy({ authenticated: true })`. The merge produced
+`{ authenticated: true, roles: ["SUPER_ADMIN"] }` — so the permission query was **SUPER_ADMIN-gated**, and
+every non-admin (vet/farmer) received `403` on the permission fetch → the client failed closed → **zero
+tabs**. The entire WO-089 surface was invisible to anyone but SUPER_ADMIN.
+
+**Interim fix (shipped):** `myPermissions` is now `@Policy({ authenticated: true, roles: [] })`. The empty
+`roles` array is carried through the merge and the `PolicyEngine` skips the role gate when
+`policy.roles.length === 0`. This is a **band-aid**: it works, but it is fragile — any future method that
+forgets to zero an inherited restrictive field reintroduces the bug, and the intent ("relax the class
+gate") is invisible at the call site.
+
+**Proper fix (open decision -> file WO-104, Authorization `@Policy` override mechanism):** make method-level
+relaxation first-class rather than implicit. Candidate mechanisms:
+- (i) `@Policy({ authenticated: true, inherit: false })` — method policy fully replaces the class policy;
+- (ii) a dedicated `@Relax("roles" | "admin" | "organization")` marker that clears named inherited fields;
+- (iii) keep merge but treat `roles`/`admin`/`organization` as **replace-if-present** while `authenticated`/
+  `action` remain merge — inconsistent, not recommended.
+
+Until WO-104 lands, **every method that intentionally relaxes a class-level restriction MUST set the
+inherited field to `[]`/`false` explicitly**, and the authorization test base (WO-103) must lock it.
+
+### 11.3 Client gating taxonomy (codified)
+
+Three gating shapes exist across the client surfaces; new screens must use one consistently:
+
+| Shape | Helper | Used by | Permission literals (web nav / mobile tab) |
+|-------|--------|---------|---------------------------------------------|
+| Flat permission | `useCan(perm)` | Livestock, Inspection-analysis | `animal:read`, `movement:read`, `passport:read`, `eartag:read`, `analysis:read`, `analysis:run` |
+| Role-based | `clientCanRole(roles, RuleSet.administerRoles)` | Health (vet/administer) | server `@Policy({ roles })` (ADR-0045) |
+| Auth-only | (login gate) | Infrastructure (devices/iot), Administration rbac/user | server `@Policy({ authenticated: true [, roles: ["SUPER_ADMIN"]] })` |
+
+Notes:
+- Mobile tabs map to a **subset** of the web nav permissions (no admin/farms/org tabs on mobile). The 8
+  gated mobile tabs use the flat `useCan` literals above; `index`/`sync`/`explore` are always visible.
+- Web nav (`nav-config.ts`) carries **additional admin-only literals** (`hk:farm`, `sm:orgs:read`,
+  `sm:roles:read`, `sm:users:read`, `sm:audit:read`, `sm:modules:read`, `sm:sysparams:read`,
+  `archive:read`, `report:read`, `pda:sync`, `notification:read`) with no mobile equivalent — web-only
+  parity is documented in ADR-0033.
+
+### 11.4 Roles channel drift (open)
+
+`clientCanRole` exists, but the client `roles` value is **best-effort** from `session.user.roles`
+(`better-auth.d.ts`), which is **not populated by any server query** — it is drift-prone. The authoritative
+role source is the server `Principal.roles`. **Plan:** ship a `rbac.myRoles` query (mirroring
+`myPermissions`) and feed it into both `PermissionsProvider`s; until then `clientCanRole` may be
+inaccurate for non-SUPER_ADMIN role gates. Tracked as a deferred item in WO-089 and the single-source work
+in WO-100.
+
+### 11.5 Single source of truth + drift test (WO-100 / WO-101)
+
+ADR-0042's claim that "client must stay in sync with server enforcement" is only enforceable if there is a
+**single source** for permission literals. That is **WO-100** (a `Permissions` const in
+`@rocky/authorization` -> seeds RBAC, decorates `@Policy`, and is consumed by `useCan`) and **WO-101**
+(a build-time contract test: `@Policy` action in `Permissions` subset seed subset frontend literal; build
+WO-100/WO-101 are now **implemented**: `packages/authorization/src/permissions.ts` (the 69-permission `Permissions` catalog mirroring seed `PERMISSION_DEFS`) + `permissions.drift.test.ts` (the build-fail guillotine). Reconciliation: the 9 server-enforced `@Policy` actions are a **subset** of the UI-visibility literals (`animal:read`, `health:read`, …), which are **client-visibility only** — those routers are `@Policy({ authenticated: true })` + RLS row-isolation (ADR-0027), so RLS (not the string) enforces scope. The catalog holds both tiers. The guillotine caught three real drifts on first run (a silent `ROLE_PERM_MAP` drop, a malformed def, two nav literals that permanently hid the Farms/Subjects admin pages) — all fixed.
+
+### 11.6 Test strategy (WO-103)
+
+The authorization layer now has a vitest base (WO-103): `PolicyEngine` decision matrix (incl. the WO-098
+SUPER_ADMIN gate), `Principal`, `@Policy` readback, and `PolicyRegistry` merge. **Critical:** guards must
+target `PolicyRegistry.get("router.method")` — the path the `PolicyResolver` middleware actually enforces
+(`@RegisterPolicy` -> `PolicyRegistry.register`). `getPolicyMetadata` is readback-only and is NOT the
+enforcement path; do not assert gate correctness against it. The real `RbacRouter` class guard
+(`PolicyRegistry.get("rbac.myPermissions")` is auth-only) is blocked on apps/api test infra (currently
+non-functional Jest) and should be added alongside WO-104.
+
+### 11.7 Kill the `better-auth.d.ts` drift
+
+§1 notes `apps/web/better-auth.d.ts` declares `permissions?: string[]` (et al.) that nothing populates.
+The correct fix is **not** to populate it (that would re-couple auth<->RBAC, rejected Alt-A). The fix is
+`myPermissions`. Therefore the spurious `permissions?`/`roles?` declarations should be **removed** from
+`better-auth.d.ts` to stop promising a runtime contract that will never exist — the client source of truth
+is the `PermissionsProvider` context, not the session type.
 
 ## 10. References
 
