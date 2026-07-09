@@ -63,7 +63,7 @@
 | WO-083 | Reconcile AGENTS.md Mobile Bot path apps/mobile -> apps/mob (contract vs reality) | 0035       | P3       | Open   |
 | WO-085 | Filter mobile tabs by RBAC permission (mirror web `filterNavByPermissions`) | 0039       | P2       | Done    |
 | WO-086 | Add i18n layer (consume session.language, centralize strings, set dir/RTL-ready) | 0040       | P2       | Open   |
-| WO-087 | Web UX boundaries: error.tsx/not-found.tsx/loading.tsx; use Empty+Skeleton (unused) | 0041       | P2       | Open   |
+| WO-087 | Web UX boundaries: error.tsx/not-found.tsx/loading.tsx; use Empty+Skeleton (unused) | 0041       | P2       | Done    |
 | WO-088 | Mobile: add Empty component + sonner toast; use Empty for 0-result lists | 0041       | P2       | Open   |
 | WO-089 | Deliver client `session.permissions` via `rbac.myPermissions` query (not customSession); add `clientCan`/`useCan` on both surfaces; fix dead web `filterNavByPermissions`; enable mobile tab/action gating (ADR-0042) | 0039/0042 | P1 | Done    |
 | WO-091 | Add Expo push notifications (register token on login; server emits via Expo Push API; receipt routes via deep-link resolver WO-093) | 0043 | P2 | Open   |
@@ -175,10 +175,10 @@
 - ADR-0039 discovered the web nav filter (`filterNavByPermissions`) **fail-opens** and mobile tabs are
   unfiltered because `session.permissions` is **empty on the client**: `customSession` was _intentionally
   split out_ of permissions, so the client is permission-blind by design (ADR-0042).
-- **Fix (server):** ensure `apps/api/src/auth/auth.ts` `customSession` populates `user.permissions`
-  from the RBAC seed / `Principal` (AGENTS.md claims `customSession` enriches `permissions`, but the
-  code does not — doc/code drift). Better Auth syncs the session to the client, so `useSession()` then
-  carries `permissions`.
+- **Fix (server):** add `rbac.myPermissions` query (existing `rbac` router) that resolves the
+  `Principal` server-side via `PrincipalResolver` and returns `principal.permissions` — the client
+  mirror of `PolicyEngine`. NO `customSession` (auth stays RBAC-free by design, ADR-0042). The query
+  is `@Policy({ authenticated: true })` so a method-level override beats the class-level SUPER_ADMIN gate.
 - **Fix (client helper):** add a pure `clientCan(permissions, required)` in `@rocky/authorization`
   (mirror of `Principal.hasPermission`) and a thin `useCan(permission)` / `useHasRole(role)` on both
   surfaces reading `session.permissions`.
@@ -193,6 +193,13 @@
   ADR-0017 (permission-gated nav); ADR-0021/2022 (PrincipalResolver + PolicyEngine); WO-085, WO-088.
 
 ### WO-089 — Implementation Sketch
+
+**Implemented (2026-07-09):** client permission plumbing delivered end-to-end.
+- Server: `rbac.myPermissions` returns `ctx.execution!.principal.permissions` (`[...]` spread for `ReadonlyArray`). Regenerated `AppRouter` (23 routers / 155 procedures); `myPermissions` re-exported via `packages/trpc`.
+- Web: `lib/permissions.tsx` (`PermissionsProvider` + `usePermissions()` + pure `clientCan`/`clientCanAny`/`clientCanRole` + `useCan`); `app/layout.tsx` wraps the tree in `<PermissionsProvider>`; `nav-config.ts#filterNavByPermissions` is **fail-CLOSED**; `admin-shell.tsx` consumes `usePermissions()`; 403 surfaces via the existing `notifyError` (sonner) convention.
+- Mobile: `providers/permissions-provider.tsx` (legacy `useQuery` mirror); `app/_layout.tsx` wraps the tree; `(tabs)/_layout.tsx` gates the 8 permissioned tabs (`animal:read`, `health:read`, `movement:read`, `analysis:read`, `eartag:read`, `passport:read`, `correction:read`, `notification:read`) and shows a loading spinner while permissions resolve (fail-closed).
+- **Deferred:** `myRoles` query not added — `roles` on both surfaces is best-effort from `session.user.roles` (drift-prone; documented in `lib/permissions.tsx`). `clientCanRole` exists as a pure helper; authoritative role enforcement stays server-side via `@Policy({ roles })` (proven by WO-098). WO-085 (mobile tab gating) is satisfied by this work.
+
 
 **Server — deliver permissions without re-coupling auth ↔ RBAC.**
 `packages/auth/src/better-auth.ts` deliberately keeps auth identity-only (header: "does NOT import ... RBAC"),
