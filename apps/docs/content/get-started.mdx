@@ -1,0 +1,52 @@
+---
+sidebarTitle: Get Started
+icon: ChevronRightIcon
+---
+
+# Get Started
+
+The docs app is a [Nextra](https://nextra.site) Docs Theme site running inside
+the `rocky` pnpm + Turborepo workspace.
+
+## Prerequisites
+
+You need the workspace toolchain:
+
+- Node.js >= 18
+- pnpm 11.x (via `packageManager` in the root `package.json`)
+- A running Postgres instance for the API (only needed for live data)
+
+## Run locally
+
+<Steps>
+
+### Install workspace dependencies
+
+From the repository root:
+
+```sh
+pnpm install
+```
+
+### Start the docs site
+
+```sh
+pnpm --filter docs dev
+```
+
+The site is available at [http://localhost:3002](http://localhost:3002) (configurable via
+`DOCS_PORT`).
+
+### Build for production
+
+```sh
+pnpm --filter docs build
+pnpm --filter docs start
+```
+
+</Steps>
+
+## Adding a page
+
+Drop a new `.mdx` file into `apps/docs/content/`. The sidebar and routing are
+generated automatically by Nextra — no manual route registration required.

@@ -1,0 +1,113 @@
+"use client";
+
+import { format } from "date-fns";
+import type { ComponentProps } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { EyeIcon } from "lucide-react";
+
+import { Badge } from "@rocky/ui/components/badge";
+import { RowActions } from "#components/shared/row-actions";
+import { StatusBadge } from "#components/shared/status-badge";
+import { ARCHIVE_DOCUMENT_TYPE, ARCHIVE_LOCATION } from "@rocky/validators/enums";
+import type { ArchiveDocumentResponse } from "@rocky/validators/api";
+
+export type { ArchiveDocumentResponse } from "@rocky/validators/api";
+
+type BadgeVariant = ComponentProps<typeof Badge>["variant"];
+
+/** Styling map for archive document type badge variant. */
+export const ARCHIVE_DOCUMENT_TYPE_VARIANT: Record<string, BadgeVariant> = {
+  [ARCHIVE_DOCUMENT_TYPE.PASSPORT]: "outline",
+  [ARCHIVE_DOCUMENT_TYPE.CENSUS_FORM]: "secondary",
+  [ARCHIVE_DOCUMENT_TYPE.TAGGING_RECEIPT]: "secondary",
+  [ARCHIVE_DOCUMENT_TYPE.ORDER_FORM]: "secondary",
+  [ARCHIVE_DOCUMENT_TYPE.INSPECTION_FORM]: "outline",
+  [ARCHIVE_DOCUMENT_TYPE.SLAUGHTER_LIST]: "secondary",
+  [ARCHIVE_DOCUMENT_TYPE.CORRESPONDENCE]: "outline",
+  [ARCHIVE_DOCUMENT_TYPE.OTHER]: "outline",
+};
+
+/** Styling map for archive location (tier) badge variant. */
+export const ARCHIVE_LOCATION_VARIANT: Record<string, BadgeVariant> = {
+  [ARCHIVE_LOCATION.CPC]: "default",
+  [ARCHIVE_LOCATION.VS]: "secondary",
+  [ARCHIVE_LOCATION.VI]: "outline",
+  [ARCHIVE_LOCATION.BIP]: "outline",
+};
+
+export interface ArchiveColumnLookups {
+  animalLabel: (id: string | null | undefined) => string;
+  farmLabel: (id: string | null | undefined) => string;
+}
+
+// archiveDocumentListRequestSchema has no sortBy, so no column is server-sortable.
+export function archiveColumns({
+  animalLabel,
+  farmLabel,
+}: ArchiveColumnLookups): ColumnDef<ArchiveDocumentResponse>[] {
+  return [
+    {
+      accessorKey: "documentType",
+      header: "Type",
+      enableSorting: false,
+      cell: ({ row }) => <StatusBadge value={row.original.documentType} map={ARCHIVE_DOCUMENT_TYPE_VARIANT} />,
+    },
+    {
+      accessorKey: "documentRef",
+      header: "Ref",
+      enableSorting: false,
+      cell: ({ row }) => row.original.documentRef ?? "—",
+    },
+    {
+      accessorKey: "archiveLocation",
+      header: "Location",
+      enableSorting: false,
+      cell: ({ row }) => <StatusBadge value={row.original.archiveLocation} map={ARCHIVE_LOCATION_VARIANT} />,
+    },
+    {
+      accessorKey: "farmId",
+      header: "Farm",
+      enableSorting: false,
+      cell: ({ row }) => farmLabel(row.original.farmId),
+    },
+    {
+      accessorKey: "animalId",
+      header: "Animal",
+      enableSorting: false,
+      cell: ({ row }) => animalLabel(row.original.animalId),
+    },
+    {
+      accessorKey: "isArchived",
+      header: "Archived",
+      enableSorting: false,
+      cell: ({ row }) =>
+        row.original.isArchived ? (
+          <Badge variant="default">Archived</Badge>
+        ) : (
+          <Badge variant="secondary">Pending</Badge>
+        ),
+    },
+    {
+      accessorKey: "retentionExpiry",
+      header: "Retention",
+      enableSorting: false,
+      cell: ({ row }) => format(row.original.retentionExpiry, "PP"),
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Created",
+      enableSorting: false,
+      cell: ({ row }) => format(row.original.createdAt, "PP"),
+    },
+    {
+      id: "actions",
+      header: () => <span className="sr-only">Actions</span>,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <RowActions
+          actions={[{ label: "View", icon: EyeIcon, href: `/archive/${row.original.id}/edit` }]}
+        />
+      ),
+    },
+  ];
+}

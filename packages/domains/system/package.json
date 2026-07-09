@@ -1,0 +1,36 @@
+{
+  "name": "@rocky/domains-system",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./*.js": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "dependencies": {
+    "@rocky/database": "workspace:*",
+    "@rocky/domains-shared": "workspace:*",
+    "@rocky/validators": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "neverthrow": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}
