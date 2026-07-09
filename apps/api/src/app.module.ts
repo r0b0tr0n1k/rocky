@@ -29,6 +29,7 @@ import {
   VsContractService,
 } from "@rocky/domains-farm";
 import { HealthRepository, HealthService } from "@rocky/domains-health";
+import { SyncRepository, SyncService } from "@rocky/domains-sync";
 import {
   InspectionRepository,
   InspectionService,
@@ -89,6 +90,7 @@ import { OrganizationRouter } from "./routers/organization.router.js";
 import { PassportRouter } from "./routers/passport.router.js";
 import { RbacRouter } from "./routers/rbac.router.js";
 import { SubjectRouter } from "./routers/subject.router.js";
+import { SyncRouter } from "./routers/sync.router.js";
 import { UserRouter } from "./routers/user.router.js";
 import { TrpcModule } from "./trpc/trpc.module.js";
 
@@ -452,6 +454,26 @@ import { TrpcModule } from "./trpc/trpc.module.js";
       inject: [MovementRepository, AnimalRepository, FarmRepository],
     },
 
+    {
+      provide: SyncRepository,
+      useFactory: (dbp) => new SyncRepository(dbp),
+      inject: [DatabaseProvider],
+    },
+    {
+      provide: SyncService,
+      useFactory: (
+        syncRepo: SyncRepository,
+        healthService: HealthService,
+        animalService: AnimalService,
+        farmService: FarmService,
+        inspectionService: InspectionService,
+        earTagService: EarTagService,
+        movementService: MovementService,
+        correctionService: CorrectionService,
+      ) => new SyncService(syncRepo, healthService, animalService, farmService, inspectionService, earTagService, movementService, correctionService),
+      inject: [SyncRepository, HealthService, AnimalService, FarmService, InspectionService, EarTagService, MovementService, CorrectionService],
+    },
+
     // ── tRPC Routers ──
     AnimalRouter,
     AuditRouter,
@@ -476,6 +498,7 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     CorrectionRouter,
     DeviceRouter,
     IotRouter,
+    SyncRouter,
 
     // ── Scheduled Jobs ──
     RetentionJob,

@@ -65,7 +65,8 @@
     "reflect-metadata": "catalog:",
     "rxjs": "catalog:",
     "superjson": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@rocky/domains-sync": "workspace:*"
   },
   "devDependencies": {
     "@jest/globals": "catalog:",

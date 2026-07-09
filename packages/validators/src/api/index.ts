@@ -20,5 +20,6 @@ export * from "./pda-devices.api.js";
 export * from "./rbac.api.js";
 export * from "./registration.api.js";
 export * from "./subjects.api.js";
+export * from "./sync.api.js";
 export * from "./users.api.js";
 

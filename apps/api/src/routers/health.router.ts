@@ -23,12 +23,6 @@ import {
   recordTreatmentRequestSchema,
   type RecordVaccinationRequest,
   recordVaccinationRequestSchema,
-  type SyncDownloadResponse,
-  syncDownloadResponseSchema,
-  type SyncUploadRequest,
-  syncUploadRequestSchema,
-  type SyncUploadResponse,
-  syncUploadResponseSchema,
   treatmentListRequestSchema,
   type UnlinkVaccineDiseaseRequest,
   unlinkVaccineDiseaseRequestSchema,
@@ -187,20 +181,4 @@ export class HealthRouter {
     return unwrap(await this.healthService.unlinkVaccineDisease(input.vaccineId, input.diseaseId));
   }
 
-  // -- PDA Sync (Phase 5) ------------------------------------------
-
-  @Query({ input: z.strictObject({}), output: syncDownloadResponseSchema })
-  async syncDownload(): Promise<SyncDownloadResponse> {
-    return unwrap(await this.healthService.syncDownload());
-  }
-
-  @Mutation({ input: syncUploadRequestSchema, output: syncUploadResponseSchema })
-  async syncUpload(@Input() input: SyncUploadRequest, @Ctx() ctx: AppContext): Promise<SyncUploadResponse> {
-    return unwrap(
-      await this.healthService.syncUpload({
-        records: input.records,
-        createdBy: ctx.execution!.principal.id,
-      }),
-    );
-  }
 }
