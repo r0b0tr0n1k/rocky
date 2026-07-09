@@ -1,0 +1,48 @@
+{
+  "name": "@rocky/domains-sync",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./*.js": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "dependencies": {
+    "@rocky/database": "workspace:*",
+    "@rocky/validators": "workspace:*",
+    "@rocky/trpc": "workspace:*",
+    "@rocky/domains-animal": "workspace:*",
+    "@rocky/domains-farm": "workspace:*",
+    "@rocky/domains-movement": "workspace:*",
+    "@rocky/domains-inspection": "workspace:*",
+    "@rocky/domains-eartag": "workspace:*",
+    "@rocky/domains-health": "workspace:*",
+    "@rocky/domains-correction": "workspace:*",
+    "@rocky/domains-shared": "workspace:*",
+    "@rocky/execution": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "neverthrow": "catalog:"
+  },
+  "devDependencies": {
+    "@rocky/testing": "workspace:*",
+    "typescript": "catalog:",
+    "vite-tsconfig-paths": "catalog:",
+    "vitest": "catalog:"
+  }
+}

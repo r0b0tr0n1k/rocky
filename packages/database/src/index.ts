@@ -40,6 +40,7 @@ export * from "./schema/hk/index.js";
 export * from "./schema/events/index.js";
 // Re-export all schemas
 export * from "./schema/sm/index.js";
+export * from "./schema/sync.js";
 
 // Drizzle config for CLI
 import type { Config } from "drizzle-kit";
