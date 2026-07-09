@@ -60,7 +60,7 @@
 | WO-080 | Author frontend/mobile ADR set per ADR-0033 (0034–0043; domain features 0044+) | 0033       | P1       | Done    |
 | WO-081 | Promote mobile sync to top-level `sync` router (syncDownload/syncUpload under `health`) | 0034       | P2       | Open   |
 | WO-082 | Implement mobile offline-first cache + sync queue (expo-sqlite, persistQueryClient, NetInfo, sync router) | 0035       | P2       | Open   |
-| WO-083 | Reconcile AGENTS.md Mobile Bot path apps/mobile -> apps/mob (contract vs reality) | 0035       | P3       | Open   |
+| WO-083 | Reconcile AGENTS.md Mobile Bot path apps/mobile -> apps/mob (contract vs reality) | 0035       | P3       | Done    |
 | WO-085 | Filter mobile tabs by RBAC permission (mirror web `filterNavByPermissions`) | 0039       | P2       | Done    |
 | WO-086 | Add i18n layer (consume session.language, centralize strings, set dir/RTL-ready) | 0040       | P2       | Open   |
 | WO-087 | Web UX boundaries: error.tsx/not-found.tsx/loading.tsx; use Empty+Skeleton (unused) | 0041       | P2       | Done    |
@@ -826,4 +826,12 @@ Empty component added (`apps/mob/components/ui/empty.tsx`, RN Reusables port of 
 The sonner toast half (ADR-0041 §6) is DEFERRED: `sonner-react-native` is not installed
 anywhere in the workspace. Adding it is a dependency decision (needs `pnpm add` + a
 `<Toaster />` mount + a `notifyError` helper). Flagged as a separate step.
+
+### WO-083 — AGENTS.md Mobile Bot path reconciled
+
+Replaced stale `apps/mobile` with `apps/mob` in root AGENTS.md, packages/trpc/AGENTS.md,
+and packages/domains/inspection/AGENTS.md (contract vs reality, WO-083). NOTE: root
+AGENTS.md still references `apps/mob/AGENTS.md` which does NOT exist — the Mobile Bot
+has no child AGENTS.md. Flagged for creation (candidate for ADR-0054 Mobile Package
+Reconciliation); out of scope for the path reconcile.
 

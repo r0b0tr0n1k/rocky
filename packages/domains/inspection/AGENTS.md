@@ -77,11 +77,11 @@ ArchiveService ← InspectionService.complete()                (10% farm selecti
 
 | Step | Deliverable | Files | Status |
 |------|-------------|-------|--------|
-| B1 | ~~Fix `ORPCProvider` → `TRPCProvider` bug~~ | `apps/mobile/src/app/_layout.tsx` | ✅ **FIXED** — code uses correct `</TRPCProvider>` |
-| B2 | Add `expo-sqlite` + Drizzle SQLite ORM | `apps/mobile/package.json` | ❌ |
-| B3 | Define local SQLite schema (mirrors core domain tables per role profile) | `apps/mobile/src/db/schema.ts` | ❌ |
-| B4 | Build `LocalDbProvider` (init DB, run migrations) | `apps/mobile/src/providers/db-provider.tsx` | ❌ |
-| B5 | Build `NetworkProvider` using `expo-network` (connectivity state, event emitter) | `apps/mobile/src/providers/network-provider.tsx` | ❌ |
+| B1 | ~~Fix `ORPCProvider` → `TRPCProvider` bug~~ | `apps/mob/src/app/_layout.tsx` | ✅ **FIXED** — code uses correct `</TRPCProvider>` |
+| B2 | Add `expo-sqlite` + Drizzle SQLite ORM | `apps/mob/package.json` | ❌ |
+| B3 | Define local SQLite schema (mirrors core domain tables per role profile) | `apps/mob/src/db/schema.ts` | ❌ |
+| B4 | Build `LocalDbProvider` (init DB, run migrations) | `apps/mob/src/providers/db-provider.tsx` | ❌ |
+| B5 | Build `NetworkProvider` using `expo-network` (connectivity state, event emitter) | `apps/mob/src/providers/network-provider.tsx` | ❌ |
 
 **Dependencies:** None (can run independently)
 **Building blocks ready:** `expo-network` (installed unused), `DATA_SOURCE.MOBILE`/`EVENT_SOURCE.SYNC` enums, `sync_errors` table schema
@@ -134,10 +134,10 @@ ArchiveService ← InspectionService.complete()                (10% farm selecti
 | Step | Deliverable | Files | Status |
 |------|-------------|-------|--------|
 | E1 | Server-side `SyncService` + `SyncRouter` with batch mutation endpoint, conflict detection, `sync_errors` writer | `apps/api/src/services/sync.service.ts`, `apps/api/src/routers/sync.router.ts` | ❌ |
-| E2 | `SyncQueue` client lib — pend mutations when offline, replay on connectivity | `apps/mobile/src/lib/sync-queue.ts` | ❌ |
-| E3 | Network-aware tRPC wrapper — online → direct call, offline → queue | `apps/mobile/src/lib/trpc-offline.ts` | ❌ |
+| E2 | `SyncQueue` client lib — pend mutations when offline, replay on connectivity | `apps/mob/src/lib/sync-queue.ts` | ❌ |
+| E3 | Network-aware tRPC wrapper — online → direct call, offline → queue | `apps/mob/src/lib/trpc-offline.ts` | ❌ |
 | E4 | Data source tagging in domain services — set `DATA_SOURCE.MOBILE` or `EVENT_SOURCE.SYNC` | Cross-cutting: `packages/domains/*/src/services/*.service.ts` | ❌ |
-| E5 | Sync status UI component (pending count, last sync, force sync button) | `apps/mobile/src/components/sync-status.tsx` | ❌ |
+| E5 | Sync status UI component (pending count, last sync, force sync button) | `apps/mob/src/components/sync-status.tsx` | ❌ |
 
 **Dependencies:** Phase B (local DB + network provider)
 **Building blocks ready:** `sync_errors` table, `SYNC_ERROR_TYPE` enum, `DATA_SOURCE.MOBILE`/`EVENT_SOURCE.SYNC` enum values
@@ -246,4 +246,4 @@ Logical dependency chain:
 | **PDF Bot** | `packages/pdf/` | `InspectionFormTemplate` uses `InspectionService` for form data |
 | **Validation Bot** | `packages/validators/src/api/inspection.api.ts` | Inspection API schemas |
 | **API Bot** | `apps/api/src/routers/inspection.router.ts` | tRPC router |
-| **Mobile Bot** | `apps/mobile/src/` | Offline inspection capture, sync queue |
+| **Mobile Bot** | `apps/mob/src/` | Offline inspection capture, sync queue |

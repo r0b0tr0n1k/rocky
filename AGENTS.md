@@ -134,7 +134,7 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 | **Authorization Bot** | `packages/authorization/`      | Principal, @Policy decorator system, PolicyRegistry, PolicyEngine                                                                           |
 | **Execution Bot**     | `packages/execution/`          | ExecutionPipeline, RLS stage, RuntimeBuilder, event emitter                                                                                 |
 | **tRPC Bot**          | `packages/trpc/`               | AppRouter types, AppContext, superjson, generated server types                                                                              |
-| **Frontend Bot**      | `apps/mobile/src/`             | Expo tRPC client, components                                                                                                                |
+| **Frontend Bot**      | `apps/mob/src/`             | Expo tRPC client, components                                                                                                                |
 | **Admin Bot**         | `apps/web/`                    | Next.js admin panel                                                                                                                         |
 | **Docs Bot**          | `apps/docs/`                   | Nextra Docs Theme site (Next.js + Nextra 4); MDX content in `content/`. Architecture ADRs in `docs/adr/` (see ADR 0011/0018/0019) |
 | **EarTag Bot**        | `packages/domains/eartag/`     | Ear tag business rules, state machine, progress                                                                                             |
@@ -148,7 +148,7 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 | **Health Bot**        | `packages/domains/health/`     | Disease master data, vaccinations, treatments, outbreak alerts                                                                              |
 | **IoT Bot**           | `packages/domains/iot/`        | Device registry, sensor readings, geofences, geofence events                                                                                |
 | **PDF Bot**           | `packages/pdf/`                | Document generation framework, pluggable templates, YAML/XML output                                                                         |
-| **Mobile Bot**        | `apps/mobile/`                 | Expo React Native app, offline sync, field data entry                                                                                       |
+| **Mobile Bot**        | `apps/mob/`                 | Expo React Native app, offline sync, field data entry                                                                                       |
 
 ### RobotFarm Workflows
 
@@ -192,7 +192,7 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 
 **tRPC Bot** — Owns the tRPC transport package in `packages/trpc/`. Maintains the `AppContext` type, generated `AppRouter` type (from nestjs-trpc generate — 23 routers, 154 procedures), superjson transformer, and `createResultUnwrapper()`. `AppRouter` is re-exported from `packages/trpc/src/index.ts`; frontends (web + mobile) consume `AppRouter` for full type safety.
 
-**Mobile Bot** — Manages the Expo React Native mobile app in `apps/mobile/`. Handles offline-first data entry, local SQLite database, tRPC sync queue, network-aware connectivity, and per-role data scoping. See `apps/mobile/AGENTS.md` for offline sync architecture and `models/mobile-schema-profiles.yaml` for SQLite schema profiles. Owns the Mobile ADRs (with Frontend Bot for screens/components) in `apps/docs/content/ADR/` per ADR-0033.
+**Mobile Bot** — Manages the Expo React Native mobile app in `apps/mob/`. Handles offline-first data entry, local SQLite database, tRPC sync queue, network-aware connectivity, and per-role data scoping. See `apps/mob/AGENTS.md` for offline sync architecture and `models/mobile-schema-profiles.yaml` for SQLite schema profiles. Owns the Mobile ADRs (with Frontend Bot for screens/components) in `apps/docs/content/ADR/` per ADR-0033.
 
 **EarTag Bot** — Manages the ear tag domain in `packages/domains/eartag/`. Handles the 6-stage order lifecycle (DRAFT→SUBMITTED→CONFIRMED→SHIPPED→RECEIVED→COMPLETED), per-type stock management (MALE/FEMALE/UNISEX), and farm keeper assignment on delivery.
 
@@ -224,7 +224,7 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 | UI Bot            | `packages/@rocky/ui/`, shadcn registry                                           | Components, hooks, styles                                    |
 | API Bot           | `apps/api/`, `@rocky/validators`                                                 | Routers, services                                            |
 | Auth Bot          | `apps/api/src/auth/auth.ts`, `apps/web/lib/auth.ts`, `sm/users.ts`, `sm/rbac.ts` | Auth config, session enrichment, admin plugin                |
-| Frontend Bot      | `apps/mobile/src/`                                                               | Components, queries                                          |
+| Frontend Bot      | `apps/mob/src/`                                                               | Components, queries                                          |
 | Admin Bot         | `apps/web/`, `@rocky/api/types`                                                  | Admin pages, queries                                         |
 | Docs Bot          | `apps/docs/`, content/                                                           | MDX docs, components                                         |
 | EarTag Bot        | `packages/domains/eartag/`                                                       | Ear tag service, state machine                               |

@@ -6,7 +6,7 @@
 
 ## Overview
 
-Transport-layer package. Owns the shared tRPC types consumed by both server (apps/api) and clients (apps/web, apps/mobile). The `AppRouter` type is generated from NestJS routers and provides full type safety to frontends.
+Transport-layer package. Owns the shared tRPC types consumed by both server (apps/api) and clients (apps/web, apps/mob). The `AppRouter` type is generated from NestJS routers and provides full type safety to frontends.
 
 ## Key Files
 
@@ -27,7 +27,7 @@ Transport-layer package. Owns the shared tRPC types consumed by both server (app
 import { createTRPCReact } from "@trpc/react-query";
 export const trpc = createTRPCReact<AppRouter>();
 
-// Mobile (apps/mobile/src/providers/trpc-provider.tsx)
+// Mobile (apps/mob/src/providers/trpc-provider.tsx)
 export const trpc = createTRPCReact<AppRouter>();
 ```
 
@@ -39,7 +39,7 @@ NestJS routers (apps/api/src/routers/)
   → packages/trpc/src/generated/server.ts  (AppRouter = typeof appRouter)
   → packages/trpc/src/index.ts              (re-exports AppRouter)
   → apps/web/lib/trpc.ts                    (createTRPCReact<AppRouter>())
-  → apps/mobile/src/providers/trpc-provider.tsx (createTRPCReact<AppRouter>())
+  → apps/mob/src/providers/trpc-provider.tsx (createTRPCReact<AppRouter>())
 ```
 
 ## Regeneration
