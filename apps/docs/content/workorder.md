@@ -817,3 +817,13 @@ migration**; give `subjects` a real policy.
 must trigger a RobotFarm pass: update the owning ADR **and** this work order so the two never diverge.
 The closest owning doc for this list is `apps/docs/content/ADR/` (root of the business-rule subtree is
 ADR-0023).
+
+### WO-088 — mobile Empty + sonner toast (partial: Empty done)
+
+Empty component added (`apps/mob/components/ui/empty.tsx`, RN Reusables port of the
+@rocky/ui web `Empty` for web↔mobile API parity, ADR-0052) and wired into the
+`(tabs)/index.tsx` zero-result dashboard list (replaces inline "No animals found").
+The sonner toast half (ADR-0041 §6) is DEFERRED: `sonner-react-native` is not installed
+anywhere in the workspace. Adding it is a dependency decision (needs `pnpm add` + a
+`<Toaster />` mount + a `notifyError` helper). Flagged as a separate step.
+

@@ -2,6 +2,7 @@ import { View, ScrollView, TouchableOpacity } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { trpc } from "@/providers/trpc-provider";
@@ -78,7 +79,14 @@ export default function HomeScreen() {
               </TouchableOpacity>
             ))}
             {(!recentAnimals || recentAnimals.data.length === 0) && (
-              <Text className="text-muted-foreground text-center py-4">No animals found</Text>
+              <Empty>
+                <EmptyHeader>
+                  <EmptyTitle>No animals found</EmptyTitle>
+                  <EmptyDescription>
+                    Register an animal or pull from the server to populate this list.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
             )}
           </CardContent>
         </Card>
