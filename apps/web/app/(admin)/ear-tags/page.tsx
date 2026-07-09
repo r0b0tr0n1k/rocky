@@ -19,12 +19,14 @@ import { earTagColumns, earTagTypeColumns } from "#components/ear-tags/columns";
 import { enumToOptions } from "#lib/options";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "#lib/trpc";
+import { useCan } from "#lib/permissions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@rocky/ui/components/tabs";
 
 const PAGE_SIZE = 20;
 
 export default function EarTagsPage() {
   const trpc = useTRPC();
+  const canOrder = useCan("eartag:order");
   const queryClient = useQueryClient();
 
   const animals = useQuery(trpc.animal.list.queryOptions({ limit: 100 }));
@@ -91,6 +93,7 @@ export default function EarTagsPage() {
             pageSize={PAGE_SIZE}
           />
           <div className="mt-4 flex flex-wrap gap-2">
+{canOrder && (
             <ActionDialog
               triggerLabel="New order"
               schema={createOrderRequestSchema}
@@ -108,6 +111,7 @@ export default function EarTagsPage() {
                 </>
               )}
             />
+            )}
             <ActionDialog
               triggerLabel="Transition status"
               schema={orderStatusTransitionSchema}

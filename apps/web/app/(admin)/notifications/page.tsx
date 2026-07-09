@@ -10,9 +10,12 @@ import { SelectField, TextareaField, TextField } from "#components/shared/form-f
 import { PageHeader } from "#components/shared/page-header";
 import { enumToOptions } from "#lib/options";
 import { useTRPC } from "#lib/trpc";
+import { clientCanRole, usePermissions } from "#lib/permissions";
 
 export default function NotificationsPage() {
   const trpc = useTRPC();
+  const { roles } = usePermissions();
+  const canSend = clientCanRole(roles, ["VD_ADMIN", "VD_STAFF"]);
   const queryClient = useQueryClient();
 
   const unread = useQuery(trpc.notification.unreadCount.queryOptions());
@@ -44,6 +47,7 @@ export default function NotificationsPage() {
         </CardContent>
       </Card>
       <div className="flex flex-wrap gap-2">
+{canSend && (
         <ActionDialog
           triggerLabel="Send notification"
           schema={sendNotificationSchema.omit({ userId: true })}
@@ -80,6 +84,7 @@ export default function NotificationsPage() {
             </>
           )}
         />
+        )}
         <ActionDialog
           triggerLabel="Mark as read"
           schema={markAsReadSchema.omit({ userId: true })}
