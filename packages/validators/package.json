@@ -41,6 +41,14 @@
     "./utils/type-bridge": {
       "types": "./dist/utils/type-bridge.d.ts",
       "default": "./dist/utils/type-bridge.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./*.js": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
     }
   },
   "dependencies": {

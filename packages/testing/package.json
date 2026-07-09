@@ -5,18 +5,37 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./factory": "./src/factory/index.ts",
-    "./scenarios": "./src/scenarios/index.ts",
-    "./setup": "./src/setup.ts",
-    "./index.js": "./src/index.ts",
-    "./*": "./src/*"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./factory": {
+      "types": "./dist/factory/index.d.ts",
+      "default": "./dist/factory/index.js"
+    },
+    "./scenarios": {
+      "types": "./dist/scenarios/index.d.ts",
+      "default": "./dist/scenarios/index.js"
+    },
+    "./setup": {
+      "types": "./dist/setup.d.ts",
+      "default": "./dist/setup.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./*.js": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
   },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "populate": "tsx src/populate-demo.ts"
   },
   "dependencies": {
     "@rocky/database": "workspace:*",
@@ -25,7 +44,10 @@
   "devDependencies": {
     "@faker-js/faker": "^10.5.0",
     "@rocky/typescript-config": "workspace:*",
+    "dotenv": "^17.4.2",
     "vite-tsconfig-paths": "catalog:",
     "vitest": "catalog:"
-  }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts"
 }

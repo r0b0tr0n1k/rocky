@@ -4,13 +4,13 @@
 
 import { z } from "zod";
 import {
-  archiveDocumentSelectSchema,
-  archiveDocumentInsertSchema,
+  archiveDocumentsSelectSchema,
+  archiveDocumentsInsertSchema,
 } from "@rocky/database/zod";
 import {
   archiveDocumentTypeSchema,
   archiveLocationSchema,
-} from "../enums/domain.js";
+} from "../enums/index.js";
 import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -18,7 +18,7 @@ import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 // ═══════════════════════════════════════════════════════════════════════════
 
 /** Archive document record */
-export const archiveDocumentResponseSchema = archiveDocumentSelectSchema
+export const archiveDocumentResponseSchema = archiveDocumentsSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
     documentType: archiveDocumentTypeSchema,
@@ -26,10 +26,26 @@ export const archiveDocumentResponseSchema = archiveDocumentSelectSchema
     retentionExpiry: z.coerce.date<string>(),
     archivedAt: z.coerce.date<string>().nullable(),
     destroyedAt: z.coerce.date<string>().nullable(),
+  }).strip();
+
+export type ArchiveDocumentResponse = z.infer<typeof archiveDocumentResponseSchema>;
+
+/** Paginated list of archive documents */
+export const archiveDocumentListResponseSchema = z
+  .object({
+    data: z.array(archiveDocumentResponseSchema),
+    total: z.number(),
+    limit: z.number(),
+    offset: z.number(),
   })
   .strip();
 
-export type ArchiveDocumentResponse = z.infer<typeof archiveDocumentResponseSchema>;
+export type ArchiveDocumentListResponse = z.infer<typeof archiveDocumentListResponseSchema>;
+
+/** Expired (retention-due) archive documents */
+export const archiveExpiredListResponseSchema = z.array(archiveDocumentResponseSchema);
+
+export type ArchiveExpiredListResponse = z.infer<typeof archiveExpiredListResponseSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // LIST SCHEMAS
@@ -52,7 +68,7 @@ export type ArchiveDocumentListRequest = z.infer<typeof archiveDocumentListReque
 // CREATE / INPUT SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const createArchiveDocumentRequestSchema = archiveDocumentInsertSchema
+export const createArchiveDocumentRequestSchema = archiveDocumentsInsertSchema
   .pick({
     documentType: true,
     documentRef: true,
@@ -72,12 +88,12 @@ export const createArchiveDocumentRequestSchema = archiveDocumentInsertSchema
 
 export type CreateArchiveDocumentRequest = z.infer<typeof createArchiveDocumentRequestSchema>;
 
-export const archiveInspectionFormRequestSchema = z.strictObject(z
-  .strictObject({
+export const archiveInspectionFormRequestSchema = z.strictObject({
     inspectionId: z.uuid(),
     farmId: z.uuid(),
     archiveLocation: archiveLocationSchema.optional(),
-  }).shape);
+    createdBy: z.uuid().optional(),
+  });
 
 export type ArchiveInspectionFormRequest = z.infer<typeof archiveInspectionFormRequestSchema>;
 

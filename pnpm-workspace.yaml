@@ -4,7 +4,9 @@ packages:
   - "apps/*"
 
 allowBuilds:
+  '@biomejs/biome': set this to true or false
   "@swc/core": true
+  "@tailwindcss/oxide": true
   esbuild: true
   sharp: true
   unrs-resolver: true
@@ -48,6 +50,7 @@ catalog:
   "@trpc/client": ^11.18.0
   "@trpc/react-query": ^11.18.0
   "@trpc/server": ^11.18.0
+  "@trpc/tanstack-react-query": ^11.18.0
   "@turbo/gen": ^2.10.3
   "@types/express": ^5.0.6
   "@types/hast": ^3.0.4
@@ -75,6 +78,8 @@ catalog:
   lucide-react: 0.555.0
   neverthrow: ^8.2.0
   next: 16.2.10
+  nextra: 4.6.1
+  nextra-theme-docs: 4.6.1
   next-themes: ^0.4.6
   pg: ^8.22.0
   pino: ^10.3.1
@@ -159,7 +164,14 @@ minimumReleaseAgeExclude:
 onlyBuiltDependencies:
   - "@swc/core"
   - unrs-resolver
+  - "@tailwindcss/oxide"
 
 # Evict zod@3 (pulled by expo CLI) — pin a single Zod across the tree.
 overrides:
   zod: 4.4.3
+  # Nextra 4.6.1 <Layout> requires `children: z.custom(...)`. Zod >=4.2 treats a
+  # MISSING required key as `expected nonoptional` *before* the custom check runs,
+  # so the docs theme crashes under the global 4.4.3 pin. Scope Nextra back to
+  # the 4.1.x line (missing required z.custom key passes); rest stays on 4.4.3.
+  "nextra>zod": 4.1.13
+  "nextra-theme-docs>zod": 4.1.13

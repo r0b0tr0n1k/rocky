@@ -75,8 +75,8 @@ export type NoDrift<A, B> =
  */
 export type NoDriftSimple<A, B> = A extends B
   ? B extends A
-    ? true
-    : ["DRIFT (B narrower)", A, B]
+  ? true
+  : ["DRIFT (B narrower)", A, B]
   : ["DRIFT (A narrower)", A, B];
 
 /**
@@ -84,8 +84,10 @@ export type NoDriftSimple<A, B> = A extends B
  *
  * TypeScript's type system is lazy - unreferenced type aliases are never
  * evaluated. `ActivateGuillotines` consumes every alias in the tuple and
- * constrains them to `true[]`. If ANY alias resolved to a drift tuple
- * instead of `true`, the constraint fails and the compiler errors.
+ * constrains them to a NON-EMPTY `true[]` (`[true, ...true[]]`). If ANY
+ * alias resolved to a drift tuple instead of `true`, the constraint fails
+ * and the compiler errors. The non-empty constraint also rejects
+ * `ActivateGuillotines<[]>` so a file with ZERO proofs cannot build green.
  *
  * USAGE (at end of every *.api.ts file):
  *
@@ -97,4 +99,10 @@ export type NoDriftSimple<A, B> = A extends B
  *   Remove ActivateGuillotines and check the type of each _drift_*
  *   alias individually. A drift tuple shows the exact mismatch.
  */
-export type ActivateGuillotines<T extends true[]> = T;
+/**
+ * Non-empty variant: requires at least ONE guillotine proof.
+ * `ActivateGuillotines<[]>` (empty tuple) is REJECTED — a file with
+ * zero proofs must not compile green. This closes the empty-tuple
+ * footgun: every *.api.ts / *.events.ts file must declare ≥1 _drift_* alias.
+ */
+export type ActivateGuillotines<T extends [true, ...true[]]> = T;

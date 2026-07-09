@@ -12,6 +12,10 @@ import {
   completeInspectionRequestSchema,
   createInspectionRequestSchema,
   inspectionListRequestSchema,
+  inspectionListResponseSchema,
+  inspectionResponseSchema,
+  riskAnalysisListResponseSchema,
+  riskAnalysisRunResponseSchema,
   type PrintInspectionFormRequest,
   printInspectionFormRequestSchema,
   type ScheduleInspectionRequest,
@@ -33,36 +37,36 @@ export class InspectionRouter {
 
   // -- CRUD --
 
-  @Query({ input: idParam })
+  @Query({ input: idParam, output: inspectionResponseSchema })
   async getById(@Input() input: { id: string }) {
     return unwrap(await this.inspectionService.getById(input.id));
   }
 
-  @Query({ input: inspectionListRequestSchema })
+  @Query({ input: inspectionListRequestSchema, output: inspectionListResponseSchema })
   async list(@Input() input: z.infer<typeof inspectionListRequestSchema>) {
     return unwrap(await this.inspectionService.list(input));
   }
 
-  @Mutation({ input: createInspectionRequestSchema })
-  async create(@Input() input: CreateInspectionRequest, @Ctx() ctx: AppContext) {
-    return unwrap(await this.inspectionService.create({ ...input, createdBy: ctx.execution?.principal.id }));
+  @Mutation({ input: createInspectionRequestSchema, output: inspectionResponseSchema })
+  async create(@Input() input: CreateInspectionRequest, @Ctx() _ctx: AppContext) {
+    return unwrap(await this.inspectionService.create({ ...input }));
   }
 
   // -- Lifecycle --
 
-  @Mutation({ input: scheduleInspectionRequestSchema })
+  @Mutation({ input: scheduleInspectionRequestSchema, output: inspectionResponseSchema })
   async schedule(@Input() input: ScheduleInspectionRequest) {
     return unwrap(await this.inspectionService.schedule(input.id, input.scheduledDate));
   }
 
-  @Mutation({ input: completeInspectionRequestSchema })
+  @Mutation({ input: completeInspectionRequestSchema, output: inspectionResponseSchema })
   async complete(@Input() input: CompleteInspectionRequest) {
     return unwrap(await this.inspectionService.complete(input));
   }
 
   // -- Form Generation --
 
-  @Mutation({ input: printInspectionFormRequestSchema })
+  @Mutation({ input: printInspectionFormRequestSchema, output: z.any() })
   async printForm(@Input() input: PrintInspectionFormRequest) {
     return unwrap(
       await this.inspectionService.generateInspectionForm({
@@ -81,6 +85,7 @@ export class InspectionRouter {
       limit: z.int().min(1).max(100).default(20),
       offset: z.int().min(0).default(0),
     }),
+    output: riskAnalysisListResponseSchema,
   })
   @Policy({ action: "analysis:read" })
   async listRiskAnalyses(@Input() input: { year?: number; status?: string; limit: number; offset: number }) {
@@ -93,6 +98,7 @@ export class InspectionRouter {
       quarter: z.string().optional(),
       selectionPercentage: z.int().min(1).max(100).optional(),
     }),
+    output: riskAnalysisRunResponseSchema,
   })
   @Policy({ action: "analysis:run" })
   async runRiskAnalysis(

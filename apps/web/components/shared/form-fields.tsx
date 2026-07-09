@@ -199,11 +199,11 @@ export function CheckboxField<TValues extends FieldValues>({
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className="flex flex-row items-start gap-3 space-y-0 rounded-md border p-3">
+        <FormItem className="flex flex-row items-start gap-3 rounded-md border p-3">
           <FormControl>
             <Checkbox checked={Boolean(field.value)} onCheckedChange={field.onChange} />
           </FormControl>
-          <div className="space-y-1 leading-none">
+          <div className="flex flex-col gap-1 leading-none">
             <FormLabel>{label}</FormLabel>
             {description ? <FormDescription>{description}</FormDescription> : null}
           </div>
@@ -226,7 +226,7 @@ export function SwitchField<TValues extends FieldValues>({
       name={name}
       render={({ field }) => (
         <FormItem className="flex flex-row items-center justify-between rounded-md border p-3">
-          <div className="space-y-1">
+          <div className="flex flex-col gap-1">
             <FormLabel>{label}</FormLabel>
             {description ? <FormDescription>{description}</FormDescription> : null}
           </div>

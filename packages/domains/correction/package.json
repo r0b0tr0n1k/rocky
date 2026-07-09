@@ -5,22 +5,36 @@
   "type": "module",
   "scripts": {
     "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",
-    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit"
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit",
+    "test": "vitest run"
   },
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./index.js": "./src/index.ts",
-    "./*": "./src/*"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./*.js": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
   },
   "dependencies": {
     "@rocky/database": "workspace:*",
     "@rocky/domains-shared": "workspace:*",
+    "@rocky/validators": "workspace:*",
     "drizzle-orm": "catalog:",
     "neverthrow": "catalog:"
   },
   "devDependencies": {
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "vite-tsconfig-paths": "catalog:",
+    "@rocky/testing": "workspace:*"
   }
 }

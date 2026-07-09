@@ -8,6 +8,7 @@ import { CORRECTION_STATUS } from "@rocky/database/constants";
 import { fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
 import { CorrectionError, CORRECTION_ERRORS } from "../errors/correction.errors.js";
 import type { CorrectionRepository } from "../repositories/correction.repository.js";
+import { correctionResponseSchema } from "@rocky/validators/api";
 
 interface ArchiveServiceLike {
   archiveErrorCorrection(input: {
@@ -43,13 +44,14 @@ export class CorrectionService {
     return fromAsyncThrowable(async () => {
       const correction = await this.repo.findById(id);
       if (!correction) throw new CorrectionError(CORRECTION_ERRORS.NOT_FOUND, { id });
-      return correction;
+      return correctionResponseSchema.parse(correction);
     }, toAppError)();
   }
 
-  async list(input: { farmId?: string; animalId?: string; status?: string; detectionSource?: string; limit: number; offset: number }) {
+    async list(input: { farmId?: string; animalId?: string; status?: string; detectionSource?: string; limit: number; offset: number }) {
     return fromAsyncThrowable(async () => {
-      return this.repo.listFiltered(input);
+      const { data, total } = await this.repo.listFiltered(input);
+      return { data: data.map((d: unknown) => correctionResponseSchema.parse(d)), total, limit: input.limit, offset: input.offset };
     }, toAppError)();
   }
 
@@ -83,7 +85,7 @@ export class CorrectionService {
         createdBy: input.createdBy,
       });
       if (!correction) throw new CorrectionError(CORRECTION_ERRORS.INVALID_INPUT, { reason: "Failed to create correction" });
-      return correction;
+      return correctionResponseSchema.parse(correction);
     }, toAppError)();
   }
 
@@ -96,7 +98,8 @@ export class CorrectionService {
       const correction = await this.repo.findById(id);
       if (!correction) throw new CorrectionError(CORRECTION_ERRORS.NOT_FOUND, { id });
       this.validateTransition(correction.status, CORRECTION_STATUS.UNDER_REVIEW);
-      return this.repo.updateStatus(id, CORRECTION_STATUS.UNDER_REVIEW);
+      const updated = await this.repo.updateStatus(id, CORRECTION_STATUS.UNDER_REVIEW);
+      return correctionResponseSchema.parse(updated);
     }, toAppError)();
   }
 
@@ -125,7 +128,7 @@ export class CorrectionService {
       if (this.passportService && correction.passportReprintRequired && correction.passportId) {
         await this.passportService.reprint(correction.passportId).catch(() => {});
       }
-      return result;
+      return correctionResponseSchema.parse(result);
     }, toAppError)();
   }
 
@@ -138,7 +141,8 @@ export class CorrectionService {
       const correction = await this.repo.findById(id);
       if (!correction) throw new CorrectionError(CORRECTION_ERRORS.NOT_FOUND, { id });
       this.validateTransition(correction.status, CORRECTION_STATUS.ESCALATED);
-      return this.repo.escalate(id, input.escalatedTo, input.reason);
+      const escalated = await this.repo.escalate(id, input.escalatedTo, input.reason);
+      return correctionResponseSchema.parse(escalated);
     }, toAppError)();
   }
 
@@ -150,7 +154,8 @@ export class CorrectionService {
       const correction = await this.repo.findById(id);
       if (!correction) throw new CorrectionError(CORRECTION_ERRORS.NOT_FOUND, { id });
       this.validateTransition(correction.status, CORRECTION_STATUS.REJECTED);
-      return this.repo.updateStatus(id, CORRECTION_STATUS.REJECTED);
+      const rejected = await this.repo.updateStatus(id, CORRECTION_STATUS.REJECTED);
+      return correctionResponseSchema.parse(rejected);
     }, toAppError)();
   }
 

@@ -3,22 +3,46 @@
 // No event streams, no real-time — just basic CRUD.
 
 import { z } from "zod";
-import { iotDeviceSelectSchema, sensorReadingSelectSchema, geofenceSelectSchema, animalGeofenceEventSelectSchema } from "@rocky/database/zod";
-import { iotDeviceStatusSchema, transmissionTypeSchema, readingTypeSchema, processingStageSchema, fenceTypeSchema, geofenceEventTypeSchema, geofenceEventSourceSchema } from "../enums/domain.js";
-import type { iotDeviceStatusType, transmissionTypeType, readingTypeType, processingStageType, fenceTypeType, geofenceEventTypeType, geofenceEventSourceType } from "../enums/domain.js";
-import type { NoDrift, NoDriftSimple, ActivateGuillotines } from "../utils/type-bridge.js";
+import {
+  iotDevicesSelectSchema,
+  sensorReadingsSelectSchema,
+  geofencesSelectSchema,
+  animalGeofenceEventsSelectSchema,
+} from "@rocky/database/zod";
+import {
+  iotDeviceStatusSchema,
+  transmissionTypeSchema,
+  readingTypeSchema,
+  processingStageSchema,
+  fenceTypeSchema,
+  geofenceEventTypeSchema,
+  geofenceEventSourceSchema,
+} from "../enums/index.js";
+import type {
+  iotDeviceStatusType,
+  transmissionTypeType,
+  readingTypeType,
+  processingStageType,
+  fenceTypeType,
+  geofenceEventTypeType,
+  geofenceEventSourceType,
+} from "../enums/index.js";
+import type {
+  NoDrift,
+  NoDriftSimple,
+  ActivateGuillotines,
+} from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RESPONSE SCHEMAS — derived from Dumb Zod
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const iotDeviceResponseSchema = iotDeviceSelectSchema
+export const iotDeviceResponseSchema = iotDevicesSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
     status: iotDeviceStatusSchema,
     transmissionType: transmissionTypeSchema.nullable(),
-  })
-  .strip() satisfies z.ZodType<IotDeviceResponse>;
+  }).strip() satisfies z.ZodType<IotDeviceResponse>;
 
 export interface IotDeviceResponse {
   id: string;
@@ -42,12 +66,19 @@ export interface IotDeviceResponse {
   updatedAt: Date | null;
 }
 
-export const iotDeviceSummarySchema = iotDeviceSelectSchema
-  .pick({ id: true, deviceEui: true, manufacturer: true, model: true, status: true, assignedToFarmId: true })
+export const iotDeviceSummarySchema = iotDevicesSelectSchema
+  .pick({
+    id: true,
+    deviceEui: true,
+    manufacturer: true,
+    model: true,
+    status: true,
+    assignedToFarmId: true,
+  })
   .extend({
     status: iotDeviceStatusSchema,
   })
-  .strip() satisfies z.ZodType<IotDeviceSummary>;
+  .strict() satisfies z.ZodType<IotDeviceSummary>;
 
 export interface IotDeviceSummary {
   id: string;
@@ -58,7 +89,7 @@ export interface IotDeviceSummary {
   assignedToFarmId: string | null;
 }
 
-export const sensorReadingResponseSchema = sensorReadingSelectSchema
+export const sensorReadingResponseSchema = sensorReadingsSelectSchema
   .extend({
     readingType: readingTypeSchema,
     processingStage: processingStageSchema.nullable(),
@@ -83,12 +114,11 @@ export interface SensorReadingResponse {
   createdAt: Date;
 }
 
-export const geofenceResponseSchema = geofenceSelectSchema
+export const geofenceResponseSchema = geofencesSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
     fenceType: fenceTypeSchema,
-  })
-  .strip() satisfies z.ZodType<GeofenceResponse>;
+  }).strip() satisfies z.ZodType<GeofenceResponse>;
 
 export interface GeofenceResponse {
   id: string;
@@ -103,12 +133,12 @@ export interface GeofenceResponse {
   updatedAt: Date | null;
 }
 
-export const geofenceEventResponseSchema = animalGeofenceEventSelectSchema
+export const geofenceEventResponseSchema = animalGeofenceEventsSelectSchema
   .extend({
     eventType: geofenceEventTypeSchema,
     source: geofenceEventSourceSchema.nullable(),
   })
-  .strip() satisfies z.ZodType<GeofenceEventResponse>;
+  .strict() satisfies z.ZodType<GeofenceEventResponse>;
 
 export interface GeofenceEventResponse {
   id: string;
@@ -121,6 +151,22 @@ export interface GeofenceEventResponse {
   source: geofenceEventSourceType | null;
   createdAt: Date;
 }
+
+// ── Paginated list responses (Diamond Seal) ──
+export const iotDeviceListResponseSchema = z
+  .object({ data: z.array(iotDeviceResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
+  .strip();
+export type IotDeviceListResponse = z.infer<typeof iotDeviceListResponseSchema>;
+
+export const sensorReadingListResponseSchema = z
+  .object({ data: z.array(sensorReadingResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
+  .strip();
+export type SensorReadingListResponse = z.infer<typeof sensorReadingListResponseSchema>;
+
+export const geofenceEventListResponseSchema = z
+  .object({ data: z.array(geofenceEventResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
+  .strip();
+export type GeofenceEventListResponse = z.infer<typeof geofenceEventListResponseSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // REQUEST SCHEMAS — IoT Devices
@@ -237,15 +283,22 @@ export const createGeofenceRequestSchema = z.strictObject({
   geometry: z.discriminatedUnion("type", [
     z.object({
       type: z.literal("circle"),
-      center: z.object({ latitude: z.number().min(-90).max(90), longitude: z.number().min(-180).max(180) }),
+      center: z.object({
+        latitude: z.number().min(-90).max(90),
+        longitude: z.number().min(-180).max(180),
+      }),
       radiusMeters: z.number().positive(),
     }),
     z.object({
       type: z.literal("polygon"),
-      vertices: z.array(z.object({
-        latitude: z.number().min(-90).max(90),
-        longitude: z.number().min(-180).max(180),
-      })).min(3),
+      vertices: z
+        .array(
+          z.object({
+            latitude: z.number().min(-90).max(90),
+            longitude: z.number().min(-180).max(180),
+          }),
+        )
+        .min(3),
     }),
   ]),
 }) satisfies z.ZodType<CreateGeofenceRequest>;
@@ -256,8 +309,16 @@ export interface CreateGeofenceRequest {
   farmId: string;
   pastureId?: string;
   fenceType: fenceTypeType;
-  geometry: { type: "circle"; center: { latitude: number; longitude: number }; radiusMeters: number }
-    | { type: "polygon"; vertices: Array<{ latitude: number; longitude: number }> };
+  geometry:
+    | {
+        type: "circle";
+        center: { latitude: number; longitude: number };
+        radiusMeters: number;
+      }
+    | {
+        type: "polygon";
+        vertices: Array<{ latitude: number; longitude: number }>;
+      };
 }
 
 export const logGeofenceEventRequestSchema = z.strictObject({
@@ -286,21 +347,63 @@ export interface LogGeofenceEventRequest {
 // GUILLOTINES
 // ═══════════════════════════════════════════════════════════════════════════
 
-type _drift_iotDeviceResponse = NoDriftSimple<z.infer<typeof iotDeviceResponseSchema>, IotDeviceResponse>;
-type _drift_iotDeviceSummary = NoDriftSimple<z.infer<typeof iotDeviceSummarySchema>, IotDeviceSummary>;
-type _drift_sensorReadingResponse = NoDriftSimple<z.infer<typeof sensorReadingResponseSchema>, SensorReadingResponse>;
-type _drift_geofenceResponse = NoDriftSimple<z.infer<typeof geofenceResponseSchema>, GeofenceResponse>;
-type _drift_geofenceEventResponse = NoDriftSimple<z.infer<typeof geofenceEventResponseSchema>, GeofenceEventResponse>;
-type _drift_registerDevice = NoDriftSimple<z.infer<typeof registerDeviceRequestSchema>, RegisterDeviceRequest>;
-type _drift_listDevices = NoDriftSimple<z.infer<typeof listDevicesRequestSchema>, ListDevicesRequest>;
-type _drift_ingestReading = NoDriftSimple<z.infer<typeof ingestReadingRequestSchema>, IngestReadingRequest>;
-type _drift_listReadings = NoDriftSimple<z.infer<typeof listReadingsRequestSchema>, ListReadingsRequest>;
-type _drift_createGeofence = NoDriftSimple<z.infer<typeof createGeofenceRequestSchema>, CreateGeofenceRequest>;
-type _drift_logGeofenceEvent = NoDriftSimple<z.infer<typeof logGeofenceEventRequestSchema>, LogGeofenceEventRequest>;
+type _drift_iotDeviceResponse = NoDriftSimple<
+  z.infer<typeof iotDeviceResponseSchema>,
+  IotDeviceResponse
+>;
+type _drift_iotDeviceSummary = NoDriftSimple<
+  z.infer<typeof iotDeviceSummarySchema>,
+  IotDeviceSummary
+>;
+type _drift_sensorReadingResponse = NoDriftSimple<
+  z.infer<typeof sensorReadingResponseSchema>,
+  SensorReadingResponse
+>;
+type _drift_geofenceResponse = NoDriftSimple<
+  z.infer<typeof geofenceResponseSchema>,
+  GeofenceResponse
+>;
+type _drift_geofenceEventResponse = NoDriftSimple<
+  z.infer<typeof geofenceEventResponseSchema>,
+  GeofenceEventResponse
+>;
+type _drift_registerDevice = NoDriftSimple<
+  z.infer<typeof registerDeviceRequestSchema>,
+  RegisterDeviceRequest
+>;
+type _drift_listDevices = NoDriftSimple<
+  z.infer<typeof listDevicesRequestSchema>,
+  ListDevicesRequest
+>;
+type _drift_ingestReading = NoDriftSimple<
+  z.infer<typeof ingestReadingRequestSchema>,
+  IngestReadingRequest
+>;
+type _drift_listReadings = NoDriftSimple<
+  z.infer<typeof listReadingsRequestSchema>,
+  ListReadingsRequest
+>;
+type _drift_createGeofence = NoDriftSimple<
+  z.infer<typeof createGeofenceRequestSchema>,
+  CreateGeofenceRequest
+>;
+type _drift_logGeofenceEvent = NoDriftSimple<
+  z.infer<typeof logGeofenceEventRequestSchema>,
+  LogGeofenceEventRequest
+>;
 
-export type _IotGuillotines = ActivateGuillotines<[
-  _drift_iotDeviceResponse, _drift_iotDeviceSummary, _drift_sensorReadingResponse,
-  _drift_geofenceResponse, _drift_geofenceEventResponse,
-  _drift_registerDevice, _drift_listDevices, _drift_ingestReading,
-  _drift_listReadings, _drift_createGeofence, _drift_logGeofenceEvent,
-]>;
+export type _IotGuillotines = ActivateGuillotines<
+  [
+    _drift_iotDeviceResponse,
+    _drift_iotDeviceSummary,
+    _drift_sensorReadingResponse,
+    _drift_geofenceResponse,
+    _drift_geofenceEventResponse,
+    _drift_registerDevice,
+    _drift_listDevices,
+    _drift_ingestReading,
+    _drift_listReadings,
+    _drift_createGeofence,
+    _drift_logGeofenceEvent,
+  ]
+>;

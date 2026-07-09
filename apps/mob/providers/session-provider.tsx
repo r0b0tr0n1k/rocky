@@ -15,7 +15,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const { data, isPending } = authClient.useSession();
 
   const refresh = useCallback(async () => {
-    await authClient.getSession();
+    try {
+      await authClient.getSession();
+    } catch {
+      // API unreachable (e.g. backend down / native crash). Session stays null — don't crash the app.
+    }
   }, []);
 
   const onAuthSuccess = useCallback(async () => {

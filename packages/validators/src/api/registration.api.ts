@@ -7,6 +7,7 @@
 import { z } from "zod";
 import { sexSchema as SexZ } from "../enums/index.js";
 import { earTagSchema, farmIdSchema } from "../utils/check-digit.js";
+import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ============================================================================
 // SYSTEM PARAMETERS (retrieved from DB at runtime)
@@ -48,7 +49,7 @@ export const normalRegistrationSchema = z.strictObject({
   farmId: farmIdSchema,
   earTag: earTagSchema,
   birthDate: z
-    .date()
+    .coerce.date<string>()
     .refine((d) => d <= new Date(), "Birth date cannot be in the future"),
   sex: SexZ,
   breed: z.string().min(1).max(50),
@@ -72,4 +73,14 @@ export const normalRegistrationSchema = z.strictObject({
   importCountry: z.string().length(3).optional(),
   importDate: z.coerce.date<string>().optional(),
 });
+
+// ═══════════════════════════════════════════════════════════════
+// GUILLOTINE ACTIVATION (Tier 2 + Tier 3)
+// ═══════════════════════════════════════════════════════════════
+
+type _drift_normalRegistration = NoDrift<z.infer<typeof normalRegistrationSchema>, NormalRegistrationInput>;
+
+export type _RegistrationGuillotines = ActivateGuillotines<
+  [ _drift_normalRegistration ]
+>;
 

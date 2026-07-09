@@ -1,5 +1,6 @@
 export * from "./types.js";
 export * from "./animal.errors.js";
+export * from "./audit.errors.js";
 export * from "./archive.errors.js";
 export * from "./correction.errors.js";
 export * from "./device.errors.js";
@@ -16,3 +17,4 @@ export * from "./passport.errors.js";
 export * from "./rbac.errors.js";
 export * from "./subject.errors.js";
 export * from "./user.errors.js";
+export * from "./system.errors.js";

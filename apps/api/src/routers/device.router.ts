@@ -14,7 +14,10 @@ import type {
 import {
   assignDeviceUserRequestSchema,
   createPdaDeviceRequestSchema,
+  pdaDeviceBlockedResponseSchema,
   pdaDeviceListRequestSchema,
+  pdaDeviceListResponseSchema,
+  pdaDeviceResponseSchema,
   recordSyncRequestSchema,
   updatePdaDeviceRequestSchema,
 } from "@rocky/validators/api/index.js";
@@ -32,43 +35,43 @@ const unwrap = createResultUnwrapper(DEVICE_TRPC_ERROR_MAP);
 export class DeviceRouter {
   constructor(@Inject(DeviceService) private readonly deviceService: DeviceService) {}
 
-  @Query({ input: idParam })
+  @Query({ input: idParam, output: pdaDeviceResponseSchema })
   async getById(@Input() input: { id: string }) {
     return unwrap(await this.deviceService.getById(input.id));
   }
 
-  @Query({ input: pdaDeviceListRequestSchema })
+  @Query({ input: pdaDeviceListRequestSchema, output: pdaDeviceListResponseSchema })
   async list(@Input() input: z.infer<typeof pdaDeviceListRequestSchema>) {
     return unwrap(await this.deviceService.list(input));
   }
 
-  @Mutation({ input: createPdaDeviceRequestSchema })
+  @Mutation({ input: createPdaDeviceRequestSchema, output: pdaDeviceResponseSchema })
   async create(@Input() input: CreatePdaDeviceRequest, @Ctx() ctx: AppContext) {
     return unwrap(await this.deviceService.create({ ...input, createdBy: ctx.execution?.principal.id }));
   }
 
-  @Mutation({ input: idParam.partial().extend(updatePdaDeviceRequestSchema.shape) })
+  @Mutation({ input: idParam.partial().extend(updatePdaDeviceRequestSchema.shape), output: pdaDeviceResponseSchema })
   async update(@Input() input: { id: string } & UpdatePdaDeviceRequest) {
     const { id, ...data } = input;
     return unwrap(await this.deviceService.update(id, data));
   }
 
-  @Mutation({ input: assignDeviceUserRequestSchema })
+  @Mutation({ input: assignDeviceUserRequestSchema, output: pdaDeviceResponseSchema })
   async assignUser(@Input() input: AssignDeviceUserRequest) {
     return unwrap(await this.deviceService.assignUser(input.deviceId, input.userId));
   }
 
-  @Mutation({ input: recordSyncRequestSchema })
+  @Mutation({ input: recordSyncRequestSchema, output: pdaDeviceResponseSchema })
   async recordSync(@Input() input: RecordSyncRequest) {
     return unwrap(await this.deviceService.recordSync(input.deviceId));
   }
 
-  @Mutation({ input: idParam })
+  @Mutation({ input: idParam, output: pdaDeviceBlockedResponseSchema })
   async registerFailedAttempt(@Input() input: { id: string }) {
     return unwrap(await this.deviceService.registerFailedAttempt(input.id));
   }
 
-  @Mutation({ input: idParam })
+  @Mutation({ input: idParam, output: pdaDeviceResponseSchema })
   async unblock(@Input() input: { id: string }) {
     return unwrap(await this.deviceService.unblock(input.id));
   }

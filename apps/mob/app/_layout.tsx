@@ -3,6 +3,7 @@ import '@/global.css';
 import { NAV_THEME } from '@/lib/theme';
 import { TRPCProvider } from '@/providers/trpc-provider';
 import { SessionProvider } from '@/providers/session-provider';
+import { ActiveFarmProvider } from '@/providers/active-farm-provider';
 import { getConfig } from '@/lib/config';
 import { ThemeProvider } from 'expo-router/react-navigation';
 import { PortalHost } from '@rn-primitives/portal';
@@ -43,7 +44,8 @@ export default function RootLayout() {
   return (
     <TRPCProvider apiUrl={config.apiUrl}>
       <SessionProvider>
-        <ThemeProvider value={NAV_THEME[theme ?? 'light']}>
+        <ActiveFarmProvider>
+          <ThemeProvider value={NAV_THEME[theme ?? 'light']}>
           <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
           <Stack>
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
@@ -51,6 +53,7 @@ export default function RootLayout() {
           </Stack>
           <PortalHost />
         </ThemeProvider>
+        </ActiveFarmProvider>
       </SessionProvider>
     </TRPCProvider>
   );

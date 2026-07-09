@@ -11,6 +11,15 @@ import type { AnimalRepository } from "@rocky/domains-animal";
 import type { HealthRepository } from "../repositories/health.repository.js";
 import { HealthError, HEALTH_ERRORS } from "../errors/health.errors.js";
 import { ANIMAL_STATUS, SUBJECT_ROLE } from "@rocky/database/constants";
+import {
+  diseaseResponseSchema,
+  vaccineResponseSchema,
+  vaccineBatchResponseSchema,
+  vaccinationResponseSchema,
+  treatmentResponseSchema,
+  labTestResponseSchema,
+  vaccineDiseaseResponseSchema,
+} from "@rocky/validators/api";
 
 export type { HealthError, HealthErrorCode } from "../errors/health.errors.js";
 
@@ -104,17 +113,18 @@ export class HealthService {
   async getDisease(id: string) {
     const disease = await this.repo.findDiseaseById(id);
     if (!disease) return err(new HealthError(HEALTH_ERRORS.NOT_FOUND, { diseaseId: id }));
-    return ok(disease);
+    return ok(diseaseResponseSchema.parse(disease));
   }
 
   async listDiseases(input: { search?: string; notifiable?: boolean; limit: number; offset: number }) {
-    return ok(await this.repo.listDiseases(input));
+    const { data, total } = await this.repo.listDiseases(input);
+    return ok({ data: data.map((d: unknown) => diseaseResponseSchema.parse(d)), total, limit: input.limit, offset: input.offset });
   }
 
   async createDisease(input: CreateDiseaseInput) {
     const disease = await this.repo.createDisease({ name: input.name, notifiable: input.notifiable ?? false, description: input.description });
     if (!disease) return err(new HealthError(HEALTH_ERRORS.INVALID_INPUT));
-    return ok(disease);
+    return ok(diseaseResponseSchema.parse(disease));
   }
 
   // ── Vaccine CRUD ──
@@ -122,17 +132,18 @@ export class HealthService {
   async getVaccine(id: string) {
     const vaccine = await this.repo.findVaccineById(id);
     if (!vaccine) return err(new HealthError(HEALTH_ERRORS.NOT_FOUND, { vaccineId: id }));
-    return ok(vaccine);
+    return ok(vaccineResponseSchema.parse(vaccine));
   }
 
   async listVaccines(input: { search?: string; type?: string; limit: number; offset: number }) {
-    return ok(await this.repo.listVaccines(input));
+    const { data, total } = await this.repo.listVaccines(input);
+    return ok({ data: data.map((d: unknown) => vaccineResponseSchema.parse(d)), total, limit: input.limit, offset: input.offset });
   }
 
   async createVaccine(input: CreateVaccineInput) {
     const vaccine = await this.repo.createVaccine({ name: input.name, manufacturer: input.manufacturer, type: input.type });
     if (!vaccine) return err(new HealthError(HEALTH_ERRORS.INVALID_INPUT));
-    return ok(vaccine);
+    return ok(vaccineResponseSchema.parse(vaccine));
   }
 
   // ── Vaccine Batch CRUD ──
@@ -147,11 +158,12 @@ export class HealthService {
       quantityRemaining: input.quantityReceived,
     });
     if (!batch) return err(new HealthError(HEALTH_ERRORS.INVALID_INPUT));
-    return ok(batch);
+    return ok(vaccineBatchResponseSchema.parse(batch));
   }
 
   async listBatches(input: { vaccineId?: string; limit: number; offset: number }) {
-    return ok(await this.repo.listBatches(input));
+    const { data, total } = await this.repo.listBatches(input);
+    return ok({ data: data.map((d: unknown) => vaccineBatchResponseSchema.parse(d)), total, limit: input.limit, offset: input.offset });
   }
 
   // ── Vaccination (with vet authorization) ──
@@ -193,17 +205,18 @@ export class HealthService {
     // 5. Decrement batch quantity
     await this.repo.decrementBatchQuantity(input.batchId);
 
-    return ok(vaccination);
+    return ok(vaccinationResponseSchema.parse(vaccination));
   }
 
   async getVaccination(id: string) {
     const vaccination = await this.repo.findVaccinationById(id);
     if (!vaccination) return err(new HealthError(HEALTH_ERRORS.NOT_FOUND, { vaccinationId: id }));
-    return ok(vaccination);
+    return ok(vaccinationResponseSchema.parse(vaccination));
   }
 
   async listVaccinations(input: { animalId?: string; farmId?: string; vaccineId?: string; vetId?: string; limit: number; offset: number }) {
-    return ok(await this.repo.listVaccinations(input));
+    const { data, total } = await this.repo.listVaccinations(input);
+    return ok({ data: data.map((d: unknown) => vaccinationResponseSchema.parse(d)), total, limit: input.limit, offset: input.offset });
   }
 
   // ── Treatment (with vet authorization) ──
@@ -263,17 +276,18 @@ export class HealthService {
       // The OutboxProcessorJob will dispatch asynchronously.
     }
 
-    return ok(treatment);
+    return ok(treatmentResponseSchema.parse(treatment));
   }
 
   async getTreatment(id: string) {
     const treatment = await this.repo.findTreatmentById(id);
     if (!treatment) return err(new HealthError(HEALTH_ERRORS.NOT_FOUND, { treatmentId: id }));
-    return ok(treatment);
+    return ok(treatmentResponseSchema.parse(treatment));
   }
 
   async listTreatments(input: { animalId?: string; farmId?: string; diseaseId?: string; vetId?: string; limit: number; offset: number }) {
-    return ok(await this.repo.listTreatments(input));
+    const { data, total } = await this.repo.listTreatments(input);
+    return ok({ data: data.map((d: unknown) => treatmentResponseSchema.parse(d)), total, limit: input.limit, offset: input.offset });
   }
 
   // ── Lab Test ──
@@ -297,17 +311,18 @@ export class HealthService {
       createdBy: input.createdBy,
     });
     if (!labTest) return err(new HealthError(HEALTH_ERRORS.INVALID_INPUT));
-    return ok(labTest);
+    return ok(labTestResponseSchema.parse(labTest));
   }
 
   async getLabTest(id: string) {
     const labTest = await this.repo.findLabTestById(id);
     if (!labTest) return err(new HealthError(HEALTH_ERRORS.LAB_TEST_NOT_FOUND, { labTestId: id }));
-    return ok(labTest);
+    return ok(labTestResponseSchema.parse(labTest));
   }
 
   async listLabTests(input: { animalId?: string; farmId?: string; diseaseId?: string; testType?: string; result?: string; limit: number; offset: number }) {
-    return ok(await this.repo.listLabTests(input));
+    const { data, total } = await this.repo.listLabTests(input);
+    return ok({ data: data.map((d: unknown) => labTestResponseSchema.parse(d)), total, limit: input.limit, offset: input.offset });
   }
 
   // ── Vaccine-Disease Links ──
@@ -319,7 +334,7 @@ export class HealthService {
 
     const link = await this.repo.linkVaccineToDisease({ vaccineId: input.vaccineId, diseaseId: input.diseaseId, createdBy: input.createdBy });
     if (!link) return err(new HealthError(HEALTH_ERRORS.INVALID_INPUT));
-    return ok(link);
+    return ok(vaccineDiseaseResponseSchema.parse(link));
   }
 
   async unlinkVaccineDisease(vaccineId: string, diseaseId: string) {
@@ -332,7 +347,7 @@ export class HealthService {
 
   async getVaccineDiseases(vaccineId: string) {
     const links = await this.repo.findVaccineDiseases(vaccineId);
-    return ok(links);
+    return ok(links.map((l: unknown) => vaccineDiseaseResponseSchema.parse(l)));
   }
 
   // ── PDA Sync (Phase 5) ────────────────────────────────────────

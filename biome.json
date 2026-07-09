@@ -48,12 +48,7 @@
         "noExplicitAny": "info"
       },
       "correctness": {
-        "useImportExtensions": {
-          "level": "on",
-          "options": {
-            "forceJsExtensions": true
-          }
-        }
+        "useImportExtensions": "off"
       }
     }
   },

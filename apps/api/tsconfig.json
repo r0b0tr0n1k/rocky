@@ -1,5 +1,6 @@
 {
   "extends": "@rocky/typescript-config/base.json",
+  "exclude": ["node_modules", "dist", "**/*spec.ts"],
   "compilerOptions": {
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
@@ -8,36 +9,7 @@
     "strictNullChecks": true,
     "outDir": "./dist",
     "paths": {
-      "#/*": ["./src/*"],
-      "@rocky/database": ["../../packages/database/src/index.ts"],
-      "@rocky/database/*": ["../../packages/database/src/*"],
-      "@rocky/trpc": ["../../packages/trpc/src/index.ts"],
-      "@rocky/trpc/*": ["../../packages/trpc/src/*"],
-      "@rocky/domains-shared": ["../../packages/domains/shared/src/index.ts"],
-      "@rocky/domains-shared/*": ["../../packages/domains/shared/src/*"],
-      "@rocky/domains-notification": [
-        "../../packages/domains/notification/src/index.ts"
-      ],
-      "@rocky/domains-notification/*": [
-        "../../packages/domains/notification/src/*"
-      ],
-      "@rocky/domains-user": ["../../packages/domains/user/src/index.ts"],
-      "@rocky/domains-user/*": ["../../packages/domains/user/src/*"],
-      "@rocky/domains-rbac": ["../../packages/domains/rbac/src/index.ts"],
-      "@rocky/domains-rbac/*": ["../../packages/domains/rbac/src/*"],
-      "@rocky/domains-organization": [
-        "../../packages/domains/organization/src/index.ts"
-      ],
-      "@rocky/domains-organization/*": [
-        "../../packages/domains/organization/src/*"
-      ],
-      "@rocky/logger": ["../../packages/logger/src/index.ts"],
-      "@rocky/email": ["../../packages/email/src/index.ts"],
-      "@rocky/email/*": ["../../packages/email/src/*"],
-      "@rocky/validators": ["../../packages/validators/src/index.ts"],
-      "@rocky/validators/*": ["../../packages/validators/src/*"],
-      "@rocky/authorization": ["../../packages/authorization/src/index.ts"],
-      "@rocky/execution": ["../../packages/execution/src/index.ts"]
+      "#/*": ["./src/*"]
     }
   }
 }

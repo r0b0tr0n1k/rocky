@@ -13,6 +13,7 @@
 import "dotenv/config";
 import { hashPassword } from "@better-auth/utils/password";
 import { sql } from "drizzle-orm";
+import { MODULE_TYPE } from "./constants/module-type.js";
 import { ROLE_PRIORITY } from "./constants/role-priority.js";
 import { VACCINE_TYPE } from "./constants/vaccine-type.js";
 import { db } from "./index.js";
@@ -25,6 +26,7 @@ import { user as authUser, account as authAccount } from "./schema/auth/index.js
 import { users } from "./schema/sm/users.js";
 import { userRoles } from "./schema/sm/rbac.js";
 import { organizations } from "./schema/sm/organizations.js";
+import { modules, systemParameters } from "./schema/sm/modules.js";
 import { states, zipCodes, addresses } from "./schema/hk/addresses.js";
 import { farms } from "./schema/hk/farms.js";
 import { USER_STATUS } from "./constants/user-status.js";
@@ -49,6 +51,8 @@ const PERMISSION_DEFS = [
   { resource: "sm:audit", action: "read", description: "View audit log", scope: "*" },
   { resource: "sm:sysparams", action: "read", description: "View system parameters", scope: "*" },
   { resource: "sm:sysparams", action: "write", description: "Modify system parameters", scope: "*" },
+  { resource: "sm:modules", action: "read", description: "View feature-flag modules", scope: "*" },
+  { resource: "sm:modules", action: "write", description: "Enable/disable feature-flag modules", scope: "*" },
 
   // Holder/Keeper (HK) Module
   { resource: "hk:farm", action: "read", description: "View farm/holding data", scope: "org" },
@@ -371,6 +375,95 @@ async function seed() {
   }
 
   console.log(`  ✓ ${assignments} role→permission assignments created`);
+
+  // ═══════════════════════════════════════════════════════════════
+  // 3.5 Seed Feature Flags (modules) & System Parameters
+  // ═══════════════════════════════════════════════════════════════
+
+  console.log("🌱 Seeding feature flags (modules)...");
+
+  const MODULE_DEFS: Array<{
+    name: string;
+    title: string;
+    type: (typeof MODULE_TYPE)[keyof typeof MODULE_TYPE];
+    icon: string;
+    route: string;
+    orderSeq: number;
+    isActive: boolean;
+  }> = [
+    { name: "ANIMALS", title: "Animal Registry", type: MODULE_TYPE.FEATURE, icon: "PawPrint", route: "/animals", orderSeq: 10, isActive: true },
+    { name: "MOVEMENTS", title: "Movements", type: MODULE_TYPE.FEATURE, icon: "ArrowLeftRight", route: "/movements", orderSeq: 20, isActive: true },
+    { name: "PASSPORTS", title: "Passports", type: MODULE_TYPE.FEATURE, icon: "BookUser", route: "/passports", orderSeq: 30, isActive: true },
+    { name: "EARTAGS", title: "Ear Tags", type: MODULE_TYPE.FEATURE, icon: "Tags", route: "/ear-tags", orderSeq: 40, isActive: true },
+    { name: "HEALTH", title: "Health", type: MODULE_TYPE.FEATURE, icon: "HeartPulse", route: "/health", orderSeq: 50, isActive: true },
+    { name: "INSPECTIONS", title: "Inspections", type: MODULE_TYPE.FEATURE, icon: "ClipboardCheck", route: "/inspections", orderSeq: 60, isActive: true },
+    { name: "CORRECTIONS", title: "Corrections", type: MODULE_TYPE.FEATURE, icon: "Wrench", route: "/corrections", orderSeq: 70, isActive: true },
+    { name: "ARCHIVE", title: "Archive", type: MODULE_TYPE.FEATURE, icon: "Archive", route: "/archive", orderSeq: 80, isActive: true },
+    { name: "NOTIFICATIONS", title: "Notifications", type: MODULE_TYPE.FEATURE, icon: "Bell", route: "/notifications", orderSeq: 90, isActive: true },
+    { name: "IOT", title: "IoT", type: MODULE_TYPE.INTEGRATION, icon: "RadioTower", route: "/iot", orderSeq: 100, isActive: true },
+    { name: "FARMS", title: "Farms", type: MODULE_TYPE.CORE, icon: "Building2", route: "/farms", orderSeq: 110, isActive: true },
+    { name: "ORGANIZATIONS", title: "Organizations", type: MODULE_TYPE.ADMIN, icon: "Users", route: "/organizations", orderSeq: 120, isActive: true },
+    { name: "USERS", title: "Users", type: MODULE_TYPE.ADMIN, icon: "UserCog", route: "/users", orderSeq: 130, isActive: true },
+    { name: "ROLES", title: "Roles & Permissions", type: MODULE_TYPE.ADMIN, icon: "ShieldCheck", route: "/rbac", orderSeq: 140, isActive: true },
+    { name: "AUDIT", title: "Audit", type: MODULE_TYPE.ADMIN, icon: "ScrollText", route: "/audit", orderSeq: 150, isActive: true },
+    { name: "SYSTEM_PARAMS", title: "System Parameters", type: MODULE_TYPE.ADMIN, icon: "SlidersHorizontal", route: "/system-parameters", orderSeq: 160, isActive: true },
+    { name: "FEATURE_FLAGS", title: "Feature Flags", type: MODULE_TYPE.ADMIN, icon: "ToggleLeft", route: "/feature-flags", orderSeq: 170, isActive: true },
+  ];
+
+  for (const def of MODULE_DEFS) {
+    await db.insert(modules).values(def).onConflictDoNothing({ target: [modules.name] });
+  }
+  const moduleCount = await db.select({ count: sql<number>`count(*)::int` }).from(modules);
+  console.log(`  ✓ ${moduleCount[0]?.count ?? 0} feature-flag modules registered`);
+
+  console.log("🌱 Seeding system parameters...");
+
+  const SYSTEM_PARAM_DEFS: Array<{
+    code: string;
+    value: string;
+    dataType: string;
+    group: string;
+    description: string;
+    isEditable: boolean;
+    allowedValues?: string[];
+    minValue?: string;
+    maxValue?: string;
+  }> = [
+    { code: "DEFAULT_LANGUAGE", value: "MK", dataType: "STRING", group: "general", description: "Default UI language", isEditable: true },
+    { code: "UI_THEME", value: "system", dataType: "STRING", group: "general", description: "UI color theme", allowedValues: ["light", "dark", "system"], isEditable: true },
+    { code: "DATE_FORMAT", value: "dd.MM.yyyy", dataType: "STRING", group: "general", description: "Default date format", isEditable: true },
+    { code: "SESSION_TIMEOUT_MIN", value: "30", dataType: "INTEGER", group: "security", description: "Session idle timeout (minutes)", minValue: "5", maxValue: "240", isEditable: true },
+    { code: "PASSWORD_MIN_LENGTH", value: "8", dataType: "INTEGER", group: "security", description: "Minimum password length", minValue: "6", maxValue: "64", isEditable: true },
+    { code: "AUDIT_RETENTION_DAYS", value: "1095", dataType: "INTEGER", group: "retention", description: "Audit log retention period (days)", minValue: "90", maxValue: "3650", isEditable: true },
+    { code: "NOTIFICATIONS_ENABLED", value: "true", dataType: "BOOLEAN", group: "notifications", description: "Enable system notifications", isEditable: true },
+    { code: "MAINTENANCE_MODE", value: "false", dataType: "BOOLEAN", group: "system", description: "Enable maintenance mode", isEditable: true },
+
+
+    // ── MK business-rule defaults (ADR-0030 RuleSet thresholds) ──
+    // Seeded as the MK jurisdiction default. Domain services currently hardcode
+    // these (the B2 gap, ADR-0023/0030); WO-012 will read them via the RuleSet
+    // resolver instead of module-level constants. Idempotent via onConflictDoNothing.
+    { code: "ORDER_INTERVAL_DAYS", value: "120", dataType: "INTEGER", group: "business", description: "Minimum days between ear-tag orders", minValue: "1", maxValue: "365", isEditable: true },
+    { code: "MAX_ORDERS_PER_YEAR", value: "4", dataType: "INTEGER", group: "business", description: "Maximum ear-tag orders per year", minValue: "1", maxValue: "52", isEditable: true },
+    { code: "MIN_VACCINATION_AGE_DAYS", value: "30", dataType: "INTEGER", group: "business", description: "Minimum animal age (days) for vaccination", minValue: "1", isEditable: true },
+    { code: "SLAUGHTER_MIN_AGE_DAYS", value: "25", dataType: "INTEGER", group: "business", description: "Minimum age (days) for slaughter", minValue: "1", isEditable: true },
+    { code: "STILLBORN_THRESHOLD_DAYS", value: "25", dataType: "INTEGER", group: "business", description: "Max age (days) still classified stillborn", minValue: "1", isEditable: true },
+    { code: "ARRIVAL_CORRECTION_DAYS", value: "2", dataType: "INTEGER", group: "business", description: "Arrival correction window (days)", minValue: "0", maxValue: "30", isEditable: true },
+    { code: "MIN_MOTHER_AGE_MONTHS", value: "17", dataType: "INTEGER", group: "business", description: "Minimum mother age (months) at birth", minValue: "1", isEditable: true },
+    { code: "CALVING_PERIOD_DAYS", value: "365", dataType: "INTEGER", group: "business", description: "Minimum calving gap (days) since last calf", minValue: "1", isEditable: true },
+    { code: "SELECTION_PERCENTAGE", value: "10", dataType: "INTEGER", group: "inspection", description: "Annual risk-analysis farm selection percentage", minValue: "1", maxValue: "100", isEditable: true },
+    { code: "FARM_SIZE_WEIGHT", value: "0.3", dataType: "DECIMAL", group: "inspection", description: "Risk weight: farm size", isEditable: true },
+    { code: "HISTORY_WEIGHT", value: "0.3", dataType: "DECIMAL", group: "inspection", description: "Risk weight: inspection history", isEditable: true },
+    { code: "SPECIES_WEIGHT", value: "0.2", dataType: "DECIMAL", group: "inspection", description: "Risk weight: species diversity", isEditable: true },
+    { code: "REGION_WEIGHT", value: "0.2", dataType: "DECIMAL", group: "inspection", description: "Risk weight: regional random factor", isEditable: true },
+  ];
+
+  for (const def of SYSTEM_PARAM_DEFS) {
+    await db.insert(systemParameters).values(def).onConflictDoNothing({ target: [systemParameters.code] });
+  }
+  const paramCount = await db.select({ count: sql<number>`count(*)::int` }).from(systemParameters);
+  console.log(`  ✓ ${paramCount[0]?.count ?? 0} system parameters registered`);
+
 
   // ═══════════════════════════════════════════════════════════════
   // 4. Seed Health Master Data

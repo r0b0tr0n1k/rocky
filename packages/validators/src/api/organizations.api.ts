@@ -3,7 +3,7 @@
 // Organizations are the administrative units of the Veterinary Directorate.
 // Based on: SM.PDF
 
-import { organizationSelectSchema } from "@rocky/database/zod";
+import { organizationsSelectSchema } from "@rocky/database/zod";
 import { z } from "zod";
 import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 
@@ -11,7 +11,7 @@ import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 // RESPONSE SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const organizationResponseSchema = organizationSelectSchema
+export const organizationResponseSchema = organizationsSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
     address: z
@@ -21,8 +21,7 @@ export const organizationResponseSchema = organizationSelectSchema
         zipCode: z.string(),
       })
       .nullable(),
-  })
-  .strip();
+  }).strip();
 
 export type OrganizationResponse = z.infer<typeof organizationResponseSchema>;
 
@@ -39,7 +38,7 @@ export type OrganizationSummary = z.infer<typeof organizationSummarySchema>;
 // REQUEST SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const createOrganizationRequestSchema = z.object({
+export const createOrganizationRequestSchema = z.strictObject({
   name1: z.string().min(1).max(100),
   name2: z.string().max(100).optional(),
   name3: z.string().max(100).optional(),

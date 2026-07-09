@@ -9,6 +9,8 @@ import {
   type IssuePassportRequest,
   issuePassportRequestSchema,
   passportListRequestSchema,
+  passportListResponseSchema,
+  passportResponseSchema,
   type ReprintPassportRequest,
   reprintPassportRequestSchema,
   type SeizePassportRequest,
@@ -30,41 +32,41 @@ export class PassportRouter {
 
   // -- CRUD --
 
-  @Query({ input: idParam })
+  @Query({ input: idParam, output: passportResponseSchema })
   async getById(@Input() input: { id: string }) {
     return unwrap(await this.passportService.getById(input.id));
   }
 
-  @Query({ input: passportListRequestSchema })
+  @Query({ input: passportListRequestSchema, output: passportListResponseSchema })
   async list(@Input() input: z.infer<typeof passportListRequestSchema>) {
     return unwrap(await this.passportService.list(input));
   }
 
   // -- Lifecycle --
 
-  @Mutation({ input: issuePassportRequestSchema })
+  @Mutation({ input: issuePassportRequestSchema, output: passportResponseSchema })
   async issueForAnimal(@Input() input: IssuePassportRequest, @Ctx() ctx: AppContext) {
     return unwrap(await this.passportService.issueForAnimal({ ...input, createdBy: ctx.execution?.principal.id }));
   }
 
-  @Mutation({ input: idParam })
+  @Mutation({ input: idParam, output: passportResponseSchema })
   async shipToVs(@Input() input: { id: string }) {
     return unwrap(await this.passportService.shipToVs(input.id));
   }
 
-  @Mutation({ input: idParam })
+  @Mutation({ input: idParam, output: passportResponseSchema })
   async deliverToKeeper(@Input() input: { id: string }) {
     return unwrap(await this.passportService.deliverToKeeper(input.id));
   }
 
-  @Mutation({ input: seizePassportRequestSchema })
+  @Mutation({ input: seizePassportRequestSchema, output: passportResponseSchema })
   async seize(@Input() input: SeizePassportRequest) {
     // biome-ignore lint/style/noNonNullAssertion: Zod-validated date guarantees split("T")[0] exists
     const datePart = input.deathDate.toISOString().split("T")[0]!;
     return unwrap(await this.passportService.seize(input.passportId, datePart, input.deathCause));
   }
 
-  @Mutation({ input: reprintPassportRequestSchema })
+  @Mutation({ input: reprintPassportRequestSchema, output: passportResponseSchema })
   async reprint(@Input() input: ReprintPassportRequest) {
     return unwrap(await this.passportService.reprint(input.originalPassportId));
   }

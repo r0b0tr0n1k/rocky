@@ -8,7 +8,10 @@ import { Policy, RegisterPolicy } from "@rocky/authorization/index.js";
 import type { DocumentGenerateInput } from "@rocky/pdf/index.js";
 import { DocumentService } from "@rocky/pdf/index.js";
 import { createResultUnwrapper } from "@rocky/trpc/index.js";
-import { documentGenerateRequestSchema } from "@rocky/validators/api/index.js";
+import {
+  documentGenerateRequestSchema,
+  documentResponseSchema,
+} from "@rocky/validators/api/index.js";
 import { DOCUMENT_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
 import { Input, Mutation, Query, Router } from "nestjs-trpc";
 import { z } from "zod";
@@ -28,7 +31,7 @@ export class DocumentRouter {
    * Example: document.generate({ type: 'inspection-form', refId: 'uuid-here', format: 'yaml' })
    * Returns YAML content + metadata.
    */
-  @Mutation({ input: documentGenerateRequestSchema })
+  @Mutation({ input: documentGenerateRequestSchema, output: documentResponseSchema })
   async generate(@Input() input: DocumentGenerateInput) {
     return unwrap(await this.documentService.generate(input));
   }
@@ -36,7 +39,7 @@ export class DocumentRouter {
   /**
    * List all available document types.
    */
-  @Query({ input: z.object({}).optional() })
+  @Query({ input: z.object({}).optional(), output: z.array(z.string()) })
   async listTypes() {
     const { DocumentRegistry } = await import("@rocky/pdf/index.js");
     const registry = DocumentRegistry.getInstance();

@@ -2,15 +2,15 @@
 // Tracks field devices (iPhone/Android) running the Expo mobile app.
 
 import { z } from "zod";
-import { pdaDeviceSelectSchema, pdaDeviceInsertSchema } from "@rocky/database/zod";
-import { deviceStatusSchema } from "../enums/domain.js";
+import { pdaDevicesSelectSchema, pdaDevicesInsertSchema } from "@rocky/database/zod";
+import { deviceStatusSchema } from "../enums/index.js";
 import type { NoDrift, NoDriftSimple, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RESPONSE SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const pdaDeviceResponseSchema = pdaDeviceSelectSchema
+export const pdaDeviceResponseSchema = pdaDevicesSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
     status: deviceStatusSchema,
@@ -22,8 +22,7 @@ export const pdaDeviceResponseSchema = pdaDeviceSelectSchema
       farms: z.boolean().optional(),
       inspections: z.boolean().optional(),
     }).nullable().optional(),
-  })
-  .strip();
+  }).strip();
 
 export type PdaDeviceResponse = z.infer<typeof pdaDeviceResponseSchema>;
 
@@ -36,12 +35,17 @@ export const pdaDeviceSummarySchema = z.object({
   currentUserId: z.uuid().nullable(),
   appVersion: z.string().nullable(),
   osVersion: z.string().nullable(),
-  lastSyncAt: z.date().nullable(),
+  lastSyncAt: z.coerce.date<string>().nullable(),
   failedAttempts: z.int(),
-  blockedAt: z.date().nullable(),
+  blockedAt: z.coerce.date<string>().nullable(),
 });
 
 export type PdaDeviceSummary = z.infer<typeof pdaDeviceSummarySchema>;
+
+/** Result of a failed-attempt registration (device may become blocked) */
+export const pdaDeviceBlockedResponseSchema = z.object({ blocked: z.boolean() }).strip();
+
+export type PdaDeviceBlockedResponse = z.infer<typeof pdaDeviceBlockedResponseSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // REQUEST SCHEMAS
@@ -49,7 +53,7 @@ export type PdaDeviceSummary = z.infer<typeof pdaDeviceSummarySchema>;
 
 export type CreatePdaDeviceRequest = z.infer<typeof createPdaDeviceRequestSchema>;
 
-export const createPdaDeviceRequestSchema = pdaDeviceInsertSchema
+export const createPdaDeviceRequestSchema = pdaDevicesInsertSchema
   .pick({
     deviceIdentifier: true,
     deviceType: true,

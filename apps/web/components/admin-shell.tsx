@@ -45,18 +45,18 @@ import { filterNavByPermissions, navSections } from "#lib/nav-config";
 import { CommandPalette } from "#components/command-palette";
 import { ThemeToggle } from "#components/theme-toggle";
 
-type ShellUser = {
-  name?: string;
-  email?: string;
-  roles?: string[];
-  permissions?: string[];
-};
-
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
-  const user = session?.user as ShellUser | undefined;
-  const permissions = user?.permissions ?? [];
-  const roles = user?.roles ?? [];
+  // Gate session-derived UI behind mount. During SSR and the client's initial
+  // hydration render `session` is undefined, but `useSession` resolves
+  // synchronously from the cookie immediately afterwards. Rendering
+  // user-specific content before mount causes a server/client hydration
+  // mismatch that forces React to regenerate the whole sidebar subtree.
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+  const user = mounted ? session?.user : undefined;
+  const permissions = (user as { roles?: string[]; permissions?: string[] } | undefined)?.permissions ?? [];
+  const roles = (user as { roles?: string[]; permissions?: string[] } | undefined)?.roles ?? [];
   const pathname = usePathname();
   const [cmdOpen, setCmdOpen] = React.useState(false);
 

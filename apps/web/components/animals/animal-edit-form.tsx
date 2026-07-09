@@ -8,17 +8,26 @@ import { updateAnimalRequestSchema, type FarmResponse, type AnimalSummary } from
 import { ComboboxField, DateField, NumberField, SelectField, SwitchField, TextField } from "#components/shared/form-fields";
 import { ValidatedForm } from "#components/shared/validated-form";
 import { enumToOptions } from "#lib/options";
-import { trpc } from "#lib/trpc";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTRPC } from "#lib/trpc";
+import { notifyError, notifySuccess } from "#lib/notify";
 import { useValidatedForm } from "#lib/use-validated-form";
 
 export function AnimalEditForm({ id }: { id: string }) {
   const router = useRouter();
-  const getQuery = trpc.animal.getById.useQuery({ id });
-  const farms = trpc.farm.list.useQuery({ limit: 100 });
-  const animals = trpc.animal.list.useQuery({ limit: 100 });
-  const update = trpc.animal.update.useMutation({
-    onSuccess: () => router.push("/animals"),
-  });
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const getQuery = useQuery(trpc.animal.getById.queryOptions({ id }));
+  const farms = useQuery(trpc.farm.list.queryOptions({ limit: 100 }));
+  const animals = useQuery(trpc.animal.list.queryOptions({ limit: 100 }));
+  const update = useMutation(trpc.animal.update.mutationOptions({
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: trpc.animal.list.queryKey() });
+      notifySuccess("Animal updated");
+      router.push("/animals");
+    },
+    onError: (error) => notifyError(error, "Failed to update animal"),
+  }));
 
   const animal = getQuery.data;
 

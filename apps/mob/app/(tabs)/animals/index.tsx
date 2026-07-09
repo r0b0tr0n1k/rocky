@@ -5,6 +5,7 @@ import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { trpc } from "@/providers/trpc-provider";
+import { ANIMAL_STATUS } from "@rocky/validators/enums";
 import { useRouter } from "expo-router";
 import { Plus, Search } from "lucide-react-native";
 import { useState } from "react";
@@ -49,7 +50,7 @@ export default function AnimalsListScreen() {
                 {item.sex} — {item.breed ?? "N/A"}
               </Text>
             </View>
-            <Badge variant={item.status === "alive" ? "default" : "secondary"}>
+            <Badge variant={item.status === ANIMAL_STATUS.ALIVE ? "default" : "secondary"}>
               <Text className="text-xs">{item.status}</Text>
             </Badge>
           </TouchableOpacity>

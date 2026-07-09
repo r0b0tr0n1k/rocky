@@ -4,38 +4,21 @@
  * @description Business logic for inspections — risk analysis, on-spot control lifecycle, integration with notifiable disease alerts.
  */
 
-import { ok, err, } from "neverthrow";
+import { ok, err, type Result } from "@rocky/domains-shared";
 import type { InspectionRepository } from "../repositories/inspection.repository.js";
 import { InspectionError, INSPECTION_ERRORS } from "../errors/inspection.errors.js";
 import { INSPECTION_STATUS } from "@rocky/database/constants";
 import type { AnimalRepository } from "@rocky/domains-animal";
 import type { ArchiveService } from "@rocky/domains-archive";
 import type { RiskAnalysisService, RunAnalysisInput } from "./risk-analysis.service.js";
+import {
+  inspectionResponseSchema,
+  type InspectionResponse,
+  type CreateInspectionRequest,
+  type CompleteInspectionRequest,
+} from "@rocky/validators/api";
 
-export type { InspectionError, InspectionErrorCode } from "../errors/inspection.errors.js";
-
-// ── Input types ──
-
-export interface CreateInspectionInput {
-  farmId: string;
-  inspectorId: string;
-  scheduledDate?: Date | string | null;
-  riskScore?: string | null;
-  riskCriteria?: string | null;
-  selectedByRiskAnalysis?: boolean;
-  createdBy?: string;
-}
-
-export interface CompleteInspectionInput {
-  id: string;
-  inspectionDate: Date | string;
-  result?: string | null;
-  notes?: string | null;
-  discrepanciesFound?: boolean;
-  keeperSigned?: boolean;
-  signedAt?: Date | null;
-  formReturned?: boolean;
-}
+// ── Local input types (not exposed as tRPC endpoints) ──
 
 export interface FlagFarmForInspectionInput {
   farmId: string;
@@ -50,6 +33,8 @@ export interface GenerateFormInput {
   language?: string;
 }
 
+export type { InspectionError, InspectionErrorCode } from "../errors/inspection.errors.js";
+
 export class InspectionService {
   constructor(
     private readonly repo: InspectionRepository,
@@ -60,17 +45,18 @@ export class InspectionService {
 
   // ── CRUD ──
 
-  async getById(id: string) {
+  async getById(id: string): Promise<Result<InspectionResponse, Error>> {
     const inspection = await this.repo.findById(id);
     if (!inspection) return err(new InspectionError(INSPECTION_ERRORS.NOT_FOUND, { inspectionId: id }));
-    return ok(inspection);
+    return ok(inspectionResponseSchema.parse(inspection));
   }
 
-  async list(input: { status?: string; farmId?: string; inspectorId?: string; limit: number; offset: number }) {
-    return ok(await this.repo.list(input));
+  async list(input: { status?: string; farmId?: string; inspectorId?: string; limit: number; offset: number }): Promise<Result<{ data: InspectionResponse[]; total: number; limit: number; offset: number }, Error>> {
+    const { data, total } = await this.repo.list(input);
+    return ok({ data: data.map((d: unknown) => inspectionResponseSchema.parse(d)), total, limit: input.limit, offset: input.offset });
   }
 
-  async create(input: CreateInspectionInput) {
+  async create(input: CreateInspectionRequest): Promise<Result<InspectionResponse, Error>> {
     // Check farm not already inspected in this period
     const hasActive = await this.repo.hasActiveInspection(input.farmId);
     if (hasActive) return err(new InspectionError(INSPECTION_ERRORS.FARM_ALREADY_INSPECTED, { farmId: input.farmId }));
@@ -85,20 +71,19 @@ export class InspectionService {
       riskScore: input.riskScore ?? null,
       riskCriteria: input.riskCriteria ?? null,
       selectedByRiskAnalysis: input.selectedByRiskAnalysis ?? false,
-      createdBy: input.createdBy,
       discrepanciesFound: false,
       formPrinted: false,
       formReturned: false,
       keeperSigned: false,
       storedAtVi: false,
-    } as any);
+    });
     if (!inspection) return err(new InspectionError(INSPECTION_ERRORS.INVALID_INPUT));
-    return ok(inspection);
+    return ok(inspectionResponseSchema.parse(inspection));
   }
 
   // ── Status Transitions ──
 
-  async schedule(id: string, scheduledDate: Date | string) {
+  async schedule(id: string, scheduledDate: Date | string): Promise<Result<InspectionResponse, Error>> {
     const inspection = await this.repo.findById(id);
     if (!inspection) return err(new InspectionError(INSPECTION_ERRORS.NOT_FOUND, { inspectionId: id }));
     if (inspection.status !== INSPECTION_STATUS.SCHEDULED) {
@@ -110,12 +95,12 @@ export class InspectionService {
     const updated = await this.repo.update(id, {
       scheduledDate: (scheduledDate instanceof Date ? scheduledDate : new Date(scheduledDate)).toISOString().split("T")[0]!,
       status: INSPECTION_STATUS.SCHEDULED,
-    } as any);
+    });
     if (!updated) return err(new InspectionError(INSPECTION_ERRORS.NOT_FOUND, { inspectionId: id }));
-    return ok(updated);
+    return ok(inspectionResponseSchema.parse(updated));
   }
 
-  async complete(input: CompleteInspectionInput) {
+  async complete(input: CompleteInspectionRequest): Promise<Result<InspectionResponse, Error>> {
     const inspection = await this.repo.findById(input.id);
     if (!inspection) return err(new InspectionError(INSPECTION_ERRORS.NOT_FOUND, { inspectionId: input.id }));
 
@@ -139,9 +124,8 @@ export class InspectionService {
       notes: input.notes ?? null,
       discrepanciesFound: input.discrepanciesFound ?? false,
       keeperSigned: input.keeperSigned ?? false,
-      signedAt: input.signedAt ? (input.signedAt instanceof Date ? input.signedAt : new Date(input.signedAt)) : null,
       formReturned: input.formReturned ?? false,
-    } as any);
+    });
     if (!updated) return err(new InspectionError(INSPECTION_ERRORS.NOT_FOUND, { inspectionId: input.id }));
 
     // Fire-and-forget: archive the inspection form (3-year retention)
@@ -153,7 +137,7 @@ export class InspectionService {
       });
     }
 
-    return ok(updated);
+    return ok(inspectionResponseSchema.parse(updated));
   }
 
   // ── Notifiable Disease Integration ──
@@ -162,7 +146,7 @@ export class InspectionService {
    * Flag a farm for inspection due to a notifiable disease alert.
    * Called by HealthService when a notifiable disease is recorded.
    */
-  async flagFarmForInspection(input: FlagFarmForInspectionInput) {
+  async flagFarmForInspection(input: FlagFarmForInspectionInput): Promise<Result<InspectionResponse, Error>> {
     const hasActive = await this.repo.hasActiveInspection(input.farmId);
     // If farm already has an active inspection, update it with the alert info
     if (hasActive) {
@@ -175,8 +159,8 @@ export class InspectionService {
             ? [existing.riskCriteria, input.riskCriteria].filter(Boolean).join("; ")
             : existing.riskCriteria,
           notes: input.notes ? [existing.notes, input.notes].filter(Boolean).join("\n") : existing.notes,
-        } as any);
-        return ok(updated);
+        });
+        return ok(inspectionResponseSchema.parse(updated));
       }
     }
 
@@ -189,7 +173,7 @@ export class InspectionService {
       createdBy: input.triggeredBy,
     });
     if (!inspection) return err(new InspectionError(INSPECTION_ERRORS.INVALID_INPUT));
-    return ok(inspection);
+    return ok(inspectionResponseSchema.parse(inspection));
   }
 
   // ── Form Generation ──
@@ -229,9 +213,9 @@ export class InspectionService {
 
     // Update inspection with checkedAnimals and mark form as printed
     const updated = await this.repo.update(input.inspectionId, {
-      checkedAnimals: checkedAnimals as any,
+      checkedAnimals: checkedAnimals,
       formPrinted: true,
-    } as any);
+    });
     if (!updated) return err(new InspectionError(INSPECTION_ERRORS.NOT_FOUND, { inspectionId: input.inspectionId }));
 
     return ok({

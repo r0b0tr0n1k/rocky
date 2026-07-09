@@ -1,8 +1,9 @@
 "use client";
 
 import { useAuth, useSignInEmail } from "@better-auth-ui/react";
+import { GalleryVerticalEnd } from "lucide-react";
 import { Button } from "@rocky/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@rocky/ui/components/card";
+import { Card } from "@rocky/ui/components/card";
 import { Input } from "@rocky/ui/components/input";
 import { Label } from "@rocky/ui/components/label";
 import Link from "next/link";
@@ -30,11 +31,33 @@ export function SignIn() {
   };
 
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle>{localization.auth.signIn}</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <Card className="w-full max-w-3xl gap-0 overflow-hidden py-0 lg:grid lg:grid-cols-2">
+      {/* Brand panel */}
+      <div className="hidden flex-col justify-between bg-primary p-8 text-primary-foreground lg:flex">
+        <div className="flex items-center gap-2">
+          <div className="grid size-9 place-items-center rounded-lg bg-background/10">
+            <GalleryVerticalEnd className="size-5" />
+          </div>
+          <span className="text-lg font-semibold tracking-tight">AIMCS</span>
+        </div>
+        <div className="space-y-3">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Animal Identification &amp; Movement Control
+          </h1>
+          <p className="text-sm text-primary-foreground/70">
+            Sign in to manage farms, animals, movements and inspections.
+          </p>
+        </div>
+        <p className="text-xs text-primary-foreground/60">© 2026 AIMCS. All rights reserved.</p>
+      </div>
+
+      {/* Form panel */}
+      <div className="flex flex-col gap-6 p-6 sm:p-8">
+        <div className="space-y-1.5">
+          <h2 className="text-xl font-semibold tracking-tight">{localization.auth.signIn}</h2>
+          <p className="text-sm text-muted-foreground">Enter your credentials to continue</p>
+        </div>
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="email">{localization.auth.email}</Label>
@@ -55,7 +78,15 @@ export function SignIn() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="password">{localization.auth.password}</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">{localization.auth.password}</Label>
+              <Link
+                href={`${basePaths.auth}/${viewPaths.auth.forgotPassword}`}
+                className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+              >
+                {localization.auth.forgotPasswordLink}
+              </Link>
+            </div>
             <Input
               id="password"
               name="password"
@@ -79,21 +110,16 @@ export function SignIn() {
           </Button>
         </form>
 
-        <div className="mt-4 flex flex-col gap-2 text-center text-sm">
+        <p className="text-center text-sm text-muted-foreground">
+          {localization.auth.needToCreateAnAccount}{" "}
           <Link
-            href={`${basePaths.auth}/${viewPaths.auth.forgotPassword}`}
-            className="underline-offset-4 hover:underline"
+            href={`${basePaths.auth}/${viewPaths.auth.signUp}`}
+            className="font-medium text-foreground underline underline-offset-4"
           >
-            {localization.auth.forgotPasswordLink}
+            {localization.auth.signUp}
           </Link>
-          <p className="text-muted-foreground">
-            {localization.auth.needToCreateAnAccount}{" "}
-            <Link href={`${basePaths.auth}/${viewPaths.auth.signUp}`} className="underline underline-offset-4">
-              {localization.auth.signUp}
-            </Link>
-          </p>
-        </div>
-      </CardContent>
+        </p>
+      </div>
     </Card>
   );
 }

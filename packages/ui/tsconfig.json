@@ -1,9 +1,10 @@
 {
-  "extends": "@rocky/typescript-config/nextjs.json",
+  "extends": "@rocky/typescript-config/react-library.json",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
     "strictNullChecks": true,
+    "plugins": [{ "name": "next" }],
     "paths": {
       "components/*": ["./src/components/*"],
       "ui/*": ["./src/components/*"],

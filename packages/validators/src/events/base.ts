@@ -11,7 +11,7 @@
 //   export const AnimalRegisteredEvent = eventEnvelopeSchema(animalRegisteredPayloadSchema);
 
 import { z } from "zod";
-import { eventSourceSchema as eventSourceTypeSchema } from "../enums/domain.js";
+import { eventSourceSchema as eventSourceTypeSchema } from "../enums/index.js";
 import type { ActivateGuillotines, NoDrift } from "../utils/type-bridge.js";
 
 // ── Part 1: EVENT HEADER (The Symbolic) ──

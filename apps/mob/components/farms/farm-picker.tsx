@@ -3,11 +3,7 @@ import { View, FlatList, TouchableOpacity } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/providers/trpc-provider";
-
-interface FarmSummary {
-  id: string;
-  name: string | null;
-}
+import type { FarmSummary } from "@rocky/validators/api";
 
 interface FarmPickerProps {
   onSelect: (farm: FarmSummary) => void;
@@ -27,10 +23,10 @@ export function FarmPicker({ onSelect, placeholder = "Search farm..." }: FarmPic
             data={data.data}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <TouchableOpacity
-                onPress={() => { onSelect({ id: item.id, name: item.name }); setQuery(""); }}
-                className="px-3 py-2 border-b border-border"
-              >
+                <TouchableOpacity
+                  onPress={() => { onSelect(item); setQuery(""); }}
+                  className="px-3 py-2 border-b border-border"
+                >
                 <Text className="text-foreground font-medium">{item.name ?? "Unnamed Farm"}</Text>
               </TouchableOpacity>
             )}

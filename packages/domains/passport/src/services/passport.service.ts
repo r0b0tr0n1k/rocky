@@ -6,7 +6,8 @@
 
 import { PASSPORT_STATUS, STATE_CODE } from "@rocky/database/constants";
 import type { AnimalRepository } from "@rocky/domains-animal";
-import { fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
+import { fromAsyncThrowable, toAppError, type Result } from "@rocky/domains-shared";
+import { passportResponseSchema, type PassportResponse } from "@rocky/validators/api";
 import { PASSPORT_ERRORS, PassportError } from "../errors/passport.errors.js";
 import type { PassportRepository } from "../repositories/passport.repository.js";
 
@@ -27,20 +28,22 @@ export class PassportService {
 
   // ── CRUD ──
 
-  async getById(id: string) {
+  async getById(id: string): Promise<Result<PassportResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const passport = await this.repo.findById(id);
       if (!passport) throw new PassportError(PASSPORT_ERRORS.NOT_FOUND, { id });
-      return passport;
+      return passportResponseSchema.parse(passport);
     }, toAppError)();
   }
 
-  async list(input: { farmId?: string; status?: string; limit: number; offset: number }) {
+  async list(input: { farmId?: string; status?: string; limit: number; offset: number }): Promise<Result<{ data: PassportResponse[]; total: number; limit: number; offset: number }, Error>> {
     return fromAsyncThrowable(async () => {
       if (input.farmId) {
-        return this.repo.findByFarmId(input.farmId, input);
+        const { data, total } = await this.repo.findByFarmId(input.farmId, input);
+        return { data: data.map((d: unknown) => passportResponseSchema.parse(d)), total, limit: input.limit, offset: input.offset };
       }
-      return this.repo.findSeized(input);
+      const { data, total } = await this.repo.findSeized(input);
+      return { data: data.map((d: unknown) => passportResponseSchema.parse(d)), total, limit: input.limit, offset: input.offset };
     }, toAppError)();
   }
 
@@ -50,7 +53,7 @@ export class PassportService {
    * Rule 1: Issue passport for an error-free registered animal.
    * Creates an ISSUED passport. Only one active passport per animal.
    */
-  async issueForAnimal(input: { animalId: string; farmId: string; createdBy?: string }) {
+  async issueForAnimal(input: { animalId: string; farmId: string; createdBy?: string }): Promise<Result<PassportResponse, Error>> {
     return fromAsyncThrowable(async () => {
       // Verify animal exists
       const animal = await this.animalRepo.findById(input.animalId);
@@ -79,11 +82,10 @@ export class PassportService {
         farmId: input.farmId,
         status: PASSPORT_STATUS.ISSUED,
         issueDate: new Date().toISOString().split("T")[0],
-        createdBy: input.createdBy,
       });
 
       if (!passport) throw new PassportError(PASSPORT_ERRORS.INVALID_INPUT, { reason: "Failed to create passport" });
-      return passport;
+      return passportResponseSchema.parse(passport);
     }, toAppError)();
   }
 
@@ -91,13 +93,14 @@ export class PassportService {
    * Rule 3: Ship passport to VS.
    * ISSUED → ACTIVE (after delivery to keeper)
    */
-  async shipToVs(passportId: string) {
+  async shipToVs(passportId: string): Promise<Result<PassportResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const passport = await this.repo.findById(passportId);
       if (!passport) throw new PassportError(PASSPORT_ERRORS.NOT_FOUND, { id: passportId });
       this.validateTransition(passport.status, PASSPORT_STATUS.ACTIVE);
 
-      return this.repo.shipToVs(passportId);
+      const updated = await this.repo.shipToVs(passportId);
+      return passportResponseSchema.parse(updated);
     }, toAppError)();
   }
 
@@ -105,13 +108,14 @@ export class PassportService {
    * Rule 4: VS delivers passport to keeper.
    * Completes the ISSUED → ACTIVE transition.
    */
-  async deliverToKeeper(passportId: string) {
+  async deliverToKeeper(passportId: string): Promise<Result<PassportResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const passport = await this.repo.findById(passportId);
       if (!passport) throw new PassportError(PASSPORT_ERRORS.NOT_FOUND, { id: passportId });
       this.validateTransition(passport.status, PASSPORT_STATUS.ACTIVE);
 
-      return this.repo.deliverToKeeper(passportId);
+      const updated = await this.repo.deliverToKeeper(passportId);
+      return passportResponseSchema.parse(updated);
     }, toAppError)();
   }
 
@@ -119,18 +123,19 @@ export class PassportService {
    * Rules 5-6: Seize passport on death/slaughter.
    * ACTIVE → SEIZED. Records death date and cause.
    */
-  async seize(passportId: string, deathDate: string, deathCause?: string) {
+  async seize(passportId: string, deathDate: string, deathCause?: string): Promise<Result<PassportResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const passport = await this.repo.findById(passportId);
       if (!passport) throw new PassportError(PASSPORT_ERRORS.NOT_FOUND, { id: passportId });
 
       // P1: Idempotent — already seized is a no-op skip, not an error
       if (passport.status === PASSPORT_STATUS.SEIZED) {
-        return passport;
+        return passportResponseSchema.parse(passport);
       }
       this.validateTransition(passport.status, PASSPORT_STATUS.SEIZED);
 
-      return this.repo.seize(passportId, deathDate, deathCause);
+      const updated = await this.repo.seize(passportId, deathDate, deathCause);
+      return passportResponseSchema.parse(updated);
     }, toAppError)();
   }
 
@@ -138,7 +143,7 @@ export class PassportService {
    * Rule 8: Reprint passport after error correction.
    * ACTIVE → REPRINTED (old invalidated, new ACTIVE created).
    */
-  async reprint(originalPassportId: string) {
+  async reprint(originalPassportId: string): Promise<Result<PassportResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const original = await this.repo.findById(originalPassportId);
       if (!original) throw new PassportError(PASSPORT_ERRORS.NOT_FOUND, { id: originalPassportId });
@@ -164,7 +169,7 @@ export class PassportService {
       });
 
       if (!newPassport) throw new PassportError(PASSPORT_ERRORS.INVALID_INPUT, { reason: "Failed to create reprint" });
-      return newPassport;
+      return passportResponseSchema.parse(newPassport);
     }, toAppError)();
   }
 
@@ -172,13 +177,14 @@ export class PassportService {
    * Rule 7: Archive seized passport after 3-year retention.
    * SEIZED → ARCHIVED.
    */
-  async archive(passportId: string) {
+  async archive(passportId: string): Promise<Result<PassportResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const passport = await this.repo.findById(passportId);
       if (!passport) throw new PassportError(PASSPORT_ERRORS.NOT_FOUND, { id: passportId });
       this.validateTransition(passport.status, PASSPORT_STATUS.ARCHIVED);
 
-      return this.repo.archive(passportId);
+      const updated = await this.repo.archive(passportId);
+      return passportResponseSchema.parse(updated);
     }, toAppError)();
   }
 

@@ -5,10 +5,10 @@
 //
 // Based on: FS - registration_MK(v0.91).pdf §Business rules (p12-15)
 
-import { movementInsertSchema, movementSelectSchema } from "@rocky/database/zod";
+import { movementsInsertSchema, movementsSelectSchema } from "@rocky/database/zod";
 import { z } from "zod";
-import { movementTypeSchema, sortByMovementSchema, sortOrderSchema, deathCauseSchema } from "../enums/domain.js";
-import type { movementTypeType, deathCauseType, sortByMovementType, sortOrderType } from "../enums/domain.js";
+import { movementTypeSchema, sortByMovementSchema, sortOrderSchema, deathCauseSchema } from "../enums/index.js";
+import type { movementTypeType, deathCauseType, sortByMovementType, sortOrderType } from "../enums/index.js";
 import type { NoDrift, NoDriftSimple, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -181,7 +181,7 @@ export interface RecordMarketSlaughterRequest {
 // RESPONSE SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const movementResponseSchema = movementSelectSchema
+export const movementResponseSchema = movementsSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
     movementDate: z.coerce.date<string>(),
@@ -189,8 +189,7 @@ export const movementResponseSchema = movementSelectSchema
     deathDate: z.coerce.date<string>().nullable(),
     deathCause: deathCauseSchema.nullable(),
     type: movementTypeSchema,
-  })
-  .strip() satisfies z.ZodType<MovementResponse>;
+  }).strip() satisfies z.ZodType<MovementResponse>;
 
 export const movementSummarySchema = z.object(
   movementResponseSchema.pick({
@@ -215,7 +214,7 @@ export const movementListResponseSchema = z.strictObject({
 // REQUEST SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const createMovementRequestSchema = movementInsertSchema
+export const createMovementRequestSchema = movementsInsertSchema
   .pick({
     animalId: true,
     fromFarmId: true,

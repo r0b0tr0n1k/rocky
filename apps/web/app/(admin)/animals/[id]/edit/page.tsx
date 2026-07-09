@@ -12,7 +12,7 @@ export default function EditAnimalPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="Edit animal"
         description="Update registration details."

@@ -5,20 +5,20 @@
 
 import { z } from "zod";
 import {
-  diseaseSelectSchema,
-  diseaseInsertSchema,
-  vaccineSelectSchema,
-  vaccineInsertSchema,
-  vaccineBatchSelectSchema,
-  vaccineBatchInsertSchema,
-  vaccinationSelectSchema,
-  vaccinationInsertSchema,
-  treatmentSelectSchema,
-  treatmentInsertSchema,
-  labTestSelectSchema,
-  labTestInsertSchema,
-  vaccineDiseaseSelectSchema,
-  vaccineDiseaseInsertSchema,
+  diseasesSelectSchema,
+  diseasesInsertSchema,
+  vaccinesSelectSchema,
+  vaccinesInsertSchema,
+  vaccineBatchesSelectSchema,
+  vaccineBatchesInsertSchema,
+  vaccinationsSelectSchema,
+  vaccinationsInsertSchema,
+  treatmentsSelectSchema,
+  treatmentsInsertSchema,
+  labTestsSelectSchema,
+  labTestsInsertSchema,
+  vaccineDiseasesSelectSchema,
+  vaccineDiseasesInsertSchema,
 } from "@rocky/database/zod";
 import {
   vaccineTypeSchema,
@@ -27,76 +27,107 @@ import {
   testResultSchema,
   healthRecordTypeSchema,
   type healthRecordTypeType,
-} from "../enums/domain.js";
+} from "../enums/index.js";
+import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RESPONSE SCHEMAS (Diamond Seal - what the API returns)
 // ═══════════════════════════════════════════════════════════════════════════
 
 /** Disease master record */
-export const diseaseResponseSchema = diseaseSelectSchema
-  .omit({ createdBy: true, validTo: true })
-  .strip();
+export const diseaseResponseSchema = diseasesSelectSchema
+  .omit({ createdBy: true, validTo: true }).strip();
 
 export type DiseaseResponse = z.infer<typeof diseaseResponseSchema>;
 
 /** Vaccine master record */
-export const vaccineResponseSchema = vaccineSelectSchema
+export const vaccineResponseSchema = vaccinesSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
     type: vaccineTypeSchema,
-  })
-  .strip();
+  }).strip();
 
 export type VaccineResponse = z.infer<typeof vaccineResponseSchema>;
 
 /** Vaccine batch record */
-export const vaccineBatchResponseSchema = vaccineBatchSelectSchema
-  .omit({ createdBy: true, validTo: true })
-  .strip();
+export const vaccineBatchResponseSchema = vaccineBatchesSelectSchema
+  .omit({ createdBy: true, validTo: true }).strip();
 
 export type VaccineBatchResponse = z.infer<typeof vaccineBatchResponseSchema>;
 
 /** Vaccination event record */
-export const vaccinationResponseSchema = vaccinationSelectSchema
+export const vaccinationResponseSchema = vaccinationsSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
     route: administrationRouteSchema,
     adminDate: z.coerce.date<string>(),
-  })
-  .strip();
+  }).strip();
 
 export type VaccinationResponse = z.infer<typeof vaccinationResponseSchema>;
 
 /** Treatment event record */
-export const treatmentResponseSchema = treatmentSelectSchema
+export const treatmentResponseSchema = treatmentsSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
     diagnosisDate: z.coerce.date<string>(),
-  })
-  .strip();
+  }).strip();
 
 export type TreatmentResponse = z.infer<typeof treatmentResponseSchema>;
 
 /** Laboratory test result record */
-export const labTestResponseSchema = labTestSelectSchema
+export const labTestResponseSchema = labTestsSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
     testType: testTypeSchema,
     result: testResultSchema,
     sampleDate: z.coerce.date<string>(),
     resultDate: z.coerce.date<string>(),
-  })
-  .strip();
+  }).strip();
 
 export type LabTestResponse = z.infer<typeof labTestResponseSchema>;
 
 /** Vaccine-to-disease mapping record */
-export const vaccineDiseaseResponseSchema = vaccineDiseaseSelectSchema
-  .omit({ createdBy: true })
-  .strip();
+export const vaccineDiseaseResponseSchema = vaccineDiseasesSelectSchema
+  .omit({ createdBy: true }).strip();
 
 export type VaccineDiseaseResponse = z.infer<typeof vaccineDiseaseResponseSchema>;
+
+// ── Paginated list responses (Diamond Seal) ──
+export const diseaseListResponseSchema = z
+  .object({ data: z.array(diseaseResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
+  .strip();
+export type DiseaseListResponse = z.infer<typeof diseaseListResponseSchema>;
+
+export const vaccineListResponseSchema = z
+  .object({ data: z.array(vaccineResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
+  .strip();
+export type VaccineListResponse = z.infer<typeof vaccineListResponseSchema>;
+
+export const vaccineBatchListResponseSchema = z
+  .object({ data: z.array(vaccineBatchResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
+  .strip();
+export type VaccineBatchListResponse = z.infer<typeof vaccineBatchListResponseSchema>;
+
+export const vaccinationListResponseSchema = z
+  .object({ data: z.array(vaccinationResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
+  .strip();
+export type VaccinationListResponse = z.infer<typeof vaccinationListResponseSchema>;
+
+export const treatmentListResponseSchema = z
+  .object({ data: z.array(treatmentResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
+  .strip();
+export type TreatmentListResponse = z.infer<typeof treatmentListResponseSchema>;
+
+export const labTestListResponseSchema = z
+  .object({ data: z.array(labTestResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
+  .strip();
+export type LabTestListResponse = z.infer<typeof labTestListResponseSchema>;
+
+export const vaccineDiseaseListResponseSchema = z.array(vaccineDiseaseResponseSchema);
+export type VaccineDiseaseListResponse = z.infer<typeof vaccineDiseaseListResponseSchema>;
+
+export const vaccineDiseaseUnlinkResponseSchema = z.object({ deleted: z.boolean() }).strip();
+export type VaccineDiseaseUnlinkResponse = z.infer<typeof vaccineDiseaseUnlinkResponseSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // LIST SCHEMAS
@@ -196,7 +227,7 @@ export type LabTestListRequest = z.infer<typeof labTestListRequestSchema>;
 // CREATE / INPUT SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const createDiseaseRequestSchema = diseaseInsertSchema
+export const createDiseaseRequestSchema = diseasesInsertSchema
   .pick({
     name: true,
     notifiable: true,
@@ -206,7 +237,7 @@ export const createDiseaseRequestSchema = diseaseInsertSchema
 
 export type CreateDiseaseRequest = z.infer<typeof createDiseaseRequestSchema>;
 
-export const createVaccineRequestSchema = vaccineInsertSchema
+export const createVaccineRequestSchema = vaccinesInsertSchema
   .pick({
     name: true,
     manufacturer: true,
@@ -219,7 +250,7 @@ export const createVaccineRequestSchema = vaccineInsertSchema
 
 export type CreateVaccineRequest = z.infer<typeof createVaccineRequestSchema>;
 
-export const createVaccineBatchRequestSchema = vaccineBatchInsertSchema
+export const createVaccineBatchRequestSchema = vaccineBatchesInsertSchema
   .pick({
     vaccineId: true,
     batchNo: true,
@@ -231,7 +262,7 @@ export const createVaccineBatchRequestSchema = vaccineBatchInsertSchema
 
 export type CreateVaccineBatchRequest = z.infer<typeof createVaccineBatchRequestSchema>;
 
-export const recordVaccinationRequestSchema = vaccinationInsertSchema
+export const recordVaccinationRequestSchema = vaccinationsInsertSchema
   .pick({
     animalId: true,
     farmId: true,
@@ -253,7 +284,7 @@ export const recordVaccinationRequestSchema = vaccinationInsertSchema
 
 export type RecordVaccinationRequest = z.infer<typeof recordVaccinationRequestSchema>;
 
-export const recordTreatmentRequestSchema = treatmentInsertSchema
+export const recordTreatmentRequestSchema = treatmentsInsertSchema
   .pick({
     animalId: true,
     farmId: true,
@@ -267,7 +298,7 @@ export const recordTreatmentRequestSchema = treatmentInsertSchema
 
 export type RecordTreatmentRequest = z.infer<typeof recordTreatmentRequestSchema>;
 
-export const recordLabTestRequestSchema = labTestInsertSchema
+export const recordLabTestRequestSchema = labTestsInsertSchema
   .pick({
     animalId: true,
     farmId: true,
@@ -300,7 +331,7 @@ export const recordLabTestRequestSchema = labTestInsertSchema
 
 export type RecordLabTestRequest = z.infer<typeof recordLabTestRequestSchema>;
 
-export const linkVaccineDiseaseRequestSchema = vaccineDiseaseInsertSchema
+export const linkVaccineDiseaseRequestSchema = vaccineDiseasesInsertSchema
   .pick({
     vaccineId: true,
     diseaseId: true,
@@ -329,7 +360,7 @@ export const syncDownloadResponseSchema = z.strictObject({
   vaccines: z.array(vaccineResponseSchema),
   batches: z.array(vaccineBatchResponseSchema),
   vaccineDiseases: z.array(vaccineDiseaseResponseSchema),
-  syncedAt: z.date(),
+  syncedAt: z.coerce.date<string>(),
 }) satisfies z.ZodType<SyncDownloadResponse>;
 
 export type SyncDownloadResponse = {
@@ -393,7 +424,6 @@ export type SyncUploadResponse = {
 // GUILLLOTINES
 // ═══════════════════════════════════════════════════════════════════════════
 
-import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 
 type _drift_diseaseResponse = NoDrift<z.infer<typeof diseaseResponseSchema>, DiseaseResponse>;
 type _drift_vaccineResponse = NoDrift<z.infer<typeof vaccineResponseSchema>, VaccineResponse>;

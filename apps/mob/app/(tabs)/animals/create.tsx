@@ -1,35 +1,80 @@
 import { Button } from "@/components/ui/button";
+import { EnumSelect } from "@/components/ui/enum-select";
+import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
+import { FarmPicker } from "@/components/farms/farm-picker";
+import { useActiveFarm } from "@/providers/active-farm-provider";
 import { trpc } from "@/providers/trpc-provider";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, type Resolver } from "react-hook-form";
 import { ActivityIndicator, Alert, ScrollView, View } from "react-native";
+import { BIRTH_TYPE, SEX } from "@rocky/validators/enums";
+import type { birthTypeType, sexType } from "@rocky/validators/enums";
+import { createAnimalRequestSchema } from "@rocky/validators/api";
+import { z } from "zod";
 
-const SEX_OPTIONS = [
-  { label: "Male", value: "male" },
-  { label: "Female", value: "female" },
-];
+// Zod 4: `createAnimalRequestSchema` is a ZodObject that has absorbed its
+// `.refine()` as a "check", and `.omit()` rejects objects containing checks.
+// Rebuild from `.shape` (reusing the exact field schemas — single source of
+// truth) so the top object has no checks, then omit the context/numeric fields
+// and adapt `birthWeight` to a string input. The canonical "birth date not in
+// the future" rule is re-applied below to keep client/server parity.
+const createAnimalFormSchema = z
+  .object(createAnimalRequestSchema.shape)
+  .omit({ currentFarmId: true, stateCode: true, status: true, birthWeight: true })
+  .extend({
+    birthWeight: z
+      .string()
+      .optional()
+      .refine((v) => !v || /^\d+$/.test(v), "Birth weight must be a whole number"),
+  })
+  .refine(
+    (data) => {
+      if (data.birthDate) {
+        const d = new Date(data.birthDate);
+        if (d instanceof Date && d > new Date()) return false;
+      }
+      return true;
+    },
+    { message: "Birth date cannot be in the future" },
+  );
 
-const BIRTH_TYPE_OPTIONS = [
-  { label: "Single", value: "single" },
-  { label: "Twin", value: "twin" },
-  { label: "Triplet", value: "triplet" },
-  { label: "Stillborn", value: "stillborn" },
-];
+// UX-friendly form shape: enum fields allow `undefined` until selected.
+type CreateAnimalForm = {
+  earTagNumber: string;
+  sex: sexType | undefined;
+  breed: string;
+  birthDate: string;
+  birthType: birthTypeType | undefined;
+  birthWeight: string;
+};
 
 export default function CreateAnimalScreen() {
   const router = useRouter();
-  const [earTagNumber, setEarTagNumber] = useState("");
-  const [sex, setSex] = useState("");
-  const [breed, setBreed] = useState("");
-  const [birthDate, setBirthDate] = useState("");
-  const [birthType, setBirthType] = useState("");
-  const [birthWeight, setBirthWeight] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const { activeFarm, setActiveFarm } = useActiveFarm();
   const utils = trpc.useUtils();
+
+  const {
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateAnimalForm>({
+    // Resolver validates against the canonical schema; the form type is a
+    // UX variant that permits `undefined` for not-yet-selected enums.
+    resolver: zodResolver(createAnimalFormSchema) as Resolver<CreateAnimalForm>,
+    mode: "onTouched",
+    defaultValues: {
+      earTagNumber: "",
+      sex: undefined,
+      breed: "",
+      birthDate: "",
+      birthType: undefined,
+      birthWeight: "",
+    },
+  });
 
   const createAnimal = trpc.animal.create.useMutation({
     onSuccess: () => {
@@ -41,106 +86,102 @@ export default function CreateAnimalScreen() {
     },
   });
 
-  const handleSubmit = async () => {
-    if (earTagNumber?.length !== 8) {
-      Alert.alert("Error", "Ear tag number must be 8 characters");
-      return;
-    }
-    if (!sex) {
-      Alert.alert("Error", "Please select sex");
-      return;
-    }
-    if (!birthDate) {
-      Alert.alert("Error", "Please enter birth date");
-      return;
-    }
+  const onSubmit = handleSubmit((values) => {
+    // Guarded by the disabled state below, but kept defensive: a farm must be
+    // selected (context) before an animal can be registered to it.
+    if (!activeFarm.id) return;
+    createAnimal.mutate({
+      earTagNumber: values.earTagNumber.toUpperCase(),
+      // Validation already guarantees `sex` is set by the time we reach here.
+      sex: values.sex as sexType,
+      breed: values.breed || undefined,
+      birthDate: values.birthDate,
+      birthType: values.birthType,
+      birthWeight: values.birthWeight ? Number(values.birthWeight) : undefined,
+      currentFarmId: activeFarm.id,
+      stateCode: activeFarm.stateCode,
+    });
+  });
 
-    setIsLoading(true);
-    try {
-      await createAnimal.mutateAsync({
-        earTagNumber: earTagNumber.toUpperCase(),
-        sex: sex as "male" | "female",
-        breed: breed || undefined,
-        birthDate: birthDate,
-        birthType: (birthType as "single" | "twin" | "triplet" | "stillborn") || undefined,
-        birthWeight: birthWeight ? parseInt(birthWeight, 10) : undefined,
-        currentFarmId: "00000000-0000-0000-0000-000000000000",
-        stateCode: "MK",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const sex = watch("sex");
+  const birthType = watch("birthType");
 
   return (
     <ScrollView className="flex-1 bg-background">
-      <View className="p-4 gap-4">
-        <View className="gap-2">
-          <Label nativeID="earTag">Ear Tag Number</Label>
+      <View className="gap-4 p-4">
+        <FormField label="Farm" error={!activeFarm.id ? "Select a farm first" : undefined}>
+          <FarmPicker
+            onSelect={(farm) => setActiveFarm({ id: farm.id, stateCode: activeFarm.stateCode })}
+          />
+        </FormField>
+
+        <FormField label="Ear Tag Number" error={errors.earTagNumber?.message} nativeID="earTag">
           <Input
             placeholder="MK123456"
-            value={earTagNumber}
-            onChangeText={setEarTagNumber}
+            value={watch("earTagNumber")}
+            onChangeText={(t) => setValue("earTagNumber", t, { shouldValidate: true })}
             maxLength={8}
             autoCapitalize="characters"
           />
-        </View>
+        </FormField>
 
-        <View className="gap-2">
-          <Label nativeID="sex">Sex</Label>
-          <Select
-            value={sex ? { value: sex, label: SEX_OPTIONS.find((o) => o.value === sex)?.label ?? sex } : undefined}
-            onValueChange={(opt) => setSex(opt?.value ?? "")}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select sex..." />
-            </SelectTrigger>
-            <SelectContent>
-              {SEX_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} label={opt.label} value={opt.value} />
-              ))}
-            </SelectContent>
-          </Select>
-        </View>
+        <FormField label="Sex" error={errors.sex?.message} nativeID="sex">
+          <EnumSelect
+            dict={SEX}
+            value={sex}
+            onValueChange={(v) => setValue("sex", v, { shouldValidate: true })}
+            placeholder="Select sex..."
+          />
+        </FormField>
 
-        <View className="gap-2">
-          <Label nativeID="breed">Breed (optional)</Label>
-          <Input placeholder="e.g. Holstein" value={breed} onChangeText={setBreed} />
-        </View>
+        <FormField label="Breed (optional)" error={errors.breed?.message} nativeID="breed">
+          <Input
+            placeholder="e.g. Holstein"
+            value={watch("breed")}
+            onChangeText={(t) => setValue("breed", t, { shouldValidate: true })}
+          />
+        </FormField>
 
-        <View className="gap-2">
-          <Label nativeID="birthDate">Birth Date (YYYY-MM-DD)</Label>
-          <Input placeholder="2026-01-15" value={birthDate} onChangeText={setBirthDate} />
-        </View>
+        <FormField
+          label="Birth Date (YYYY-MM-DD)"
+          error={errors.birthDate?.message}
+          nativeID="birthDate"
+        >
+          <Input
+            placeholder="2026-01-15"
+            value={watch("birthDate")}
+            onChangeText={(t) => setValue("birthDate", t, { shouldValidate: true })}
+          />
+        </FormField>
 
-        <View className="gap-2">
-          <Label nativeID="birthType">Birth Type (optional)</Label>
-          <Select
-            value={
-              birthType
-                ? { value: birthType, label: BIRTH_TYPE_OPTIONS.find((o) => o.value === birthType)?.label ?? birthType }
-                : undefined
-            }
-            onValueChange={(opt) => setBirthType(opt?.value ?? "")}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select type..." />
-            </SelectTrigger>
-            <SelectContent>
-              {BIRTH_TYPE_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} label={opt.label} value={opt.value} />
-              ))}
-            </SelectContent>
-          </Select>
-        </View>
+        <FormField label="Birth Type (optional)" error={errors.birthType?.message} nativeID="birthType">
+          <EnumSelect
+            dict={BIRTH_TYPE}
+            value={birthType}
+            onValueChange={(v) => setValue("birthType", v, { shouldValidate: true })}
+            placeholder="Select type..."
+          />
+        </FormField>
 
-        <View className="gap-2">
-          <Label nativeID="birthWeight">Birth Weight (kg, optional)</Label>
-          <Input placeholder="e.g. 45" value={birthWeight} onChangeText={setBirthWeight} keyboardType="numeric" />
-        </View>
+        <FormField
+          label="Birth Weight (kg, optional)"
+          error={errors.birthWeight?.message}
+          nativeID="birthWeight"
+        >
+          <Input
+            placeholder="e.g. 45"
+            value={watch("birthWeight")}
+            onChangeText={(t) => setValue("birthWeight", t, { shouldValidate: true })}
+            keyboardType="numeric"
+          />
+        </FormField>
 
-        <Button onPress={handleSubmit} disabled={isLoading} size="lg">
-          {isLoading ? <ActivityIndicator color="white" /> : <Text>Register Animal</Text>}
+        <Button
+          onPress={onSubmit}
+          disabled={isSubmitting || !activeFarm.id}
+          size="lg"
+        >
+          {isSubmitting ? <ActivityIndicator color="white" /> : <Text>Register Animal</Text>}
         </Button>
       </View>
     </ScrollView>

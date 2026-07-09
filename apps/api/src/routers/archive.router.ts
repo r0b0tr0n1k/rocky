@@ -7,6 +7,9 @@ import { ArchiveService } from "@rocky/domains-archive";
 import type { AppContext } from "@rocky/trpc/context.js";
 import { createResultUnwrapper } from "@rocky/trpc/index.js";
 import {
+  archiveDocumentResponseSchema,
+  archiveDocumentListResponseSchema,
+  archiveExpiredListResponseSchema,
   type ArchiveInspectionFormRequest,
   archiveDocumentListRequestSchema,
   archiveInspectionFormRequestSchema,
@@ -29,41 +32,41 @@ export class ArchiveRouter {
 
   // -- CRUD --
 
-  @Query({ input: idParam })
+  @Query({ input: idParam, output: archiveDocumentResponseSchema })
   async getById(@Input() input: { id: string }) {
     return unwrap(await this.archiveService.getById(input.id));
   }
 
-  @Query({ input: archiveDocumentListRequestSchema })
+  @Query({ input: archiveDocumentListRequestSchema, output: archiveDocumentListResponseSchema })
   async list(@Input() input: z.infer<typeof archiveDocumentListRequestSchema>) {
     return unwrap(await this.archiveService.list(input));
   }
 
-  @Mutation({ input: createArchiveDocumentRequestSchema })
+  @Mutation({ input: createArchiveDocumentRequestSchema, output: archiveDocumentResponseSchema })
   async create(@Input() input: CreateArchiveDocumentRequest, @Ctx() ctx: AppContext) {
-    return unwrap(await this.archiveService.create({ ...input, createdBy: ctx.execution?.principal.id }));
+    return unwrap(await this.archiveService.create(input));
   }
 
   // -- Archival --
 
-  @Query({ input: z.strictObject({ limit: z.int().min(1).max(1000).default(100) }) })
+  @Query({ input: z.strictObject({ limit: z.int().min(1).max(1000).default(100) }), output: archiveExpiredListResponseSchema })
   async listExpired(@Input() input: { limit: number }) {
     return unwrap(await this.archiveService.findExpiredRetention(input.limit));
   }
 
-  @Mutation({ input: idParam })
+  @Mutation({ input: idParam, output: archiveDocumentResponseSchema })
   async markArchived(@Input() input: { id: string }) {
     return unwrap(await this.archiveService.markArchived(input.id));
   }
 
-  @Mutation({ input: idParam })
+  @Mutation({ input: idParam, output: archiveDocumentResponseSchema })
   async markDestroyed(@Input() input: { id: string }) {
     return unwrap(await this.archiveService.markDestroyed(input.id));
   }
 
   // -- Inspection Form Integration --
 
-  @Mutation({ input: archiveInspectionFormRequestSchema })
+  @Mutation({ input: archiveInspectionFormRequestSchema, output: archiveDocumentResponseSchema })
   async archiveInspectionForm(@Input() input: ArchiveInspectionFormRequest, @Ctx() ctx: AppContext) {
     return unwrap(
       await this.archiveService.archiveInspectionForm({ ...input, createdBy: ctx.execution?.principal.id }),

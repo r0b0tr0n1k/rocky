@@ -6,9 +6,9 @@
 // Based on: FS - HK_MK(v1.0).pdf, HK.PDF
 
 import { z } from "zod";
-import { farmBookSelectSchema, farmSelectSchema, farmInsertSchema, addressSelectSchema, vsAssignmentSelectSchema, vsContractSelectSchema } from "@rocky/database/zod";
-import { farmBookStatusSchema, verificationStatusSchema, farmTypeSchema, dataSourceSchema, sortByFarmSchema, sortOrderSchema, vsContractStatusSchema } from "../enums/domain.js";
-import type { farmBookStatusType, vsContractStatusType } from "../enums/domain.js";
+import { farmBooksSelectSchema, farmsSelectSchema, farmsInsertSchema, addressesSelectSchema, vsAssignmentsSelectSchema, vsContractsSelectSchema } from "@rocky/database/zod";
+import { farmBookStatusSchema, verificationStatusSchema, farmTypeSchema, dataSourceSchema, sortByFarmSchema, sortOrderSchema, vsContractStatusSchema } from "../enums/index.js";
+import type { farmBookStatusType, vsContractStatusType } from "../enums/index.js";
 import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 import { farmIdSchema } from "../utils/check-digit.js";
 
@@ -16,7 +16,7 @@ import { farmIdSchema } from "../utils/check-digit.js";
 // RESPONSE SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const farmResponseSchema = farmSelectSchema
+export const farmResponseSchema = farmsSelectSchema
   .omit({ createdBy: true, updatedBy: true, validTo: true })
   .extend({
     location: z.unknown().nullable(),
@@ -43,14 +43,14 @@ export const farmSummarySchema = z.object(farmResponseSchema
 
 export type FarmSummary = z.infer<typeof farmSummarySchema>;
 
-export const addressResponseSchema = addressSelectSchema
+export const addressResponseSchema = addressesSelectSchema
   .omit({ legacyId: true, createdBy: true, validTo: true })
   .extend({
     location: z.string().nullable(),
     geocodedAddress: z.string().nullable(),
     geocodedAt: z.coerce.date<string>().nullable(),
   })
-  .strip();
+  .strict();
 
 export type AddressResponse = z.infer<typeof addressResponseSchema>;
 
@@ -63,7 +63,7 @@ export const farmListResponseSchema = z.strictObject({
 
 export type FarmListResponse = z.infer<typeof farmListResponseSchema>;
 
-export const createFarmRequestSchema = farmInsertSchema
+export const createFarmRequestSchema = farmsInsertSchema
   .pick({
     farmId: true,
     addressId: true,
@@ -138,12 +138,11 @@ export interface FarmBookResponse {
   createdAt: Date;
 }
 
-export const farmBookResponseSchema = farmBookSelectSchema
+export const farmBookResponseSchema = farmBooksSelectSchema
   .omit({ createdBy: true, updatedAt: true, validTo: true })
-  .extend({ status: farmBookStatusSchema })
-  .strip() satisfies z.ZodType<FarmBookResponse>;
+  .extend({ status: farmBookStatusSchema }).strip() satisfies z.ZodType<FarmBookResponse>;
 
-type _nodrift_farmBookResponse = NoDrift<z.infer<typeof farmBookResponseSchema>, FarmBookResponse>;
+type _drift_farmBookResponse = NoDrift<z.infer<typeof farmBookResponseSchema>, FarmBookResponse>;
 
 export interface CreateFarmBookRequest {
   farmId: string;
@@ -153,7 +152,7 @@ export const createFarmBookRequestSchema = z.strictObject({
   farmId: z.uuid(),
 }) satisfies z.ZodType<CreateFarmBookRequest>;
 
-type _nodrift_createFarmBookRequest = NoDrift<z.infer<typeof createFarmBookRequestSchema>, CreateFarmBookRequest>;
+type _drift_createFarmBookRequest = NoDrift<z.infer<typeof createFarmBookRequestSchema>, CreateFarmBookRequest>;
 
 export interface UpdateFarmBookStatusRequest {
   status: farmBookStatusType;
@@ -167,7 +166,7 @@ export const updateFarmBookStatusRequestSchema = z.strictObject({
   notes: z.string().optional(),
 }) satisfies z.ZodType<UpdateFarmBookStatusRequest>;
 
-type _nodrift_updateFarmBookStatusRequest = NoDrift<z.infer<typeof updateFarmBookStatusRequestSchema>, UpdateFarmBookStatusRequest>;
+type _drift_updateFarmBookStatusRequest = NoDrift<z.infer<typeof updateFarmBookStatusRequestSchema>, UpdateFarmBookStatusRequest>;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // VS CONTRACT SCHEMAS
@@ -186,12 +185,11 @@ export interface VsContractResponse {
   createdAt: Date;
 }
 
-export const vsContractResponseSchema = vsContractSelectSchema
+export const vsContractResponseSchema = vsContractsSelectSchema
   .omit({ createdBy: true, updatedAt: true, validTo: true })
-  .extend({ status: vsContractStatusSchema })
-  .strip() satisfies z.ZodType<VsContractResponse>;
+  .extend({ status: vsContractStatusSchema }).strip() satisfies z.ZodType<VsContractResponse>;
 
-type _nodrift_vsContractResponse = NoDrift<z.infer<typeof vsContractResponseSchema>, VsContractResponse>;
+type _drift_vsContractResponse = NoDrift<z.infer<typeof vsContractResponseSchema>, VsContractResponse>;
 
 export interface CreateVsContractRequest {
   subjectId: string;
@@ -211,7 +209,7 @@ export const createVsContractRequestSchema = z.strictObject({
   notes: z.string().optional(),
 }) satisfies z.ZodType<CreateVsContractRequest>;
 
-type _nodrift_createVsContractRequest = NoDrift<z.infer<typeof createVsContractRequestSchema>, CreateVsContractRequest>;
+type _drift_createVsContractRequest = NoDrift<z.infer<typeof createVsContractRequestSchema>, CreateVsContractRequest>;
 
 export interface UpdateVsContractStatusRequest {
   status: vsContractStatusType;
@@ -221,7 +219,7 @@ export const updateVsContractStatusRequestSchema = z.strictObject({
   status: vsContractStatusSchema,
 }) satisfies z.ZodType<UpdateVsContractStatusRequest>;
 
-type _nodrift_updateVsContractStatusRequest = NoDrift<z.infer<typeof updateVsContractStatusRequestSchema>, UpdateVsContractStatusRequest>;
+type _drift_updateVsContractStatusRequest = NoDrift<z.infer<typeof updateVsContractStatusRequestSchema>, UpdateVsContractStatusRequest>;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // VS ASSIGNMENT SCHEMAS
@@ -239,11 +237,10 @@ export interface VsAssignmentResponse {
   createdAt: Date;
 }
 
-export const vsAssignmentResponseSchema = vsAssignmentSelectSchema
-  .omit({ createdBy: true, updatedAt: true, validTo: true })
-  .strip() satisfies z.ZodType<VsAssignmentResponse>;
+export const vsAssignmentResponseSchema = vsAssignmentsSelectSchema
+  .omit({ createdBy: true, updatedAt: true, validTo: true }).strip() satisfies z.ZodType<VsAssignmentResponse>;
 
-type _nodrift_vsAssignmentResponse = NoDrift<z.infer<typeof vsAssignmentResponseSchema>, VsAssignmentResponse>;
+type _drift_vsAssignmentResponse = NoDrift<z.infer<typeof vsAssignmentResponseSchema>, VsAssignmentResponse>;
 
 export interface CreateVsAssignmentRequest {
   contractId: string;
@@ -263,7 +260,7 @@ export const createVsAssignmentRequestSchema = z.strictObject({
   notes: z.string().optional(),
 }) satisfies z.ZodType<CreateVsAssignmentRequest>;
 
-type _nodrift_createVsAssignmentRequest = NoDrift<z.infer<typeof createVsAssignmentRequestSchema>, CreateVsAssignmentRequest>;
+type _drift_createVsAssignmentRequest = NoDrift<z.infer<typeof createVsAssignmentRequestSchema>, CreateVsAssignmentRequest>;
 
 export interface UpdateVsAssignmentRequest {
   endDate?: Date;
@@ -275,10 +272,10 @@ export const updateVsAssignmentRequestSchema = z.strictObject({
   notes: z.string().optional(),
 }).refine((data) => Object.keys(data).length > 0, "At least one field must be updated") satisfies z.ZodType<UpdateVsAssignmentRequest>;
 
-type _nodrift_updateVsAssignmentRequest = NoDrift<z.infer<typeof updateVsAssignmentRequestSchema>, UpdateVsAssignmentRequest>;
+type _drift_updateVsAssignmentRequest = NoDrift<z.infer<typeof updateVsAssignmentRequestSchema>, UpdateVsAssignmentRequest>;
 
 export type _FarmGuillotines = ActivateGuillotines<
-  [_nodrift_farmBookResponse, _nodrift_createFarmBookRequest, _nodrift_updateFarmBookStatusRequest,
-   _nodrift_vsContractResponse, _nodrift_createVsContractRequest, _nodrift_updateVsContractStatusRequest,
-   _nodrift_vsAssignmentResponse, _nodrift_createVsAssignmentRequest, _nodrift_updateVsAssignmentRequest]
+  [_drift_farmBookResponse, _drift_createFarmBookRequest, _drift_updateFarmBookStatusRequest,
+   _drift_vsContractResponse, _drift_createVsContractRequest, _drift_updateVsContractStatusRequest,
+   _drift_vsAssignmentResponse, _drift_createVsAssignmentRequest, _drift_updateVsAssignmentRequest]
 >;

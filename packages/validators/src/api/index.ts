@@ -1,4 +1,5 @@
 export * from "./animals.api.js";
+export * from "./audit.api.js";
 export * from "./archive.api.js";
 export * from "./correction.api.js";
 export * from "./document.api.js";
@@ -9,11 +10,15 @@ export * from "./holdings.api.js";
 export * from "./inspection.api.js";
 export * from "./iot.api.js";
 export * from "./movements.api.js";
+export * from "./modules.api.js";
+export * from "./system-parameters.api.js";
 export * from "./notifications.api.js";
 export * from "./organizations.api.js";
+export * from "./params.api.js";
 export * from "./passport.api.js";
 export * from "./pda-devices.api.js";
 export * from "./rbac.api.js";
 export * from "./registration.api.js";
 export * from "./subjects.api.js";
 export * from "./users.api.js";
+

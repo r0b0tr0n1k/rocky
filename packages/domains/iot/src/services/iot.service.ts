@@ -7,6 +7,16 @@ import type {
   ListReadingsRequest,
   CreateGeofenceRequest,
   LogGeofenceEventRequest,
+  IotDeviceResponse,
+  SensorReadingResponse,
+  GeofenceResponse,
+  GeofenceEventResponse,
+} from "@rocky/validators/api";
+import {
+  iotDeviceResponseSchema,
+  sensorReadingResponseSchema,
+  geofenceResponseSchema,
+  geofenceEventResponseSchema,
 } from "@rocky/validators/api";
 import { IOT_ERRORS, IotError } from "../errors/iot.errors.js";
 import type { IotRepository } from "../repositories/iot.repository.js";
@@ -17,25 +27,26 @@ export class IotService {
 
   // ── Devices ──
 
-  async getDevice(id: string): Promise<Result<Awaited<ReturnType<IotRepository["findDeviceById"]>>, Error>> {
+  async getDevice(id: string): Promise<Result<IotDeviceResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const device = await this.repo.findDeviceById(id);
       if (!device) throw new IotError(IOT_ERRORS.DEVICE_NOT_FOUND, { id });
-      return device;
+      return iotDeviceResponseSchema.parse(device);
     }, toAppError)();
   }
 
-  async listDevices(input: ListDevicesRequest): Promise<Result<Awaited<ReturnType<IotRepository["listDevices"]>>, Error>> {
+  async listDevices(input: ListDevicesRequest): Promise<Result<{ data: IotDeviceResponse[]; total: number; limit: number; offset: number }, Error>> {
     return fromAsyncThrowable(async () => {
-      return this.repo.listDevices({
+      const { data, total } = await this.repo.listDevices({
         ...input,
         limit: input.limit ?? 20,
         offset: input.offset ?? 0,
       });
+      return { data: data.map((d: unknown) => iotDeviceResponseSchema.parse(d)), total, limit: input.limit ?? 20, offset: input.offset ?? 0 };
     }, toAppError)();
   }
 
-  async registerDevice(data: RegisterDeviceRequest & { createdBy?: string }): Promise<Result<Awaited<ReturnType<IotRepository["insertDevice"]>>, Error>> {
+  async registerDevice(data: RegisterDeviceRequest & { createdBy?: string }): Promise<Result<IotDeviceResponse, Error>> {
     return fromAsyncThrowable(async () => {
       if (data.deviceEui) {
         const existing = await this.repo.findDeviceByEui(data.deviceEui);
@@ -46,7 +57,7 @@ export class IotService {
           });
         }
       }
-      return this.repo.insertDevice({
+      const device = await this.repo.insertDevice({
         id: randomUUID(),
         deviceEui: data.deviceEui,
         manufacturer: data.manufacturer,
@@ -59,15 +70,16 @@ export class IotService {
         assignedToFarmId: data.assignedToFarmId,
         activationDate: data.activationDate,
         createdBy: data.createdBy,
-      } as typeof iotDevices.$inferInsert);
+       });
+       return iotDeviceResponseSchema.parse(device);
     }, toAppError)();
   }
 
   // ── Sensor Readings ──
 
-  async ingestReading(data: IngestReadingRequest): Promise<Result<Awaited<ReturnType<IotRepository["insertReading"]>>, Error>> {
+  async ingestReading(data: IngestReadingRequest): Promise<Result<SensorReadingResponse, Error>> {
     return fromAsyncThrowable(async () => {
-      return this.repo.insertReading({
+      const reading = await this.repo.insertReading({
         deviceId: data.deviceId,
         animalId: data.animalId,
         farmId: data.farmId,
@@ -77,16 +89,17 @@ export class IotService {
         valueText: data.valueText,
         unit: data.unit,
         location: data.latitude && data.longitude
-          ? { type: "Point", coordinates: [data.longitude, data.latitude] }
+          ? { x: data.longitude, y: data.latitude }
           : undefined,
         rawPayload: data.rawPayload,
-      } as any);
+       });
+       return sensorReadingResponseSchema.parse(reading);
     }, toAppError)();
   }
 
-  async ingestReadings(dataArray: IngestReadingRequest[]): Promise<Result<Awaited<ReturnType<IotRepository["insertReadings"]>>, Error>> {
+  async ingestReadings(dataArray: IngestReadingRequest[]): Promise<Result<SensorReadingResponse[], Error>> {
     return fromAsyncThrowable(async () => {
-      return this.repo.insertReadings(dataArray.map((d) => ({
+      const rows = await this.repo.insertReadings(dataArray.map((d) => ({
         deviceId: d.deviceId,
         animalId: d.animalId,
         farmId: d.farmId,
@@ -96,43 +109,47 @@ export class IotService {
         valueText: d.valueText,
         unit: d.unit,
         location: d.latitude && d.longitude
-          ? { type: "Point", coordinates: [d.longitude, d.latitude] }
+          ? { x: d.longitude, y: d.latitude }
           : undefined,
         rawPayload: d.rawPayload,
-      } as any)));
+       })));
+       return rows.map((r: unknown) => sensorReadingResponseSchema.parse(r));
     }, toAppError)();
   }
 
-  async listReadings(input: ListReadingsRequest): Promise<Result<Awaited<ReturnType<IotRepository["listReadings"]>>, Error>> {
+  async listReadings(input: ListReadingsRequest): Promise<Result<{ data: SensorReadingResponse[]; total: number; limit: number; offset: number }, Error>> {
     return fromAsyncThrowable(async () => {
-      return this.repo.listReadings({
+      const { data, total } = await this.repo.listReadings({
         ...input,
         fromDate: input.fromDate ? new Date(input.fromDate) : undefined,
         toDate: input.toDate ? new Date(input.toDate) : undefined,
         limit: input.limit ?? 100,
         offset: input.offset ?? 0,
       });
+      return { data: data.map((d: unknown) => sensorReadingResponseSchema.parse(d)), total, limit: input.limit ?? 100, offset: input.offset ?? 0 };
     }, toAppError)();
   }
 
   // ── Geofences ──
 
-  async createGeofence(data: CreateGeofenceRequest): Promise<Result<Awaited<ReturnType<IotRepository["insertGeofence"]>>, Error>> {
+  async createGeofence(data: CreateGeofenceRequest): Promise<Result<GeofenceResponse, Error>> {
     return fromAsyncThrowable(async () => {
-      return this.repo.insertGeofence({
+      const geofence = await this.repo.insertGeofence({
         name: data.name,
         description: data.description,
         farmId: data.farmId,
         pastureId: data.pastureId,
         fenceType: data.fenceType,
         geometry: data.geometry,
-      } as any);
+       });
+       return geofenceResponseSchema.parse(geofence);
     }, toAppError)();
   }
 
-  async listGeofencesByFarm(farmId: string): Promise<Result<Awaited<ReturnType<IotRepository["listGeofencesByFarm"]>>, Error>> {
+  async listGeofencesByFarm(farmId: string): Promise<Result<GeofenceResponse[], Error>> {
     return fromAsyncThrowable(async () => {
-      return this.repo.listGeofencesByFarm(farmId);
+      const rows = await this.repo.listGeofencesByFarm(farmId);
+      return rows.map((g: unknown) => geofenceResponseSchema.parse(g));
     }, toAppError)();
   }
 
@@ -146,19 +163,20 @@ export class IotService {
 
   // ── Geofence Events ──
 
-  async logGeofenceEvent(data: LogGeofenceEventRequest): Promise<Result<Awaited<ReturnType<IotRepository["insertGeofenceEvent"]>>, Error>> {
+  async logGeofenceEvent(data: LogGeofenceEventRequest): Promise<Result<GeofenceEventResponse, Error>> {
     return fromAsyncThrowable(async () => {
-      return this.repo.insertGeofenceEvent({
+      const event = await this.repo.insertGeofenceEvent({
         animalId: data.animalId,
         geofenceId: data.geofenceId,
         farmId: data.farmId,
         eventType: data.eventType,
         eventAt: new Date(data.eventAt),
         location: data.latitude && data.longitude
-          ? { type: "Point", coordinates: [data.longitude, data.latitude] }
+          ? { x: data.longitude, y: data.latitude }
           : undefined,
         source: data.source,
-      } as any);
+       });
+       return geofenceEventResponseSchema.parse(event);
     }, toAppError)();
   }
 
@@ -168,13 +186,14 @@ export class IotService {
     farmId?: string;
     limit?: number;
     offset?: number;
-  }): Promise<Result<Awaited<ReturnType<IotRepository["listGeofenceEvents"]>>, Error>> {
+  }): Promise<Result<{ data: GeofenceEventResponse[]; total: number; limit: number; offset: number }, Error>> {
     return fromAsyncThrowable(async () => {
-      return this.repo.listGeofenceEvents({
+      const { data, total } = await this.repo.listGeofenceEvents({
         ...input,
         limit: input.limit ?? 50,
         offset: input.offset ?? 0,
       });
+      return { data: data.map((d: unknown) => geofenceEventResponseSchema.parse(d)), total, limit: input.limit ?? 50, offset: input.offset ?? 0 };
     }, toAppError)();
   }
 }

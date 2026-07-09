@@ -8,9 +8,18 @@
     "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit"
   },
   "exports": {
-    ".": "./src/index.ts",
-    "./index.js": "./src/index.ts",
-    "./*": "./src/*"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./*.js": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
   },
   "imports": {
     "#/*": "./src/*"
@@ -25,5 +34,7 @@
   "devDependencies": {
     "@rocky/typescript-config": "workspace:*",
     "typescript": "catalog:"
-  }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts"
 }

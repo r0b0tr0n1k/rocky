@@ -287,6 +287,15 @@ export class EarTagRepository extends BaseRepository {
       .where(eq(earTags.id, earTagId));
   }
 
+  /** Real assigned tags for an order (set by collectOrderTags → assignTagsToOrder). WO-001: takeover file emits these, never synthetic numbers. */
+  async findEarTagsByOrderId(orderId: string): Promise<Array<{ tagNumber: string }>> {
+    return this.client
+      .select({ tagNumber: earTags.tagNumber })
+      .from(earTags)
+      .where(eq(earTags.orderId, orderId))
+      .orderBy(asc(earTags.tagNumber));
+  }
+
   // ─── Types ───────────────────────────────────────────────────────
 
   async findTypeById(id: string) {

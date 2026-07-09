@@ -9,13 +9,13 @@ import type {
   testResultType,
   testTypeType,
   healthSeverityType
-} from "../enums/domain.js";
+} from "../enums/index.js";
 import {
   administrationRouteSchema,
   testResultSchema,
   testTypeSchema,
   healthSeveritySchema
-} from "../enums/domain.js";
+} from "../enums/index.js";
 import type { ActivateGuillotines, NoDrift } from "../utils/type-bridge.js";
 import { eventEnvelopeSchema } from "./base.js";
 

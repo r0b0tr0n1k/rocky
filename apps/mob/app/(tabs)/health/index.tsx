@@ -3,7 +3,9 @@ import { Text } from "@/components/ui/text";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "expo-router";
 
-const HEALTH_ACTIONS = [
+type RouteHref = Parameters<ReturnType<typeof useRouter>["push"]>[0];
+
+const HEALTH_ACTIONS: { title: string; route: RouteHref; desc: string }[] = [
   { title: "Record Vaccination", route: "/health/vaccination", desc: "Log a vaccine administered to an animal" },
   { title: "Record Treatment", route: "/health/treatment", desc: "Log a medical treatment or diagnosis" },
   { title: "Record Lab Test", route: "/health/lab-test", desc: "Log laboratory test results" },
@@ -22,7 +24,7 @@ export default function HealthIndexScreen() {
   );
 }
 
-function TouchableButton({ title, route, desc, router }: { title: string; route: string; desc: string; router: ReturnType<typeof useRouter> }) {
+function TouchableButton({ title, route, desc, router }: { title: string; route: RouteHref; desc: string; router: ReturnType<typeof useRouter> }) {
   return (
     <TouchableOpacity onPress={() => router.push(route)}>
       <Card>

@@ -20,7 +20,7 @@
  */
 
 import { Injectable } from "@nestjs/common";
-import { ORG_SCOPED_ROLES, RLS_BYPASS_ROLES, ROLE_HIERARCHY } from "@rocky/database/constants/index.js";
+import { ORG_SCOPED_ROLES, RLS_BYPASS_ROLES, ROLE_HIERARCHY } from "@rocky/database/constants";
 import { db } from "@rocky/database/index.js";
 import type { AppContext } from "@rocky/trpc/context.js";
 import { TRPCError } from "@trpc/server";

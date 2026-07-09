@@ -13,10 +13,23 @@ import type {
   MovementListResponse,
   CreateMovementRequest,
   MovementListRequest,
-} from "@rocky/validators/api";
-import type { animals as animalsTable, movements as movementsTable } from "@rocky/database";
-import { ANIMAL_STATUS, FARM_TYPE, MOVEMENT_TYPE, PASTURE_TYPE, STATE_CODE } from "@rocky/database/constants";
-import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
+} from "@rocky/validators/api/index.js";
+import type {
+  animals as animalsTable,
+  movements as movementsTable,
+} from "@rocky/database";
+import {
+  ANIMAL_STATUS,
+  FARM_TYPE,
+  MOVEMENT_TYPE,
+  PASTURE_TYPE,
+  STATE_CODE,
+} from "@rocky/database/constants";
+import {
+  type Result,
+  fromAsyncThrowable,
+  toAppError,
+} from "@rocky/domains-shared";
 import { MovementError, MOVEMENT_ERRORS } from "../errors/movement.errors.js";
 import type { MovementRepository } from "../repositories/movement.repository.js";
 import type { AnimalRepository } from "@rocky/domains-animal";
@@ -56,10 +69,16 @@ export class MovementService {
   ) {}
 
   /** ── Rule C.4: Invalidate active pasture declaration before unexpected movement ── */
-  private async invalidatePastureIfNeeded(animalId: string, reason?: string): Promise<void> {
+  private async invalidatePastureIfNeeded(
+    animalId: string,
+    reason?: string,
+  ): Promise<void> {
     const active = await this.repo.findActivePastureDeclaration(animalId);
     if (active) {
-      await this.repo.deactivatePastureDeclaration(active.id, reason ?? `Invalidated by movement of animal ${animalId}`);
+      await this.repo.deactivatePastureDeclaration(
+        active.id,
+        reason ?? `Invalidated by movement of animal ${animalId}`,
+      );
     }
   }
 
@@ -71,7 +90,9 @@ export class MovementService {
     }, toAppError)();
   }
 
-  async listByAnimal(input: MovementListRequest): Promise<Result<MovementListResponse, Error>> {
+  async listByAnimal(
+    input: MovementListRequest,
+  ): Promise<Result<MovementListResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const validated = movementListRequestSchema.parse(input);
       const filter = {
@@ -89,7 +110,9 @@ export class MovementService {
     }, toAppError)();
   }
 
-  async create(input: CreateMovementRequest & { createdBy?: string }): Promise<Result<MovementResponse, Error>> {
+  async create(
+    input: CreateMovementRequest & { createdBy?: string },
+  ): Promise<Result<MovementResponse, Error>> {
     return fromAsyncThrowable(async () => {
       // ── Rule C.4: Invalidate pasture if non-pasture movement ──
       if (input.type && !this.NON_PASTURE_SKIP_TYPES.has(input.type)) {
@@ -100,7 +123,11 @@ export class MovementService {
       let fromFarmId = input.fromFarmId;
       let toFarmId = input.toFarmId;
 
-      if (!fromFarmId && (input.type === MOVEMENT_TYPE.PURCHASE || input.type === MOVEMENT_TYPE.IMPORT)) {
+      if (
+        !fromFarmId &&
+        (input.type === MOVEMENT_TYPE.PURCHASE ||
+          input.type === MOVEMENT_TYPE.IMPORT)
+      ) {
         fromFarmId = DEFAULT_PARAMS.unregisteredDepartureFarmId;
       }
       if (!toFarmId) {
@@ -109,13 +136,17 @@ export class MovementService {
 
       // Guard: cannot move animal to the same farm
       if (fromFarmId && fromFarmId === toFarmId) {
-        throw new MovementError(MOVEMENT_ERRORS.SAME_FARM, { farmId: fromFarmId });
+        throw new MovementError(MOVEMENT_ERRORS.SAME_FARM, {
+          farmId: fromFarmId,
+        });
       }
 
       // Verify animal exists and is alive
       const animal = await this.animalRepo.findById(input.animalId);
       if (!animal) {
-        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, {
+          animalId: input.animalId,
+        });
       }
 
       // ── Rule E.3: Single-farm org restriction ──
@@ -157,7 +188,9 @@ export class MovementService {
 
       const animal = await this.animalRepo.findById(input.animalId);
       if (!animal) {
-        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, {
+          animalId: input.animalId,
+        });
       }
       if (animal.status !== ANIMAL_STATUS.ALIVE) {
         throw new MovementError(MOVEMENT_ERRORS.ANIMAL_NOT_ALIVE, {
@@ -186,7 +219,9 @@ export class MovementService {
       } as unknown as typeof movementsTable.$inferInsert);
 
       // Update animal status
-      const newStatus = isStillborn ? ANIMAL_STATUS.STILLBORN : ANIMAL_STATUS.DEAD;
+      const newStatus = isStillborn
+        ? ANIMAL_STATUS.STILLBORN
+        : ANIMAL_STATUS.DEAD;
       await this.animalRepo.update(input.animalId, { status: newStatus });
 
       return movementResponseSchema.parse(mov);
@@ -209,7 +244,10 @@ export class MovementService {
 
       // ── Rule C.3: Pasture cannot be used as departure farm ──
       const fromFarmType = await this.repo.findFarmType(input.fromFarmId);
-      if (fromFarmType === FARM_TYPE.PASTURE_MOUNTAIN || fromFarmType === FARM_TYPE.PASTURE_VILLAGE) {
+      if (
+        fromFarmType === FARM_TYPE.PASTURE_MOUNTAIN ||
+        fromFarmType === FARM_TYPE.PASTURE_VILLAGE
+      ) {
         throw new MovementError(MOVEMENT_ERRORS.PASTURE_INVALID_DEPARTURE, {
           farmId: input.fromFarmId,
           farmType: fromFarmType,
@@ -278,7 +316,10 @@ export class MovementService {
 
       // C.3: Alpine pasture cannot be used as departure farm
       const fromFarmType = await this.repo.findFarmType(input.fromFarmId);
-      if (fromFarmType === FARM_TYPE.PASTURE_MOUNTAIN || fromFarmType === FARM_TYPE.PASTURE_VILLAGE) {
+      if (
+        fromFarmType === FARM_TYPE.PASTURE_MOUNTAIN ||
+        fromFarmType === FARM_TYPE.PASTURE_VILLAGE
+      ) {
         throw new MovementError(MOVEMENT_ERRORS.PASTURE_INVALID_DEPARTURE, {
           farmId: input.fromFarmId,
           farmType: fromFarmType,
@@ -342,7 +383,9 @@ export class MovementService {
 
       const animal = await this.animalRepo.findById(input.animalId);
       if (!animal) {
-        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, {
+          animalId: input.animalId,
+        });
       }
       if (animal.status !== ANIMAL_STATUS.ALIVE) {
         throw new MovementError(MOVEMENT_ERRORS.ANIMAL_NOT_ALIVE, {
@@ -352,7 +395,9 @@ export class MovementService {
       }
 
       if (input.fromFarmId === input.toFarmId) {
-        throw new MovementError(MOVEMENT_ERRORS.SAME_FARM, { farmId: input.fromFarmId });
+        throw new MovementError(MOVEMENT_ERRORS.SAME_FARM, {
+          farmId: input.fromFarmId,
+        });
       }
 
       const mov = await this.repo.insert({
@@ -367,7 +412,9 @@ export class MovementService {
       await this.animalRepo.updateFarm(input.animalId, input.toFarmId);
 
       if (!mov)
-        throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, { reason: "Failed to create alpine return movement" });
+        throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, {
+          reason: "Failed to create alpine return movement",
+        });
       return movementResponseSchema.parse(mov);
     }, toAppError)();
   }
@@ -388,7 +435,9 @@ export class MovementService {
 
       const animal = await this.animalRepo.findById(input.animalId);
       if (!animal) {
-        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, {
+          animalId: input.animalId,
+        });
       }
       if (animal.status !== ANIMAL_STATUS.ALIVE) {
         throw new MovementError(MOVEMENT_ERRORS.ANIMAL_NOT_ALIVE, {
@@ -431,7 +480,9 @@ export class MovementService {
       } as unknown as typeof movementsTable.$inferInsert);
 
       // Update animal status
-      await this.animalRepo.update(input.animalId, { status: ANIMAL_STATUS.SLAUGHTERED });
+      await this.animalRepo.update(input.animalId, {
+        status: ANIMAL_STATUS.SLAUGHTERED,
+      });
 
       return movementResponseSchema.parse(mov);
     }, toAppError)();
@@ -457,9 +508,14 @@ export class MovementService {
   }): Promise<Result<MovementResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const animal = await this.animalRepo.findById(input.animalId);
-      if (!animal) throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+      if (!animal)
+        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, {
+          animalId: input.animalId,
+        });
       if (animal.status !== ANIMAL_STATUS.ALIVE) {
-        throw new MovementError(MOVEMENT_ERRORS.ANIMAL_NOT_ALIVE, { animalId: input.animalId });
+        throw new MovementError(MOVEMENT_ERRORS.ANIMAL_NOT_ALIVE, {
+          animalId: input.animalId,
+        });
       }
 
       // Create IMPORT movement
@@ -468,7 +524,8 @@ export class MovementService {
         fromFarmId: input.fromFarmId,
         toFarmId: input.toFarmId,
         type: MOVEMENT_TYPE.IMPORT,
-        movementDate: input.bipEntryDate ?? new Date().toISOString().split("T")[0]!,
+        movementDate:
+          input.bipEntryDate ?? new Date().toISOString().split("T")[0]!,
         importCountry: input.countryOfOrigin,
         createdBy: input.createdBy,
       } as unknown as typeof movementsTable.$inferInsert);
@@ -486,7 +543,9 @@ export class MovementService {
         countryOfOrigin: input.countryOfOrigin,
         foreignPassportNumber: input.foreignPassportNumber,
         foreignPassportStored: !!input.foreignPassportNumber,
-        foreignPassportStorageExpiry: storageExpiry.toISOString().split("T")[0]!,
+        foreignPassportStorageExpiry: storageExpiry
+          .toISOString()
+          .split("T")[0]!,
         bipEntryDate: input.bipEntryDate,
         status: "completed",
         createdBy: input.createdBy,
@@ -506,7 +565,9 @@ export class MovementService {
       }
 
       // Update animal status
-      await this.animalRepo.update(input.animalId, { status: ANIMAL_STATUS.IMPORTED });
+      await this.animalRepo.update(input.animalId, {
+        status: ANIMAL_STATUS.IMPORTED,
+      });
 
       return movementResponseSchema.parse(mov);
     }, toAppError)();
@@ -529,7 +590,10 @@ export class MovementService {
   }): Promise<Result<MovementResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const foreignAnimal = await this.animalRepo.findById(input.animalId);
-      if (!foreignAnimal) throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+      if (!foreignAnimal)
+        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, {
+          animalId: input.animalId,
+        });
 
       // IE.4: Create a new animal record with re-tagged ear tag
       const newAnimal = await this.animalRepo.insert({
@@ -547,7 +611,9 @@ export class MovementService {
       } as unknown as typeof animalsTable.$inferInsert);
 
       if (!newAnimal)
-        throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, { reason: "Failed to create animal record" });
+        throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, {
+          reason: "Failed to create animal record",
+        });
       const newAnimalId = newAnimal.id;
 
       // Create IMPORT movement for the new national animal
@@ -556,7 +622,8 @@ export class MovementService {
         fromFarmId: input.fromFarmId,
         toFarmId: input.toFarmId,
         type: MOVEMENT_TYPE.IMPORT,
-        movementDate: input.bipEntryDate ?? new Date().toISOString().split("T")[0]!,
+        movementDate:
+          input.bipEntryDate ?? new Date().toISOString().split("T")[0]!,
         importCountry: input.countryOfOrigin,
         createdBy: input.createdBy,
       } as unknown as typeof movementsTable.$inferInsert);
@@ -599,12 +666,18 @@ export class MovementService {
       await this.invalidatePastureIfNeeded(input.animalId);
 
       const animal = await this.animalRepo.findById(input.animalId);
-      if (!animal) throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+      if (!animal)
+        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, {
+          animalId: input.animalId,
+        });
       if (animal.status !== ANIMAL_STATUS.ALIVE) {
-        throw new MovementError(MOVEMENT_ERRORS.ANIMAL_NOT_ALIVE, { animalId: input.animalId });
+        throw new MovementError(MOVEMENT_ERRORS.ANIMAL_NOT_ALIVE, {
+          animalId: input.animalId,
+        });
       }
 
-      const toFarmId = input.toFarmId ?? DEFAULT_PARAMS.unregisteredDepartureFarmId;
+      const toFarmId =
+        input.toFarmId ?? DEFAULT_PARAMS.unregisteredDepartureFarmId;
 
       // Create EXPORT movement
       const mov = await this.repo.insert({
@@ -612,7 +685,8 @@ export class MovementService {
         fromFarmId: input.fromFarmId,
         toFarmId,
         type: MOVEMENT_TYPE.EXPORT,
-        movementDate: input.bipExitDate ?? new Date().toISOString().split("T")[0]!,
+        movementDate:
+          input.bipExitDate ?? new Date().toISOString().split("T")[0]!,
         exportCountry: input.destinationCountry,
         createdBy: input.createdBy,
       } as unknown as typeof movementsTable.$inferInsert);
@@ -631,7 +705,9 @@ export class MovementService {
       });
 
       // Update animal status
-      await this.animalRepo.update(input.animalId, { status: ANIMAL_STATUS.EXPORTED });
+      await this.animalRepo.update(input.animalId, {
+        status: ANIMAL_STATUS.EXPORTED,
+      });
 
       return movementResponseSchema.parse(mov);
     }, toAppError)();
@@ -659,12 +735,20 @@ export class MovementService {
   }): Promise<Result<MovementResponse[], Error>> {
     return fromAsyncThrowable(async () => {
       // ── Rule C.4: Market sale invalidates active pasture declaration ──
-      await this.invalidatePastureIfNeeded(input.animalId, `Market sale at ${input.marketFarmId}`);
+      await this.invalidatePastureIfNeeded(
+        input.animalId,
+        `Market sale at ${input.marketFarmId}`,
+      );
 
       const animal = await this.animalRepo.findById(input.animalId);
-      if (!animal) throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+      if (!animal)
+        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, {
+          animalId: input.animalId,
+        });
       if (animal.status !== ANIMAL_STATUS.ALIVE) {
-        throw new MovementError(MOVEMENT_ERRORS.ANIMAL_NOT_ALIVE, { animalId: input.animalId });
+        throw new MovementError(MOVEMENT_ERRORS.ANIMAL_NOT_ALIVE, {
+          animalId: input.animalId,
+        });
       }
 
       const movementGroupId = crypto.randomUUID();
@@ -696,7 +780,10 @@ export class MovementService {
 
       // Insert leg 1 first to get its ID for parentMovementId
       const leg1 = await this.repo.insert(legs[0]!);
-      if (!leg1) throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, { reason: "Failed to create market leg 1" });
+      if (!leg1)
+        throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, {
+          reason: "Failed to create market leg 1",
+        });
 
       // Insert leg 2 with parentMovementId
       const leg2 = await this.repo.insert({
@@ -745,7 +832,10 @@ export class MovementService {
   }): Promise<Result<MovementResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const animal = await this.animalRepo.findById(input.animalId);
-      if (!animal) throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+      if (!animal)
+        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, {
+          animalId: input.animalId,
+        });
 
       // Reverse: buyer → market → original seller
       const mov = await this.repo.insert({
@@ -761,7 +851,10 @@ export class MovementService {
       // Update animal's current farm back to seller
       await this.animalRepo.updateFarm(input.animalId, input.sellerFarmId);
 
-      if (!mov) throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, { reason: "Failed to create unsold movement" });
+      if (!mov)
+        throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, {
+          reason: "Failed to create unsold movement",
+        });
       return movementResponseSchema.parse(mov);
     }, toAppError)();
   }
@@ -783,9 +876,14 @@ export class MovementService {
       await this.invalidatePastureIfNeeded(input.animalId);
 
       const animal = await this.animalRepo.findById(input.animalId);
-      if (!animal) throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, { animalId: input.animalId });
+      if (!animal)
+        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, {
+          animalId: input.animalId,
+        });
       if (animal.status !== ANIMAL_STATUS.ALIVE) {
-        throw new MovementError(MOVEMENT_ERRORS.ANIMAL_NOT_ALIVE, { animalId: input.animalId });
+        throw new MovementError(MOVEMENT_ERRORS.ANIMAL_NOT_ALIVE, {
+          animalId: input.animalId,
+        });
       }
 
       // Market → Slaughterhouse
@@ -799,7 +897,9 @@ export class MovementService {
       } as unknown as typeof movementsTable.$inferInsert);
 
       // Update animal status
-      await this.animalRepo.update(input.animalId, { status: ANIMAL_STATUS.SLAUGHTERED });
+      await this.animalRepo.update(input.animalId, {
+        status: ANIMAL_STATUS.SLAUGHTERED,
+      });
 
       if (!mov)
         throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, {

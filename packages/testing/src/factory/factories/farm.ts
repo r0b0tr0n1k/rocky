@@ -10,15 +10,15 @@ import {
   VERIFICATION_STATUS,
   VERIFICATION_STATUS_VALUES,
 } from "@rocky/database/constants";
-import { farmSelectSchema } from "@rocky/database/zod";
+import { farmsSelectSchema } from "@rocky/database/zod";
 import { SchemaDataFactory } from "../base.js";
 import type { InferSelectSchema } from "../type-helpers.js";
 
-export type FarmRecord = InferSelectSchema<typeof farmSelectSchema>;
+export type FarmRecord = InferSelectSchema<typeof farmsSelectSchema>;
 
 export class FarmFactory extends SchemaDataFactory<FarmRecord> {
   constructor(addressId: string, createdBy?: string) {
-    super(farmSelectSchema, {
+    super(farmsSelectSchema, {
       id: faker.string.uuid(),
       addressId,
       farmId: faker.string.numeric({ length: 9 }),

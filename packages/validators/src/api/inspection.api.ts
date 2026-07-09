@@ -4,8 +4,8 @@
 
 import { z } from "zod";
 import {
-  inspectionSelectSchema,
-  inspectionInsertSchema,
+  inspectionsSelectSchema,
+  inspectionsInsertSchema,
 } from "@rocky/database/zod";
 import {
   inspectionStatusSchema,
@@ -14,7 +14,7 @@ import {
   languageSchema,
   type animalStatusType,
   type sexType,
-} from "../enums/domain.js";
+} from "../enums/index.js";
 import type { NoDrift, NoDriftSimple, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -22,14 +22,29 @@ import type { NoDrift, NoDriftSimple, ActivateGuillotines } from "../utils/type-
 // ═══════════════════════════════════════════════════════════════════════════
 
 /** Inspection record */
-export const inspectionResponseSchema = inspectionSelectSchema
+export const inspectionResponseSchema = inspectionsSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
     status: inspectionStatusSchema,
-  })
-  .strip();
+  }).strip();
 
 export type InspectionResponse = z.infer<typeof inspectionResponseSchema>;
+
+/** Paginated list of inspections */
+export const inspectionListResponseSchema = z
+  .object({ data: z.array(inspectionResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
+  .strip();
+export type InspectionListResponse = z.infer<typeof inspectionListResponseSchema>;
+
+/** Result of running a risk analysis */
+export const riskAnalysisRunResponseSchema = z
+  .object({ analysisId: z.string(), selectedFarmCount: z.number(), totalFarmCount: z.number() })
+  .strip();
+export type RiskAnalysisRunResponse = z.infer<typeof riskAnalysisRunResponseSchema>;
+
+/** Paginated list of risk analyses (raw rows) */
+export const riskAnalysisListResponseSchema = z.object({ data: z.array(z.unknown()), total: z.number() }).strip();
+export type RiskAnalysisListResponse = z.infer<typeof riskAnalysisListResponseSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CHECKED ANIMAL (Form Data - Section F of inspection-form.yaml)
@@ -89,7 +104,7 @@ export type InspectionListRequest = z.infer<typeof inspectionListRequestSchema>;
 // CREATE / INPUT SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const createInspectionRequestSchema = inspectionInsertSchema
+export const createInspectionRequestSchema = inspectionsInsertSchema
   .pick({
     farmId: true,
     inspectorId: true,

@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   allowedDevOrigins: ["http://localhost:3000"],
+  // Workspace packages now ship compiled ESM + .d.ts to their dist/ (exports
+  // point at ./dist/*). They are consumed as built JS at runtime; transpile here
+  // mainly for the source-only shadcn component library (@rocky/ui), with the
+  // others listed as a safety net for the Next/Turbopack transform.
+  transpilePackages: ["@rocky/ui", "@rocky/database", "@rocky/validators"],
   turbopack: { root: "/home/goce/appz/rocky" },
   typescript: { ignoreBuildErrors: true },
 

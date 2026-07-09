@@ -525,16 +525,20 @@ export class EarTagService {
         });
 
       const stateCode = "MK";
-      const fileContent = Array.from({ length: takeover.totalTagsCollected }, (_, i) => {
-        const base = String(10000001 + i).padStart(7, "0");
-        const checkDigit = (() => {
-          let sum = 0;
-          for (let j = 0; j < 7; j++) sum += Number(base[j]) * (j % 2 === 0 ? 3 : 1);
-          const rem = sum % 10;
-          return String(rem === 0 ? 0 : 10 - rem);
-        })();
-        return `${stateCode}${base}${checkDigit}`;
-      }).join("\n");
+      const { getCheckDigitProvider } = await import("@rocky/validators/utils/check-digit");
+      const provider = getCheckDigitProvider(); // ADR-0030 §B: active provider, never a private formula
+      const assignedTags = await this.repo.findEarTagsByOrderId(order.id);
+      const fileContent = assignedTags
+        .map((t) => {
+          if (!provider.validate(t.tagNumber)) {
+            throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, {
+              message: "Assigned ear tag failed check-digit validation",
+              tagNumber: t.tagNumber,
+            });
+          }
+          return `${stateCode}${t.tagNumber}`;
+        })
+        .join("\n");
 
       const fileName = `takeover_${takeover.id.slice(0, 8)}.txt`;
 
@@ -546,7 +550,7 @@ export class EarTagService {
         supplierOrganizationId: takeover.supplierOrganizationId,
         fileName,
         content: fileContent,
-        lineCount: takeover.totalTagsCollected,
+        lineCount: assignedTags.length,
       });
     }, toAppError)();
   }

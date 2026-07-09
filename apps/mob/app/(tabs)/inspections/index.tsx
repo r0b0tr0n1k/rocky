@@ -2,6 +2,7 @@ import { View, FlatList, TouchableOpacity } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/providers/trpc-provider";
+import { INSPECTION_STATUS } from "@rocky/validators/enums";
 import { useRouter } from "expo-router";
 
 export default function InspectionsListScreen() {
@@ -24,7 +25,7 @@ export default function InspectionsListScreen() {
                 {item.scheduledDate ? new Date(item.scheduledDate).toLocaleDateString() : "No date"}
               </Text>
             </View>
-            <Badge variant={item.status === "completed" ? "default" : "secondary"}>
+            <Badge variant={item.status === INSPECTION_STATUS.COMPLETED ? "default" : "secondary"}>
               <Text className="text-xs">{item.status}</Text>
             </Badge>
           </TouchableOpacity>

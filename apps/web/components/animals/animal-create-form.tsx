@@ -8,7 +8,9 @@ import { createAnimalRequestSchema, type FarmResponse, type AnimalSummary } from
 import { ComboboxField, DateField, NumberField, SelectField, SwitchField, TextField } from "#components/shared/form-fields";
 import { ValidatedForm } from "#components/shared/validated-form";
 import { enumToOptions } from "#lib/options";
-import { trpc } from "#lib/trpc";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTRPC } from "#lib/trpc";
+import { notifyError, notifySuccess } from "#lib/notify";
 import { useValidatedForm } from "#lib/use-validated-form";
 
 export function AnimalCreateForm() {
@@ -17,11 +19,18 @@ export function AnimalCreateForm() {
     defaultValues: { stateCode: STATE_CODE.MK, isFirstTagging: false, imported: false },
   });
 
-  const farms = trpc.farm.list.useQuery({ limit: 100 });
-  const animals = trpc.animal.list.useQuery({ limit: 100 });
-  const create = trpc.animal.create.useMutation({
-    onSuccess: () => router.push("/animals"),
-  });
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const farms = useQuery(trpc.farm.list.queryOptions({ limit: 100 }));
+  const animals = useQuery(trpc.animal.list.queryOptions({ limit: 100 }));
+  const create = useMutation(trpc.animal.create.mutationOptions({
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: trpc.animal.list.queryKey() });
+      notifySuccess("Animal created");
+      router.push("/animals");
+    },
+    onError: (error) => notifyError(error, "Failed to create animal"),
+  }));
 
   const farmOptions = ((farms.data?.data ?? []) as FarmResponse[]).map((f) => ({
     value: f.id,

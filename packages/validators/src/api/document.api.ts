@@ -4,7 +4,7 @@
 // Single endpoint: document.generate(type, refId, format) → DocumentResponse
 
 import { z } from "zod";
-import type { NoDriftSimple } from "../utils/type-bridge.js";
+import type { NoDriftSimple, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // REQUEST SCHEMAS
@@ -24,7 +24,7 @@ export const documentGenerateRequestSchema = z.strictObject({
 export interface DocumentGenerateRequest {
   type: string;
   refId: string;
-  format?: "yaml" | "xml";
+  format: "yaml" | "xml";
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -76,4 +76,8 @@ type _drift_documentGenerateRequest = NoDriftSimple<
 type _drift_documentResponse = NoDriftSimple<
   z.infer<typeof documentResponseSchema>,
   DocumentResponse
+>;
+
+export type _DocumentGuillotines = ActivateGuillotines<
+  [ _drift_documentGenerateRequest, _drift_documentResponse ]
 >;

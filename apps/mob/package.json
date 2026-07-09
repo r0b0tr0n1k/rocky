@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@better-auth/expo": "catalog:",
+    "@hookform/resolvers": "catalog:",
     "@rn-primitives/accordion": "^1.5.2",
     "@rn-primitives/alert-dialog": "^1.5.2",
     "@rn-primitives/aspect-ratio": "^1.5.2",
@@ -43,6 +44,7 @@
     "@rn-primitives/toggle-group": "^1.5.2",
     "@rn-primitives/tooltip": "^1.5.2",
     "@rocky/auth": "workspace:*",
+    "@rocky/trpc": "workspace:*",
     "@rocky/validators": "workspace:*",
     "@tanstack/react-query": "catalog:",
     "@total-typescript/ts-reset": "^0.6.1",
@@ -66,6 +68,7 @@
     "lucide-react-native": "^1.21.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-hook-form": "catalog:",
     "react-native": "0.85.3",
     "react-native-gesture-handler": "~2.31.1",
     "react-native-keyboard-controller": "1.21.6",

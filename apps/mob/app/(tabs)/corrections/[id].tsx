@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/providers/trpc-provider";
+import { CORRECTION_STATUS } from "@rocky/validators/enums";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 export default function CorrectionDetailScreen() {
@@ -53,13 +54,13 @@ export default function CorrectionDetailScreen() {
           </CardContent>
         </Card>
 
-        {correction.status === "pending" && (
+        {correction.status === CORRECTION_STATUS.PENDING && (
           <Button onPress={() => review.mutate({ id })} disabled={review.isPending}>
             <Text>Mark Under Review</Text>
           </Button>
         )}
 
-        {(correction.status === "pending" || correction.status === "under_review") && (
+        {(correction.status === CORRECTION_STATUS.PENDING || correction.status === CORRECTION_STATUS.UNDER_REVIEW) && (
           <View className="gap-4">
             <View className="gap-2">
               <Label>Resolution Notes</Label>

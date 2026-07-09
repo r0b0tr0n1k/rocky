@@ -3,6 +3,9 @@ import { z } from "zod";
 
 const ConfigSchema = z.object({
   apiUrl: z.url("API URL must be a valid URL"),
+  // ISO-style country/state code for the deployment (North Macedonia). A farm
+  // selection overrides this at runtime via the active-farm context.
+  stateCode: z.string().default("MK"),
 });
 
 export type AppConfig = z.infer<typeof ConfigSchema>;
@@ -10,6 +13,7 @@ export type AppConfig = z.infer<typeof ConfigSchema>;
 export function getConfig(): AppConfig {
   const config = {
     apiUrl: process.env.EXPO_PUBLIC_API_URL ?? Constants.expoConfig?.extra?.apiUrl ?? "",
+    stateCode: process.env.EXPO_PUBLIC_STATE_CODE ?? Constants.expoConfig?.extra?.stateCode ?? "MK",
   };
 
   const result = ConfigSchema.safeParse(config);

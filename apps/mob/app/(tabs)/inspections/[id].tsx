@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/providers/trpc-provider";
+import { INSPECTION_STATUS } from "@rocky/validators/enums";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 export default function InspectionDetailScreen() {
@@ -54,7 +55,7 @@ export default function InspectionDetailScreen() {
           </CardContent>
         </Card>
 
-        {inspection.status !== "completed" && (
+        {inspection.status !== INSPECTION_STATUS.COMPLETED && (
           <View className="gap-4">
             <Text className="text-foreground text-lg font-bold">Complete Inspection</Text>
             <View className="gap-2">
@@ -64,7 +65,7 @@ export default function InspectionDetailScreen() {
             <Button
               onPress={() => {
                 if (!inspectionDate) { Alert.alert("Error", "Enter inspection date"); return; }
-                completeInspection.mutate({ id, inspectionDate: new Date(inspectionDate) });
+                completeInspection.mutate({ id, inspectionDate: inspectionDate });
               }}
               disabled={completeInspection.isPending || !inspectionDate}
             >

@@ -21,6 +21,7 @@ export { DEATH_CAUSE, DEATH_CAUSE_VALUES } from './death-cause.js';
 export { DELIVERY_METHOD, DELIVERY_METHOD_VALUES } from './delivery-method.js';
 export { DETECTION_SOURCE, DETECTION_SOURCE_VALUES } from './detection-source.js';
 export { DEVICE_STATUS, DEVICE_STATUS_VALUES } from './device-status.js';
+export { IOT_DEVICE_TYPE, IOT_DEVICE_TYPE_VALUES } from './device-type.js';
 export { DISTRIBUTION_METHOD, DISTRIBUTION_METHOD_VALUES } from './distribution-method.js';
 export { DUPLICATE_TYPE, DUPLICATE_TYPE_VALUES } from './duplicate-type.js';
 export { EAR_TAG_ORDER_STATUS, EAR_TAG_ORDER_STATUS_VALUES } from './ear-tag-order-status.js';
@@ -45,7 +46,6 @@ export { IMPORT_EXPORT_STATUS, IMPORT_EXPORT_STATUS_VALUES } from './import-expo
 export { IMPORT_TYPE, IMPORT_TYPE_VALUES } from './import-type.js';
 export { INSPECTION_STATUS, INSPECTION_STATUS_VALUES } from './inspection-status.js';
 export { IOT_DEVICE_STATUS, IOT_DEVICE_STATUS_VALUES } from './iot-device-status.js';
-export { IOT_DEVICE_TYPE, IOT_DEVICE_TYPE_VALUES } from './device-type.js';
 export { LANGUAGE, LANGUAGE_VALUES } from './language.js';
 export { MODULE_TYPE, MODULE_TYPE_VALUES } from './module-type.js';
 export { MOVEMENT_TYPE, MOVEMENT_TYPE_VALUES } from './movement-type.js';

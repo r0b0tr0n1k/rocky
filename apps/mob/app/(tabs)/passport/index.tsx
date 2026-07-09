@@ -2,6 +2,7 @@ import { View, FlatList, TouchableOpacity } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/providers/trpc-provider";
+import { PASSPORT_STATUS } from "@rocky/validators/enums";
 import { useRouter } from "expo-router";
 
 export default function PassportListScreen() {
@@ -22,7 +23,7 @@ export default function PassportListScreen() {
               <Text className="text-foreground font-medium">{item.passportNumber}</Text>
               <Text className="text-muted-foreground text-sm">Animal: {item.animalId.slice(0, 8)}</Text>
             </View>
-            <Badge variant={item.status === "active" ? "default" : "secondary"}>
+            <Badge variant={item.status === PASSPORT_STATUS.ACTIVE ? "default" : "secondary"}>
               <Text className="text-xs">{item.status}</Text>
             </Badge>
           </TouchableOpacity>

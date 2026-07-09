@@ -5,16 +5,16 @@
 //
 // Based on: FS - HK_MK(v1.0).pdf, HK.PDF
 
-import { farmSubjectSelectSchema, subjectInsertSchema, subjectSelectSchema } from "@rocky/database/zod";
+import { farmSubjectsSelectSchema, subjectsInsertSchema, subjectsSelectSchema } from "@rocky/database/zod";
 import { z } from "zod";
-import { subjectRoleSchema } from "../enums/domain.js";
+import { subjectRoleSchema } from "../enums/index.js";
 import type { NoDrift, NoDriftSimple, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RESPONSE SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const subjectResponseSchema = subjectSelectSchema.omit({ createdBy: true, validTo: true }).strip();
+export const subjectResponseSchema = subjectsSelectSchema.omit({ createdBy: true, validTo: true }).strip();
 
 export type SubjectResponse = z.infer<typeof subjectResponseSchema>;
 
@@ -31,9 +31,8 @@ export const subjectSummarySchema = z.object({
 
 export type SubjectSummary = z.infer<typeof subjectSummarySchema>;
 
-export const farmSubjectBindingResponseSchema = farmSubjectSelectSchema
-  .omit({ createdBy: true, validTo: true })
-  .strip();
+export const farmSubjectBindingResponseSchema = farmSubjectsSelectSchema
+  .omit({ createdBy: true, validTo: true }).strip();
 
 export type FarmSubjectBindingResponse = z.infer<typeof farmSubjectBindingResponseSchema>;
 
@@ -41,14 +40,14 @@ export type FarmSubjectBindingResponse = z.infer<typeof farmSubjectBindingRespon
 // REQUEST SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const createSubjectRequestSchema = subjectInsertSchema
+export const createSubjectRequestSchema = subjectsInsertSchema
   .omit({ id: true, createdAt: true, createdBy: true, validTo: true })
   .extend({
     shortName: z.string().min(1).max(50),
     personalId: z.string().max(20).optional(),
     phoneNumber: z.string().max(30).optional(),
     email: z.email().optional(),
-  });
+  }).strict();
 
 export type CreateSubjectRequest = z.infer<typeof createSubjectRequestSchema>;
 
@@ -71,7 +70,7 @@ export const updateSubjectRequestSchema = z
 
 export type UpdateSubjectRequest = z.infer<typeof updateSubjectRequestSchema>;
 
-export const bindSubjectToFarmRequestSchema = z.object({
+export const bindSubjectToFarmRequestSchema = z.strictObject({
   farmId: z.uuid(),
   subjectId: z.uuid(),
   role: subjectRoleSchema,
@@ -79,7 +78,7 @@ export const bindSubjectToFarmRequestSchema = z.object({
 
 export type BindSubjectToFarmRequest = z.infer<typeof bindSubjectToFarmRequestSchema>;
 
-export const unbindSubjectFromFarmRequestSchema = z.object({
+export const unbindSubjectFromFarmRequestSchema = z.strictObject({
   bindingId: z.uuid(),
 });
 

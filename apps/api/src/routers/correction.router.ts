@@ -7,6 +7,8 @@ import type { AppContext } from "@rocky/trpc/index.js";
 import { createResultUnwrapper } from "@rocky/trpc/index.js";
 import {
   correctionListRequestSchema,
+  correctionListResponseSchema,
+  correctionResponseSchema,
   type CreateCorrectionRequest,
   createCorrectionRequestSchema,
   type EscalateCorrectionRequest,
@@ -30,27 +32,27 @@ const unwrap = createResultUnwrapper(CORRECTION_TRPC_ERROR_MAP);
 export class CorrectionRouter {
   constructor(@Inject(CorrectionService) private readonly correctionService: CorrectionService) { }
 
-  @Query({ input: idParam })
+  @Query({ input: idParam, output: correctionResponseSchema })
   async getById(@Input() input: { id: string }) {
     return unwrap(await this.correctionService.getById(input.id));
   }
 
-  @Query({ input: correctionListRequestSchema })
+  @Query({ input: correctionListRequestSchema, output: correctionListResponseSchema })
   async list(@Input() input: z.infer<typeof correctionListRequestSchema>) {
     return unwrap(await this.correctionService.list(input));
   }
 
-  @Mutation({ input: createCorrectionRequestSchema })
+  @Mutation({ input: createCorrectionRequestSchema, output: correctionResponseSchema })
   async create(@Input() input: CreateCorrectionRequest, @Ctx() ctx: AppContext) {
     return unwrap(await this.correctionService.create({ ...input, createdBy: ctx.execution?.principal.id }));
   }
 
-  @Mutation({ input: reviewCorrectionRequestSchema })
+  @Mutation({ input: reviewCorrectionRequestSchema, output: correctionResponseSchema })
   async review(@Input() input: ReviewCorrectionRequest) {
     return unwrap(await this.correctionService.review(input.id));
   }
 
-  @Mutation({ input: resolveCorrectionRequestSchema })
+  @Mutation({ input: resolveCorrectionRequestSchema, output: correctionResponseSchema })
   async resolve(@Input() input: ResolveCorrectionRequest, @Ctx() ctx: AppContext) {
     return unwrap(
       await this.correctionService.resolve(input.id, {
@@ -60,7 +62,7 @@ export class CorrectionRouter {
     );
   }
 
-  @Mutation({ input: escalateCorrectionRequestSchema })
+  @Mutation({ input: escalateCorrectionRequestSchema, output: correctionResponseSchema })
   async escalate(@Input() input: EscalateCorrectionRequest) {
     return unwrap(
       await this.correctionService.escalate(input.id, {
@@ -70,7 +72,7 @@ export class CorrectionRouter {
     );
   }
 
-  @Mutation({ input: idParam })
+  @Mutation({ input: idParam, output: correctionResponseSchema })
   async reject(@Input() input: { id: string }) {
     return unwrap(await this.correctionService.reject(input.id));
   }

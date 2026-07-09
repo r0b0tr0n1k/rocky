@@ -7,14 +7,37 @@
     "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",
     "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit"
   },
-  "main": "./src/index.js",
-  "types": "./src/index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    "./context": "./src/context.js",
-    "./superjson": "./src/superjson.js",
-    "./unwrap": "./src/unwrap.js",
-    "./generated": "./src/generated/index.js",
-    "./index.js": "./src/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./context": {
+      "types": "./dist/context.d.ts",
+      "default": "./dist/context.js"
+    },
+    "./superjson": {
+      "types": "./dist/superjson.d.ts",
+      "default": "./dist/superjson.js"
+    },
+    "./unwrap": {
+      "types": "./dist/unwrap.d.ts",
+      "default": "./dist/unwrap.js"
+    },
+    "./generated": {
+      "types": "./dist/generated/server.d.ts",
+      "default": "./dist/generated/server.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./*.js": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
   },
   "dependencies": {
     "@rocky/database": "workspace:*",

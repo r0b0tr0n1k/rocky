@@ -3,7 +3,9 @@ import { Text } from "@/components/ui/text";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "expo-router";
 
-const MOVEMENT_ACTIONS = [
+type RouteHref = Parameters<ReturnType<typeof useRouter>["push"]>[0];
+
+const MOVEMENT_ACTIONS: { title: string; route: RouteHref; desc: string }[] = [
   { title: "Record Death", route: "/movements/death", desc: "Record an animal death at farm, in transit, or at slaughter" },
   { title: "Pasture Declaration", route: "/movements/pasture", desc: "Declare pasture movement for one or more animals" },
   { title: "Record Slaughter", route: "/movements/slaughter", desc: "Record slaughter at a slaughterhouse" },

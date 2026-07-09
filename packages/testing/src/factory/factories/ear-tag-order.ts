@@ -6,15 +6,15 @@
 
 import { faker } from "@faker-js/faker";
 import { EAR_TAG_ORDER_STATUS, EAR_TAG_ORDER_STATUS_VALUES } from "@rocky/database/constants";
-import { earTagOrderSelectSchema } from "@rocky/database/zod";
+import { earTagOrdersSelectSchema } from "@rocky/database/zod";
 import { SchemaDataFactory } from "../base.js";
 import type { InferSelectSchema } from "../type-helpers.js";
 
-export type EarTagOrderRecord = InferSelectSchema<typeof earTagOrderSelectSchema>;
+export type EarTagOrderRecord = InferSelectSchema<typeof earTagOrdersSelectSchema>;
 
 export class EarTagOrderFactory extends SchemaDataFactory<EarTagOrderRecord> {
   constructor(organizationId: string, requestedBy?: string) {
-    super(earTagOrderSelectSchema, {
+    super(earTagOrdersSelectSchema, {
       id: faker.string.uuid(),
       organizationId,
       orderNumber: faker.string.alphanumeric({ length: 12 }).toUpperCase(),

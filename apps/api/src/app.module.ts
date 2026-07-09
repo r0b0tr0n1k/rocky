@@ -46,6 +46,7 @@ import {
 import { PassportRepository, PassportService } from "@rocky/domains-passport";
 import { RbacRepository, RbacService } from "@rocky/domains-rbac/index.js";
 import { SubjectRepository, SubjectService } from "@rocky/domains-subject";
+import { SystemRepository, SystemService } from "@rocky/domains-system";
 import { UserRepository, UserService } from "@rocky/domains-user/index.js";
 import { ExecutionModule } from "@rocky/execution/index.js";
 import { LoggerModule } from "@rocky/logger/index.js";
@@ -67,6 +68,9 @@ import { RiskAnalysisJob } from "./jobs/risk-analysis.job.js";
 import { DbModule } from "./modules/db.module.js";
 // ── tRPC Routers ────────────────────────────────────────────────────
 import { AnimalRouter } from "./routers/animal.router.js";
+import { AuditRouter } from "./routers/audit.router.js";
+import { ModulesRouter } from "./routers/modules.router.js";
+import { SystemParametersRouter } from "./routers/system-parameters.router.js";
 import { ArchiveRouter } from "./routers/archive.router.js";
 import { CorrectionRouter } from "./routers/correction.router.js";
 import { DeviceRouter } from "./routers/device.router.js";
@@ -221,6 +225,16 @@ import { TrpcModule } from "./trpc/trpc.module.js";
       provide: AuditService,
       useFactory: (repo: AuditRepository) => new AuditService(repo),
       inject: [AuditRepository],
+    },
+    {
+      provide: SystemRepository,
+      useFactory: (dbp) => new SystemRepository(dbp),
+      inject: [DatabaseProvider],
+    },
+    {
+      provide: SystemService,
+      useFactory: (repo: SystemRepository) => new SystemService(repo),
+      inject: [SystemRepository],
     },
     {
       provide: FarmBookService,
@@ -434,6 +448,9 @@ import { TrpcModule } from "./trpc/trpc.module.js";
 
     // ── tRPC Routers ──
     AnimalRouter,
+    AuditRouter,
+    ModulesRouter,
+    SystemParametersRouter,
     DocumentRouter,
     FarmBookRouter,
     FarmRouter,

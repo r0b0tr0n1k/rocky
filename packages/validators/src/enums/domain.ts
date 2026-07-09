@@ -7,7 +7,7 @@
  *
  * DO NOT EDIT MANUALLY. Run: node scripts/regenerate-enums.mjs
  *
- * Generated: 2026-07-06T01:12:41.628Z
+ * Generated: 2026-07-08T04:33:46.196Z
  */
 
 import { zEnum } from "../_enum-helper.js";
@@ -58,6 +58,7 @@ import { IMPORT_EXPORT_STATUS_VALUES } from "@rocky/database/constants";
 import { IMPORT_TYPE_VALUES } from "@rocky/database/constants";
 import { INSPECTION_STATUS_VALUES } from "@rocky/database/constants";
 import { IOT_DEVICE_STATUS_VALUES } from "@rocky/database/constants";
+import { IOT_DEVICE_TYPE_VALUES } from "@rocky/database/constants";
 import { LANGUAGE_VALUES } from "@rocky/database/constants";
 import { MODULE_TYPE_VALUES } from "@rocky/database/constants";
 import { MOVEMENT_TYPE_VALUES } from "@rocky/database/constants";
@@ -102,7 +103,7 @@ import { VS_CONTRACT_STATUS_VALUES } from "@rocky/database/constants";
 import { WEIGHING_TYPE_VALUES } from "@rocky/database/constants";
 import { WRITE_ROLE_VALUES } from "@rocky/database/constants";
 
-// 87 enum schemas
+// 88 enum schemas
 
 export const adminRolesSchema = zEnum(ADMIN_ROLE_VALUES);
 export type adminRolesType = z.infer<typeof adminRolesSchema>;
@@ -184,6 +185,10 @@ export const deviceStatusSchema = zEnum(DEVICE_STATUS_VALUES);
 export type deviceStatusType = z.infer<typeof deviceStatusSchema>;
 const _satisfies_deviceStatusSchema: z.ZodType<deviceStatusType> = deviceStatusSchema;
 type _nodrift_deviceStatusSchema = NoDrift<z.infer<typeof deviceStatusSchema>, deviceStatusType>;
+export const deviceTypeSchema = zEnum(IOT_DEVICE_TYPE_VALUES);
+export type deviceTypeType = z.infer<typeof deviceTypeSchema>;
+const _satisfies_deviceTypeSchema: z.ZodType<deviceTypeType> = deviceTypeSchema;
+type _nodrift_deviceTypeSchema = NoDrift<z.infer<typeof deviceTypeSchema>, deviceTypeType>;
 export const distributionMethodSchema = zEnum(DISTRIBUTION_METHOD_VALUES);
 export type distributionMethodType = z.infer<typeof distributionMethodSchema>;
 const _satisfies_distributionMethodSchema: z.ZodType<distributionMethodType> = distributionMethodSchema;
@@ -453,7 +458,7 @@ export type writeRolesType = z.infer<typeof writeRolesSchema>;
 const _satisfies_writeRolesSchema: z.ZodType<writeRolesType> = writeRolesSchema;
 type _nodrift_writeRolesSchema = NoDrift<z.infer<typeof writeRolesSchema>, writeRolesType>;
 
-// ⚔️ Activate ALL 87 guillotine proofs
+// ⚔️ Activate ALL 88 guillotine proofs
 export type _Activate = ActivateGuillotines<[
   _nodrift_adminRolesSchema,
   _nodrift_administrationRouteSchema,
@@ -475,6 +480,7 @@ export type _Activate = ActivateGuillotines<[
   _nodrift_deliveryMethodSchema,
   _nodrift_detectionSourceSchema,
   _nodrift_deviceStatusSchema,
+  _nodrift_deviceTypeSchema,
   _nodrift_distributionMethodSchema,
   _nodrift_duplicateTypeSchema,
   _nodrift_earTagOrderStatusSchema,

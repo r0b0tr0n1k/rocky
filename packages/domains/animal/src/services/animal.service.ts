@@ -52,7 +52,7 @@ export class AnimalService {
     return fromAsyncThrowable(async () => {
       const { data, total } = await this.repo.listFiltered(input);
       return {
-        data: data.map((d) => animalSummarySchema.parse(d)),
+        data: data.map((d: unknown) => animalSummarySchema.parse(d)),
         total,
         limit: input.limit,
         offset: input.offset,

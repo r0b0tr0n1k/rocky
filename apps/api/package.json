@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "generate:trpc": "nestjs-trpc generate --entrypoint src/app.module.ts --output ../../packages/trpc/src/generated && node ../../scripts/patch-trpc-transformer.mjs",
     "dev": "node scripts/dev.mjs",
     "build": "nest build",
     "start": "node dist/main",
@@ -37,8 +38,12 @@
     "@rocky/domains-movement": "workspace:*",
     "@rocky/domains-notification": "workspace:*",
     "@rocky/domains-passport": "workspace:*",
+    "@rocky/domains-organization": "workspace:*",
+    "@rocky/domains-rbac": "workspace:*",
+    "@rocky/domains-user": "workspace:*",
     "@rocky/domains-shared": "workspace:*",
     "@rocky/domains-subject": "workspace:*",
+    "@rocky/domains-system": "workspace:*",
     "@rocky/email": "workspace:*",
     "@rocky/execution": "workspace:*",
     "@rocky/logger": "workspace:*",
@@ -59,6 +64,7 @@
     "pino-pretty": "catalog:",
     "reflect-metadata": "catalog:",
     "rxjs": "catalog:",
+    "superjson": "catalog:",
 
     "zod": "catalog:"
   },

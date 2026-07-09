@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
 import { trpc } from "@/providers/trpc-provider";
+import { PASSPORT_STATUS } from "@rocky/validators/enums";
 import { useLocalSearchParams } from "expo-router";
 import { ScrollView, View } from "react-native";
 
@@ -32,7 +33,7 @@ export default function PassportDetailScreen() {
       <View className="p-4 gap-4">
         <View className="flex-row items-center justify-between">
           <Text className="text-foreground text-2xl font-bold">{passport.passportNumber}</Text>
-          <Badge variant={passport.status === "active" ? "default" : "secondary"}>
+          <Badge variant={passport.status === PASSPORT_STATUS.ACTIVE ? "default" : "secondary"}>
             <Text className="text-xs">{passport.status}</Text>
           </Badge>
         </View>

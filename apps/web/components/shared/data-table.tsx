@@ -52,7 +52,7 @@ export function DataTable<TData>({
   const canNext = page < pageCount - 1;
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-3">
       <div className="rounded-md border">
         <Table>
           <TableHeader>

@@ -4,15 +4,8 @@ import { Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/providers/trpc-provider";
-
-type AnimalSummary = {
-  id: string;
-  stateCode: string;
-  earTagNumber: string;
-  sex: string;
-  breed: string | null;
-  status: string;
-};
+import { ANIMAL_STATUS } from "@rocky/validators/enums";
+import type { AnimalSummary } from "@rocky/validators/api";
 
 interface AnimalPickerProps {
   onSelect: (animal: AnimalSummary) => void;
@@ -47,7 +40,7 @@ export function AnimalPicker({ onSelect, placeholder = "Search by ear tag..." }:
                   <Text className="text-foreground font-medium">{item.stateCode} {item.earTagNumber}</Text>
                   <Text className="text-muted-foreground text-xs">{item.sex} — {item.breed ?? "N/A"}</Text>
                 </View>
-                <Badge variant={item.status === "alive" ? "default" : "secondary"}>
+                <Badge variant={item.status === ANIMAL_STATUS.ALIVE ? "default" : "secondary"}>
                   <Text className="text-xs">{item.status}</Text>
                 </Badge>
               </TouchableOpacity>

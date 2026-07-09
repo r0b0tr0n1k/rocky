@@ -3,8 +3,8 @@
 // Without the farm, the animal is a floating signifier - it must be anchored.
 
 import { z } from "zod";
-import type { dataSourceType, farmTypeType, subjectRoleType, verificationStatusType } from "../enums/domain.js";
-import { dataSourceSchema, farmTypeSchema, subjectRoleSchema, verificationStatusSchema } from "../enums/domain.js";
+import type { dataSourceType, farmTypeType, subjectRoleType, verificationStatusType } from "../enums/index.js";
+import { dataSourceSchema, farmTypeSchema, subjectRoleSchema, verificationStatusSchema } from "../enums/index.js";
 import type { ActivateGuillotines, NoDrift } from "../utils/type-bridge.js";
 import { eventEnvelopeSchema } from "./base.js";
 

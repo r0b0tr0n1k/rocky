@@ -5,7 +5,8 @@
 //
 // Based on: FS - eartags_MK(v1.0).pdf, Eartags.PDF
 
-import { earTagSelectSchema, earTagTypeSelectSchema } from "@rocky/database/zod";
+import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
+import { earTagsSelectSchema, earTagTypesSelectSchema } from "@rocky/database/zod";
 import { z } from "zod";
 import {
   contingentTypeSchema,
@@ -13,21 +14,21 @@ import {
   orderStatusSchema,
   sortByEartagSchema,
   sortOrderSchema,
-} from "../enums/domain.js";
+} from "../enums/index.js";
+import type { orderStatusType } from "../enums/index.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RESPONSE SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const earTagResponseSchema = earTagSelectSchema
+export const earTagResponseSchema = earTagsSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
     appliedDate: z.coerce.date<string>().nullable(),
     manufactureDate: z.coerce.date<string>().nullable(),
     expiryDate: z.coerce.date<string>().nullable(),
     status: earTagStatusSchema,
-  })
-  .strip();
+  }).strip();
 
 export type EarTagResponse = z.infer<typeof earTagResponseSchema>;
 
@@ -45,7 +46,7 @@ export const earTagSummarySchema = z.object(
 
 export type EarTagSummary = z.infer<typeof earTagSummarySchema>;
 
-export const earTagTypeResponseSchema = earTagTypeSelectSchema.omit({ createdBy: true, validTo: true }).strip();
+export const earTagTypeResponseSchema = earTagTypesSelectSchema.omit({ createdBy: true, validTo: true }).strip();
 
 export type EarTagTypeResponse = z.infer<typeof earTagTypeResponseSchema>;
 
@@ -192,10 +193,10 @@ export const orderListRequestSchema = z.strictObject({
 }) satisfies z.ZodType<OrderListRequest>;
 
 export type OrderListRequest = {
-  status?: string;
+  status?: orderStatusType;
   organizationId?: string;
-  limit?: number;
-  offset?: number;
+  limit: number;
+  offset: number;
 };
 
 // ── B.1: Supplier Contingent Assignment ────────────────────────────
@@ -247,3 +248,30 @@ export const getTakeoverFileRequestSchema = z.strictObject({
 export type GetTakeoverFileRequest = {
   takeoverId: string;
 };
+
+// ═══════════════════════════════════════════════════════════════
+// GUILLOTINE ACTIVATION (Tier 2 + Tier 3)
+// ═══════════════════════════════════════════════════════════════
+
+type _drift_earTagResponse = NoDrift<z.infer<typeof earTagResponseSchema>, EarTagResponse>;
+type _drift_earTagSummary = NoDrift<z.infer<typeof earTagSummarySchema>, EarTagSummary>;
+type _drift_earTagTypeResponse = NoDrift<z.infer<typeof earTagTypeResponseSchema>, EarTagTypeResponse>;
+type _drift_earTagListRequest = NoDrift<z.infer<typeof earTagListRequestSchema>, EarTagListRequest>;
+type _drift_earTagListResponse = NoDrift<z.infer<typeof earTagListResponseSchema>, EarTagListResponse>;
+type _drift_orderStatusTransition = NoDrift<z.infer<typeof orderStatusTransitionSchema>, OrderStatusTransition>;
+type _drift_createOrderRequest = NoDrift<z.infer<typeof createOrderRequestSchema>, CreateOrderRequest>;
+type _drift_cancelOrderRequest = NoDrift<z.infer<typeof cancelOrderRequestSchema>, CancelOrderRequest>;
+type _drift_cancelOrderItemRequest = NoDrift<z.infer<typeof cancelOrderItemRequestSchema>, CancelOrderItemRequest>;
+type _drift_appendToOrderRequest = NoDrift<z.infer<typeof appendToOrderRequestSchema>, AppendToOrderRequest>;
+type _drift_collectOrderTagsRequest = NoDrift<z.infer<typeof collectOrderTagsRequestSchema>, CollectOrderTagsRequest>;
+type _drift_generateTagNumbersRequest = NoDrift<z.infer<typeof generateTagNumbersRequestSchema>, GenerateTagNumbersRequest>;
+type _drift_generateTagNumbersResponse = NoDrift<z.infer<typeof generateTagNumbersResponseSchema>, GenerateTagNumbersResponse>;
+type _drift_createDuplicateOrderRequest = NoDrift<z.infer<typeof createDuplicateOrderRequestSchema>, CreateDuplicateOrderRequest>;
+type _drift_orderListRequest = NoDrift<z.infer<typeof orderListRequestSchema>, OrderListRequest>;
+type _drift_assignSupplierContingentRequest = NoDrift<z.infer<typeof assignSupplierContingentRequestSchema>, AssignSupplierContingentRequest>;
+type _drift_takeoverFileResponse = NoDrift<z.infer<typeof takeoverFileResponseSchema>, TakeoverFileResponse>;
+type _drift_getTakeoverFileRequest = NoDrift<z.infer<typeof getTakeoverFileRequestSchema>, GetTakeoverFileRequest>;
+
+export type _EartagsGuillotines = ActivateGuillotines<
+  [ _drift_earTagResponse, _drift_earTagSummary, _drift_earTagTypeResponse, _drift_earTagListRequest, _drift_earTagListResponse, _drift_orderStatusTransition, _drift_createOrderRequest, _drift_cancelOrderRequest, _drift_cancelOrderItemRequest, _drift_appendToOrderRequest, _drift_collectOrderTagsRequest, _drift_generateTagNumbersRequest, _drift_generateTagNumbersResponse, _drift_createDuplicateOrderRequest, _drift_orderListRequest, _drift_assignSupplierContingentRequest, _drift_takeoverFileResponse, _drift_getTakeoverFileRequest ]
+>;

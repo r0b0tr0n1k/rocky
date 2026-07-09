@@ -11,7 +11,7 @@ import { PageHeader } from "#components/shared/page-header";
 export default function NewAnimalPage() {
   const router = useRouter();
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="Register animal"
         description="Record a new cattle registration."

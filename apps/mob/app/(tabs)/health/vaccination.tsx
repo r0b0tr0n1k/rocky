@@ -10,17 +10,11 @@ import { AnimalPicker } from "@/components/animals/animal-picker";
 import { FarmPicker } from "@/components/farms/farm-picker";
 import { trpc } from "@/providers/trpc-provider";
 import { useRouter } from "expo-router";
+import { ADMIN_ROUTE } from "@rocky/validators/enums";
+import type { administrationRouteType } from "@rocky/validators/enums";
+import { enumToOptions, titleCase } from "@/lib/enum-options";
 
-type AdminRoute = "intramuscular" | "subcutaneous" | "intranasal" | "oral" | "topical" | "other";
-
-const ROUTE_OPTIONS: { label: string; value: AdminRoute }[] = [
-  { label: "Intramuscular", value: "intramuscular" },
-  { label: "Subcutaneous", value: "subcutaneous" },
-  { label: "Intranasal", value: "intranasal" },
-  { label: "Oral", value: "oral" },
-  { label: "Topical", value: "topical" },
-  { label: "Other", value: "other" },
-];
+const ROUTE_OPTIONS = enumToOptions(ADMIN_ROUTE);
 
 export default function VaccinationScreen() {
   const router = useRouter();
@@ -30,7 +24,7 @@ export default function VaccinationScreen() {
   const [farmLabel, setFarmLabel] = useState("");
   const [vaccineId, setVaccineId] = useState("");
   const [batchId, setBatchId] = useState("");
-  const [route, setRoute] = useState("");
+  const [route, setRoute] = useState<administrationRouteType | "">("");
   const [adminDate, setAdminDate] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -39,20 +33,18 @@ export default function VaccinationScreen() {
     onError: (e) => { Alert.alert("Error", e.message); },
   });
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!animalId || !farmId || !vaccineId || !batchId || !route || !adminDate) {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
-    try {
-      await recordVaccination.mutateAsync({
-        animalId, farmId, vaccineId, batchId,
-        vetId: "00000000-0000-0000-0000-000000000000",
-        route: route as AdminRoute,
-        adminDate: new Date(adminDate),
-        notes: notes || undefined,
-      });
-    } catch {}
+    recordVaccination.mutate({
+      animalId, farmId, vaccineId, batchId,
+      vetId: "00000000-0000-0000-0000-000000000000",
+      route: route || ADMIN_ROUTE.INTRAMUSCULAR,
+      adminDate: adminDate,
+      notes: notes || undefined,
+    });
   };
 
   return (
@@ -87,7 +79,10 @@ export default function VaccinationScreen() {
         </View>
         <View className="gap-2">
           <Label nativeID="route">Administration Route</Label>
-          <Select value={route ? { value: route, label: ROUTE_OPTIONS.find(o => o.value === route)?.label ?? route } : undefined} onValueChange={(opt) => setRoute(opt?.value ?? "")}>
+           <Select
+            value={route ? { value: route, label: titleCase(route) } : undefined}
+            onValueChange={(opt) => setRoute((opt?.value ?? "") as administrationRouteType | "")}
+          >
             <SelectTrigger><SelectValue placeholder="Select route..." /></SelectTrigger>
             <SelectContent>
               {ROUTE_OPTIONS.map((opt) => (

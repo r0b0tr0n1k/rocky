@@ -8,9 +8,10 @@ import type {
   birthTypeType,
   deathCauseType,
   movementTypeType,
+  pastureTypeType,
   sexType,
   weighingTypeType,
-} from "../enums/domain.js";
+} from "../enums/index.js";
 import {
   animalStatusSchema,
   birthTypeSchema,
@@ -19,7 +20,7 @@ import {
   pastureTypeSchema,
   sexSchema,
   weighingTypeSchema,
-} from "../enums/domain.js";
+} from "../enums/index.js";
 import type { ActivateGuillotines, NoDrift } from "../utils/type-bridge.js";
 import { eventEnvelopeSchema } from "./base.js";
 
@@ -209,7 +210,7 @@ export interface PastureDeclaredPayload {
   toFarmId: string;
   departureDate: Date;
   expectedReturnDate: Date;
-  pastureType: "MOUNTAIN" | "VILLAGE";
+  pastureType: pastureTypeType;
   animalIds: string[];
 }
 

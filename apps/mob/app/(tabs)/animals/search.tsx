@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { trpc } from "@/providers/trpc-provider";
+import { ANIMAL_STATUS } from "@rocky/validators/enums";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Alert, View } from "react-native";
@@ -52,7 +53,7 @@ export default function AnimalSearchScreen() {
               <Text className="text-foreground text-lg font-bold">
                 {animal.stateCode} {animal.earTagNumber}
               </Text>
-              <Badge variant={animal.status === "alive" ? "default" : "secondary"}>
+              <Badge variant={animal.status === ANIMAL_STATUS.ALIVE ? "default" : "secondary"}>
                 <Text className="text-xs">{animal.status}</Text>
               </Badge>
             </View>

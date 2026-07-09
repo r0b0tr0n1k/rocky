@@ -1,6 +1,6 @@
 import { authClient } from "@/lib/auth";
-import type { AppRouter } from "../../trpc/server";
-import superjson from "superjson";
+import type { AppRouter } from "@rocky/trpc";
+import { transformer } from "@rocky/trpc/superjson";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, httpSubscriptionLink, loggerLink, splitLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
@@ -21,11 +21,11 @@ export function TRPCProvider({ children, apiUrl }: { children: ReactNode; apiUrl
           condition: (op) => op.type === "subscription",
           true: httpSubscriptionLink({
             url: `${apiUrl}/trpc`,
-            transformer: superjson as any,
+            transformer,
           }),
           false: httpBatchLink({
             url: `${apiUrl}/trpc`,
-            transformer: superjson as any,
+            transformer,
             async headers() {
               if (Platform.OS === "web") return {};
               const cookie = (authClient as unknown as { getCookie: () => string }).getCookie();

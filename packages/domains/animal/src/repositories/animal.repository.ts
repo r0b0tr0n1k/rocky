@@ -40,7 +40,9 @@ export class AnimalRepository extends BaseRepository {
     return row ?? null;
   }
 
-  async listFiltered(filter: AnimalFilter) {
+  async listFiltered(
+    filter: AnimalFilter,
+  ): Promise<{ data: Array<typeof animalsTable.$inferSelect>; total: number }> {
     const c: SQL<unknown>[] = [];
     if (filter.farmId) c.push(eq(animalsTable.currentFarmId, filter.farmId));
     if (filter.status) c.push(eq(animalsTable.status, filter.status));

@@ -3,8 +3,8 @@
 // the ear tag is a material trace of the symbolic order of livestock identification.
 
 import { z } from "zod";
-import type { earTagReplacementReasonType, earTagStatusType } from "../enums/domain.js";
-import { earTagReplacementReasonSchema, earTagStatusSchema } from "../enums/domain.js";
+import type { earTagReplacementReasonType, earTagStatusType } from "../enums/index.js";
+import { earTagReplacementReasonSchema, earTagStatusSchema } from "../enums/index.js";
 import type { ActivateGuillotines, NoDrift } from "../utils/type-bridge.js";
 import { eventEnvelopeSchema } from "./base.js";
 

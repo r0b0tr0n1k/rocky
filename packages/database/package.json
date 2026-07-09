@@ -3,24 +3,69 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./constants": "./src/constants/index.ts",
-    "./constants/*": "./src/constants/*.ts",
-    "./zod": "./src/zod/index.ts",
-    "./zod/*": "./src/zod/*.ts",
-    "./schema/sm": "./src/schema/sm/index.ts",
-    "./schema/hk": "./src/schema/hk/index.ts",
-    "./schema/an": "./src/schema/an/index.ts",
-    "./schema/hd": "./src/schema/hd/index.ts",
-    "./schema/events": "./src/schema/events/index.ts",
-    "./schema/auth": "./src/schema/auth/index.ts",
-    "./schema/demo": "./src/schema/demo/index.ts",
-    "./geometry": "./src/geometry/index.ts",
-    "./index.js": "./src/index.ts",
-    "./*": "./src/*"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./constants": {
+      "types": "./dist/constants/index.d.ts",
+      "default": "./dist/constants/index.js"
+    },
+    "./constants/*": {
+      "types": "./dist/constants/*.d.ts",
+      "default": "./dist/constants/*.js"
+    },
+    "./zod": {
+      "types": "./dist/zod/index.d.ts",
+      "default": "./dist/zod/index.js"
+    },
+    "./zod/*": {
+      "types": "./dist/zod/*.d.ts",
+      "default": "./dist/zod/*.js"
+    },
+    "./schema/sm": {
+      "types": "./dist/schema/sm/index.d.ts",
+      "default": "./dist/schema/sm/index.js"
+    },
+    "./schema/hk": {
+      "types": "./dist/schema/hk/index.d.ts",
+      "default": "./dist/schema/hk/index.js"
+    },
+    "./schema/an": {
+      "types": "./dist/schema/an/index.d.ts",
+      "default": "./dist/schema/an/index.js"
+    },
+    "./schema/hd": {
+      "types": "./dist/schema/hd/index.d.ts",
+      "default": "./dist/schema/hd/index.js"
+    },
+    "./schema/events": {
+      "types": "./dist/schema/events/index.d.ts",
+      "default": "./dist/schema/events/index.js"
+    },
+    "./schema/auth": {
+      "types": "./dist/schema/auth/index.d.ts",
+      "default": "./dist/schema/auth/index.js"
+    },
+    "./schema/demo": {
+      "types": "./dist/schema/demo/index.d.ts",
+      "default": "./dist/schema/demo/index.js"
+    },
+    "./geometry": {
+      "types": "./dist/geometry/index.d.ts",
+      "default": "./dist/geometry/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./*.js": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
   },
   "scripts": {
     "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",

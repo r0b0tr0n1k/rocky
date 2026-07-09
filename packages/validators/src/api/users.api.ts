@@ -5,16 +5,16 @@
 //
 // Based on: SM.PDF
 
-import { userInsertSchema, userSelectSchema } from "@rocky/database/zod";
+import { usersInsertSchema, usersSelectSchema } from "@rocky/database/zod";
 import { z } from "zod";
-import { languageSchema, sortByUserSchema, sortOrderSchema, userStatusSchema } from "../enums/domain.js";
+import { languageSchema, sortByUserSchema, sortOrderSchema, userStatusSchema } from "../enums/index.js";
 import type { NoDrift, NoDriftSimple, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RESPONSE SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const userResponseSchema = userSelectSchema
+export const userResponseSchema = usersSelectSchema
   // @deprecated: passwordHash, mfaSecret, role columns are legacy
   .omit({
     passwordHash: true,
@@ -24,7 +24,7 @@ export const userResponseSchema = userSelectSchema
     role: true,
   })
   .extend({ status: userStatusSchema })
-  .strip();
+  .strict();
 
 export type UserResponse = z.infer<typeof userResponseSchema>;
 
@@ -36,7 +36,7 @@ export const userSummarySchema = z.object({
   lastName: z.string().nullable(),
   organizationId: z.uuid().nullable(),
   status: userStatusSchema,
-  lastLoginAt: z.date().nullable(),
+  lastLoginAt: z.coerce.date<string>().nullable(),
 });
 
 export type UserSummary = z.infer<typeof userSummarySchema>;
@@ -45,7 +45,7 @@ export type UserSummary = z.infer<typeof userSummarySchema>;
 // REQUEST SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const createUserRequestSchema = userInsertSchema
+export const createUserRequestSchema = usersInsertSchema
   .omit({
     id: true,
     passwordHash: true,
@@ -62,11 +62,11 @@ export const createUserRequestSchema = userInsertSchema
     language: languageSchema.nullable().optional().transform((v) => (v ?? "MK") as z.infer<typeof languageSchema>),
     status: userStatusSchema.optional(),
     password: z.string().min(8).max(100),
-  });
+  }).strict();
 
 export type CreateUserRequest = z.infer<typeof createUserRequestSchema>;
 
-export const updateUserRequestSchema = z.object({
+export const updateUserRequestSchema = z.strictObject({
   email: z.email().optional(),
   mobilePhone: z.string().max(30).optional(),
   firstName: z.string().max(50).optional(),
@@ -78,7 +78,7 @@ export const updateUserRequestSchema = z.object({
 
 export type UpdateUserRequest = z.infer<typeof updateUserRequestSchema>;
 
-export const userListRequestSchema = z.object({
+export const userListRequestSchema = z.strictObject({
   organizationId: z.uuid().optional(),
   status: userStatusSchema.optional(),
   search: z.string().optional(),

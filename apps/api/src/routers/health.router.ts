@@ -34,6 +34,21 @@ import {
   unlinkVaccineDiseaseRequestSchema,
   vaccinationListRequestSchema,
   vaccineListRequestSchema,
+  diseaseResponseSchema,
+  diseaseListResponseSchema,
+  vaccineResponseSchema,
+  vaccineListResponseSchema,
+  vaccineBatchResponseSchema,
+  vaccineBatchListResponseSchema,
+  vaccinationResponseSchema,
+  vaccinationListResponseSchema,
+  treatmentResponseSchema,
+  treatmentListResponseSchema,
+  labTestResponseSchema,
+  labTestListResponseSchema,
+  vaccineDiseaseResponseSchema,
+  vaccineDiseaseListResponseSchema,
+  vaccineDiseaseUnlinkResponseSchema,
 } from "@rocky/validators/api/index.js";
 import { HEALTH_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
 import { Ctx, Input, Mutation, Query, Router } from "nestjs-trpc";
@@ -51,75 +66,75 @@ export class HealthRouter {
 
   // -- Disease --
 
-  @Query({ input: idParam })
+  @Query({ input: idParam, output: diseaseResponseSchema })
   async getDisease(@Input() input: { id: string }) {
     return unwrap(await this.healthService.getDisease(input.id));
   }
 
-  @Query({ input: diseaseListRequestSchema })
+  @Query({ input: diseaseListRequestSchema, output: diseaseListResponseSchema })
   async listDiseases(@Input() input: z.infer<typeof diseaseListRequestSchema>) {
     return unwrap(await this.healthService.listDiseases(input));
   }
 
-  @Mutation({ input: createDiseaseRequestSchema })
+  @Mutation({ input: createDiseaseRequestSchema, output: diseaseResponseSchema })
   async createDisease(@Input() input: CreateDiseaseRequest) {
     return unwrap(await this.healthService.createDisease(input));
   }
 
   // -- Vaccine --
 
-  @Query({ input: idParam })
+  @Query({ input: idParam, output: vaccineResponseSchema })
   async getVaccine(@Input() input: { id: string }) {
     return unwrap(await this.healthService.getVaccine(input.id));
   }
 
-  @Query({ input: vaccineListRequestSchema })
+  @Query({ input: vaccineListRequestSchema, output: vaccineListResponseSchema })
   async listVaccines(@Input() input: z.infer<typeof vaccineListRequestSchema>) {
     return unwrap(await this.healthService.listVaccines(input));
   }
 
-  @Mutation({ input: createVaccineRequestSchema })
+  @Mutation({ input: createVaccineRequestSchema, output: vaccineResponseSchema })
   async createVaccine(@Input() input: CreateVaccineRequest) {
     return unwrap(await this.healthService.createVaccine(input));
   }
 
   // -- Vaccine Batch --
 
-  @Mutation({ input: createVaccineBatchRequestSchema })
+  @Mutation({ input: createVaccineBatchRequestSchema, output: vaccineBatchResponseSchema })
   async createVaccineBatch(@Input() input: CreateVaccineBatchRequest) {
     return unwrap(await this.healthService.createVaccineBatch(input));
   }
 
   // -- Vaccination (vet-authorized) --
 
-  @Query({ input: idParam })
+  @Query({ input: idParam, output: vaccinationResponseSchema })
   async getVaccination(@Input() input: { id: string }) {
     return unwrap(await this.healthService.getVaccination(input.id));
   }
 
-  @Query({ input: vaccinationListRequestSchema })
+  @Query({ input: vaccinationListRequestSchema, output: vaccinationListResponseSchema })
   async listVaccinations(@Input() input: z.infer<typeof vaccinationListRequestSchema>) {
     return unwrap(await this.healthService.listVaccinations(input));
   }
 
-  @Mutation({ input: recordVaccinationRequestSchema })
+  @Mutation({ input: recordVaccinationRequestSchema, output: vaccinationResponseSchema })
   async recordVaccination(@Input() input: RecordVaccinationRequest, @Ctx() ctx: AppContext) {
     return unwrap(await this.healthService.recordVaccination({ ...input, createdBy: ctx.execution!.principal.id }));
   }
 
   // -- Treatment (vet-authorized) --
 
-  @Query({ input: idParam })
+  @Query({ input: idParam, output: treatmentResponseSchema })
   async getTreatment(@Input() input: { id: string }) {
     return unwrap(await this.healthService.getTreatment(input.id));
   }
 
-  @Query({ input: treatmentListRequestSchema })
+  @Query({ input: treatmentListRequestSchema, output: treatmentListResponseSchema })
   async listTreatments(@Input() input: z.infer<typeof treatmentListRequestSchema>) {
     return unwrap(await this.healthService.listTreatments(input));
   }
 
-  @Mutation({ input: recordTreatmentRequestSchema })
+  @Mutation({ input: recordTreatmentRequestSchema, output: treatmentResponseSchema })
   async recordTreatment(@Input() input: RecordTreatmentRequest, @Ctx() ctx: AppContext) {
     return unwrap(await this.healthService.recordTreatment({ ...input, createdBy: ctx.execution!.principal.id }));
   }
@@ -132,6 +147,7 @@ export class HealthRouter {
       limit: z.int().min(1).max(100).default(20),
       offset: z.int().min(0).default(0),
     }),
+    output: vaccineBatchListResponseSchema,
   })
   async listBatches(@Input() input: { vaccineId?: string; limit: number; offset: number }) {
     return unwrap(await this.healthService.listBatches(input));
@@ -139,34 +155,34 @@ export class HealthRouter {
 
   // -- Lab Test --
 
-  @Query({ input: idParam })
+  @Query({ input: idParam, output: labTestResponseSchema })
   async getLabTest(@Input() input: { id: string }) {
     return unwrap(await this.healthService.getLabTest(input.id));
   }
 
-  @Query({ input: labTestListRequestSchema })
+  @Query({ input: labTestListRequestSchema, output: labTestListResponseSchema })
   async listLabTests(@Input() input: z.infer<typeof labTestListRequestSchema>) {
     return unwrap(await this.healthService.listLabTests(input));
   }
 
-  @Mutation({ input: recordLabTestRequestSchema })
+  @Mutation({ input: recordLabTestRequestSchema, output: labTestResponseSchema })
   async recordLabTest(@Input() input: RecordLabTestRequest, @Ctx() ctx: AppContext) {
     return unwrap(await this.healthService.recordLabTest({ ...input, createdBy: ctx.execution!.principal.id }));
   }
 
   // -- Vaccine-Disease Links --
 
-  @Query({ input: z.strictObject({ vaccineId: z.uuid() }) })
+  @Query({ input: z.strictObject({ vaccineId: z.uuid() }), output: vaccineDiseaseListResponseSchema })
   async getVaccineDiseases(@Input() input: { vaccineId: string }) {
     return unwrap(await this.healthService.getVaccineDiseases(input.vaccineId));
   }
 
-  @Mutation({ input: linkVaccineDiseaseRequestSchema })
+  @Mutation({ input: linkVaccineDiseaseRequestSchema, output: vaccineDiseaseResponseSchema })
   async linkVaccineDisease(@Input() input: LinkVaccineDiseaseRequest, @Ctx() ctx: AppContext) {
     return unwrap(await this.healthService.linkVaccineDisease({ ...input, createdBy: ctx.execution!.principal.id }));
   }
 
-  @Mutation({ input: unlinkVaccineDiseaseRequestSchema })
+  @Mutation({ input: unlinkVaccineDiseaseRequestSchema, output: vaccineDiseaseUnlinkResponseSchema })
   async unlinkVaccineDisease(@Input() input: UnlinkVaccineDiseaseRequest) {
     return unwrap(await this.healthService.unlinkVaccineDisease(input.vaccineId, input.diseaseId));
   }

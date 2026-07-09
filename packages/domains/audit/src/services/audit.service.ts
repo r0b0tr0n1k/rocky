@@ -1,5 +1,6 @@
 import { AUDIT_ACTION, EVENT_SOURCE } from "@rocky/database/constants";
 import { fromAsyncThrowable, type Result, toAppError } from "@rocky/domains-shared";
+import type { AuditListFilter } from "../repositories/audit.repository.js";
 import type { AuditRepository } from "../repositories/audit.repository.js";
 
 function computeChanges(
@@ -77,6 +78,16 @@ export class AuditService {
         source: (params.source ?? EVENT_SOURCE.API) as (typeof EVENT_SOURCE)[keyof typeof EVENT_SOURCE],
         success: true,
       });
+    }, toAppError)();
+  }
+
+  async list(
+    filter: AuditListFilter,
+    limit: number,
+    offset: number,
+  ): Promise<Result<Awaited<ReturnType<AuditRepository["list"]>>, Error>> {
+    return fromAsyncThrowable(async () => {
+      return this.repo.list(filter, limit, offset);
     }, toAppError)();
   }
 }

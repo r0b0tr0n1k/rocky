@@ -4,6 +4,7 @@
 //   Workflow 17-04-03.pdf §Instance 1-3
 //   HK.PDF - Table hierarchy: States → Zip → Address → Farm → Subject → KMG_SUBJ
 
+import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 import { z } from "zod";
 
 // ============================================================================
@@ -33,3 +34,13 @@ export const addressInputSchema = z.strictObject({
   accuracy: z.number().positive().max(10000).optional(),
 });
 
+
+// ═══════════════════════════════════════════════════════════════
+// GUILLOTINE ACTIVATION (Tier 2 + Tier 3)
+// ═══════════════════════════════════════════════════════════════
+
+type _drift_addressInput = NoDrift<z.infer<typeof addressInputSchema>, AddressInput>;
+
+export type _HoldingsGuillotines = ActivateGuillotines<
+  [ _drift_addressInput ]
+>;

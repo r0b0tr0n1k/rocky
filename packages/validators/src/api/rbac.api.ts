@@ -6,18 +6,18 @@
 // Based on: SM.PDF
 
 import { z } from "zod";
-import { roleSelectSchema, permissionSelectSchema } from "@rocky/database/zod";
+import { rolesSelectSchema, permissionsSelectSchema } from "@rocky/database/zod";
 import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RESPONSE SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const roleResponseSchema = roleSelectSchema.omit({ createdBy: true, validTo: true }).strip();
+export const roleResponseSchema = rolesSelectSchema.omit({ createdBy: true, validTo: true })  .strip();
 
 export type RoleResponse = z.infer<typeof roleResponseSchema>;
 
-export const permissionResponseSchema = permissionSelectSchema.strict();
+export const permissionResponseSchema = permissionsSelectSchema.strict();
 
 export type PermissionResponse = z.infer<typeof permissionResponseSchema>;
 
@@ -25,7 +25,7 @@ export const roleWithPermissionsResponseSchema = roleResponseSchema
   .extend({
     permissions: z.array(permissionResponseSchema),
   })
-  .strict();
+  .strip();
 
 export type RoleWithPermissionsResponse = z.infer<typeof roleWithPermissionsResponseSchema>;
 
@@ -33,7 +33,7 @@ export type RoleWithPermissionsResponse = z.infer<typeof roleWithPermissionsResp
 // REQUEST SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const assignRoleToUserRequestSchema = z.object({
+export const assignRoleToUserRequestSchema = z.strictObject({
   userId: z.uuid(),
   roleId: z.uuid(),
   scopeOrgId: z.uuid().optional(),
@@ -44,7 +44,7 @@ export const assignRoleToUserRequestSchema = z.object({
 
 export type AssignRoleToUserRequest = z.infer<typeof assignRoleToUserRequestSchema>;
 
-export const revokeRoleFromUserRequestSchema = z.object({
+export const revokeRoleFromUserRequestSchema = z.strictObject({
   userId: z.uuid(),
   roleId: z.uuid(),
 });

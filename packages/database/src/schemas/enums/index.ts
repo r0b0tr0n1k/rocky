@@ -21,6 +21,7 @@ export * from './death-cause.js';
 export * from './delivery-method.js';
 export * from './detection-source.js';
 export * from './device-status.js';
+export * from './device-type.js';
 export * from './distribution-method.js';
 export * from './duplicate-type.js';
 export * from './ear-tag-order-status.js';

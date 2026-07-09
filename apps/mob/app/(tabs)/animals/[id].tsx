@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/providers/trpc-provider";
+import { ANIMAL_STATUS } from "@rocky/validators/enums";
 import { useLocalSearchParams } from "expo-router";
 
 export default function AnimalDetailScreen() {
@@ -38,7 +39,7 @@ export default function AnimalDetailScreen() {
             </Text>
             <Text className="text-muted-foreground">{animal.breed ?? "N/A"}</Text>
           </View>
-          <Badge variant={animal.status === "alive" ? "default" : "secondary"}>
+          <Badge variant={animal.status === ANIMAL_STATUS.ALIVE ? "default" : "secondary"}>
             <Text className="text-xs">{animal.status}</Text>
           </Badge>
         </View>

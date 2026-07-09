@@ -25,7 +25,7 @@ export function ValidatedForm<TValues extends FieldValues>({
   const showError = form.formState.isSubmitted && !form.formState.isValid;
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onValid)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onValid)} className="flex flex-col gap-4">
         {children}
         {showError ? (
           <Alert variant="destructive">
@@ -33,7 +33,7 @@ export function ValidatedForm<TValues extends FieldValues>({
             <AlertDescription>Some fields need your attention before saving.</AlertDescription>
           </Alert>
         ) : null}
-        <Button type="submit" disabled={submitting}>
+        <Button type="submit" disabled={submitting} className="self-start">
           {submitting ? "Saving…" : submitText}
         </Button>
       </form>

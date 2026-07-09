@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { trpc } from "@/providers/trpc-provider";
 import { useRouter } from "expo-router";
+import { ANIMAL_STATUS } from "@rocky/validators/enums";
 import { Search, Plus, Bird } from "lucide-react-native";
 
 export default function HomeScreen() {
@@ -71,7 +72,7 @@ export default function HomeScreen() {
                     {animal.sex} — {animal.breed ?? "N/A"}
                   </Text>
                 </View>
-                <Badge variant={animal.status === "alive" ? "default" : "secondary"}>
+                <Badge variant={animal.status === ANIMAL_STATUS.ALIVE ? "default" : "secondary"}>
                   <Text className="text-xs">{animal.status}</Text>
                 </Badge>
               </TouchableOpacity>

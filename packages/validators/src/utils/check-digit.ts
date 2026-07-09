@@ -12,26 +12,93 @@ import { z } from "zod";
 //                              + 13*dig5 + 17*dig6 + 19*dig7)"
 // ============================================================================
 
-const EAR_TAG_WEIGHTS = [3, 5, 7, 11, 13, 17, 19];
+// ============================================================================
+// PROVIDER MODEL (ADR-0030 §B) — algorithms are providers, not constants.
+// The active jurisdiction selects a CheckDigitProvider; MK is the default.
+// Domain exporters (e.g. generateTakeoverFile, WO-001) MUST call the active
+// provider, never a private formula.
+// ============================================================================
+
+export interface CheckDigitProvider {
+  readonly name: string;
+  readonly weights: readonly number[];
+  readonly modulus: number;
+  readonly basePattern: RegExp;
+  readonly fullPattern: RegExp;
+  calculate(firstDigits: string): number;
+  validate(tag: string): boolean;
+}
+
+function makeCheckDigitProvider(opts: {
+  name: string;
+  weights: readonly number[];
+  baseLength: number;
+  modulus?: number;
+}): CheckDigitProvider {
+  const modulus = opts.modulus ?? 10;
+  const basePattern = new RegExp(`^\\d{${opts.baseLength}}$`);
+  const fullPattern = new RegExp(`^\\d{${opts.baseLength + 1}}$`);
+  return {
+    name: opts.name,
+    weights: opts.weights,
+    modulus,
+    basePattern,
+    fullPattern,
+    calculate(firstDigits: string): number {
+      if (!basePattern.test(firstDigits)) {
+        throw new Error(`First ${opts.baseLength} digits must be a ${opts.baseLength}-digit number`);
+      }
+      const sum = firstDigits
+        .split("")
+        .map(Number)
+        .reduce((acc, digit, i) => acc + opts.weights[i]! * digit, 0);
+      return sum % modulus;
+    },
+    validate(tag: string): boolean {
+      if (!fullPattern.test(tag)) return false;
+      const digits = tag.split("").map(Number);
+      const sum = digits
+        .slice(0, opts.baseLength)
+        .reduce((acc, d, i) => acc + opts.weights[i]! * d, 0);
+      return digits[opts.baseLength]! === sum % modulus;
+    },
+  };
+}
+
+// MK (Macedonian) default — FS - eartags_MK(v1.0).pdf p6
+export const MK_EAR_TAG_CHECK_DIGIT_PROVIDER = makeCheckDigitProvider({
+  name: "MK",
+  weights: [3, 5, 7, 11, 13, 17, 19],
+  baseLength: 7,
+});
+
+// MK Farm ID — TPC_PDA_v1_2.pdf §2.3 (9-digit Farm ID)
+export const MK_FARM_ID_CHECK_DIGIT_PROVIDER = makeCheckDigitProvider({
+  name: "MK_FARM",
+  weights: [7, 3, 1, 9, 5, 11, 13, 17],
+  baseLength: 8,
+});
+
+export const CHECK_DIGIT_PROVIDERS: Readonly<Record<string, CheckDigitProvider>> = {
+  MK: MK_EAR_TAG_CHECK_DIGIT_PROVIDER,
+  MK_FARM: MK_FARM_ID_CHECK_DIGIT_PROVIDER,
+};
+
+export function getCheckDigitProvider(name = "MK"): CheckDigitProvider {
+  const provider = CHECK_DIGIT_PROVIDERS[name];
+  if (!provider) throw new Error(`Unknown check-digit provider: ${name}`);
+  return provider;
+}
+
+// ── Backward-compatible exports (delegate to the MK ear-tag provider) ──
+const EAR_TAG_WEIGHTS = MK_EAR_TAG_CHECK_DIGIT_PROVIDER.weights;
 
 export function calculateEarTagCheckDigit(first7Digits: string): number {
-  if (!/^\d{7}$/.test(first7Digits)) {
-    throw new Error("First 7 digits must be a 7-digit number");
-  }
-  const sum = first7Digits
-    .split("")
-    .map(Number)
-    .reduce((acc, digit, i) => acc + EAR_TAG_WEIGHTS[i]! * digit, 0);
-  return sum % 10;
+  return MK_EAR_TAG_CHECK_DIGIT_PROVIDER.calculate(first7Digits);
 }
 
 export function validateEarTagCheckDigit(tag: string): boolean {
-  if (!/^\d{8}$/.test(tag)) return false;
-  const digits = tag.split("").map(Number);
-  const sum = digits
-    .slice(0, 7)
-    .reduce((acc, d, i) => acc + EAR_TAG_WEIGHTS[i]! * d, 0);
-  return digits[7] === sum % 10;
+  return MK_EAR_TAG_CHECK_DIGIT_PROVIDER.validate(tag);
 }
 
 export const earTagSchema = z
@@ -46,17 +113,8 @@ export const earTagSchema = z
 // New: 9-digit Farm ID with check digit
 // ============================================================================
 
-const FARM_ID_WEIGHTS = [7, 3, 1, 9, 5, 11, 13, 17];
-
 export function calculateFarmIdCheckDigit(first8Digits: string): number {
-  if (!/^\d{8}$/.test(first8Digits)) {
-    throw new Error("First 8 digits must be an 8-digit number");
-  }
-  const sum = first8Digits
-    .split("")
-    .map(Number)
-    .reduce((acc, digit, i) => acc + FARM_ID_WEIGHTS[i]! * digit, 0);
-  return sum % 10;
+  return MK_FARM_ID_CHECK_DIGIT_PROVIDER.calculate(first8Digits);
 }
 
 export function generateFarmId(sequence: number): string {

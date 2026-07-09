@@ -6,7 +6,7 @@
 //
 // Based on: FS - registration_MK(v0.91).pdf §Business rules
 
-import { animalInsertSchema, animalParentSelectSchema, animalSelectSchema } from "@rocky/database/zod";
+import { animalsInsertSchema, animalParentsSelectSchema, animalsSelectSchema } from "@rocky/database/zod";
 import { z } from "zod";
 import {
   animalStatusSchema,
@@ -15,7 +15,7 @@ import {
   sortAnimalBySchema,
   sortOrderSchema,
   stateCodeSchema,
-} from "../enums/domain.js";
+} from "../enums/index.js";
 import { earTagSchema } from "../utils/check-digit.js";
 import type { ActivateGuillotines, NoDrift, NoDriftSimple } from "../utils/type-bridge.js";
 
@@ -24,7 +24,7 @@ import type { ActivateGuillotines, NoDrift, NoDriftSimple } from "../utils/type-
 // ═══════════════════════════════════════════════════════════════════════════
 
 /** Full animal record returned by GET /animals/:id */
-export const animalResponseSchema = animalSelectSchema
+export const animalResponseSchema = animalsSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
     birthDate: z.coerce.date<string>(),
@@ -33,27 +33,26 @@ export const animalResponseSchema = animalSelectSchema
     status: animalStatusSchema,
     sex: sexSchema,
     birthType: birthTypeSchema.nullable(),
-  })
-  .strip();
+  }).strip();
 
 export type AnimalResponse = z.infer<typeof animalResponseSchema>;
 
 /** Animal record embedded in list/parent responses (lighter than full response) */
 export const animalSummarySchema = z.object({
   id: z.uuid(),
-  stateCode: z.string().length(3),
+  stateCode: stateCodeSchema,
   earTagNumber: z.string().length(8),
   sex: sexSchema,
   breed: z.string().nullable(),
   status: animalStatusSchema,
   currentFarmId: z.uuid(),
-  birthDate: z.date(),
+  birthDate: z.coerce.date<string>(),
 });
 
 export type AnimalSummary = z.infer<typeof animalSummarySchema>;
 
 /** Parent record embedded in lineage responses */
-export const animalParentResponseSchema = animalParentSelectSchema.strip();
+export const animalParentResponseSchema = animalParentsSelectSchema.strict();
 
 export type AnimalParentResponse = z.infer<typeof animalParentResponseSchema>;
 
@@ -83,7 +82,7 @@ export type AnimalListResponse = z.infer<typeof animalListResponseSchema>;
 
 export type CreateAnimalRequest = z.infer<typeof createAnimalRequestSchema>;
 
-export const createAnimalRequestSchema = animalInsertSchema
+export const createAnimalRequestSchema = animalsInsertSchema
   .omit({
     id: true,
     createdAt: true,

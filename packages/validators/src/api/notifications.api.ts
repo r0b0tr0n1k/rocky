@@ -6,21 +6,21 @@
 // Based on: SM.PDF SM_NOTIFICATIONS specification
 
 import { z } from "zod";
-import { notificationSelectSchema, notificationInsertSchema } from "@rocky/database/zod";
+import { notificationsSelectSchema, notificationsInsertSchema } from "@rocky/database/zod";
 import {
   notificationTypeSchema,
   notificationCategorySchema,
   notificationPrioritySchema,
   notificationStatusSchema,
   eventSourceSchema,
-} from "../enums/domain.js";
+} from "../enums/index.js";
 import type {
   notificationTypeType,
   notificationCategoryType,
   notificationPriorityType,
   notificationStatusType,
   eventSourceType,
-} from "../enums/domain.js";
+} from "../enums/index.js";
 import type { NoDrift, NoDriftSimple, ActivateGuillotines } from "../utils/type-bridge.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -114,9 +114,9 @@ export interface CreateBatchNotificationsInput {
 // RESPONSE SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const notificationOutputSchema = notificationSelectSchema;
+export const notificationOutputSchema = notificationsSelectSchema;
 
-export const notificationResponseSchema = notificationSelectSchema
+export const notificationResponseSchema = notificationsSelectSchema
   .omit({
     webhookUrl: true,
     maxAttempts: true,
@@ -138,13 +138,13 @@ export const notificationResponseSchema = notificationSelectSchema
     status: notificationStatusSchema,
     source: eventSourceSchema,
   })
-  .strip() satisfies z.ZodType<NotificationResponse>;
+  .strict() satisfies z.ZodType<NotificationResponse>;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // REQUEST SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const sendNotificationSchema = notificationInsertSchema
+export const sendNotificationSchema = notificationsInsertSchema
   .pick({ userId: true, type: true, category: true })
   .extend({
     subject: z.string(),
@@ -180,7 +180,7 @@ export const markNotificationReadRequestSchema = z.strictObject({
 // DOMAIN LAYER SCHEMAS (consumed by @rocky/domains-notification)
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const createNotificationSchema = notificationInsertSchema
+export const createNotificationSchema = notificationsInsertSchema
   .pick({
     userId: true,
     type: true,

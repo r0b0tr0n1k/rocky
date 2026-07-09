@@ -8,19 +8,17 @@ import { trpc } from "@/providers/trpc-provider";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, View } from "react-native";
+import { BIRTH_TYPE, SEX } from "@rocky/validators/enums";
+import type { birthTypeType } from "@rocky/validators/enums";
+import { enumToOptions } from "@/lib/enum-options";
 
-const BIRTH_TYPE_OPTIONS = [
-  { label: "Single", value: "single" },
-  { label: "Twin", value: "twin" },
-  { label: "Triplet", value: "triplet" },
-  { label: "Stillborn", value: "stillborn" },
-];
+const BIRTH_TYPE_OPTIONS = enumToOptions(BIRTH_TYPE);
 
 export default function BirthNotificationScreen() {
   const router = useRouter();
   const [earTagNumber, setEarTagNumber] = useState("");
   const [birthDate, setBirthDate] = useState("");
-  const [birthType, setBirthType] = useState("");
+  const [birthType, setBirthType] = useState<birthTypeType | "">("");
   const [birthWeight, setBirthWeight] = useState("");
   const [motherTag, setMotherTag] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -50,9 +48,9 @@ export default function BirthNotificationScreen() {
     try {
       await createAnimal.mutateAsync({
         earTagNumber: earTagNumber.toUpperCase(),
-        sex: "female",
+        sex: SEX.FEMALE,
         birthDate: birthDate,
-        birthType: (birthType as "single" | "twin" | "triplet" | "stillborn") || undefined,
+        birthType: birthType || undefined,
         birthWeight: birthWeight ? parseInt(birthWeight, 10) : undefined,
         currentFarmId: "00000000-0000-0000-0000-000000000000",
         stateCode: "MK",
@@ -100,10 +98,10 @@ export default function BirthNotificationScreen() {
           <Select
             value={
               birthType
-                ? { value: birthType, label: BIRTH_TYPE_OPTIONS.find((o) => o.value === birthType)?.label ?? birthType }
+                ? BIRTH_TYPE_OPTIONS.find((o) => o.value === birthType)
                 : undefined
             }
-            onValueChange={(opt) => setBirthType(opt?.value ?? "")}
+            onValueChange={(opt) => setBirthType((opt?.value ?? "") as birthTypeType | "")}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select type..." />

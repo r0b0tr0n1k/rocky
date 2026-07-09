@@ -4,30 +4,14 @@ import { Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AnimalPicker } from "@/components/animals/animal-picker";
 import { FarmPicker } from "@/components/farms/farm-picker";
 import { trpc } from "@/providers/trpc-provider";
 import { useRouter } from "expo-router";
-
-type TestType = "serology" | "pcr" | "culture" | "elisa" | "necropsy" | "other";
-type TestResult = "positive" | "negative" | "inconclusive";
-
-const TEST_TYPE_OPTIONS: { label: string; value: TestType }[] = [
-  { label: "Serology", value: "serology" },
-  { label: "PCR", value: "pcr" },
-  { label: "Culture", value: "culture" },
-  { label: "ELISA", value: "elisa" },
-  { label: "Necropsy", value: "necropsy" },
-  { label: "Other", value: "other" },
-];
-
-const RESULT_OPTIONS: { label: string; value: TestResult }[] = [
-  { label: "Positive", value: "positive" },
-  { label: "Negative", value: "negative" },
-  { label: "Inconclusive", value: "inconclusive" },
-];
+import { TEST_TYPE, TEST_RESULT } from "@rocky/validators/enums";
+import type { testTypeType, testResultType } from "@rocky/validators/enums";
+import { enumToOptions, titleCase } from "@/lib/enum-options";
 
 export default function LabTestScreen() {
   const router = useRouter();
@@ -35,32 +19,33 @@ export default function LabTestScreen() {
   const [animalLabel, setAnimalLabel] = useState("");
   const [farmId, setFarmId] = useState("");
   const [farmLabel, setFarmLabel] = useState("");
-  const [diseaseId, setDiseaseId] = useState("");
-  const [testType, setTestType] = useState("");
-  const [result, setResult] = useState("");
+  const [diseaseId] = useState("");
+  const [testType, setTestType] = useState<testTypeType | "">("");
+  const [result, setResult] = useState<testResultType | "">("");
   const [sampleDate, setSampleDate] = useState("");
   const [resultDate, setResultDate] = useState("");
+
+  const TEST_TYPE_OPTIONS = enumToOptions(TEST_TYPE);
+  const RESULT_OPTIONS = enumToOptions(TEST_RESULT);
 
   const recordLabTest = trpc.health.recordLabTest.useMutation({
     onSuccess: () => { router.back(); },
     onError: (e) => { Alert.alert("Error", e.message); },
   });
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!animalId || !farmId || !testType || !result || !sampleDate || !resultDate) {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
-    try {
-      await recordLabTest.mutateAsync({
-        animalId, farmId,
-        diseaseId: diseaseId || "00000000-0000-0000-0000-000000000000",
-        testType: testType as TestType,
-        result: result as TestResult,
-        sampleDate: new Date(sampleDate),
-        resultDate: new Date(resultDate),
-      });
-    } catch {}
+    recordLabTest.mutate({
+      animalId, farmId,
+      diseaseId: diseaseId || "00000000-0000-0000-0000-000000000000",
+      testType: testType || TEST_TYPE.SEROLOGY,
+      result: result || TEST_RESULT.POSITIVE,
+      sampleDate: sampleDate,
+      resultDate: resultDate,
+    });
   };
 
   return (
@@ -78,7 +63,10 @@ export default function LabTestScreen() {
         </View>
         <View className="gap-2">
           <Label nativeID="testType">Test Type</Label>
-          <Select value={testType ? { value: testType, label: TEST_TYPE_OPTIONS.find(o => o.value === testType)?.label ?? testType } : undefined} onValueChange={(opt) => setTestType(opt?.value ?? "")}>
+           <Select
+            value={testType ? { value: testType, label: titleCase(testType) } : undefined}
+            onValueChange={(opt) => setTestType((opt?.value ?? "") as testTypeType | "")}
+          >
             <SelectTrigger><SelectValue placeholder="Select test type..." /></SelectTrigger>
             <SelectContent>
               {TEST_TYPE_OPTIONS.map((opt) => (<SelectItem key={opt.value} label={opt.label} value={opt.value} />))}
@@ -87,7 +75,10 @@ export default function LabTestScreen() {
         </View>
         <View className="gap-2">
           <Label nativeID="result">Result</Label>
-          <Select value={result ? { value: result, label: RESULT_OPTIONS.find(o => o.value === result)?.label ?? result } : undefined} onValueChange={(opt) => setResult(opt?.value ?? "")}>
+           <Select
+            value={result ? { value: result, label: titleCase(result) } : undefined}
+            onValueChange={(opt) => setResult((opt?.value ?? "") as testResultType | "")}
+          >
             <SelectTrigger><SelectValue placeholder="Select result..." /></SelectTrigger>
             <SelectContent>
               {RESULT_OPTIONS.map((opt) => (<SelectItem key={opt.value} label={opt.label} value={opt.value} />))}

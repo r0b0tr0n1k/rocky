@@ -13,15 +13,7 @@ import { z } from "zod";
 
 const t = initTRPC.create();
 const publicProcedure = t.procedure;
-import { animalResponseSchema, findAnimalByTagRequestSchema, animalListRequestSchema, animalListResponseSchema, createAnimalRequestSchema, updateAnimalRequestSchema, archiveDocumentListRequestSchema, createArchiveDocumentRequestSchema, archiveInspectionFormRequestSchema, correctionListRequestSchema, createCorrectionRequestSchema, reviewCorrectionRequestSchema, resolveCorrectionRequestSchema, escalateCorrectionRequestSchema, pdaDeviceListRequestSchema, createPdaDeviceRequestSchema, updatePdaDeviceRequestSchema, assignDeviceUserRequestSchema, recordSyncRequestSchema, documentGenerateRequestSchema, earTagResponseSchema, earTagListRequestSchema, earTagListResponseSchema, earTagTypeResponseSchema, orderListRequestSchema, generateTagNumbersRequestSchema, generateTagNumbersResponseSchema, orderStatusTransitionSchema, collectOrderTagsRequestSchema, createDuplicateOrderRequestSchema, createOrderRequestSchema, cancelOrderRequestSchema, cancelOrderItemRequestSchema, appendToOrderRequestSchema, assignSupplierContingentRequestSchema, getTakeoverFileRequestSchema, takeoverFileResponseSchema, farmBookResponseSchema, createFarmBookRequestSchema, updateFarmBookStatusRequestSchema, farmResponseSchema, farmListRequestSchema, farmListResponseSchema, createFarmRequestSchema, updateFarmRequestSchema, diseaseListRequestSchema, createDiseaseRequestSchema, vaccineListRequestSchema, createVaccineRequestSchema, createVaccineBatchRequestSchema, vaccinationListRequestSchema, recordVaccinationRequestSchema, treatmentListRequestSchema, recordTreatmentRequestSchema, labTestListRequestSchema, recordLabTestRequestSchema, linkVaccineDiseaseRequestSchema, unlinkVaccineDiseaseRequestSchema, syncDownloadResponseSchema, syncUploadRequestSchema, syncUploadResponseSchema, inspectionListRequestSchema, createInspectionRequestSchema, scheduleInspectionRequestSchema, completeInspectionRequestSchema, printInspectionFormRequestSchema, registerDeviceRequestSchema, listDevicesRequestSchema, ingestReadingRequestSchema, listReadingsRequestSchema, createGeofenceRequestSchema, logGeofenceEventRequestSchema, movementResponseSchema, movementListRequestSchema, movementListResponseSchema, createMovementRequestSchema, recordDeathRequestSchema, declarePastureRequestSchema, declareAlpineRequestSchema, returnFromAlpineRequestSchema, recordSlaughterRequestSchema, importEURequestSchema, importThirdCountryRequestSchema, exportAnimalRequestSchema, recordMarketTransactionRequestSchema, recordMarketUnsoldRequestSchema, recordMarketSlaughterRequestSchema, notificationOutputSchema, sendNotificationSchema, markAsReadSchema, organizationResponseSchema, organizationSummarySchema, createOrganizationRequestSchema, passportListRequestSchema, issuePassportRequestSchema, seizePassportRequestSchema, reprintPassportRequestSchema, roleResponseSchema, roleWithPermissionsResponseSchema, permissionResponseSchema, assignRoleToUserRequestSchema, revokeRoleFromUserRequestSchema, subjectResponseSchema, subjectSummarySchema, createSubjectRequestSchema, updateSubjectRequestSchema, bindSubjectToFarmRequestSchema, farmSubjectBindingResponseSchema, unbindSubjectFromFarmRequestSchema, userResponseSchema, userListRequestSchema, userSummarySchema, createUserRequestSchema, updateUserRequestSchema, vsAssignmentResponseSchema, createVsAssignmentRequestSchema, updateVsAssignmentRequestSchema, vsContractResponseSchema, createVsContractRequestSchema, updateVsContractStatusRequestSchema } from "@rocky/validators/api/index.js";
-import type { ArchiveRouter } from "/home/goce/appz/rocky/apps/api/src/routers/archive.router.js";
-import type { CorrectionRouter } from "/home/goce/appz/rocky/apps/api/src/routers/correction.router.js";
-import type { DeviceRouter } from "/home/goce/appz/rocky/apps/api/src/routers/device.router.js";
-import type { DocumentRouter } from "/home/goce/appz/rocky/apps/api/src/routers/document.router.js";
-import type { HealthRouter } from "/home/goce/appz/rocky/apps/api/src/routers/health.router.js";
-import type { InspectionRouter } from "/home/goce/appz/rocky/apps/api/src/routers/inspection.router.js";
-import type { IotRouter } from "/home/goce/appz/rocky/apps/api/src/routers/iot.router.js";
-import type { PassportRouter } from "/home/goce/appz/rocky/apps/api/src/routers/passport.router.js";
+import { animalResponseSchema, findAnimalByTagRequestSchema, animalListRequestSchema, animalListResponseSchema, createAnimalRequestSchema, updateAnimalRequestSchema, archiveDocumentResponseSchema, archiveDocumentListRequestSchema, archiveDocumentListResponseSchema, createArchiveDocumentRequestSchema, archiveExpiredListResponseSchema, archiveInspectionFormRequestSchema, auditListRequestSchema, auditListResponseSchema, correctionResponseSchema, correctionListRequestSchema, correctionListResponseSchema, createCorrectionRequestSchema, reviewCorrectionRequestSchema, resolveCorrectionRequestSchema, escalateCorrectionRequestSchema, pdaDeviceResponseSchema, pdaDeviceListRequestSchema, pdaDeviceListResponseSchema, createPdaDeviceRequestSchema, updatePdaDeviceRequestSchema, assignDeviceUserRequestSchema, recordSyncRequestSchema, pdaDeviceBlockedResponseSchema, documentGenerateRequestSchema, documentResponseSchema, earTagResponseSchema, earTagListRequestSchema, earTagListResponseSchema, earTagTypeResponseSchema, orderListRequestSchema, generateTagNumbersRequestSchema, generateTagNumbersResponseSchema, orderStatusTransitionSchema, collectOrderTagsRequestSchema, createDuplicateOrderRequestSchema, createOrderRequestSchema, cancelOrderRequestSchema, cancelOrderItemRequestSchema, appendToOrderRequestSchema, assignSupplierContingentRequestSchema, getTakeoverFileRequestSchema, takeoverFileResponseSchema, farmBookResponseSchema, createFarmBookRequestSchema, updateFarmBookStatusRequestSchema, farmResponseSchema, farmListRequestSchema, farmListResponseSchema, createFarmRequestSchema, updateFarmRequestSchema, diseaseResponseSchema, diseaseListRequestSchema, diseaseListResponseSchema, createDiseaseRequestSchema, vaccineResponseSchema, vaccineListRequestSchema, vaccineListResponseSchema, createVaccineRequestSchema, createVaccineBatchRequestSchema, vaccineBatchResponseSchema, vaccinationResponseSchema, vaccinationListRequestSchema, vaccinationListResponseSchema, recordVaccinationRequestSchema, treatmentResponseSchema, treatmentListRequestSchema, treatmentListResponseSchema, recordTreatmentRequestSchema, vaccineBatchListResponseSchema, labTestResponseSchema, labTestListRequestSchema, labTestListResponseSchema, recordLabTestRequestSchema, vaccineDiseaseListResponseSchema, linkVaccineDiseaseRequestSchema, vaccineDiseaseResponseSchema, unlinkVaccineDiseaseRequestSchema, vaccineDiseaseUnlinkResponseSchema, syncDownloadResponseSchema, syncUploadRequestSchema, syncUploadResponseSchema, inspectionResponseSchema, inspectionListRequestSchema, inspectionListResponseSchema, createInspectionRequestSchema, scheduleInspectionRequestSchema, completeInspectionRequestSchema, printInspectionFormRequestSchema, riskAnalysisListResponseSchema, riskAnalysisRunResponseSchema, registerDeviceRequestSchema, iotDeviceResponseSchema, listDevicesRequestSchema, iotDeviceListResponseSchema, ingestReadingRequestSchema, sensorReadingResponseSchema, listReadingsRequestSchema, sensorReadingListResponseSchema, createGeofenceRequestSchema, geofenceResponseSchema, logGeofenceEventRequestSchema, geofenceEventResponseSchema, geofenceEventListResponseSchema, moduleListRequestSchema, moduleListResponseSchema, moduleResponseSchema, updateModuleSchema, movementResponseSchema, movementListRequestSchema, movementListResponseSchema, createMovementRequestSchema, recordDeathRequestSchema, declarePastureRequestSchema, declareAlpineRequestSchema, returnFromAlpineRequestSchema, recordSlaughterRequestSchema, importEURequestSchema, importThirdCountryRequestSchema, exportAnimalRequestSchema, recordMarketTransactionRequestSchema, recordMarketUnsoldRequestSchema, recordMarketSlaughterRequestSchema, notificationOutputSchema, sendNotificationSchema, markAsReadSchema, organizationResponseSchema, organizationSummarySchema, createOrganizationRequestSchema, passportResponseSchema, passportListRequestSchema, passportListResponseSchema, issuePassportRequestSchema, seizePassportRequestSchema, reprintPassportRequestSchema, roleResponseSchema, roleWithPermissionsResponseSchema, permissionResponseSchema, assignRoleToUserRequestSchema, revokeRoleFromUserRequestSchema, subjectResponseSchema, subjectSummarySchema, createSubjectRequestSchema, updateSubjectRequestSchema, bindSubjectToFarmRequestSchema, farmSubjectBindingResponseSchema, unbindSubjectFromFarmRequestSchema, systemParameterListRequestSchema, systemParameterListResponseSchema, systemParameterResponseSchema, updateSystemParameterSchema, userResponseSchema, userListRequestSchema, userSummarySchema, createUserRequestSchema, updateUserRequestSchema, vsAssignmentResponseSchema, createVsAssignmentRequestSchema, updateVsAssignmentRequestSchema, vsContractResponseSchema, createVsContractRequestSchema, updateVsContractStatusRequestSchema } from "@rocky/validators/api/index.js";
 
 const appRouter = t.router({
   animal: t.router({
@@ -49,82 +41,112 @@ const appRouter = t.router({
   archive: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<ArchiveRouter["getById"]>>),
+      .output(archiveDocumentResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     list: publicProcedure
       .input(archiveDocumentListRequestSchema)
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<ArchiveRouter["list"]>>),
+      .output(archiveDocumentListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     create: publicProcedure
       .input(createArchiveDocumentRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<ArchiveRouter["create"]>>),
+      .output(archiveDocumentResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listExpired: publicProcedure
       .input(z.strictObject({ limit: z.int().min(1).max(1000).default(100) }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<ArchiveRouter["listExpired"]>>),
+      .output(archiveExpiredListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     markArchived: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<ArchiveRouter["markArchived"]>>),
+      .output(archiveDocumentResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     markDestroyed: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<ArchiveRouter["markDestroyed"]>>),
+      .output(archiveDocumentResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     archiveInspectionForm: publicProcedure
       .input(archiveInspectionFormRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<ArchiveRouter["archiveInspectionForm"]>>)
+      .output(archiveDocumentResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
+  audit: t.router({
+    list: publicProcedure
+      .input(auditListRequestSchema)
+      .output(auditListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
     }),
   correction: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<CorrectionRouter["getById"]>>),
+      .output(correctionResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     list: publicProcedure
       .input(correctionListRequestSchema)
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<CorrectionRouter["list"]>>),
+      .output(correctionListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     create: publicProcedure
       .input(createCorrectionRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<CorrectionRouter["create"]>>),
+      .output(correctionResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     review: publicProcedure
       .input(reviewCorrectionRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<CorrectionRouter["review"]>>),
+      .output(correctionResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     resolve: publicProcedure
       .input(resolveCorrectionRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<CorrectionRouter["resolve"]>>),
+      .output(correctionResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     escalate: publicProcedure
       .input(escalateCorrectionRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<CorrectionRouter["escalate"]>>),
+      .output(correctionResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     reject: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<CorrectionRouter["reject"]>>)
+      .output(correctionResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
     }),
   device: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<DeviceRouter["getById"]>>),
+      .output(pdaDeviceResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     list: publicProcedure
       .input(pdaDeviceListRequestSchema)
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<DeviceRouter["list"]>>),
+      .output(pdaDeviceListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     create: publicProcedure
       .input(createPdaDeviceRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<DeviceRouter["create"]>>),
+      .output(pdaDeviceResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     update: publicProcedure
       .input(z.object({ id: z.uuid() }).partial().extend(updatePdaDeviceRequestSchema.shape))
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<DeviceRouter["update"]>>),
+      .output(pdaDeviceResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     assignUser: publicProcedure
       .input(assignDeviceUserRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<DeviceRouter["assignUser"]>>),
+      .output(pdaDeviceResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     recordSync: publicProcedure
       .input(recordSyncRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<DeviceRouter["recordSync"]>>),
+      .output(pdaDeviceResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     registerFailedAttempt: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<DeviceRouter["registerFailedAttempt"]>>),
+      .output(pdaDeviceBlockedResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     unblock: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<DeviceRouter["unblock"]>>)
+      .output(pdaDeviceResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
     }),
   document: t.router({
     generate: publicProcedure
       .input(documentGenerateRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<DocumentRouter["generate"]>>),
+      .output(documentResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listTypes: publicProcedure
       .input(z.object({}).optional())
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<DocumentRouter["listTypes"]>>)
+      .output(z.array(z.string()))
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
     }),
   earTag: t.router({
     getById: publicProcedure
@@ -235,68 +257,88 @@ const appRouter = t.router({
   health: t.router({
     getDisease: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["getDisease"]>>),
+      .output(diseaseResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listDiseases: publicProcedure
       .input(diseaseListRequestSchema)
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["listDiseases"]>>),
+      .output(diseaseListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     createDisease: publicProcedure
       .input(createDiseaseRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["createDisease"]>>),
+      .output(diseaseResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getVaccine: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["getVaccine"]>>),
+      .output(vaccineResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listVaccines: publicProcedure
       .input(vaccineListRequestSchema)
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["listVaccines"]>>),
+      .output(vaccineListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     createVaccine: publicProcedure
       .input(createVaccineRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["createVaccine"]>>),
+      .output(vaccineResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     createVaccineBatch: publicProcedure
       .input(createVaccineBatchRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["createVaccineBatch"]>>),
+      .output(vaccineBatchResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getVaccination: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["getVaccination"]>>),
+      .output(vaccinationResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listVaccinations: publicProcedure
       .input(vaccinationListRequestSchema)
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["listVaccinations"]>>),
+      .output(vaccinationListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     recordVaccination: publicProcedure
       .input(recordVaccinationRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["recordVaccination"]>>),
+      .output(vaccinationResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getTreatment: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["getTreatment"]>>),
+      .output(treatmentResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listTreatments: publicProcedure
       .input(treatmentListRequestSchema)
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["listTreatments"]>>),
+      .output(treatmentListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     recordTreatment: publicProcedure
       .input(recordTreatmentRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["recordTreatment"]>>),
+      .output(treatmentResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listBatches: publicProcedure
       .input(z.strictObject({
       vaccineId: z.uuid().optional(),
       limit: z.int().min(1).max(100).default(20),
       offset: z.int().min(0).default(0),
     }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["listBatches"]>>),
+      .output(vaccineBatchListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getLabTest: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["getLabTest"]>>),
+      .output(labTestResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listLabTests: publicProcedure
       .input(labTestListRequestSchema)
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["listLabTests"]>>),
+      .output(labTestListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     recordLabTest: publicProcedure
       .input(recordLabTestRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["recordLabTest"]>>),
+      .output(labTestResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getVaccineDiseases: publicProcedure
       .input(z.strictObject({ vaccineId: z.uuid() }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["getVaccineDiseases"]>>),
+      .output(vaccineDiseaseListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     linkVaccineDisease: publicProcedure
       .input(linkVaccineDiseaseRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["linkVaccineDisease"]>>),
+      .output(vaccineDiseaseResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     unlinkVaccineDisease: publicProcedure
       .input(unlinkVaccineDiseaseRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<HealthRouter["unlinkVaccineDisease"]>>),
+      .output(vaccineDiseaseUnlinkResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     syncDownload: publicProcedure
       .input(z.strictObject({}))
       .output(syncDownloadResponseSchema)
@@ -309,22 +351,28 @@ const appRouter = t.router({
   inspection: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<InspectionRouter["getById"]>>),
+      .output(inspectionResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     list: publicProcedure
       .input(inspectionListRequestSchema)
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<InspectionRouter["list"]>>),
+      .output(inspectionListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     create: publicProcedure
       .input(createInspectionRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<InspectionRouter["create"]>>),
+      .output(inspectionResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     schedule: publicProcedure
       .input(scheduleInspectionRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<InspectionRouter["schedule"]>>),
+      .output(inspectionResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     complete: publicProcedure
       .input(completeInspectionRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<InspectionRouter["complete"]>>),
+      .output(inspectionResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     printForm: publicProcedure
       .input(printInspectionFormRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<InspectionRouter["printForm"]>>),
+      .output(z.any())
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listRiskAnalyses: publicProcedure
       .input(z.object({
       year: z.int().optional(),
@@ -332,46 +380,58 @@ const appRouter = t.router({
       limit: z.int().min(1).max(100).default(20),
       offset: z.int().min(0).default(0),
     }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<InspectionRouter["listRiskAnalyses"]>>),
+      .output(riskAnalysisListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     runRiskAnalysis: publicProcedure
       .input(z.object({
       year: z.int(),
       quarter: z.string().optional(),
       selectionPercentage: z.int().min(1).max(100).optional(),
     }))
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<InspectionRouter["runRiskAnalysis"]>>)
+      .output(riskAnalysisRunResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
     }),
   iot: t.router({
     registerDevice: publicProcedure
       .input(registerDeviceRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<IotRouter["registerDevice"]>>),
+      .output(iotDeviceResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listDevices: publicProcedure
       .input(listDevicesRequestSchema)
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<IotRouter["listDevices"]>>),
+      .output(iotDeviceListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getDevice: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<IotRouter["getDevice"]>>),
+      .output(iotDeviceResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     ingestReading: publicProcedure
       .input(ingestReadingRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<IotRouter["ingestReading"]>>),
+      .output(sensorReadingResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     ingestReadings: publicProcedure
       .input(z.object({ readings: z.array(ingestReadingRequestSchema) }))
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<IotRouter["ingestReadings"]>>),
+      .output(z.array(sensorReadingResponseSchema))
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listReadings: publicProcedure
       .input(listReadingsRequestSchema)
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<IotRouter["listReadings"]>>),
+      .output(sensorReadingListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     createGeofence: publicProcedure
       .input(createGeofenceRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<IotRouter["createGeofence"]>>),
+      .output(geofenceResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listGeofences: publicProcedure
       .input(z.object({ farmId: z.uuid() }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<IotRouter["listGeofences"]>>),
+      .output(z.array(geofenceResponseSchema))
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     deleteGeofence: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<IotRouter["deleteGeofence"]>>),
+      .output(z.void())
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     logGeofenceEvent: publicProcedure
       .input(logGeofenceEventRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<IotRouter["logGeofenceEvent"]>>),
+      .output(geofenceEventResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listGeofenceEvents: publicProcedure
       .input(z.object({
       animalId: z.uuid().optional(),
@@ -380,7 +440,18 @@ const appRouter = t.router({
       limit: z.int().min(1).max(1000).default(50),
       offset: z.int().min(0).default(0),
     }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<IotRouter["listGeofenceEvents"]>>)
+      .output(geofenceEventListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
+  modules: t.router({
+    list: publicProcedure
+      .input(moduleListRequestSchema)
+      .output(moduleListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    update: publicProcedure
+      .input(z.strictObject({ id: z.uuid(), data: updateModuleSchema }))
+      .output(moduleResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
     }),
   movement: t.router({
     getById: publicProcedure
@@ -473,25 +544,32 @@ const appRouter = t.router({
   passport: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<PassportRouter["getById"]>>),
+      .output(passportResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     list: publicProcedure
       .input(passportListRequestSchema)
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<PassportRouter["list"]>>),
+      .output(passportListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     issueForAnimal: publicProcedure
       .input(issuePassportRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<PassportRouter["issueForAnimal"]>>),
+      .output(passportResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     shipToVs: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<PassportRouter["shipToVs"]>>),
+      .output(passportResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     deliverToKeeper: publicProcedure
       .input(z.object({ id: z.uuid() }))
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<PassportRouter["deliverToKeeper"]>>),
+      .output(passportResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     seize: publicProcedure
       .input(seizePassportRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<PassportRouter["seize"]>>),
+      .output(passportResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     reprint: publicProcedure
       .input(reprintPassportRequestSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<PassportRouter["reprint"]>>)
+      .output(passportResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
     }),
   rbac: t.router({
     listRoles: publicProcedure
@@ -541,6 +619,16 @@ const appRouter = t.router({
     unbindFromFarm: publicProcedure
       .input(unbindSubjectFromFarmRequestSchema)
       .output(z.object({ deleted: z.boolean() }))
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
+  systemParameters: t.router({
+    list: publicProcedure
+      .input(systemParameterListRequestSchema)
+      .output(systemParameterListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    update: publicProcedure
+      .input(z.strictObject({ code: z.string(), data: updateSystemParameterSchema }))
+      .output(systemParameterResponseSchema)
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
     }),
   user: t.router({

@@ -47,7 +47,7 @@ export class RbacRepository extends BaseRepository {
 
   // ── Role-Permission Bindings ──
 
-  async findPermissionsForRole(roleId: string) {
+  async findPermissionsForRole(roleId: string): Promise<Array<{ permission: typeof permissionsTable.$inferSelect }>> {
     return this.client
       .select({ permission: permissionsTable })
       .from(rolePermissionsTable)
