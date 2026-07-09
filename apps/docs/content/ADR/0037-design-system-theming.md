@@ -164,3 +164,6 @@ rg -n "bg-blue-5|text-emerald-6|#[0-9a-f]{3,6}" apps/web/components apps/mob/com
 - **ADR-0041** (error / empty / loading UX — `Alert`/`Empty`/`Skeleton`/`sonner`).
 - **UI Bot** (`@rocky/ui`) — owns the web token file and component library.
 - **shadcn skill** — styling / forms / composition / icons rules enforced here.
+
+- **ADR-0032** (tRPC `AppRouter` / `superjson` / `createResultUnwrapper` — design-system components render tRPC Query states and `TRPCError` payloads; `Alert`/`Skeleton` are the error surface).
+- **ADR-0018** (Diamond Seal validators — form components consume `*RequestSchema` via `zodResolver`).

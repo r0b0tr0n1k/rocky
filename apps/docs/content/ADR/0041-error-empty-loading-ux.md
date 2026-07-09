@@ -163,3 +163,5 @@ rg -n "WO-087|WO-088" apps/docs/content/workorder.md
 - **ADR-0040** (i18n — `Empty`/`Alert`/toast copy moves to catalog).
 - **UI Bot** (`@rocky/ui`) — owns `Empty`/`Skeleton`/`Alert`/`sonner`.
 - **WO-087** (web boundaries + use Empty/Skeleton) · **WO-088** (mobile Empty + sonner).
+
+- **ADR-0032** (tRPC `createResultUnwrapper` — the `TRPCError` code → toast/banner map is the canonical error surface this ADR standardizes; `sonner` renders it on both surfaces).

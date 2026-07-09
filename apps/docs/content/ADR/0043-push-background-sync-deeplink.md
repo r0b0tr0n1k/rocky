@@ -163,3 +163,5 @@ rg -n "unreadCount|markAsRead|send" apps/api/src/routers/notification.router.ts
 - `apps/api/src/routers/notification.router.ts` + `packages/domains/notification` (server notification domain).
 - **WO-081** (promote `sync` router), **WO-082** (mobile offline cache + sync queue) — prerequisites.
 - **WO-091** (push), **WO-092** (background sync), **WO-093** (deep-link resolver) — this ADR's keystones.
+
+- **ADR-0032** (tRPC `AppRouter` / `superjson` — push notifications and background sync emit through the same `AppRouter` the client consumes; `TRPCError` surfaces as a toast per ADR-0041).
