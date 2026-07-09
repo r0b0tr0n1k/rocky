@@ -42,6 +42,8 @@
     "typescript": "catalog:",
     "vitest": "catalog:",
     "vite-tsconfig-paths": "catalog:",
-    "@rocky/testing": "workspace:*"
+    "@rocky/testing": "workspace:*",
+    "postgres": "catalog:",
+    "drizzle-orm": "catalog:"
   }
 }

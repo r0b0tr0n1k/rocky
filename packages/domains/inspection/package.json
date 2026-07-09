@@ -34,6 +34,9 @@
     "neverthrow": "catalog:"
   },
   "devDependencies": {
+    "@rocky/testing": "workspace:*",
+    "vite-tsconfig-paths": "catalog:",
+    "vitest": "catalog:",
     "typescript": "catalog:"
   },
   "scripts": {

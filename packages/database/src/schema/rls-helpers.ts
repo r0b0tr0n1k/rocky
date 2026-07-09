@@ -61,12 +61,11 @@ export function isRoleIn(...roles: string[]): SQL {
  * Farm must belong to a commune in the user's organization area.
  */
 export function farmInOrgArea(farmCol: Col): SQL {
-  return sql`${col(farmCol)} IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = ${currentOrgId}
-  )`;
+  // Resolves the farm's organization WITHOUT re-entering RLS: farm_org_id()
+  // is SECURITY DEFINER, so it queries `farms` directly and bypasses
+  // farm_access_policy. Referencing `farms f` inline here would re-trigger
+  // that policy -> infinite recursion (ADR-0020 RLS defect, fixed WO-031).
+  return sql`farm_org_id(${col(farmCol)}) = ${currentOrgId}`;
 }
 
 /**

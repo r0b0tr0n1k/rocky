@@ -32,6 +32,11 @@
     "neverthrow": "catalog:"
   },
   "devDependencies": {
-    "typescript": "catalog:"
+    "@rocky/testing": "workspace:*",
+    "typescript": "catalog:",
+    "vite-tsconfig-paths": "catalog:",
+    "vitest": "catalog:",
+    "postgres": "catalog:",
+    "drizzle-orm": "catalog:"
   }
 }

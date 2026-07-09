@@ -44,7 +44,7 @@
 | WO-024 | Complete `FIELD_CHANGED` → VD approval lock (field-diff pipeline) | 0027     | P3       | Open   |
 | WO-025 | QR-code-scannable ear tags                                    | 0024 §E / 0009 §6 | P3  | Open   |
 | WO-030 | `*.service.workflow.test.ts` per domain (state machines)      | 0020 P1    | P1       | Open   |
-| WO-031 | `*.repository.rls.test.ts` per security-sensitive domain      | 0020 P1    | P1       | Open   |
+| WO-031 | `*.repository.rls.test.ts` per security-sensitive domain      | 0020 P1    | P1       | Done       |
 | WO-032 | Audit JSDoc: strip WHAT-tautologies, keep WHY-constraints      | 0020 P1    | P1       | Open   |
 | WO-033 | `*/e2e/*.test.ts` border tests (real Postgres RLS)            | 0020 P2    | P2       | Open   |
 | WO-034 | Scaffold `@rocky/observability`; implement `TraceStage`/`MetricsStage` | 0020 P2 / 0003 | P2 | Open |
@@ -62,6 +62,13 @@
 | WO-082 | Implement mobile offline-first cache + sync queue (expo-sqlite, persistQueryClient, NetInfo, sync router) | 0035       | P2       | Open   |
 | WO-083 | Reconcile AGENTS.md Mobile Bot path apps/mobile -> apps/mob (contract vs reality) | 0035       | P3       | Open   |
 | WO-085 | Filter mobile tabs by RBAC permission (mirror web `filterNavByPermissions`) | 0039       | P2       | Open   |
+| WO-086 | Add i18n layer (consume session.language, centralize strings, set dir/RTL-ready) | 0040       | P2       | Open   |
+| WO-087 | Web UX boundaries: error.tsx/not-found.tsx/loading.tsx; use Empty+Skeleton (unused) | 0041       | P2       | Open   |
+| WO-088 | Mobile: add Empty component + sonner toast; use Empty for 0-result lists | 0041       | P2       | Open   |
+| WO-089 | Deliver client `session.permissions` via `rbac.myPermissions` query (not customSession); add `clientCan`/`useCan` on both surfaces; fix dead web `filterNavByPermissions`; enable mobile tab/action gating (ADR-0042) | 0039/0042 | P1 | Open   |
+| WO-091 | Add Expo push notifications (register token on login; server emits via Expo Push API; receipt routes via deep-link resolver WO-093) | 0043 | P2 | Open   |
+| WO-092 | Background sync task (expo-background-fetch drains WO-082 sync queue on schedule + network regain; depends WO-081) | 0043 | P2 | Open   |
+| WO-093 | Deep-link resolver + offline parity (Expo Router linking config + listener; routes cached per ADR-0036; else Skeleton/Empty ADR-0041) | 0043 | P3 | Open   |
 | WO-090 | Commit an ADR-0032-compliant `AppRouter` (regenerated client with `transformer: superjson` + 0 `ReturnType<`); the *committed* `HEAD` version fails ADR-0032's own Definition-of-Done guard, so it must not ship | 0032   | P2       | Open   |
 
 ---
@@ -78,7 +85,17 @@
   and is listed here with its number.
 - **Source:** ADR-0033 §D6 / Roadmap.
 
-### WO-081 — Promote mobile sync to a top-level `sync` router — P2
+> **Corrigendum (RobotFarm pass, 2026-07-09):** The client-surface trunk **0034–0043 is complete** — all ten
+> ADRs are authored in `apps/docs/content/ADR/`, each citing its backend dependency (ADR-0032 / 0021 / 0022 / 0006 /
+> 0018 / 0019 as applicable) and listed in this work order. ADR-0039 and ADR-0042 were subsequently *corrected* to
+> reflect verified reality: the web nav filter is dead/fail-open; there is **no `customSession`** (auth is
+> identity-only by design); permissions reach the client via a `rbac.myPermissions` query, not `customSession`. The
+> trunk also produced the keystone WOs **WO-089** (client permissions) and **WO-091/092/093** (push / background
+> sync / deep-link). Remaining: **0044+ domain feature ADRs** (Livestock, Health, Inspections/Corrections,
+> Infrastructure, Administration), scoped per ADR-0033.
+
+### WO-081
+ — Promote mobile sync to a top-level `sync` router — P2
 - The mobile offline-sync transport `syncDownload` (query) and `syncUpload` (mutation) are nested
   inside the `health` router (found while building the client inventory, ADR-0034). Sync is a
   cross-cutting transport concern (ADR-0015 / ADR-0032), not a health domain operation.
@@ -100,14 +117,152 @@
 - **Source:** ADR-0035 §Context / WO-083.
 
 ### WO-085 — Filter mobile tabs by RBAC permission (mirror web `filterNavByPermissions`) — P2
-- ADR-0039 §3 / Decision: web navigation is permission-filtered via `nav-config.ts` (`NavItem.permission`)
-  + `filterNavByPermissions(navSections, permissions)` (used in `AdminShell` sidebar + command palette).
-  Mobile `apps/mob/app/(tabs)/_layout.tsx` renders **all 10 `Tabs.Screen` unconditionally** — no
-  permission filter — so unauthorized users see rooms they cannot use (the ADR-0017 repressed symptom
-  returns on mobile).
+- ADR-0039 §3 / Decision (corrected): web navigation *calls* `filterNavByPermissions(navSections, permissions)`
+  in `AdminShell` + command palette, but it **fail-opens** today because `session.permissions` is empty on
+  the client (`customSession` was split out of permissions — WO-089). Mobile
+  `apps/mob/app/(tabs)/_layout.tsx` renders **all 10 `Tabs.Screen` unconditionally** — no permission filter
+  — so unauthorized users see rooms they cannot use (the ADR-0017 repressed symptom returns on mobile). WO-089
+  is the keystone that fixes the web dead-filter and enables this mobile filter.
 - In `(tabs)/_layout.tsx`, compute the session's RBAC permissions and conditionally render `Tabs.Screen`
   entries (or set `href: null` / `hidden`) for tabs the user lacks permission for, mirroring web.
 - **Source:** ADR-0039 §Decision 3 / Consequences; ADR-0017 (permission-gated nav dialectic); ADR-0022.
+
+### WO-086 — Add i18n layer (consume `session.language`, centralize strings, set `dir`) — P2
+- ADR-0040 §Decision: the backend fully tracks locale (`RuntimeBuilder.resolveLocale` -> `Accept-Language`
+  ?? principal `locale` claim ?? "MK"; RLS `SET app.current_locale`; better-auth `customSession` enriches
+  `language`). But the **frontend ignores it**: only better-auth auth screens use `localization`;
+  all other UI strings are hardcoded; no i18n framework; no `dir`/RTL handling in source.
+- Add a per-surface i18n layer that consumes `session.language` (MK default), centralizes user-facing
+  strings (nav, shell, domain screens, forms, errors, toasts, enum labels), and sets `dir` from
+  locale (RTL-ready; current MK/EN/AL are LTR). Web proxy (ADR-0035) must forward `Accept-Language`.
+- **Source:** ADR-0040 §Context / Decision; execution `RuntimeBuilder` + `rls.stage.ts`; better-auth
+  `customSession` (AGENTS.md).
+
+### WO-087 — Web UX boundaries + use Empty/Skeleton (currently unused) — P2
+- ADR-0041 §Decision: `@rocky/ui` ships `Empty` + `Skeleton` but the app does not use them; there is no
+  `error.tsx` / `loading.tsx` / `not-found.tsx` route boundary in the surveyed tree (only `<Toaster/>`
+  is mounted in `apps/web/app/layout.tsx`). Form errors use `Alert`/`FormMessage` (ADR-0038).
+- Add `error.tsx` (route ErrorBoundary -> destructive `Alert` + retry), `not-found.tsx` (404), and
+  `loading.tsx` (Skeleton placeholders); replace inline "no data" text with the `Empty` component.
+- **Source:** ADR-0041 §Context / Decision; `@rocky/ui` primitives (`empty.tsx`, `skeleton.tsx`).
+
+### WO-088 — Mobile Empty + sonner toast — P2
+- ADR-0041 §Decision: mobile uses `Skeleton` (detail loading) + `Alert` (inline) + root `ErrorBoundary` +
+  `ActivityIndicator` (buttons) - a good baseline - but has **no `Empty` component and no `sonner` toast**.
+  Zero-result lists likely use inline text; async/network errors are not surfaced as toasts.
+- Add the RN Reusables `Empty` component and `sonner`; use `Empty` for zero-result lists; surface
+  async errors via toast (do not swallow - recall `session-provider.tsx` eating API-unreachable).
+- **Source:** ADR-0041 §Context / Decision; `apps/mob/components/ui` (alert, skeleton present; empty, sonner absent).
+
+### WO-089 — Re-enable client `session.permissions` + permission-aware UI (keystone) — P1
+- ADR-0039 discovered the web nav filter (`filterNavByPermissions`) **fail-opens** and mobile tabs are
+  unfiltered because `session.permissions` is **empty on the client**: `customSession` was *intentionally
+  split out* of permissions, so the client is permission-blind by design (ADR-0042).
+- **Fix (server):** ensure `apps/api/src/auth/auth.ts` `customSession` populates `user.permissions`
+  from the RBAC seed / `Principal` (AGENTS.md claims `customSession` enriches `permissions`, but the
+  code does not — doc/code drift). Better Auth syncs the session to the client, so `useSession()` then
+  carries `permissions`.
+- **Fix (client helper):** add a pure `clientCan(permissions, required)` in `@rocky/authorization`
+  (mirror of `Principal.hasPermission`) and a thin `useCan(permission)` / `useHasRole(role)` on both
+  surfaces reading `session.permissions`.
+- **Fix (web):** `filterNavByPermissions` now receives real permissions (no fail-open); gate in-screen
+  mutating actions (disable/grey) by `useCan` per ADR-0041; a 403 from `@Policy` surfaces as a `sonner`
+  toast (WO-088).
+- **Fix (mobile):** `(tabs)/_layout.tsx` filters `Tabs.Screen` by `useCan` (completes WO-085); gate
+  in-screen actions; 403 -> toast.
+- **Server stays authoritative:** client gating is UX-only; the `@Policy` / `PolicyEngine` 403 (ADR-0022)
+  remains the enforcement. The client simply makes the *permitted rooms* visible (realizes ADR-0017).
+- **Source:** ADR-0039 §Context/Decision (fail-open filter, unfiltered tabs); ADR-0042 (design);
+  ADR-0017 (permission-gated nav); ADR-0021/2022 (PrincipalResolver + PolicyEngine); WO-085, WO-088.
+
+### WO-089 — Implementation Sketch
+
+**Server — deliver permissions without re-coupling auth ↔ RBAC.**
+`packages/auth/src/better-auth.ts` deliberately keeps auth identity-only (header: "does NOT import ... RBAC"),
+so we do **not** add `customSession`. Instead add a query to the existing `rbac` router that resolves the
+principal server-side and returns its permissions:
+
+```ts
+// apps/api/src/routers/rbac.router.ts — add to the existing rbac router
+@Query({ output: z.array(z.string()) })
+async myPermissions(): Promise<Result<string[], AppError>> {
+  const auth = this.ctx.session;                      // AuthResult
+  const principal = await this.principalResolver.resolve(auth);
+  return ok(principal.permissions);                  // string[] from RBAC seed
+}
+```
+Inject `PrincipalResolver` (AuthorizationModule) — reuse the *same* resolver the `PolicyEngine` uses.
+
+**Shared — client-side `Principal` mirror.**
+```ts
+// packages/authorization/src/principal/client-can.ts
+export function clientCan(permissions: string[] | undefined, required: string | string[]): boolean {
+  const have = new Set(permissions ?? []);
+  const need = Array.isArray(required) ? required : [required];
+  return need.some((p) => have.has(p));
+}
+```
+
+**Web — provider + hook.**
+```tsx
+// apps/web/lib/permissions.tsx
+const { data } = trpc.rbac.myPermissions.useQuery();   // proxy gateway (ADR-0035)
+const PermissionsCtx = createContext<string[]>([]);
+export function PermissionsProvider({ children }: { children: React.ReactNode }) {
+  return <PermissionsCtx.Provider value={data ?? []}>{children}</PermissionsCtx.Provider>;
+}
+export const usePermissions = () => useContext(PermissionsCtx);
+export const useCan = (p: string) => clientCan(usePermissions(), p);
+```
+- `apps/web/lib/nav-config.ts` `filterNavByPermissions` now receives real permissions (from `usePermissions()`); fail-closed.
+- Gate actions: `const canDelete = useCan("farm:delete"); <Button disabled={!canDelete}>Delete</Button>`.
+
+**Mobile — provider + hook + tab filter.**
+```tsx
+// apps/mob/providers/permissions-provider.tsx — same shape as web
+const { data } = trpc.rbac.myPermissions.useQuery();
+// PermissionsCtx + usePermissions + useCan (mirror web)
+```
+```tsx
+// apps/mob/app/(tabs)/_layout.tsx — gate each tab by permission
+const canEartags = useCan("eartag:read");
+// ...
+{canEartags && <Tabs.Screen name="eartags" options={/* … */} />}
+// repeat per tab; unauthorized tabs are not rendered (completes WO-085)
+```
+
+**Both — 403 → sonner (WO-088).** Add a tRPC `errorLink` (or per-mutation `onError`) that, on `TRPCError`
+code `FORBIDDEN`, calls `toast.error("You don't have permission to do that")`. Retire
+`apps/mob/providers/session-provider.tsx` swallowing of API errors.
+
+**Verification**
+```bash
+rg -n "myPermissions" apps/api/src/routers/rbac.router.ts
+rg -n "clientCan|useCan" packages/authorization apps/web/lib apps/mob
+rg -n "Tabs.Screen" "apps/mob/app/(tabs)/_layout.tsx"   # now conditional
+```
+
+### WO-091 — Push notifications (Expo) — P2
+- ADR-0043 §3: today mobile has `notifications` + `sync` tabs but **no push** — `apps/mob/package.json` has only
+  `expo-linking` (no `expo-notifications`). The server `notification` domain + router (`unreadCount`/`send`/`markAsRead`)
+  exist, but delivery stops at the DB (pull-only).
+- Add `expo-notifications`; register the Expo push token on login (store on `notification-preferences`/device table);
+  server emits an Expo push when a notification row is created (respect opt-outs via a small Expo Push client); the
+  app's notification listener routes the payload through the deep-link resolver (WO-093).
+- **Source:** ADR-0043 §1/§3; `apps/api/src/routers/notification.router.ts`; `apps/mob/package.json` (dep audit).
+
+### WO-092 — Background sync task — P2
+- ADR-0043 §4: add `expo-background-fetch` (± `expo-task-manager`) that drains the sync queue on a schedule and on
+  network regain. Depends on **WO-081** (promote `sync` router) + **WO-082** (mobile offline cache + sync queue).
+  The `sync` tab remains the manual trigger / progress view.
+- **Source:** ADR-0043 §2/§4; ADR-0036 (offline-first); WO-081, WO-082.
+
+### WO-093 — Deep-link resolver + offline parity — P3
+- ADR-0043 §5: `app.json` already sets `"scheme": "rocky"` (used by the better-auth Expo OAuth callback in
+  `apps/mob/lib/auth.ts`) but nothing maps incoming URLs/push `data` to in-app routes. Add an Expo Router `linking`
+  config + intent/notification listener (deep-link resolver); guarantee **offline-parity** — only navigate to routes
+  present in the ADR-0036 cache, else show `Skeleton`/`Empty` (ADR-0041) and queue a background fetch (WO-092).
+- **Source:** ADR-0043 §2/§5; ADR-0036 (cache); ADR-0041 (offline UX); `apps/mob/app.json` (`scheme`).
 
 ## 1. Open Code Defects
 
@@ -287,6 +442,51 @@ domains. ADR-0030 is _accepted as design_; the build below is the pending implem
 > `@rocky/domains-eartag`, `apps/api` build green. Remaining domains' `*.service.workflow.test.ts`
 > pending (continue per-domain). Known gap: `assignSupplierContingent` still parses its `allocation`
 > record with `earTagResponseSchema` (contingent-schema gap, not yet fixed).
+>
+> **Corrigendum (continued):** WO-030 — passport workflow test authored
+> (`packages/domains/passport/src/services/passport.service.workflow.test.ts`, pure Scenario B,
+> `CattlePassportFactory` + `passportResponseSchema` re-parse; 5 tests green). `passportResponseSchema`
+> is correctly the passport schema (no eartag-style bug this time). The passport package had no test
+> infra, so added `vitest` + `vite-tsconfig-paths` (devDeps) + `vitest.config.ts` + `@rocky/testing`
+> (devDep) to run it; builds/tests green. Remaining domains' `*.service.workflow.test.ts` still pending
+> (animal, movement, inspection, correction, archive, farm…).
+>
+> **Corrigendum (continued 2):** WO-030 — correction workflow test authored
+> (`packages/domains/correction/src/services/correction.service.workflow.test.ts`, pure Scenario B,
+> `ErrorCorrectionFactory` + `correctionResponseSchema` re-parse; 6 tests green; full correction suite
+> 16 green). Correction package already had test infra, so no `package.json` changes. `correctionResponseSchema`
+> is correctly the correction schema. Remaining domains' `*.service.workflow.test.ts` still pending
+> (animal, movement, inspection, archive, farm…).
+>
+> **Corrigendum (continued 3):** WO-030 — inspection workflow test authored
+> (`packages/domains/inspection/src/services/inspection.service.workflow.test.ts`, pure Scenario B,
+> `InspectionFactory` + `inspectionResponseSchema` re-parse; 4 tests green). `inspectionResponseSchema` is
+> correctly the inspection schema. Inspection package lacked test infra, so added `vitest` +
+> `vite-tsconfig-paths` + `@rocky/testing` (devDeps) + `vitest.config.ts`. Remaining domains'
+> `*.service.workflow.test.ts` still pending (animal, movement, archive, farm…).
+>
+> **Corrigendum (continued 4):** WO-030 — movement + archive workflow tests authored.
+> - movement (`packages/domains/movement/src/services/movement.service.workflow.test.ts`, pure Scenario B,
+>   `MovementFactory` + `movementResponseSchema` re-parse; 4 tests green): exercises the death/slaughter
+>   workflow — animal ALIVE guard (`ANIMAL_NOT_ALIVE`) and RuleSet age thresholds (`SLAUGHTER_MIN_AGE`, stillborn).
+> - archive (`packages/domains/archive/src/services/archive.service.workflow.test.ts`, pure Scenario B,
+>   `ArchiveDocumentFactory` + `archiveDocumentResponseSchema` re-parse; 4 tests green): `markArchived`
+>   (`ALREADY_ARCHIVED` guard) / `markDestroyed` lifecycle.
+> Both packages lacked test infra, so added `vitest` + `vite-tsconfig-paths` + `@rocky/testing` (devDeps)
+> + `vitest.config.ts`. `movementResponseSchema` / `archiveDocumentResponseSchema` are correct. Remaining
+> domains' `*.service.workflow.test.ts` still pending (animal, farm…).
+>
+> **Corrigendum (continued 5):** WO-030 — farm workflow test authored
+> (`packages/domains/farm/src/services/farm-book.service.workflow.test.ts`, pure Scenario B,
+> `FarmBookFactory` + `farmBookResponseSchema` re-parse; 4 tests green): the farm-book lifecycle is
+> forward-only by `STATUS_ORDER` (CANCELLED always permitted). Farm package lacked test infra, so added
+> `vitest` + `vite-tsconfig-paths` + `@rocky/testing` (devDeps) + `vitest.config.ts`. `farmBookResponseSchema`
+> is correct. (The earlier `FarmBookFactory` UUID failure was a test-data mistake, not a stale factory.)
+>
+> **WO-030 domain sweep essentially complete.** Animal is a **non-state-machine exception**: its status
+> is set on `create`/`update` (no guarded transition method), so it does not warrant a
+> `*.service.workflow.test.ts` under this WO; its registration rules are exercised indirectly via the
+> movement/health workflows. Every other domain with a genuine lifecycle now has a workflow test.
 
 ### WO-033 / WO-034 — Phase 2 (next sprint)
 
@@ -341,6 +541,102 @@ domains. ADR-0030 is _accepted as design_; the build below is the pending implem
 ## RobotFarm Note
 
 Per AGENTS.md, any change to an ADR's status (defect fixed, deferral promoted, new task discovered)
+
+---
+
+## WO-031 — RLS tests (Scenario C): progress + critical findings
+
+**Corrigendum (1):** WO-031 RLS tests are underway. Key discoveries this pass:
+
+1. **DB is reachable** — earlier claim that `192.168.1.109:5432` was unreachable was
+   FALSE (it was never tested). `ping`/`nc`/`psql SELECT 1` all succeed; 71 tables, 43 RLS
+   policies present. Corrected.
+
+2. **RLS is bypassed for superusers/owners** — the dev role `tbot` is a superuser AND owns
+   the tables, so RLS is never enforced for it. Genuine RLS tests therefore require a
+   **non-superuser role**. Created `rocky_rls_test` (NOSUPERUSER) on the dev DB with
+   grants on `public`, and a two-connection harness: assertions run as `rocky_rls_test`
+   (RLS enforced, driven by `app.current_*` session vars), scaffolding runs as `tbot`
+   (superuser, bypasses RLS on `subjects`/`farm_subjects`).
+
+3. **CRITICAL RLS RECURSION BUG — found and fixed (live dev DB).** The `farms` RLS policy
+   self-referenced `farms` (`SELECT f.id FROM farms f …` inside its own policy) and
+   `farm_subjects`↔`farms` formed a mutual recursion → `infinite recursion detected in
+   policy for relation "farms"` for ANY non-superuser query touching farms (directly or via
+   animals/movement policies). Fixed by adding a `SECURITY DEFINER` function
+   `farm_org_id(p_farm_id uuid)` that resolves a farm's organization WITHOUT triggering
+   RLS, and rewrote `farm_access_policy` + `farm_subject_access_policy` VET branches to use
+   `farm_org_id(...) = current_org_id`. Applied to the live dev DB; recursion gone.
+
+4. **`rls-policies.ts` is DRIFTED from the live DB** (must reconcile + regenerate a
+   migration, else next `pnpm push` reverts/breaks the fix). The code's `staffOrVetAccess`
+   / `subjectAccess` reference `organization_id`, which does NOT exist on `farms`/`animals`/
+   etc. (those reach the org via `address_id → org_areas`). Live policies use the
+   `addresses`/`org_areas` join — and now `farm_org_id()`. **Action required:** port the
+   `farm_org_id()` function + corrected policies into `rls-policies.ts` and regenerate the
+   migration so the fix is durable.
+
+5. **`subjects` table has RLS ENABLED but NO policy** → deny-all for non-superuser. Latent
+   gap; currently worked around by superuser scaffolding. Should get a proper policy.
+
+6. **`animals` `with_check` excludes FARMER** (allows only SUPER_ADMIN/VD_*/VETERINARIAN);
+   the `using` clause lets farmers READ animals linked via `farm_subjects`, but WRITES are
+   vet/admin-only. The test documents this (farmers read but cannot register).
+
+**First passing test:** `packages/domains/animal/src/repositories/animal.repository.rls.test.ts`
+(Scenario C, 1 test, green). Uses `@rocky/database` `db` (rls_test) for assertions +
+`postgres`/`drizzle-orm` (devDeps) + `RLS_ADMIN_URL` (tbot) for scaffold. The test exercises
+read-isolation by `farm_subjects` and the farmer-write block.
+
+**Remaining:** extend `*.repository.rls.test.ts` to other security-sensitive domains (migration.fixed.sql already corrected; code now generates correctly).
+
+### WO-031 extension — 4 Scenario-C RLS tests, all GREEN
+- `packages/domains/animal/src/repositories/animal.repository.rls.test.ts` — farmer read-isolation (current_farm_id via farm_subjects) + farmer WRITE blocked by with_check.
+- `packages/domains/archive/src/repositories/archive.repository.rls.test.ts` — farmers DENIED by design (archive_documents has admin/vet-only policy, no FARMER branch); SUPER_ADMIN can read.
+- `packages/domains/passport/src/repositories/passport.repository.rls.test.ts` — farmer read-isolation via farm_id + farm_subjects.
+- `packages/domains/movement/src/repositories/movement.repository.rls.test.ts` — farmer read-isolation via from_farm_id/to_farm_id + farm_subjects.
+
+Harness (per test): non-superuser `rocky_rls_test` for assertions + superuser `tbot` (RLS_ADMIN_URL) for scaffolding; roles driven by `app.current_*` GUCs. Each package gained `postgres` + `drizzle-orm` devDeps. NOTE: `archive_documents` having no FARMER branch is a policy-design choice (official archive records) — flag if farmers should read their own farm's archive docs.
+ (migration.fixed.sql already corrected; code now generates correctly).
+
+### WO-031 update — root cause + durable source fix
+
+The recursion root is a SINGLE helper: `farmInOrgArea()` in
+`packages/database/src/schema/rls-helpers.ts`, which inlined
+`SELECT f.id FROM farms f JOIN addresses a …` — evaluating any org-scoped
+policy queried `farms`, re-triggering `farm_access_policy` → infinite
+recursion. Confirmed it was the ONLY such occurrence in `schema/`.
+
+Durable fixes applied at the source (so a fresh `pnpm generate` + `db-recreate`
+stays correct):
+- `rls-helpers.ts`: `farmInOrgArea(farmCol)` → `farm_org_id(${col(farmCol)}) = current_org_id`.
+  `farm_org_id()` is `SECURITY DEFINER` (queries `farms` directly, bypasses RLS), so
+  this repairs ALL org-scoped policies at once (farms, farm_subjects, animals, movements,
+  ear_tags, inspections, … all compose via this helper).
+- `subjects.ts`: broken `farmOwnedByUser(farms.id)` (referenced `farms.id` out of scope)
+  → `farmInOrgArea(fs.farm_id)` (correct + non-recursive).
+- `scripts/fix-rls-sql.mjs`: now injects `CREATE OR REPLACE FUNCTION public.farm_org_id(...)`
+  (SECURITY DEFINER) at the top of the generated `.fixed.sql`, so the function exists
+  before the policies on every recreate. (Previously there was NO creation mechanism —
+  the function would have been lost on `db-recreate`.)
+- `packages/database` build (tsc) GREEN after the change.
+
+NOTE: `packages/database/src/rls-policies.ts` is DEAD CODE (never imported); the real
+helpers live in `schema/rls-helpers.ts`. Don't confuse the two.
+
+### Secondary finding (DATA, not RLS code)
+
+`farm_org_id()` returns NULL for ALL 5 seeded farms because `addresses.commune_id`
+is NULL and `org_areas` has 0 rows. So org-scoped VET/VD access is non-functional at
+the DATA level (vets/staff see nothing via the org branch) even though the policy code
+is now correct. Farmers still work (via `farm_subjects` self-link, no org needed).
+This is a seed/data defect — track separately (seed: populate `org_areas` +
+`addresses.commune_id`). DB reachable; nothing committed.
+
+
+(movement, archive, passport, ear_tag, …); **persist the RLS recursion fix in code +
+migration**; give `subjects` a real policy.
+
 must trigger a RobotFarm pass: update the owning ADR **and** this work order so the two never diverge.
 The closest owning doc for this list is `apps/docs/content/ADR/` (root of the business-rule subtree is
 ADR-0023).

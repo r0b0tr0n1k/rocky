@@ -1,179 +1,157 @@
-# ADR-0039: Navigation & Routing (Web & Mobile)
-
-| Key            | Value                                                                 |
-| -------------- | -------------------------------------------------------------------- |
-| **Status**     | Accepted                                                            |
-| **Date**       | 2026-07-09                                                          |
-| **Author**     | Architecture Review                                                 |
-| **Supersedes** | None                                                                |
-| **Superseded** | None                                                                |
-
+---
+title: ADR-0039 — Navigation & Routing (Web + Mobile)
+status: accepted
+date: 2026-07-09
+deciders: [Rocky Architecture Board]
+tags: [frontend, mobile, navigation, routing, adr-standard, client-surface]
 ---
 
-## Context
+# ADR-0039 — Navigation & Routing (Web + Mobile)
 
-*adjusts shirt* ADR-0017 already named the dialectic: "navigation is permission-gated: nav items are
-filtered by the session's permissions (better-auth `customSession` enrichment). RBAC becomes visible:
-users see only permitted rooms. Authorization is no longer a repressed symptom." The code has made this
-concrete on **web** — but mobile has *not* kept pace. Look at the actual topology:
+> Client-surface ADR (standard: ADR-0033). Documents how `apps/web` and `apps/mob`
+> route and gate navigation, and how permission-aware nav is *supposed* to work on both —
+> versus what actually runs today (see WO-089).
 
-- **Web (Next App Router):** `apps/web/app/layout.tsx` stacks `ThemeProvider` → `TRPCProvider` →
-  `AuthProvider` → `Toaster`. `apps/web/app/(admin)/layout.tsx` is a thin shell → `AdminShell`, which
-  consumes `filterNavByPermissions(navSections, permissions)` (from `apps/web/lib/nav-config.ts`, where
-  each `NavItem.permission` is a RBAC seed string: `animal:read`, `analysis:read`, `hk:farm`…). Both
-  the sidebar (`AdminShell`) and the command palette (`command-palette.tsx`) filter by permission. There is
-  **no `middleware.ts`** — the auth gate is provider/component-level.
-- **Mobile (Expo Router):** `apps/mob/app/_layout.tsx` → `SessionProvider` → `Stack{(auth), (tabs)}`.
-  `apps/mob/app/(tabs)/_layout.tsx` uses `useSession()` and `if (!session) return <Redirect
-  href="/(auth)/signin" />` (auth gate ✓), then renders **all 10 `Tabs.Screen` unconditionally** —
-  animals, health, movements, inspections, eartags, passport, corrections, notifications, sync, explore.
-  **No permission filter.** The ADR-0017 symptom returns on mobile: unauthorized users *see* rooms they
-  cannot enter.
+## 1. Context
 
-So the routing *model* converges (file-based + route groups + provider-level auth gate), but the
-**permission-gated navigation** standard is only half-implemented.
+Web routing is **file-based** Next.js App Router under `apps/web/app`:
 
----
+- `(admin)` route group → all staff/back-office screens, wrapped by `AdminShell`
+  (sidebar + topbar) via `apps/web/app/(admin)/layout.tsx`.
 
-## Decision
+Mobile routing is the **Expo Router** stack in `apps/mob/app`, gated at the provider
+level:
 
-```mermaid
-flowchart LR
-  subgraph W["🌐 Web · Next App Router"]
-    WA["(admin) group → AdminShell"] --> WF["filterNavByPermissions<br/>(nav-config.ts: NavItem.permission)"]
-    WAUTH["AuthProvider (root layout)<br/>redirect if no session"]
-  end
-  subgraph M["📲 Mobile · Expo Router"]
-    MR["(auth) group<br/>signin / signup"] --> MT["(tabs) group → Tabs"]
-    MTG["if (!session) Redirect → /(auth)/signin"]
-    MTF["Tabs.Screen x10<br/>⚠️ NOT permission-filtered (WO-085)"]
-  end
-  S["🔐 better-auth customSession<br/>session.permissions (RBAC seed)"] -.-> WF
-  S -.-> MTF
-  classDef gate fill:#FFD700,stroke:#333,stroke-width:2px,color:black
-  classDef nav fill:#98FB98,stroke:#333,stroke-width:2px,color:black
-  classDef warn fill:#FFB6C1,stroke:#333,stroke-width:2px,color:black
-  class WAUTH,MTG gate
-  class WF nav
-  class MTF warn
+```tsx
+// apps/mob/app/_layout.tsx
+<SessionProvider>
+  <Stack>
+    <Stack.Screen name="(auth)" />   {/* sign-in / sign-up */}
+    <Stack.Screen name="(tabs)" />   {/* the 10-tab worker surface */}
+  </Stack>
+</SessionProvider>
+// apps/mob/app/(tabs)/_layout.tsx
+const { data: session } = auth.useSession();
+if (!session) return <Redirect href="/(auth)/signin" />;
+// then renders all 10 <Tabs.Screen> unconditionally
 ```
 
-*Fig. 1 — Web nav is permission-filtered (green); mobile tabs are not (red, WO-085). Both gate auth.*
+### Permission-filtered navigation — the stated standard
 
-### 1. File-based routing + route groups (both)
+Web: `nav-config.ts` (`NavItem.permission` from RBAC seed) + `filterNavByPermissions(navSections,
+permissions)` — *called* by `AdminShell` (sidebar) **and** `command-palette.tsx`. But it **fail-opens**
+(returns the full nav) because `session.permissions` is **empty on the client**: the auth/RBAC split means **no permissions reach the client** — `packages/auth/src/better-auth.ts` is identity-only by design (no `customSession`), so nothing populates `session.permissions` (see ADR-0042 / WO-089). So the filter is **dead code**
+at runtime.
 
-Web `(admin)` / `(auth)/[...path]`; mobile `(auth)` / `(tabs)`. Route groups separate auth vs
-authed surfaces **without** affecting the URL. Keep this; it is the convergent model.
+Mobile: `apps/mob/app/(tabs)/_layout.tsx` renders all 10 `Tabs.Screen` **unconditionally** — no
+permission check at all (WO-085).
 
-### 2. Provider-level auth gate (no web middleware)
+**Reality (verified):** Client-side permission filtering is **not implemented at runtime on either
+surface** (the web filter fail-opens; mobile tabs are unconditional). The *server* `PolicyEngine`
+(ADR-0022) is the only enforcement. WO-089 proposes correcting this. This ADR documents the intended
+standard and the present gap.
 
-Web: `AuthProvider` (root layout) redirects unauthenticated users; `(admin)/layout.tsx` is a thin
-`AdminShell`. Mobile: `(tabs)/_layout.tsx` `if (!session) <Redirect href="/(auth)/signin" />`. Both
-redirect unauthenticated → auth. (Web has **no `middleware.ts`** — the SSR gate is component-level; see
-Neutral/Real.)
+## 2. Decision
+
+1. **Web uses file-based routing** + `(admin)` route group + `AdminShell`. No `middleware.ts`.
+2. **Mobile uses Expo Router** + a single `Stack` (`(auth)` | `(tabs)`) gated by `SessionProvider`;
+   `if (!session) return <Redirect href="/(auth)/signin" />`.
+3. **Cross-cutting**: auth gate at the provider/layout, not per-route.
+
+```mermaid
+graph TD
+  subgraph W["Web — apps/web"]
+    WA["AuthProvider<br/>resolves Better Auth session"]
+    WT["file routes + (admin) group"]
+    WF["filterNavByPermissions<br/>⚠️ DEAD: session.permissions empty (WO-089)"]
+    WS["Sidebar: AdminShell"]
+    WC["Command Palette"]
+    WA --> WT --> WF --> WS
+    WA --> WT --> WF --> WC
+  end
+  subgraph M["Expo — apps/mob"]
+    MSe["SessionProvider<br/>auth() session"]
+    MSt["Stack: (auth) | (tabs)"]
+    MT["(tabs) _layout.tsx<br/>10 Tabs.Screen — UNFILTERED (WO-085)"]
+    MSe --> MSt --> MT
+  end
+  S["🔐 RBAC seed → PrincipalResolver<br/>session.permissions<br/>— never delivered to client"]
+  S -.-> WF
+  S -.-> MT
+  classDef nav fill:#1e3a8a,color:#ffffff,stroke:#1e40af,stroke-width:2px
+  classDef dead fill:#7f1d1d,color:#ffffff,stroke:#991b1b,stroke-width:2px
+  class WF,MT dead
+  class WS,WC nav
+```
+
+*Fig. 1 — Web nav filter is **dead code** (fail-open; `session.permissions` empty, WO-089); mobile
+tabs are unfiltered (red, WO-085). Both gate auth.*
 
 ### 3. Permission-filtered navigation = the standard
 
 Web: `nav-config.ts` (`NavItem.permission` from RBAC seed) + `filterNavByPermissions(navSections,
-permissions)`, used in `AdminShell` (sidebar) **and** `command-palette.tsx`. **Mobile MUST mirror this**:
-filter `Tabs.Screen` visibility by the session's RBAC permissions (see **WO-085**). "Users see only
-permitted rooms" (ADR-0017) applies to *both* surfaces.
+permissions)` — *called* by `AdminShell` (sidebar) **and** `command-palette.tsx` — but they **fail open**
+today (`session.permissions` empty; auth/RBAC split; no `customSession`). **Re-enable** client permissions
+(WO-089), *then* mobile MUST mirror it: filter `Tabs.Screen` visibility by the session's RBAC permissions
+(see **WO-085**). "Users see only permitted rooms" (ADR-0017) applies to *both* surfaces.
 
-### 4. Icon / label single source per surface
+Permissions *should* reach the client from the server-side `PrincipalResolver` (ADR-0021/0022) → a
+`rbac.myPermissions` query → `session.permissions` → `filterNavByPermissions`. **But today the auth/RBAC split
+means no `customSession` exists and permissions never reach the client**, so `session.permissions` is **empty** — the filter never fires. **WO-089 re-enables it.** Until
+then, **never** hardcode permission logic; derive visibility from the session (once populated).
 
-Web: `nav-config.ts` (`lucide` `LucideIcon`). Mobile: `(tabs)/_layout.tsx` (`lucide-react-native`
-`Icon as={…}`). Both use lucide. Keep tab/route labels + icons declared in **one** place per surface; do
-not scatter `title=`/icon props.
+## 4. Consequences
 
-### 5. Route ↔ procedure mapping (ADR-0034)
-
-Every authed route maps to a tRPC router/procedure; nav `href` ↔ router alias. The client inventory
-(ADR-0034) is the reference. When a router/procedure is added or renamed, the nav entry follows.
-
-### 6. Deep links + offline routes (ADR-0036)
-
-Mobile deep links (`(tabs)/animals/[id]`) must resolve from the **local sync cache** when offline; the
-router must not hard-require the network. Web routes are SSR (online by nature). The `(tabs)/sync` tab is
-the offline flush surface (ADR-0036).
-
-### 7. Permission source of truth
-
-Permissions come from better-auth `customSession` enrichment (ADR-0021/0022) → `session.permissions`
-→ `filterNavByPermissions`. **Never** hardcode permission logic inside a route/layout; derive visibility
-from the session.
-
----
-
-## Consequences
+|             | Web                  | Mobile           |
+|-------------|----------------------|------------------|
+| Route model | file-based           | Expo stack       |
+| Auth gate   | AdminShell           | SessionProvider  |
+| Nav filter  | permission (**dead**) | **none**       |
+| Status      | WO-089               | WO-085           |
 
 ### Positive
 
-- **Convergent routing model** (file-based, route groups, provider-level auth gate) on both surfaces.
-- **Web nav is permission-filtered** — RBAC is visible (sidebar + command palette), per ADR-0017.
-- Auth gate present on both (web `AuthProvider`, mobile `Redirect`).
+- Web nav *has* the filter code (`filterNavByPermissions` in `AdminShell` + command palette) — but it is
+  **dead at runtime** (fail-open) until `session.permissions` is populated (WO-089). RBAC is **not** visible
+  today (see ADR-0042).
+- Mobile routing is simple and auth-gated.
 
-### Negative / Cost
+### Negative
 
-- **Mobile tabs are NOT permission-filtered** — a real gap (WO-085). Until fixed, the ADR-0017 symptom
-  returns on mobile: users see rooms they cannot use.
-- Web has no edge `middleware.ts`; the `(admin)` shell renders (briefly) before the client gate
-  redirects. Acceptable for an internal admin tool, but noted.
+- Mobile tabs are **not** permission-filtered yet (WO-085) — a staff user sees every tab.
+- Web *appears* permission-filtered but is not (the filter silently no-ops), which is worse than an honest
+  "all tabs" because it hides the gap.
 
 ### Neutral / Real
 
-- The *routing model* is unified; the *permission-gated nav* standard is only **half** done (web yes,
-  mobile no). That is the precise contradiction to resolve.
-- Deep-link/offline resolution (§6) depends on ADR-0036 landing; track together.
+- The *routing model* is unified; the *permission-gated nav* standard is **not done at runtime on either
+  surface** (web filter dead/fail-open; mobile unfiltered). The contradiction: backend enriches
+  `permissions`, but the client session was split out of it (WO-089).
 
----
+## 5. Implementation Notes
 
-## Implementation
+- **Web requires a change after all**: re-enable `session.permissions` via a `rbac.myPermissions` query (WO-089) so the
+  existing `filterNavByPermissions` actually fires. Mobile: filter tabs (WO-085).
+- After WO-089, both surfaces derive nav visibility from `session.permissions` — no hardcoded gating.
 
-- **Owning bots:** Frontend Bot (web nav/`AdminShell`/`nav-config`), Mobile Bot (`(tabs)/_layout.tsx`),
-  Auth Bot (`customSession` enrichment → `session.permissions`), UI Bot (`@rocky/ui` shell).
-- **Steps:** (1) codify web's `filterNavByPermissions` pattern as the standard; (2) **WO-085** — port it
-  to mobile `(tabs)/_layout.tsx` (filter `Tabs.Screen` by `session.permissions`); (3) keep nav
-  labels/icons single-sourced per surface; (4) keep nav `href` ↔ tRPC alias in sync with ADR-0034.
-- **No change required on web** — it already complies.
-
----
-
-## Verification (Definition of Done)
+## 6. Verification
 
 ```bash
-# web: nav filtered by permission
+# Web filter EXISTS but FAIL-OPENS today (session.permissions empty on client) — WO-089
 rg -n "filterNavByPermissions" apps/web/components/admin-shell.tsx apps/web/components/command-palette.tsx
-rg -n "permission\??:" apps/web/lib/nav-config.ts
-# mobile: auth gate present
-rg -n "if \(!session\)|Redirect" "apps/mob/app/(tabs)/_layout.tsx"
-# mobile: permission filter MISSING (WO-085 target) — expect 0 today
-rg -n "filterNavByPermissions|permission" "apps/mob/app/(tabs)/_layout.tsx" || echo "not yet filtered (WO-085)"
-# route groups both surfaces
-rg -n "Stack.Screen name=\"\(auth\)\"|Stack.Screen name=\"\(tabs\)\"" apps/mob/app/_layout.tsx
-rg -n "\(admin\)" apps/web/app
-# tracked
-rg -n "WO-085" apps/docs/content/workorder.md
+# Mobile tabs are all rendered UNCONDITIONALLY (no permission filter) — WO-085
+rg -n "Tabs.Screen" "apps/mob/app/(tabs)/_layout.tsx"
+# The gap: no permissions reach the client (auth is identity-only; no customSession) — WO-089
+rg -n "myPermissions" apps/api/src/routers/rbac.router.ts
+# confirm better-auth stays identity-only (no customSession):
+rg -n "customSession" packages/auth/src/better-auth.ts   # expect: 0 matches
 ```
 
----
+## 7. References
 
-## Anti-Patterns (do not repeat)
-
-1. **Rendering all tabs/rooms unconditionally** (mobile today) — the ADR-0017 repressed symptom. Filter by
-   `session.permissions`.
-2. **Hardcoding permission logic in a route/layout.** Derive visibility from the session (ADR-0022).
-3. **Scattering nav labels/icons** across screens. Declare them in one place (`nav-config.ts` / tabs layout).
-4. **Deep links that hard-require the network** on mobile — violates offline-first (ADR-0036).
-5. **Nav `href` drifting from the tRPC alias** — keep mapped to ADR-0034.
-
----
-
-## Related ADRs
-
-- **ADR-0017** (frontend architecture — dialectic: "navigation is permission-gated", RBAC visible).
-- **ADR-0034** (client surface inventory — route ↔ procedure mapping).
-- **ADR-0035** (rendering / data-fetching) · **ADR-0036** (offline-first sync + offline routes).
-- **ADR-0042** (permission-aware UI — future convergence of filtering + in-screen guards).
-- **ADR-0043** (push / deep-link / background sync — mobile link resolution).
-- **ADR-0021** (better-auth config) · **ADR-0022** (authorization policy engine → `session.permissions`).
+- ADR-0017 (frontend architecture — "users see only permitted rooms").
+- ADR-0021 / ADR-0022 (Better Auth + Policy Engine).
+- ADR-0033 (client ADR standard).
+- ADR-0042 (Permission-Aware UI — the corrective design).
 - **WO-085** (filter mobile tabs by RBAC permission — mirror web `filterNavByPermissions`).
+- **WO-089** (re-enable client `session.permissions` via `rbac.myPermissions` query; fixes dead web filter + mobile tabs).

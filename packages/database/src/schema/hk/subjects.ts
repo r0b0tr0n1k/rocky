@@ -3,7 +3,7 @@
 
 import { sql } from "drizzle-orm";
 import { boolean, index, integer, pgPolicy, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
-import { ADMIN_ROLES, adminWrite, farmOwnedByUser, isRoleIn, USER_ROLE } from "../rls-helpers.js";
+import { ADMIN_ROLES, adminWrite, farmInOrgArea, isRoleIn, USER_ROLE } from "../rls-helpers.js";
 import { farms } from "./farms.js";
 
 export const subjects = pgTable(
@@ -51,7 +51,7 @@ export const subjects = pgTable(
         ${isRoleIn(...ADMIN_ROLES, USER_ROLE.VETERINARIAN)}
         OR ${table.id} IN (
           SELECT fs.subject_id FROM farm_subjects fs
-          WHERE ${farmOwnedByUser(farms.id)}
+          WHERE ${farmInOrgArea(sql`fs.farm_id`)}
         )
       )`,
       withCheck: adminWrite,

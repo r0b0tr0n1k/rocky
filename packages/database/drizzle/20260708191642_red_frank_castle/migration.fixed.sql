@@ -1634,16 +1634,23 @@ ALTER TABLE "user_roles" ADD CONSTRAINT "user_roles_user_id_users_id_fkey" FOREI
 ALTER TABLE "user_roles" ADD CONSTRAINT "user_roles_role_id_roles_id_fkey" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "user_sessions" ADD CONSTRAINT "user_sessions_user_id_users_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_organization_id_organizations_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id");--> statement-breakpoint
+CREATE OR REPLACE FUNCTION public.farm_org_id(p_farm_id uuid)
+  RETURNS uuid
+  LANGUAGE sql
+  SECURITY DEFINER
+  AS $function$
+    SELECT oa.organization_id
+    FROM farms f
+    JOIN addresses a ON f.address_id = a.id
+    JOIN org_areas oa ON a.commune_id = oa.commune_id
+    WHERE f.id = p_farm_id
+  $function$;
+
 CREATE POLICY "geofence_event_access_policy" ON "animal_geofence_events" AS PERMISSIVE FOR ALL TO public USING ((
 				current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
 				OR ((
     current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN', 'FARMER'])
-    OR (current_setting('app.current_role', true) = ANY(ARRAY['SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND "animal_geofence_events"."farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+    OR (current_setting('app.current_role', true) = ANY(ARRAY['SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND farm_org_id("animal_geofence_events"."farm_id") = current_setting('app.current_org_id', true)::uuid)
     OR (current_setting('app.current_role', true) = ANY(ARRAY['SUPPLIER', 'SUPER_ADMIN'0, 'SUPER_ADMIN'1]) AND "animal_geofence_events"."farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
     WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid
@@ -1652,12 +1659,7 @@ CREATE POLICY "geofence_event_access_policy" ON "animal_geofence_events" AS PERM
 			));--> statement-breakpoint
 CREATE POLICY "animal_parent_access_policy" ON "animal_parents" AS PERMISSIVE FOR ALL TO public USING ((
     current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
-    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND "animal_parents"."animal_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id((SELECT a.current_farm_id FROM animals a WHERE a.id = "animal_parents"."animal_id")) = current_setting('app.current_org_id', true)::uuid)
     OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND "animal_parents"."animal_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
     WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid
@@ -1665,12 +1667,7 @@ CREATE POLICY "animal_parent_access_policy" ON "animal_parents" AS PERMISSIVE FO
   ));--> statement-breakpoint
 CREATE POLICY "animal_access_policy" ON "animals" AS PERMISSIVE FOR ALL TO public USING ((
     current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
-    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND "animals"."current_farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id("animals"."current_farm_id") = current_setting('app.current_org_id', true)::uuid)
     OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND "animals"."current_farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
     WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid
@@ -1679,23 +1676,13 @@ CREATE POLICY "animal_access_policy" ON "animals" AS PERMISSIVE FOR ALL TO publi
 CREATE POLICY "archive_document_access_policy" ON "archive_documents" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
         OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN'])
-            AND ("archive_documents"."farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  )
+            AND (farm_org_id("archive_documents"."farm_id") = current_setting('app.current_org_id', true)::uuid
                  OR "archive_documents"."farm_id" IS NULL))
       ));--> statement-breakpoint
 CREATE POLICY "birth_notification_access_policy" ON "birth_notifications" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
         OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN'])
-            AND ("birth_notifications"."farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  )
+            AND (farm_org_id("birth_notifications"."farm_id") = current_setting('app.current_org_id', true)::uuid
                  OR "birth_notifications"."assigned_to" = current_setting('app.current_user_id', true)::uuid))
         OR (current_setting('app.current_role', true) = 'FARMER'
             AND "birth_notifications"."farm_id" IN (
@@ -1706,12 +1693,7 @@ CREATE POLICY "birth_notification_access_policy" ON "birth_notifications" AS PER
 CREATE POLICY "cattle_passport_access_policy" ON "cattle_passports" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
         OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN'])
-            AND "cattle_passports"."farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+            AND farm_org_id("cattle_passports"."farm_id") = current_setting('app.current_org_id', true)::uuid)
         OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP'])
             AND "cattle_passports"."farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
@@ -1720,12 +1702,7 @@ CREATE POLICY "cattle_passport_access_policy" ON "cattle_passports" AS PERMISSIV
       ));--> statement-breakpoint
 CREATE POLICY "ear_tag_allocation_access_policy" ON "ear_tag_allocations" AS PERMISSIVE FOR ALL TO public USING ((
     current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
-    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND "ear_tag_allocations"."farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id("ear_tag_allocations"."farm_id") = current_setting('app.current_org_id', true)::uuid)
     OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND "ear_tag_allocations"."farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
     WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid
@@ -1737,12 +1714,7 @@ CREATE POLICY "ear_tag_order_access_policy" ON "ear_tag_orders" AS PERMISSIVE FO
   )) WITH CHECK (current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF']));--> statement-breakpoint
 CREATE POLICY "ear_tag_replacement_access_policy" ON "ear_tag_replacements" AS PERMISSIVE FOR ALL TO public USING ((
     current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
-    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND "ear_tag_replacements"."farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id("ear_tag_replacements"."farm_id") = current_setting('app.current_org_id', true)::uuid)
     OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND "ear_tag_replacements"."farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
     WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid
@@ -1767,12 +1739,7 @@ CREATE POLICY "ear_tag_access_policy" ON "ear_tags" AS PERMISSIVE FOR ALL TO pub
 CREATE POLICY "error_correction_access_policy" ON "error_corrections" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
         OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN'])
-            AND ("error_corrections"."farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  )
+            AND (farm_org_id("error_corrections"."farm_id") = current_setting('app.current_org_id', true)::uuid
                  OR "error_corrections"."farm_id" IS NULL))
         OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP'])
             AND "error_corrections"."farm_id" IN (
@@ -1783,12 +1750,7 @@ CREATE POLICY "error_correction_access_policy" ON "error_corrections" AS PERMISS
 CREATE POLICY "form_reprint_access_policy" ON "form_reprints" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
         OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN'])
-            AND "form_reprints"."farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+            AND farm_org_id("form_reprints"."farm_id") = current_setting('app.current_org_id', true)::uuid)
         OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP'])
             AND "form_reprints"."farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
@@ -1799,12 +1761,7 @@ CREATE POLICY "geofence_access_policy" ON "geofences" AS PERMISSIVE FOR ALL TO p
 				current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
 				OR ((
     current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN', 'FARMER'])
-    OR (current_setting('app.current_role', true) = ANY(ARRAY['SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND "geofences"."farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+    OR (current_setting('app.current_role', true) = ANY(ARRAY['SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND farm_org_id("geofences"."farm_id") = current_setting('app.current_org_id', true)::uuid)
     OR (current_setting('app.current_role', true) = ANY(ARRAY['SUPPLIER', 'SUPER_ADMIN'0, 'SUPER_ADMIN'1]) AND "geofences"."farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
     WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid
@@ -1814,18 +1771,8 @@ CREATE POLICY "geofence_access_policy" ON "geofences" AS PERMISSIVE FOR ALL TO p
 CREATE POLICY "import_export_access_policy" ON "import_export_records" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
         OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN'])
-            AND ("import_export_records"."from_farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  )
-                 OR "import_export_records"."to_farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  )))
+            AND (farm_org_id("import_export_records"."from_farm_id") = current_setting('app.current_org_id', true)::uuid
+                 OR farm_org_id("import_export_records"."to_farm_id") = current_setting('app.current_org_id', true)::uuid))
         OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP'])
             AND ("import_export_records"."from_farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
@@ -1839,23 +1786,13 @@ CREATE POLICY "import_export_access_policy" ON "import_export_records" AS PERMIS
 CREATE POLICY "inspection_access_policy" ON "inspections" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
         OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN'])
-            AND "inspections"."farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+            AND farm_org_id("inspections"."farm_id") = current_setting('app.current_org_id', true)::uuid)
       ));--> statement-breakpoint
 CREATE POLICY "iot_device_access_policy" ON "iot_devices" AS PERMISSIVE FOR ALL TO public USING ((
 				current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
 				OR ((
     current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN', 'FARMER'])
-    OR (current_setting('app.current_role', true) = ANY(ARRAY['SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND "iot_devices"."assigned_to_farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+    OR (current_setting('app.current_role', true) = ANY(ARRAY['SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND farm_org_id("iot_devices"."assigned_to_farm_id") = current_setting('app.current_org_id', true)::uuid)
     OR (current_setting('app.current_role', true) = ANY(ARRAY['SUPPLIER', 'SUPER_ADMIN'0, 'SUPER_ADMIN'1]) AND "iot_devices"."assigned_to_farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
     WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid
@@ -1865,18 +1802,8 @@ CREATE POLICY "iot_device_access_policy" ON "iot_devices" AS PERMISSIVE FOR ALL 
 CREATE POLICY "movement_access_policy" ON "movements" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
         OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN'])
-            AND ("movements"."from_farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  )
-                 OR "movements"."to_farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  )))
+            AND (farm_org_id("movements"."from_farm_id") = current_setting('app.current_org_id', true)::uuid
+                 OR farm_org_id("movements"."to_farm_id") = current_setting('app.current_org_id', true)::uuid))
         OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP'])
             AND ("movements"."from_farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
@@ -1890,18 +1817,8 @@ CREATE POLICY "movement_access_policy" ON "movements" AS PERMISSIVE FOR ALL TO p
 CREATE POLICY "pasture_access_policy" ON "pasture_declarations" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
         OR (current_setting('app.current_role', true) = 'VETERINARIAN'
-            AND ("pasture_declarations"."from_farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  )
-                 OR "pasture_declarations"."to_farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  )))
+            AND (farm_org_id("pasture_declarations"."from_farm_id") = current_setting('app.current_org_id', true)::uuid
+                 OR farm_org_id("pasture_declarations"."to_farm_id") = current_setting('app.current_org_id', true)::uuid))
         OR (current_setting('app.current_role', true) = 'TECHNICIAN'
             AND ("pasture_declarations"."from_farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
@@ -1917,12 +1834,7 @@ CREATE POLICY "sensor_reading_access_policy" ON "sensor_readings" AS PERMISSIVE 
 				current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
 				OR ((
     current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN', 'FARMER'])
-    OR (current_setting('app.current_role', true) = ANY(ARRAY['SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND "sensor_readings"."farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+    OR (current_setting('app.current_role', true) = ANY(ARRAY['SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND farm_org_id("sensor_readings"."farm_id") = current_setting('app.current_org_id', true)::uuid)
     OR (current_setting('app.current_role', true) = ANY(ARRAY['SUPPLIER', 'SUPER_ADMIN'0, 'SUPER_ADMIN'1]) AND "sensor_readings"."farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
     WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid
@@ -1940,12 +1852,7 @@ CREATE POLICY "reminder_access_policy" ON "reminders" AS PERMISSIVE FOR ALL TO p
 CREATE POLICY "disease_access_policy" ON "diseases" AS PERMISSIVE FOR ALL TO public USING (current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])) WITH CHECK (current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF']));--> statement-breakpoint
 CREATE POLICY "lab_test_access_policy" ON "lab_tests" AS PERMISSIVE FOR ALL TO public USING ((
     current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
-    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND "lab_tests"."farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id("lab_tests"."farm_id") = current_setting('app.current_org_id', true)::uuid)
     OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND "lab_tests"."farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
     WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid
@@ -1953,12 +1860,7 @@ CREATE POLICY "lab_test_access_policy" ON "lab_tests" AS PERMISSIVE FOR ALL TO p
   )) WITH CHECK (current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF', 'VETERINARIAN']));--> statement-breakpoint
 CREATE POLICY "treatment_access_policy" ON "treatments" AS PERMISSIVE FOR ALL TO public USING ((
     current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
-    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND "treatments"."farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id("treatments"."farm_id") = current_setting('app.current_org_id', true)::uuid)
     OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND "treatments"."farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
     WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid
@@ -1966,12 +1868,7 @@ CREATE POLICY "treatment_access_policy" ON "treatments" AS PERMISSIVE FOR ALL TO
   )) WITH CHECK (current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF', 'VETERINARIAN']));--> statement-breakpoint
 CREATE POLICY "vaccination_access_policy" ON "vaccinations" AS PERMISSIVE FOR ALL TO public USING ((
     current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
-    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND "vaccinations"."farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id("vaccinations"."farm_id") = current_setting('app.current_org_id', true)::uuid)
     OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND "vaccinations"."farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
     WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid
@@ -1983,31 +1880,16 @@ CREATE POLICY "vaccine_access_policy" ON "vaccines" AS PERMISSIVE FOR ALL TO pub
 CREATE POLICY "address_access_policy" ON "addresses" AS PERMISSIVE FOR ALL TO public USING (true) WITH CHECK (current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF']));--> statement-breakpoint
 CREATE POLICY "farm_book_access_policy" ON "farm_books" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
-        OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND "farm_books"."farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+        OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id("farm_books"."farm_id") = current_setting('app.current_org_id', true)::uuid)
       ));--> statement-breakpoint
 CREATE POLICY "farm_subject_access_policy" ON "farm_subjects" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
-        OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND "farm_subjects"."farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+        OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id("farm_subjects"."farm_id") = current_setting('app.current_org_id', true)::uuid)
         OR "farm_subjects"."subject_id" = current_setting('app.current_user_id', true)::uuid
       ));--> statement-breakpoint
 CREATE POLICY "farm_access_policy" ON "farms" AS PERMISSIVE FOR ALL TO public USING ((
     current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
-    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND "farms"."id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id("farms"."id") = current_setting('app.current_org_id', true)::uuid)
     OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND "farms"."id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
     WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid
@@ -2015,31 +1897,15 @@ CREATE POLICY "farm_access_policy" ON "farms" AS PERMISSIVE FOR ALL TO public US
   )) WITH CHECK (current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF', 'VETERINARIAN']));--> statement-breakpoint
 CREATE POLICY "subject_access_policy" ON "subjects" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF', 'VETERINARIAN'])
-        OR "subjects"."id" IN (
-          SELECT fs.subject_id FROM farm_subjects fs
-          WHERE "farms"."id" IN (
-    SELECT fs.farm_id FROM farm_subjects fs
-    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid
-  )
-        )
+        OR "subjects"."id" IN (SELECT fs.subject_id FROM farm_subjects fs WHERE farm_org_id(fs.farm_id) = current_setting('app.current_org_id', true)::uuid)
       )) WITH CHECK (current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF']));--> statement-breakpoint
 CREATE POLICY "sync_error_access_policy" ON "sync_errors" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
-        OR (current_setting('app.current_role', true) = 'VETERINARIAN' AND "sync_errors"."farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+        OR (current_setting('app.current_role', true) = 'VETERINARIAN' AND farm_org_id("sync_errors"."farm_id") = current_setting('app.current_org_id', true)::uuid)
       ));--> statement-breakpoint
 CREATE POLICY "vs_assignment_access_policy" ON "vs_assignments" AS PERMISSIVE FOR ALL TO public USING ((
     current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
-    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND "vs_assignments"."farm_id" IN (
-    SELECT f.id FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid
-  ))
+    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id("vs_assignments"."farm_id") = current_setting('app.current_org_id', true)::uuid)
     OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND "vs_assignments"."farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
     WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid

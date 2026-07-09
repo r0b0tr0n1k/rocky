@@ -37,6 +37,11 @@
     "@rocky/domains-notification": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "@rocky/testing": "workspace:*",
+    "vite-tsconfig-paths": "catalog:",
+    "vitest": "catalog:",
+    "postgres": "catalog:",
+    "drizzle-orm": "catalog:"
   }
 }
