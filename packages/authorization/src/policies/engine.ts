@@ -9,6 +9,8 @@
 
 import type { Principal } from "../principal/principal.js";
 import type { PolicyMetadata } from "./policy.decorator.js";
+import { SystemService } from "@rocky/domains-system";
+import type { RuleSet } from "@rocky/domains-system";
 
 export interface PolicyDecision {
   allowed: boolean;
@@ -20,6 +22,8 @@ export interface PolicyDecision {
  * Injected as a provider — can be swapped for different implementations.
  */
 export class PolicyEngine {
+  constructor(private readonly system: SystemService) {}
+
   /**
    * Evaluate a policy against a Principal.
    *
@@ -29,6 +33,20 @@ export class PolicyEngine {
     // ── authenticated check ──
     if (policy.authenticated && principal.id === "anonymous") {
       return { allowed: false, reason: "Authentication required" };
+    }
+
+    // ── farmer-administer gate (ADR-0030) ──
+    // Per-jurisdiction flag. When false, only veterinary/VD roles may administer;
+    // farmer principals are denied on every farmer-facing router.
+    let ruleSet: RuleSet | undefined;
+    try {
+      const rs = await this.system.getRuleSet();
+      ruleSet = rs.isOk() ? rs.value : undefined;
+    } catch {
+      ruleSet = undefined;
+    }
+    if (ruleSet && !ruleSet.farmerCanAdminister && principal.hasRole("FARMER")) {
+      return { allowed: false, reason: "Farmer administration is disabled for this jurisdiction" };
     }
 
     // ── admin check (shortcut) ──

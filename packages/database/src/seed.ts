@@ -456,6 +456,13 @@ async function seed() {
     { code: "HISTORY_WEIGHT", value: "0.3", dataType: "DECIMAL", group: "inspection", description: "Risk weight: inspection history", isEditable: true },
     { code: "SPECIES_WEIGHT", value: "0.2", dataType: "DECIMAL", group: "inspection", description: "Risk weight: species diversity", isEditable: true },
     { code: "REGION_WEIGHT", value: "0.2", dataType: "DECIMAL", group: "inspection", description: "Risk weight: regional random factor", isEditable: true },
+    { code: "FARMER_CAN_ADMINISTER", value: "true", dataType: "BOOLEAN", group: "business", description: "Farmer may administer (vaccinate/register) on own farm (ADR-0030)", isEditable: true },
+    { code: "RETENTION_YEARS_CPC", value: "3", dataType: "INTEGER", group: "retention", description: "Archive retention years (CPC tier)", isEditable: true },
+    { code: "RETENTION_YEARS_VS", value: "3", dataType: "INTEGER", group: "retention", description: "Archive retention years (VS tier)", isEditable: true },
+    { code: "RETENTION_YEARS_VI", value: "3", dataType: "INTEGER", group: "retention", description: "Archive retention years (VI tier)", isEditable: true },
+    { code: "RETENTION_YEARS_BIP", value: "3", dataType: "INTEGER", group: "retention", description: "Archive retention years (BIP tier)", isEditable: true },
+    { code: "ROLE_VOCAB", value: "owner,keeper,veterinarian,trader,slaughterhouse_op,market_op,technician,guardian", dataType: "STRING", group: "vocab", description: "Subject-role vocabulary for the jurisdiction (ADR-0030 WO-014)", isEditable: true },
+    { code: "ADMINISTER_ROLES", value: "veterinarian", dataType: "STRING", group: "business", description: "Roles permitted to administer; overridable per jurisdiction (B3 VI)", isEditable: true },
   ];
 
   for (const def of SYSTEM_PARAM_DEFS) {

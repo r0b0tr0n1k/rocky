@@ -871,6 +871,9 @@ importers:
       '@rocky/database':
         specifier: workspace:*
         version: link:../database
+      '@rocky/domains-system':
+        specifier: workspace:*
+        version: link:../domains/system
       drizzle-orm:
         specifier: 'catalog:'
         version: 1.0.0-rc.4-5d5b77c(@sinclair/typebox@0.34.49)(postgres@3.4.9)(zod@4.4.3)
@@ -924,6 +927,9 @@ importers:
       '@rocky/domains-shared':
         specifier: workspace:*
         version: link:../shared
+      '@rocky/domains-system':
+        specifier: workspace:*
+        version: link:../system
       '@rocky/execution':
         specifier: workspace:*
         version: link:../../execution
@@ -961,6 +967,9 @@ importers:
       '@rocky/domains-shared':
         specifier: workspace:*
         version: link:../shared
+      '@rocky/domains-system':
+        specifier: workspace:*
+        version: link:../system
       '@rocky/validators':
         specifier: workspace:*
         version: link:../../validators
@@ -1055,6 +1064,9 @@ importers:
       '@rocky/domains-shared':
         specifier: workspace:*
         version: link:../shared
+      '@rocky/domains-system':
+        specifier: workspace:*
+        version: link:../system
       '@rocky/trpc':
         specifier: workspace:*
         version: link:../../trpc
@@ -1129,6 +1141,9 @@ importers:
       '@rocky/domains-subject':
         specifier: workspace:*
         version: link:../subject
+      '@rocky/domains-system':
+        specifier: workspace:*
+        version: link:../system
       '@rocky/execution':
         specifier: workspace:*
         version: link:../../execution
@@ -1160,6 +1175,9 @@ importers:
       '@rocky/domains-shared':
         specifier: workspace:*
         version: link:../shared
+      '@rocky/domains-system':
+        specifier: workspace:*
+        version: link:../system
       '@rocky/validators':
         specifier: workspace:*
         version: link:../../validators
@@ -1213,6 +1231,9 @@ importers:
       '@rocky/domains-shared':
         specifier: workspace:*
         version: link:../shared
+      '@rocky/domains-system':
+        specifier: workspace:*
+        version: link:../system
       '@rocky/execution':
         specifier: workspace:*
         version: link:../../execution

@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@rocky/database": "workspace:*",
+    "@rocky/domains-system": "workspace:*",
     "@rocky/domains-animal": "workspace:*",
     "@rocky/domains-passport": "workspace:*",
     "@rocky/domains-shared": "workspace:*",

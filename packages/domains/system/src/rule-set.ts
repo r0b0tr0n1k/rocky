@@ -18,6 +18,14 @@ export interface RuleSetThresholds {
   calvingPeriodDays: number;
 }
 
+export interface RuleSetRetention {
+  /** Retention years per archive tier (ADR-0030): cpc / vs / vi / bip. Default 3. */
+  cpc: number;
+  vs: number;
+  vi: number;
+  bip: number;
+}
+
 export interface RuleSetWeights {
   /** Annual risk-analysis farm selection percentage (default 10). */
   selectionPercentage: number;
@@ -34,6 +42,14 @@ export interface RuleSetWeights {
 export interface RuleSet {
   /** Jurisdiction code this RuleSet represents (MK = seeded default). */
   jurisdiction: string;
+  /** Per-jurisdiction farmer-administer flag (ADR-0030). Default true when absent. */
+  farmerCanAdminister: boolean;
+  /** Per-tier retention years (ADR-0030 WO-014). Default 3 when absent. */
+  retention: RuleSetRetention;
+  /** Subject-role vocabulary for the jurisdiction (ADR-0030 WO-014). */
+  roleVocab: string[];
+  /** Roles permitted to administer (vaccinate/register) — overridable per jurisdiction (B3 VI). */
+  administerRoles: string[];
   thresholds: RuleSetThresholds;
   weights: RuleSetWeights;
 }
@@ -82,6 +98,15 @@ export function buildRuleSet(
 
   return {
     jurisdiction,
+    farmerCanAdminister: byCode.get("FARMER_CAN_ADMINISTER")?.value !== "false",
+    retention: {
+      cpc: num("RETENTION_YEARS_CPC"),
+      vs: num("RETENTION_YEARS_VS"),
+      vi: num("RETENTION_YEARS_VI"),
+      bip: num("RETENTION_YEARS_BIP"),
+    },
+    roleVocab: (byCode.get("ROLE_VOCAB")?.value ?? "owner,keeper,veterinarian,trader,slaughterhouse_op,market_op,technician,guardian").split(","),
+    administerRoles: (byCode.get("ADMINISTER_ROLES")?.value ?? "veterinarian").split(","),
     thresholds: {
       orderIntervalDays: num("ORDER_INTERVAL_DAYS"),
       maxOrdersPerYear: num("MAX_ORDERS_PER_YEAR"),

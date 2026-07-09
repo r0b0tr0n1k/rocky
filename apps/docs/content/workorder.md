@@ -34,13 +34,13 @@
 | WO-003 | Delete stale `apps/api/src/trpc/server.ts` + drop from patch TARGETS | 0032   | P2       | Done ✅ |
 | WO-010 | Build `ruleset` store + MK seed migration from today's constants | 0030     | P0       | Done ✅ |
 | WO-011 | Algorithm-provider registry + check-digit provider            | 0030 / 0024 | P0       | Done ✅   |
-| WO-012 | Migrate hardcoded thresholds → RuleSet (eartag/movement/animal/health) (B2) | 0030 | P0 | Open |
-| WO-013 | `farmerCanAdminister` flag + `@Policy` wiring                 | 0030       | P1       | Open   |
-| WO-014 | Retention + role vocab sourced from RuleSet                   | 0030       | P1       | Open   |
+| WO-012 | Migrate hardcoded thresholds → RuleSet (eartag/movement/animal/health) (B2) | 0030 | P0 | Done ✅ |
+| WO-013 | `farmerCanAdminister` flag + `@Policy` wiring                 | 0030       | P1       | Done ✅   |
+| WO-014 | Retention + role vocab sourced from RuleSet                   | 0030       | P1       | Done ✅   |
 | WO-020 | Health stock-reconciliation job                               | 0026 / 0023 | P2       | Open   |
 | WO-021 | Persist per-farm risk-analysis results (`risk_analysis_results`) | 0028 / 0023 | P2   | Open   |
 | WO-022 | Enforce birth-notification deadlines (7/20 d)                 | 0028 / 0023 | P2       | Open   |
-| WO-023 | Inspection weighted params → RuleSet `GN_ANLS_PARAMS`         | 0028 / 0030 | P1       | Open   |
+| WO-023 | Inspection weighted params → RuleSet `GN_ANLS_PARAMS`         | 0028 / 0030 | P1       | Done ✅   |
 | WO-024 | Complete `FIELD_CHANGED` → VD approval lock (field-diff pipeline) | 0027     | P3       | Open   |
 | WO-025 | QR-code-scannable ear tags                                    | 0024 §E / 0009 §6 | P3  | Open   |
 | WO-030 | `*.service.workflow.test.ts` per domain (state machines)      | 0020 P1    | P1       | Open   |
@@ -61,6 +61,7 @@
 | WO-081 | Promote mobile sync to top-level `sync` router (syncDownload/syncUpload under `health`) | 0034       | P2       | Open   |
 | WO-082 | Implement mobile offline-first cache + sync queue (expo-sqlite, persistQueryClient, NetInfo, sync router) | 0035       | P2       | Open   |
 | WO-083 | Reconcile AGENTS.md Mobile Bot path apps/mobile -> apps/mob (contract vs reality) | 0035       | P3       | Open   |
+| WO-085 | Filter mobile tabs by RBAC permission (mirror web `filterNavByPermissions`) | 0039       | P2       | Open   |
 | WO-090 | Commit an ADR-0032-compliant `AppRouter` (regenerated client with `transformer: superjson` + 0 `ReturnType<`); the *committed* `HEAD` version fails ADR-0032's own Definition-of-Done guard, so it must not ship | 0032   | P2       | Open   |
 
 ---
@@ -97,6 +98,16 @@
   actual Expo app lives at `apps/mob/`. Client ADRs (0033/0034/0035) now use `apps/mob`.
 - Fix root `AGENTS.md` Mobile Bot + Frontend Bot descriptions and the Child RobotFarm Index path.
 - **Source:** ADR-0035 §Context / WO-083.
+
+### WO-085 — Filter mobile tabs by RBAC permission (mirror web `filterNavByPermissions`) — P2
+- ADR-0039 §3 / Decision: web navigation is permission-filtered via `nav-config.ts` (`NavItem.permission`)
+  + `filterNavByPermissions(navSections, permissions)` (used in `AdminShell` sidebar + command palette).
+  Mobile `apps/mob/app/(tabs)/_layout.tsx` renders **all 10 `Tabs.Screen` unconditionally** — no
+  permission filter — so unauthorized users see rooms they cannot use (the ADR-0017 repressed symptom
+  returns on mobile).
+- In `(tabs)/_layout.tsx`, compute the session's RBAC permissions and conditionally render `Tabs.Screen`
+  entries (or set `href: null` / `hidden`) for tabs the user lacks permission for, mirroring web.
+- **Source:** ADR-0039 §Decision 3 / Consequences; ADR-0017 (permission-gated nav dialectic); ADR-0022.
 
 ## 1. Open Code Defects
 
@@ -149,6 +160,13 @@ domains. ADR-0030 is _accepted as design_; the build below is the pending implem
   `stillbornThresholdDays=25`, `arrivalCorrectionDays=2`, `minMotherAgeMonths=17`,
   `calvingPeriodDays=365`, `selectionPercentage=10`, `DEFAULT_WEIGHTS` 0.3/0.3/0.2/0.2).
 - **Source:** ADR-0030.
+> **Corrigendum (RobotFarm pass, 2026-07-09):** Done. `RuleSet` gained `farmerCanAdminister: boolean`
+> (default `true` when the `FARMER_CAN_ADMINISTER` param is absent; seeded `true` for MK in `SYSTEM_PARAM_DEFS`).
+> `PolicyEngine` now injects `SystemService` (provided by `@Global AuthorizationModule` via the global
+> `DatabaseProvider`) and, inside `evaluate()`, denies `FARMER`-role principals when the flag is `false`
+> (vet/VD/admin still pass) — enforced for every farmer-facing router via `@Policy`. `PolicyResolver`
+> is untouched. `@rocky/authorization` now depends on `@rocky/domains-system`.
+> Build status: @rocky/domains-system, @rocky/authorization, apps/api all green.
 > **Corrigendum (RobotFarm pass, 2026-07-09):** The "ruleset store" was discovered to **already exist** in the working tree as `sm.system_parameters` (`packages/database/src/schema/sm/modules.ts`), complemented by `modules` (feature flags → `RuleSet.features`, e.g. WO-060 IoT gate), `codeTables` (vocab/labels → `RuleSet.vocab`), and `businessRules` (`RuleSet` rules). A *new* `rulesets` table would be redundant bureaucratic fetishism. WO-010 therefore reduced to its real remaining work: **seeding the MK business-rule defaults** into `system_parameters` (groups `business`/`inspection`) — done in `seed.ts` (`SYSTEM_PARAM_DEFS`, idempotent `onConflictDoNothing`). The structured typed `RuleSet` resolver that domain services consume in WO-012 is the bridge still to build (see WO-011/WO-012).
 
 ### WO-011 — Algorithm-provider registry + check-digit provider — P0
@@ -165,6 +183,17 @@ domains. ADR-0030 is _accepted as design_; the build below is the pending implem
 - Wire `eartag`, `animal`, `movement`, `health`, `inspection` services to read from the active RuleSet
   instead of module-level constants.
 - **Source:** ADR-0030, ADR-0023 (B2).
+> **Corrigendum (RobotFarm pass, 2026-07-09):** Done. All five domain services now read the active
+> RuleSet via injected `SystemService` (added `@rocky/domains-system` dep + constructor param + NestJS
+> `app.module.ts` wiring for `AnimalService`, `EarTagService`, `MovementService`, `HealthService`,
+> `RiskAnalysisService`). Hardcoded module constants removed and replaced with `thresholds.*` /
+> `weights.*`: eartag `ORDER_INTERVAL_DAYS`/`MAX_ORDERS_PER_YEAR`; animal `minMotherAgeMonths`/
+> `calvingPeriodDays`; movement `slaughterMinAgeDays`/`stillbornThresholdDays`/`arrivalCorrectionDays`;
+> health `MIN_VACCINATION_AGE_DAYS`; inspection risk weights + `selectionPercentage` (was hardcoded `10`/
+> `0.3/0.3/0.2/0.2`). `animal.service.test.ts` updated with a mock `getRuleSet()`.
+> Build status: @rocky/domains-{eartag,animal,movement,health,inspection} + apps/api all green
+> (`tsc -p tsconfig.build.json` excludes `*.test.ts`; remaining animal test type errors are
+> pre-existing WIP fixture mismatches, unrelated to this change).
 
 ### WO-013 — `farmerCanAdminister` flag + `@Policy` — P1
 
@@ -176,6 +205,16 @@ domains. ADR-0030 is _accepted as design_; the build below is the pending implem
 - Archive retention window and the subject-role vocabulary become overridable RuleSet entries
   (this is also where B3's `VI` role can be supplied per jurisdiction instead of a forced constant).
 - **Source:** ADR-0030.
+> **Corrigendum (RobotFarm pass, 2026-07-09):** Done. `RuleSet` gained `retention` (per-tier years
+> cpc/vs/vi/bip, default 3), `roleVocab` (subject-role vocabulary), and `administerRoles` (overridable
+> per jurisdiction; MK seeds `veterinarian`, enabling B3's `VI` role where applicable). Seeded
+> `RETENTION_YEARS_*`, `ROLE_VOCAB`, `ADMINISTER_ROLES` in `SYSTEM_PARAM_DEFS`.
+> `ArchiveService` injects `SystemService` and computes retention from `ruleSet.retention[tier]` for
+> `archiveInspectionForm` (VI), `archiveSeizedPassport` (CPC), `archiveErrorCorrection` (CPC) — the
+> hardcoded `+3` literals are gone. `HealthService.recordVaccination`/`recordTreatment` authorize against
+> `ruleSet.administerRoles` instead of the fixed `SUBJECT_ROLE.VETERINARIAN`. `@rocky/domains-archive`
+> now depends on `@rocky/domains-system`.
+> Build status: @rocky/domains-system, @rocky/domains-archive, @rocky/domains-health, apps/api all green.
 
 ---
 
@@ -202,6 +241,12 @@ domains. ADR-0030 is _accepted as design_; the build below is the pending implem
 
 - Move `DEFAULT_WEIGHTS` into RuleSet `GN_ANLS_PARAMS` (part of WO-012).
 - **Source:** ADR-0028, ADR-0030.
+> **Corrigendum (RobotFarm pass, 2026-07-09):** Completed as part of WO-012 — no separate code change needed.
+> ADR-0028 §92 defers the legacy `GN_ANLS_PARAMS` table to ADR-0030, which folds the inspection weighted-
+> analysis parameters into the `RuleSet`. `RiskAnalysisService.runAnalysis` already reads `RuleSet.weights`
+> (`farmSize`/`history`/`species`/`region`) + `selectionPercentage`; the `DEFAULT_WEIGHTS` constant is removed.
+> Those values are seeded as the `inspection`-group `system_parameters` (SELECTION_PERCENTAGE, FARM_SIZE_WEIGHT,
+> HISTORY_WEIGHT, SPECIES_WEIGHT, REGION_WEIGHT). Build verified green in WO-012 (`@rocky/domains-inspection`, apps/api).
 
 ### WO-024 — Complete `FIELD_CHANGED` → VD lock — P3
 
@@ -229,6 +274,19 @@ domains. ADR-0030 is _accepted as design_; the build below is the pending implem
   correction) using Scenario B.
 - `*.repository.rls.test.ts` per security-sensitive domain via Scenario C (real Postgres + RLS).
 - Audit existing JSDoc: strip WHAT-tautologies, keep WHY-constraints.
+> **Corrigendum (RobotFarm pass, 2026-07-09):** WO-030 progress — authored
+> `packages/domains/eartag/src/services/eartag.service.workflow.test.ts` (pure unit test, Scenario B:
+> mock repo + `EarTagOrderFactory` + `earTagOrderResponseSchema` re-parse; 6 tests green; full eartag
+> suite 14 green). Authoring **surfaced a systemic latent bug**: the 8 order service methods
+> (`getOrderById`, `createOrder`, `createDuplicateOrder`, `transitionOrderStatus`, `collectOrderTags`,
+> `cancelOrder`, `cancelOrderItem`, `appendToOrder`) and their 8 tRPC endpoints parsed/returned
+> `EarTagResponse` (ear-tag schema, `status: earTagStatusSchema`) for **order** records — so every
+> successful order transition threw in production. Fixed: introduced `earTagOrderResponseSchema` +
+> `EarTagOrderResponse` in `@rocky/validators/api` (over `earTagOrdersSelectSchema`, `status:
+> orderStatusSchema`); repointed the 8 service methods + 8 router endpoints. `@rocky/validators`,
+> `@rocky/domains-eartag`, `apps/api` build green. Remaining domains' `*.service.workflow.test.ts`
+> pending (continue per-domain). Known gap: `assignSupplierContingent` still parses its `allocation`
+> record with `earTagResponseSchema` (contingent-schema gap, not yet fixed).
 
 ### WO-033 / WO-034 — Phase 2 (next sprint)
 

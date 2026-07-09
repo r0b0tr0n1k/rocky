@@ -16,14 +16,11 @@ import type {
 } from "@rocky/validators/api";
 import { animalResponseSchema, animalSummarySchema } from "@rocky/validators/api";
 import { ANIMAL_ERRORS, AnimalError } from "../errors/animal.errors.js";
+import { SystemService } from "@rocky/domains-system";
 import type { AnimalRepository } from "../repositories/animal.repository.js";
 import { randomUUID } from "node:crypto";
 
 /** System parameters for registration validation */
-const DEFAULT_PARAMS = {
-  minMotherAgeMonths: 17,
-  calvingPeriodDays: 365,
-} as const;
 
 function monthsBetween(d1: Date, d2: Date): number {
   const months = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
@@ -37,6 +34,7 @@ function daysBetween(d1: Date, d2: Date): number {
 export class AnimalService {
   constructor(
     private readonly repo: AnimalRepository,
+    private readonly system: SystemService,
     private readonly outboxPublisher?: OutboxEventPublisher,
   ) {}
 
@@ -103,15 +101,19 @@ export class AnimalService {
           });
         }
 
+        const ruleSet = await this.system.getRuleSet();
+        if (ruleSet.isErr()) throw ruleSet.error;
+        const { thresholds } = ruleSet.value;
+
         // Rule A.4c: Mother must be >= minMotherAgeMonths old at birth
         const birthDate = new Date(input.birthDate);
         const motherBirthDate = new Date(mother.birthDate);
         const motherAgeMonths = monthsBetween(motherBirthDate, birthDate);
-        if (motherAgeMonths < DEFAULT_PARAMS.minMotherAgeMonths) {
+        if (motherAgeMonths < thresholds.minMotherAgeMonths) {
           throw new AnimalError(ANIMAL_ERRORS.MOTHER_TOO_YOUNG, {
             motherId: input.motherId,
             motherAgeMonths,
-            requiredMonths: DEFAULT_PARAMS.minMotherAgeMonths,
+            requiredMonths: thresholds.minMotherAgeMonths,
           });
         }
 
@@ -120,12 +122,12 @@ export class AnimalService {
         if (lastCalf) {
           const lastCalfDate = new Date(lastCalf.birthDate);
           const gapDays = daysBetween(lastCalfDate, birthDate);
-          if (gapDays < DEFAULT_PARAMS.calvingPeriodDays) {
+          if (gapDays < thresholds.calvingPeriodDays) {
             throw new AnimalError(ANIMAL_ERRORS.INVALID_CALVING_GAP, {
               motherId: input.motherId,
               lastCalfDate: lastCalf.birthDate,
               gapDays,
-              requiredDays: DEFAULT_PARAMS.calvingPeriodDays,
+              requiredDays: thresholds.calvingPeriodDays,
             });
           }
         }

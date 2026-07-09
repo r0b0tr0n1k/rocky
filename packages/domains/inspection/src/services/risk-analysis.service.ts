@@ -7,6 +7,7 @@
 
 import { ok, err, type Result } from "neverthrow";
 import type { DatabaseProvider } from "@rocky/database";
+import { SystemService } from "@rocky/domains-system";
 import { farms as farmsTable, animals as animalsTable, inspections as inspectionsTable, riskAnalyses as riskAnalysesTable } from "@rocky/database";
 import { eq, and, sql, desc, } from "drizzle-orm";
 import { InspectionError, INSPECTION_ERRORS } from "../errors/inspection.errors.js";
@@ -25,15 +26,9 @@ export interface RiskWeightConfig {
   regionWeight: number;
 }
 
-const DEFAULT_WEIGHTS: RiskWeightConfig = {
-  farmSizeWeight: 0.3,
-  historyWeight: 0.3,
-  speciesWeight: 0.2,
-  regionWeight: 0.2,
-};
 
 export class RiskAnalysisService {
-  constructor(private readonly dbp: DatabaseProvider) {}
+  constructor(private readonly dbp: DatabaseProvider, private readonly system: SystemService) {}
 
   /**
    * Run the risk analysis — selects a percentage of farms for inspection.
@@ -43,7 +38,10 @@ export class RiskAnalysisService {
     input: RunAnalysisInput,
   ): Promise<Result<{ analysisId: string; selectedFarmCount: number; totalFarmCount: number }, InspectionError>> {
     try {
-      const percentage = input.selectionPercentage ?? 10;
+      const ruleSet = await this.system.getRuleSet();
+      if (ruleSet.isErr()) return err(new InspectionError(INSPECTION_ERRORS.INVALID_INPUT, { reason: "RuleSet unavailable", detail: ruleSet.error.message }));
+      const weights = ruleSet.value.weights;
+      const percentage = input.selectionPercentage ?? weights.selectionPercentage;
 
       // 1. Count total active farms
       const [totalResult] = await this.dbp.client
@@ -81,10 +79,10 @@ export class RiskAnalysisService {
         const speciesScore = farm.type !== "FARM" ? 1 : 0;
         const historyScore = farm.pastInspections / maxPastInspections;
         const score = 1.0
-          + DEFAULT_WEIGHTS.farmSizeWeight * sizeScore
-          + DEFAULT_WEIGHTS.historyWeight * historyScore
-          + DEFAULT_WEIGHTS.speciesWeight * speciesScore
-          + DEFAULT_WEIGHTS.regionWeight * Math.random();
+          + weights.farmSize * sizeScore
+          + weights.history * historyScore
+          + weights.species * speciesScore
+          + weights.region * Math.random();
         return { id: farm.id, score };
       });
 
@@ -118,7 +116,7 @@ export class RiskAnalysisService {
           selectedFarms: selectedFarmCount,
           algorithmVersion: "v1",
           selectionPercentage: percentage,
-          paramsSnapshot: DEFAULT_WEIGHTS as any,
+          paramsSnapshot: weights,
           createdBy: input.createdBy,
         })
         .returning();

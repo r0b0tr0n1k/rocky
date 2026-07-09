@@ -32,6 +32,7 @@
     "@nestjs/common": "catalog:",
     "@rocky/auth": "workspace:*",
     "@rocky/database": "workspace:*",
+    "@rocky/domains-system": "workspace:*",
     "drizzle-orm": "catalog:"
   },
   "devDependencies": {

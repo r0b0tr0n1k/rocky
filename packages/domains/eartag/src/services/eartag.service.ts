@@ -12,12 +12,14 @@ import type {
   EarTagListRequest,
   EarTagListResponse,
   EarTagResponse,
+  EarTagOrderResponse,
   EarTagTypeResponse,
   GetTakeoverFileRequest,
   TakeoverFileResponse,
 } from "@rocky/validators/api";
-import { earTagResponseSchema, earTagTypeResponseSchema, takeoverFileResponseSchema } from "@rocky/validators/api";
+import { earTagOrderResponseSchema, earTagResponseSchema, earTagTypeResponseSchema, takeoverFileResponseSchema } from "@rocky/validators/api";
 import { EARTAG_ERRORS, EarTagError } from "../errors/eartag.errors.js";
+import { SystemService } from "@rocky/domains-system";
 import type { EarTagRepository } from "../repositories/eartag.repository.js";
 
 // ── Status State Machine ──────────────────────────────────────────
@@ -43,15 +45,13 @@ const ORDER_STATUS_TRANSITIONS: Record<string, Set<string>> = {
 const INVALID_TRANSITION = (from: string, to: string) =>
   new EarTagError(EARTAG_ERRORS.INVALID_STATUS_TRANSITION, { from, to });
 
-const ORDER_INTERVAL_DAYS = 120;
-const MAX_ORDERS_PER_YEAR = 4;
 
 function daysBetween(a: Date, b: Date): number {
   return Math.floor((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 export class EarTagService {
-  constructor(private readonly repo: EarTagRepository) {}
+  constructor(private readonly repo: EarTagRepository, private readonly system: SystemService) {}
 
   async getById(id: string): Promise<Result<EarTagResponse, Error>> {
     return fromAsyncThrowable(async () => {
@@ -86,11 +86,11 @@ export class EarTagService {
     }, toAppError)();
   }
 
-  async getOrderById(id: string): Promise<Result<EarTagResponse, Error>> {
+  async getOrderById(id: string): Promise<Result<EarTagOrderResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const order = await this.repo.findOrderById(id);
       if (!order) throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, { id });
-      return earTagResponseSchema.parse(order);
+      return earTagOrderResponseSchema.parse(order);
     }, toAppError)();
   }
 
@@ -133,7 +133,7 @@ export class EarTagService {
     farmId?: string;
     description?: string;
     idempotencyKey?: string;
-  }): Promise<Result<EarTagResponse, Error>> {
+  }): Promise<Result<EarTagOrderResponse, Error>> {
     return fromAsyncThrowable(async () => {
       // Rule D.1: Idempotency — reject duplicate orders within 24h
       const recentDuplicate = await this.repo.findRecentDuplicateOrder({
@@ -184,11 +184,15 @@ export class EarTagService {
         }
       }
 
+      const ruleSet = await this.system.getRuleSet();
+      if (ruleSet.isErr()) throw ruleSet.error;
+      const { thresholds } = ruleSet.value;
+
       // Rule: max 4 orders per year per organization
       const yearlyCount = await this.repo.countOrdersInYear(input.organizationId, new Date().getFullYear());
-      if (yearlyCount >= MAX_ORDERS_PER_YEAR) {
+      if (yearlyCount >= thresholds.maxOrdersPerYear) {
         throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, {
-          message: `Max ${MAX_ORDERS_PER_YEAR} orders per year reached`,
+          message: `Max ${thresholds.maxOrdersPerYear} orders per year reached`,
           organizationId: input.organizationId,
         });
       }
@@ -197,11 +201,11 @@ export class EarTagService {
       const lastOrder = await this.repo.lastOrderByOrganization(input.organizationId);
       if (lastOrder) {
         const daysSince = daysBetween(new Date(lastOrder.orderDate), new Date());
-        if (daysSince < ORDER_INTERVAL_DAYS) {
+        if (daysSince < thresholds.orderIntervalDays) {
           throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, {
-            message: `Must wait ${ORDER_INTERVAL_DAYS - daysSince} more days before next order`,
+            message: `Must wait ${thresholds.orderIntervalDays - daysSince} more days before next order`,
             daysSince,
-            requiredGap: ORDER_INTERVAL_DAYS,
+            requiredGap: thresholds.orderIntervalDays,
           });
         }
       }
@@ -215,7 +219,7 @@ export class EarTagService {
         status: EAR_TAG_ORDER_STATUS.DRAFT,
       });
 
-      return earTagResponseSchema.parse(order);
+      return earTagOrderResponseSchema.parse(order);
     }, toAppError)();
   }
 
@@ -236,7 +240,7 @@ export class EarTagService {
     supplierOrganizationId: string;
     supplierName: string;
     description?: string;
-  }): Promise<Result<EarTagResponse, Error>> {
+  }): Promise<Result<EarTagOrderResponse, Error>> {
     return fromAsyncThrowable(async () => {
       // D.2: Animal must be alive
       const animal = await this.repo.findAnimalById(input.animalId);
@@ -302,11 +306,11 @@ export class EarTagService {
         status: EAR_TAG_ORDER_STATUS.DRAFT,
       });
 
-      return earTagResponseSchema.parse(order);
+      return earTagOrderResponseSchema.parse(order);
     }, toAppError)();
   }
 
-  async transitionOrderStatus(orderId: string, newStatus: string): Promise<Result<EarTagResponse, Error>> {
+  async transitionOrderStatus(orderId: string, newStatus: string): Promise<Result<EarTagOrderResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const order = await this.repo.findOrderById(orderId);
       if (!order) throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, { orderId });
@@ -318,11 +322,11 @@ export class EarTagService {
 
       const updated = await this.repo.updateOrderStatus(orderId, newStatus);
       if (!updated) throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, { orderId });
-      return earTagResponseSchema.parse(updated);
+      return earTagOrderResponseSchema.parse(updated);
     }, toAppError)();
   }
 
-  async collectOrderTags(orderId: string, supplierOrgId: string): Promise<Result<EarTagResponse, Error>> {
+  async collectOrderTags(orderId: string, supplierOrgId: string): Promise<Result<EarTagOrderResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const order = await this.repo.findOrderById(orderId);
       if (!order) throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, { orderId });
@@ -346,7 +350,7 @@ export class EarTagService {
       await this.repo.assignTagsToOrder(tagIds, orderId);
       const updated = await this.repo.updateOrderStatus(orderId, EAR_TAG_ORDER_STATUS.ORDERED);
       if (!updated) throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, { orderId });
-      return earTagResponseSchema.parse(updated);
+      return earTagOrderResponseSchema.parse(updated);
     }, toAppError)();
   }
 
@@ -358,7 +362,7 @@ export class EarTagService {
    * - Order must not be in RECEIVED or CANCELLED state
    * - If supplier has already collected (ORDERED/PARTIALLY_RECEIVED), cannot cancel
    */
-  async cancelOrder(orderId: string, _reason?: string): Promise<Result<EarTagResponse, Error>> {
+  async cancelOrder(orderId: string, _reason?: string): Promise<Result<EarTagOrderResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const order = await this.repo.findOrderById(orderId);
       if (!order) throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, { orderId });
@@ -378,7 +382,7 @@ export class EarTagService {
 
       const updated = await this.repo.updateOrderStatus(orderId, EAR_TAG_ORDER_STATUS.CANCELLED);
       if (!updated) throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, { orderId });
-      return earTagResponseSchema.parse(updated);
+      return earTagOrderResponseSchema.parse(updated);
     }, toAppError)();
   }
 
@@ -387,7 +391,7 @@ export class EarTagService {
    * Only works on DRAFT or PENDING orders.
    * Removes the tag from the order's allocation.
    */
-  async cancelOrderItem(orderId: string, earTagId: string): Promise<Result<EarTagResponse, Error>> {
+  async cancelOrderItem(orderId: string, earTagId: string): Promise<Result<EarTagOrderResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const order = await this.repo.findOrderById(orderId);
       if (!order) throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, { orderId });
@@ -401,7 +405,7 @@ export class EarTagService {
       }
 
       await this.repo.removeTagFromOrder(earTagId);
-      return earTagResponseSchema.parse(order);
+      return earTagOrderResponseSchema.parse(order);
     }, toAppError)();
   }
 
@@ -417,7 +421,7 @@ export class EarTagService {
     orderId: string;
     organizationId: string;
     additionalQuantity: number;
-  }): Promise<Result<EarTagResponse, Error>> {
+  }): Promise<Result<EarTagOrderResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const order = await this.repo.findOrderById(input.orderId);
       if (!order)
@@ -447,7 +451,7 @@ export class EarTagService {
         throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, {
           orderId: input.orderId,
         });
-      return earTagResponseSchema.parse(updated);
+      return earTagOrderResponseSchema.parse(updated);
     }, toAppError)();
   }
 

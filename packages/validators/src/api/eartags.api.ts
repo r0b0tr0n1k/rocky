@@ -6,7 +6,7 @@
 // Based on: FS - eartags_MK(v1.0).pdf, Eartags.PDF
 
 import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
-import { earTagsSelectSchema, earTagTypesSelectSchema } from "@rocky/database/zod";
+import { earTagsSelectSchema, earTagOrdersSelectSchema, earTagTypesSelectSchema } from "@rocky/database/zod";
 import { z } from "zod";
 import {
   contingentTypeSchema,
@@ -31,6 +31,16 @@ export const earTagResponseSchema = earTagsSelectSchema
   }).strip();
 
 export type EarTagResponse = z.infer<typeof earTagResponseSchema>;
+
+export const earTagOrderResponseSchema = earTagOrdersSelectSchema
+  .omit({ createdBy: true, validTo: true })
+  .extend({
+    status: orderStatusSchema,
+  }).strip();
+
+export type EarTagOrderResponse = z.infer<typeof earTagOrderResponseSchema>;
+type _drift_earTagOrderResponse = NoDrift<z.infer<typeof earTagOrderResponseSchema>, EarTagOrderResponse>;
+
 
 export const earTagSummarySchema = z.object(
   earTagResponseSchema.pick({

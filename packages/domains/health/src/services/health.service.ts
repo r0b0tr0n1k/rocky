@@ -10,6 +10,7 @@ import type { SubjectRepository } from "@rocky/domains-subject";
 import type { AnimalRepository } from "@rocky/domains-animal";
 import type { HealthRepository } from "../repositories/health.repository.js";
 import { HealthError, HEALTH_ERRORS } from "../errors/health.errors.js";
+import { SystemService } from "@rocky/domains-system";
 import { ANIMAL_STATUS, SUBJECT_ROLE } from "@rocky/database/constants";
 import {
   diseaseResponseSchema,
@@ -23,7 +24,6 @@ import {
 
 export type { HealthError, HealthErrorCode } from "../errors/health.errors.js";
 
-const MIN_VACCINATION_AGE_DAYS = 30;
 
 function daysBetween(a: Date, b: Date): number {
   const ms = Math.abs(b.getTime() - a.getTime());
@@ -104,9 +104,26 @@ export class HealthService {
     private readonly repo: HealthRepository,
     private readonly subjectRepo: SubjectRepository,
     private readonly animalRepo: AnimalRepository,
+    private readonly system: SystemService,
     private readonly outboxPublisher?: import("@rocky/execution").OutboxEventPublisher,
     private readonly correctionService?: import("@rocky/domains-correction").CorrectionService,
   ) {}
+
+  /** Vet authorization — binding must exist for one of the jurisdiction's administer roles (ADR-0030 WO-014). */
+  private async hasAdministerBinding(farmId: string, vetId: string): Promise<boolean> {
+    let roles: string[];
+    try {
+      const rs = await this.system.getRuleSet();
+      roles = rs.isOk() ? rs.value.administerRoles : [SUBJECT_ROLE.VETERINARIAN];
+    } catch {
+      roles = [SUBJECT_ROLE.VETERINARIAN];
+    }
+    for (const role of roles) {
+      const binding = await this.subjectRepo.findSubjectBinding(farmId, vetId, role);
+      if (binding) return true;
+    }
+    return false;
+  }
 
   // ── Disease CRUD ──
 
@@ -170,8 +187,8 @@ export class HealthService {
 
   async recordVaccination(input: RecordVaccinationInput) {
     // 1. Vet authorization — is this vet assigned to this farm?
-    const binding = await this.subjectRepo.findSubjectBinding(input.farmId, input.vetId, SUBJECT_ROLE.VETERINARIAN);
-    if (!binding) return err(new HealthError(HEALTH_ERRORS.FORBIDDEN, { vetId: input.vetId, farmId: input.farmId }));
+    if (!(await this.hasAdministerBinding(input.farmId, input.vetId)))
+      return err(new HealthError(HEALTH_ERRORS.FORBIDDEN, { vetId: input.vetId, farmId: input.farmId }));
 
     // 2. Animal validation — alive + age check (Rules 7, 2)
     const animal = await this.animalRepo.findById(input.animalId);
@@ -180,7 +197,10 @@ export class HealthService {
     const adminDate = typeof input.adminDate === "string" ? new Date(input.adminDate) : input.adminDate;
     const animalBirthDate = new Date(animal.birthDate);
     const ageDays = daysBetween(animalBirthDate, adminDate);
-    if (ageDays < MIN_VACCINATION_AGE_DAYS) return err(new HealthError(HEALTH_ERRORS.ANIMAL_TOO_YOUNG, { animalId: input.animalId, ageDays, minDays: MIN_VACCINATION_AGE_DAYS }));
+    const ruleSet = await this.system.getRuleSet();
+    if (ruleSet.isErr()) return err(new HealthError(HEALTH_ERRORS.INVALID_INPUT, { reason: "RuleSet unavailable", detail: ruleSet.error.message }));
+    const minVaccinationAgeDays = ruleSet.value.thresholds.minVaccinationAgeDays;
+    if (ageDays < minVaccinationAgeDays) return err(new HealthError(HEALTH_ERRORS.ANIMAL_TOO_YOUNG, { animalId: input.animalId, ageDays, minDays: minVaccinationAgeDays }));
 
     // 3. Batch validity — expiry + stock
     const batchRow = await this.repo.findBatchById(input.batchId);
@@ -223,8 +243,8 @@ export class HealthService {
 
   async recordTreatment(input: RecordTreatmentInput) {
     // 1. Vet authorization
-    const binding = await this.subjectRepo.findSubjectBinding(input.farmId, input.vetId, SUBJECT_ROLE.VETERINARIAN);
-    if (!binding) return err(new HealthError(HEALTH_ERRORS.FORBIDDEN, { vetId: input.vetId, farmId: input.farmId }));
+    if (!(await this.hasAdministerBinding(input.farmId, input.vetId)))
+      return err(new HealthError(HEALTH_ERRORS.FORBIDDEN, { vetId: input.vetId, farmId: input.farmId }));
 
     // 2. Animal alive check (Rule 7)
     const animal = await this.animalRepo.findById(input.animalId);

@@ -218,8 +218,8 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     // ── Domain Services (orchestrate repos, no direct DB) ──
     {
       provide: AnimalService,
-      useFactory: (repo: AnimalRepository) => new AnimalService(repo),
-      inject: [AnimalRepository],
+      useFactory: (repo: AnimalRepository, system: SystemService) => new AnimalService(repo, system),
+      inject: [AnimalRepository, SystemService],
     },
     {
       provide: AuditService,
@@ -265,18 +265,21 @@ import { TrpcModule } from "./trpc/trpc.module.js";
       useFactory: (
         movRepo: MovementRepository,
         animalRepo: AnimalRepository,
+        system: SystemService,
         passportService?: PassportService,
         outboxPublisher?: import("@rocky/execution").OutboxEventPublisher,
       ) =>
         new MovementService(
           movRepo,
           animalRepo,
+          system,
           passportService,
           outboxPublisher,
         ),
       inject: [
         MovementRepository,
         AnimalRepository,
+        SystemService,
         { token: PassportService, optional: true },
         {
           token: OutboxEventPublisher,
@@ -305,8 +308,8 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     },
     {
       provide: EarTagService,
-      useFactory: (repo: EarTagRepository) => new EarTagService(repo),
-      inject: [EarTagRepository],
+      useFactory: (repo: EarTagRepository, system: SystemService) => new EarTagService(repo, system),
+      inject: [EarTagRepository, SystemService],
     },
     {
       provide: UserService,
@@ -330,6 +333,7 @@ import { TrpcModule } from "./trpc/trpc.module.js";
         repo: HealthRepository,
         subjectRepo: SubjectRepository,
         animalRepo: AnimalRepository,
+        system: SystemService,
         outboxPublisher: OutboxEventPublisher,
         correctionService: CorrectionService,
       ) =>
@@ -337,6 +341,7 @@ import { TrpcModule } from "./trpc/trpc.module.js";
           repo,
           subjectRepo,
           animalRepo,
+          system,
           outboxPublisher,
           correctionService,
         ),
@@ -344,6 +349,7 @@ import { TrpcModule } from "./trpc/trpc.module.js";
         HealthRepository,
         SubjectRepository,
         AnimalRepository,
+        SystemService,
         OutboxEventPublisher,
         CorrectionService,
       ],
@@ -371,13 +377,13 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     },
     {
       provide: ArchiveService,
-      useFactory: (repo: ArchiveRepository) => new ArchiveService(repo),
-      inject: [ArchiveRepository],
+      useFactory: (repo: ArchiveRepository, system: SystemService) => new ArchiveService(repo, system),
+      inject: [ArchiveRepository, SystemService],
     },
     {
       provide: RiskAnalysisService,
-      useFactory: (dbp) => new RiskAnalysisService(dbp),
-      inject: [DatabaseProvider],
+      useFactory: (dbp: DatabaseProvider, system: SystemService) => new RiskAnalysisService(dbp, system),
+      inject: [DatabaseProvider, SystemService],
     },
     {
       provide: PassportService,

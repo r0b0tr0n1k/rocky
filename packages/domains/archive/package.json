@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@rocky/database": "workspace:*",
+    "@rocky/domains-system": "workspace:*",
     "@rocky/domains-shared": "workspace:*",
     "@rocky/validators": "workspace:*",
     "drizzle-orm": "catalog:",

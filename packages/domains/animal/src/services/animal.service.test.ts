@@ -1,11 +1,14 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { AnimalService } from "./animal.service.js";
 import type { AnimalRepository } from "./animal.repository.js";
+import { ok } from "neverthrow";
+import type { SystemService } from "@rocky/domains-system";
 import { AnimalFactory } from "@rocky/testing";
 import { ANIMAL_ERRORS } from "../errors/animal.errors.js";
 
 describe("AnimalService", () => {
   let mockRepo: AnimalRepository;
+  let mockSystem: SystemService;
   let service: AnimalService;
 
   beforeEach(() => {
@@ -18,7 +21,30 @@ describe("AnimalService", () => {
       findLastCalfByMother: vi.fn(),
     } as unknown as AnimalRepository;
 
-    service = new AnimalService(mockRepo);
+    mockSystem = {
+      getRuleSet: vi.fn().mockResolvedValue(ok({
+        jurisdiction: "MK",
+        thresholds: {
+          orderIntervalDays: 120,
+          maxOrdersPerYear: 4,
+          minVaccinationAgeDays: 30,
+          slaughterMinAgeDays: 25,
+          stillbornThresholdDays: 25,
+          arrivalCorrectionDays: 2,
+          minMotherAgeMonths: 17,
+          calvingPeriodDays: 365,
+        },
+        weights: {
+          selectionPercentage: 10,
+          farmSize: 0.3,
+          history: 0.3,
+          species: 0.2,
+          region: 0.2,
+        },
+      })),
+    } as unknown as SystemService;
+
+    service = new AnimalService(mockRepo, mockSystem);
   });
 
   describe("getById", () => {

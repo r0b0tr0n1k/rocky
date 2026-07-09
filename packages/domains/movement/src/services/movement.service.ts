@@ -18,6 +18,7 @@ import type {
   animals as animalsTable,
   movements as movementsTable,
 } from "@rocky/database";
+import { SystemService } from "@rocky/domains-system";
 import {
   ANIMAL_STATUS,
   FARM_TYPE,
@@ -64,6 +65,7 @@ export class MovementService {
   constructor(
     private readonly repo: MovementRepository,
     private readonly animalRepo: AnimalRepository,
+    private readonly system: SystemService,
     private readonly passportService?: PassportService,
     private readonly outboxPublisher?: OutboxEventPublisher,
   ) {}
@@ -199,11 +201,15 @@ export class MovementService {
         });
       }
 
+      const ruleSet = await this.system.getRuleSet();
+      if (ruleSet.isErr()) throw ruleSet.error;
+      const { thresholds } = ruleSet.value;
+
       // ── Rule B.2: Stillborn threshold ──
       const birthDate = new Date(animal.birthDate);
       const deathDate = new Date(input.deathDate);
       const ageDays = daysBetween(birthDate, deathDate);
-      const isStillborn = ageDays <= DEFAULT_PARAMS.stillbornThresholdDays;
+      const isStillborn = ageDays <= thresholds.stillbornThresholdDays;
 
       const effectiveCause = isStillborn ? "STILLBORN" : input.deathCause;
 
@@ -446,15 +452,19 @@ export class MovementService {
         });
       }
 
+      const ruleSet2 = await this.system.getRuleSet();
+      if (ruleSet2.isErr()) throw ruleSet2.error;
+      const { thresholds: t2 } = ruleSet2.value;
+
       // ── Rule D.1: Minimum age check ──
       const birthDate = new Date(animal.birthDate);
       const slaughterDate = new Date(input.slaughterDate);
       const ageDays = daysBetween(birthDate, slaughterDate);
-      if (ageDays < DEFAULT_PARAMS.slaughterMinAgeDays) {
+      if (ageDays < t2.slaughterMinAgeDays) {
         throw new MovementError(MOVEMENT_ERRORS.SLAUGHTER_MIN_AGE, {
           animalId: input.animalId,
           ageDays,
-          requiredDays: DEFAULT_PARAMS.slaughterMinAgeDays,
+          requiredDays: t2.slaughterMinAgeDays,
         });
       }
 
@@ -463,7 +473,7 @@ export class MovementService {
       if (input.arrivalDate) {
         const arrivalDate = new Date(input.arrivalDate);
         const diff = daysBetween(arrivalDate, slaughterDate);
-        if (diff > DEFAULT_PARAMS.arrivalCorrectionDays) {
+        if (diff > t2.arrivalCorrectionDays) {
           movementDate = input.arrivalDate;
         }
       }

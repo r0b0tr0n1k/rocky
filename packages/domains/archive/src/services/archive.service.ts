@@ -8,6 +8,7 @@ import { ok, err, fromAsyncThrowable, toAppError, type Result } from "@rocky/dom
 import type { ArchiveRepository } from "../repositories/archive.repository.js";
 import { ArchiveError, ARCHIVE_ERRORS } from "../errors/archive.errors.js";
 import { ARCHIVE_DOCUMENT_TYPE, ARCHIVE_LOCATION } from "@rocky/database/constants";
+import { SystemService, type RuleSetRetention } from "@rocky/domains-system";
 import {
   archiveDocumentResponseSchema,
   type ArchiveDocumentResponse,
@@ -20,7 +21,22 @@ export type { ArchiveError, ArchiveErrorCode } from "../errors/archive.errors.js
 export class ArchiveService {
   constructor(
     private readonly repo: ArchiveRepository,
+    private readonly system: SystemService,
   ) {}
+
+  /** Retention years for an archive tier, from the RuleSet (ADR-0030 WO-014). Default 3. */
+  private async retentionYearsFor(location: string): Promise<number> {
+    try {
+      const rs = await this.system.getRuleSet();
+      if (rs.isOk()) {
+        const years = rs.value.retention[location.toLowerCase() as keyof RuleSetRetention];
+        if (typeof years === "number") return years;
+      }
+    } catch {
+      // fall through to default
+    }
+    return 3;
+  }
 
   // ── CRUD ──
 
@@ -87,8 +103,9 @@ export class ArchiveService {
     const existing = await this.repo.findByInspectionId(input.inspectionId);
     if (existing) return ok(archiveDocumentResponseSchema.parse(existing)); // Already archived, return existing entry
 
+    const years = await this.retentionYearsFor(input.archiveLocation ?? ARCHIVE_LOCATION.VI);
     const retentionExpiry = new Date();
-    retentionExpiry.setFullYear(retentionExpiry.getFullYear() + 3);
+    retentionExpiry.setFullYear(retentionExpiry.getFullYear() + years);
 
     const doc = await this.repo.create({
       documentType: ARCHIVE_DOCUMENT_TYPE.INSPECTION_FORM,
@@ -115,8 +132,9 @@ export class ArchiveService {
     const existing = await this.repo.findByPassportId(input.passportId);
     if (existing) return ok(archiveDocumentResponseSchema.parse(existing));
 
+    const years = await this.retentionYearsFor(ARCHIVE_LOCATION.CPC);
     const retentionExpiry = new Date();
-    retentionExpiry.setFullYear(retentionExpiry.getFullYear() + 3);
+    retentionExpiry.setFullYear(retentionExpiry.getFullYear() + years);
 
     const doc = await this.repo.create({
       documentType: ARCHIVE_DOCUMENT_TYPE.PASSPORT,
@@ -145,8 +163,9 @@ export class ArchiveService {
     const existing = await this.repo.findByDocumentRef(input.correctionId);
     if (existing) return ok(archiveDocumentResponseSchema.parse(existing));
 
+    const years = await this.retentionYearsFor(ARCHIVE_LOCATION.CPC);
     const retentionExpiry = new Date();
-    retentionExpiry.setFullYear(retentionExpiry.getFullYear() + 3);
+    retentionExpiry.setFullYear(retentionExpiry.getFullYear() + years);
 
     const doc = await this.repo.create({
       documentType: "OTHER",

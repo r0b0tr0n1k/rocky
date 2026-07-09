@@ -23,10 +23,12 @@ import {
   createOrderRequestSchema,
   type EarTagListRequest,
   type EarTagListResponse,
+  type EarTagOrderResponse,
   type EarTagResponse,
   type EarTagTypeResponse,
   earTagListRequestSchema,
   earTagListResponseSchema,
+  earTagOrderResponseSchema,
   earTagResponseSchema,
   earTagTypeResponseSchema,
   type GenerateTagNumbersRequest,
@@ -94,8 +96,8 @@ export class EarTagRouter {
     return unwrap(await this.earTagService.listTypes());
   }
 
-  @Query({ input: idParam, output: earTagResponseSchema })
-  async getOrderById(@Input() input: { id: string }): Promise<EarTagResponse> {
+  @Query({ input: idParam, output: earTagOrderResponseSchema })
+  async getOrderById(@Input() input: { id: string }): Promise<EarTagOrderResponse> {
     const result = await this.earTagService.getOrderById(input.id);
     return unwrap(result);
   }
@@ -115,8 +117,8 @@ export class EarTagRouter {
 
   // --- Mutations -----------------------------------------------------
 
-  @Mutation({ input: orderStatusTransitionSchema, output: earTagResponseSchema })
-  async transitionStatus(@Input() input: OrderStatusTransition): Promise<EarTagResponse> {
+  @Mutation({ input: orderStatusTransitionSchema, output: earTagOrderResponseSchema })
+  async transitionStatus(@Input() input: OrderStatusTransition): Promise<EarTagOrderResponse> {
     this.logger.log("Transitioning ear tag order status", {
       orderId: input.orderId,
       newStatus: input.newStatus,
@@ -130,20 +132,20 @@ export class EarTagRouter {
     return unwrap(result);
   }
 
-  @Mutation({ input: collectOrderTagsRequestSchema, output: earTagResponseSchema })
-  async collectOrderTags(@Input() input: CollectOrderTagsRequest): Promise<EarTagResponse> {
+  @Mutation({ input: collectOrderTagsRequestSchema, output: earTagOrderResponseSchema })
+  async collectOrderTags(@Input() input: CollectOrderTagsRequest): Promise<EarTagOrderResponse> {
     return unwrap(await this.earTagService.collectOrderTags(input.orderId, input.supplierOrganizationId));
   }
 
-  @Mutation({ input: createDuplicateOrderRequestSchema, output: earTagResponseSchema })
+  @Mutation({ input: createDuplicateOrderRequestSchema, output: earTagOrderResponseSchema })
   @Policy({ action: "eartag:order" })
-  async createDuplicateOrder(@Input() input: CreateDuplicateOrderRequest): Promise<EarTagResponse> {
+  async createDuplicateOrder(@Input() input: CreateDuplicateOrderRequest): Promise<EarTagOrderResponse> {
     return unwrap(await this.earTagService.createDuplicateOrder(input));
   }
 
-  @Mutation({ input: createOrderRequestSchema, output: earTagResponseSchema })
+  @Mutation({ input: createOrderRequestSchema, output: earTagOrderResponseSchema })
   @Policy({ action: "eartag:order" })
-  async createOrder(@Input() input: CreateOrderRequest, @Ctx() _ctx: AppContext): Promise<EarTagResponse> {
+  async createOrder(@Input() input: CreateOrderRequest, @Ctx() _ctx: AppContext): Promise<EarTagOrderResponse> {
     this.logger.log("Creating ear tag order", {
       organizationId: input.organizationId,
       quantity: input.quantity,
@@ -158,8 +160,8 @@ export class EarTagRouter {
     return unwrap(result);
   }
 
-  @Mutation({ input: cancelOrderRequestSchema, output: earTagResponseSchema })
-  async cancelOrder(@Input() input: CancelOrderRequest): Promise<EarTagResponse> {
+  @Mutation({ input: cancelOrderRequestSchema, output: earTagOrderResponseSchema })
+  async cancelOrder(@Input() input: CancelOrderRequest): Promise<EarTagOrderResponse> {
     this.logger.log("Cancelling ear tag order", { orderId: input.orderId });
     const result = await this.earTagService.cancelOrder(input.orderId, input.reason);
     this.logger.log("Ear tag order cancelled", {
@@ -169,8 +171,8 @@ export class EarTagRouter {
     return unwrap(result);
   }
 
-  @Mutation({ input: cancelOrderItemRequestSchema, output: earTagResponseSchema })
-  async cancelOrderItem(@Input() input: CancelOrderItemRequest): Promise<EarTagResponse> {
+  @Mutation({ input: cancelOrderItemRequestSchema, output: earTagOrderResponseSchema })
+  async cancelOrderItem(@Input() input: CancelOrderItemRequest): Promise<EarTagOrderResponse> {
     this.logger.log("Cancelling ear tag order item", {
       orderId: input.orderId,
       earTagId: input.earTagId,
@@ -184,8 +186,8 @@ export class EarTagRouter {
     return unwrap(result);
   }
 
-  @Mutation({ input: appendToOrderRequestSchema, output: earTagResponseSchema })
-  async appendToOrder(@Input() input: AppendToOrderRequest): Promise<EarTagResponse> {
+  @Mutation({ input: appendToOrderRequestSchema, output: earTagOrderResponseSchema })
+  async appendToOrder(@Input() input: AppendToOrderRequest): Promise<EarTagOrderResponse> {
     this.logger.log("Appending to ear tag order", {
       orderId: input.orderId,
       additionalQuantity: input.additionalQuantity,
