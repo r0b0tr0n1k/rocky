@@ -12,6 +12,8 @@
 
 ## Context
 
+> **Corrigendum (parity clarification, 2026-07-09):** A client surface may be **web-only** and still satisfy ADR-0033 parity — at the *operation* level, not the *surface* level. Administration (ADR-0048) and Infrastructure (ADR-0047) are web-only by design (mobile is field-only). **Web-only does NOT mean ungated:** the server `@Policy` (ADR-0022) remains the authoritative gate even when a surface has no mobile counterpart.
+
 The ADR corpus has been the **back-end's Big Other**: 32 decisions legislating domains, transport,
 auth, and policy — while the two client surfaces governed themselves by unspoken habit. *sniffs* Look
 at what is actually happening: the `AppRouter` (154 procedures, ADR-0032) is consumed by **both** the

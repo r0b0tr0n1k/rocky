@@ -72,11 +72,11 @@
 | WO-094 | Livestock feature parity + offline/permission sweep (bind mutating actions to sync queue WO-082 + useCan WO-089; confirm mobile↔web parity; verify movement/passport perm literals) | 0044 | P2 | Open   |
 | WO-095 | Health feature parity + offline/role-gating sweep (bind recordVaccination/Treatment/LabTest to sync queue WO-082; clientCanRole gating; confirm session.roles; notifiable→inspection toast WO-088) | 0045 | P2 | Open   |
 | WO-096 | Inspections/Corrections parity + offline/permission sweep (bind completeInspection to sync queue WO-082; useCan analysis:read/run WO-089; flag-in/archived-out toasts WO-088) | 0046 | P2 | Open   |
-| WO-100 | Permission catalog single source (`packages/authorization` Permissions const → seed + `@Policy` + frontend `useCan`); reconcile read `@Policy` vs UI gating | 0042/0050 | P1 | Open   |
-| WO-101 | Contract drift test (`@Policy` action ∈ Permissions ⊂ seed ⊂ frontend literal; build fails on drift) | 0050 | P1 | Open   |
-| WO-102 | CI/pre-commit type-regen gate (`generate:trpc` + stale `server.ts` check blocks frontend typecheck) | 0032/0050 | P2 | Open   |
+| WO-100 | Permission catalog single source — `packages/authorization` `Permissions` const (69 perms mirroring seed `PERMISSION_DEFS`); one typed source for `@Policy`/nav/mobile; reconciles server-enforced `@Policy` actions vs client-visibility literals | 0042/0050 | P1 | Done   |
+| WO-101 | Contract drift test — `packages/authorization/src/permissions.drift.test.ts` (vitest); asserts every `@Policy`/nav/mobile/`ROLE_PERM_MAP` literal ∈ catalog AND catalog == seed `PERMISSION_DEFS`; caught + fixed 3 real drifts on first run | 0050 | P1 | Done   |
+| WO-102 | tRPC boundary guard (`scripts/check-trpc-boundary.mjs` + root `pnpm check:trpc-boundary`; regen gate `pnpm generate:trpc && pnpm check:trpc-boundary`); fails build on any `ReturnType<` or backend import in generated client | 0032/0050 | P2 | Done   |
 | WO-097 | Infrastructure (IoT/device) admin parity + device-sync touchpoint (bind admin forms to Diamond Seal; WO-082 sync→recordSync; document web-only parity in ADR-0033) | 0047 | P2 | Open   |
-| WO-098 | Administration SUPER_ADMIN gate: rbac+user DONE (ADR-0022 roles); farm/subject/org deferred (RLS-scoped, role decision → ADR-0027); bind admin forms to Diamond Seal; document web-only parity in ADR-0033 | 0048 | P1 | Open   |
+| WO-098 | Administration SUPER_ADMIN gate: rbac+user DONE (ADR-0022 roles); farm/subject/org deferred (RLS-scoped, role decision → ADR-0027); bind admin forms to Diamond Seal; document web-only parity in ADR-0033 | 0048 | P1 | Done ✅ |
 | WO-090 | Commit an ADR-0032-compliant `AppRouter` (regenerated client with `transformer: superjson` + 0 `ReturnType<`); the _committed_ `HEAD` version fails ADR-0032's own Definition-of-Done guard, so it must not ship | 0032   | P2       | Done    |
 | WO-103 | Authorization test base (vitest): PolicyEngine SUPER_ADMIN gate + Principal + @Policy readback + PolicyRegistry merge (myPermissions relaxed auth-only); locks WO-098/WO-089 | 0020/0022 | P1 | Done    |
 
@@ -387,6 +387,91 @@ rg -n "Tabs.Screen" "apps/mob/app/(tabs)/_layout.tsx"   # now conditional
   `PolicyRegistry.get("rbac.myPermissions")` is auth-only) needs apps/api test infra, currently
   non-functional (no `jest.config`, no ts-jest transform, zero test files despite a `test` script).
 - **Source:** ADR-0020 §I/§IV; `packages/authorization/src/{policies,principal}/*.test.ts`; `apps/api/src/routers/rbac.router.ts`.
+### WO-100 — Permission catalog single source (Authorization) — P1
+
+- **Why:** permission identifiers are scattered across four places that can disagree — seed
+  `PERMISSION_DEFS` (the `permissions` table), seed `ROLE_PERM_MAP` (role→perm grants), `@Policy({ action })`
+  decorators, web `nav-config.ts`, and mobile `(tabs)/_layout.tsx`. ADR-0020 (drift is a build error) demands
+  one typed source.
+- **Delivered (2026-07-09):** `packages/authorization/src/permissions.ts` — `Permissions` const (`as const`,
+  69 perms / 26 resources, flat `${resource}:${action}` strings), `Permission` type, `ALL_PERMISSIONS`,
+  `isPermission()`, `formatPermission()`; re-exported from the `packages/authorization` index. It **mirrors**
+  seed `PERMISSION_DEFS` (the WO-101 drift test enforces they stay equal).
+- **Reconciliation finding:** the 9 server-enforced `@Policy` actions (`sm:sysparams:*`, `sm:modules:*`,
+  `sm:audit:read`, `analysis:*`, `eartag:order`, `eartag:supply`) are a **subset** of the UI-visibility
+  literals (`animal:read`, `movement:read`, `health:read`, …). The extra literals are **client-visibility
+  only** — those routers are `@Policy({ authenticated: true })` + RLS row-isolation (ADR-0027), not
+  `@Policy({ action })`; RLS enforces data scope. So the catalog covers BOTH tiers, and not every catalog
+  entry needs a `@Policy` action. By design.
+- **Bug fixed while building:** seed `ROLE_PERM_MAP` referenced `"hk:import"`, which matched **no**
+  `PERMISSION_DEFS` key → `seed.ts` silently drops it (`permLookup.get(k)` filtered out) → the role never
+  received the permission. Also the def was `resource: "hk:import:admin", action: "admin"` → malformed
+  flat `hk:import:admin:admin`. Fixed: def resource renamed to `hk:import` (flat `hk:import:admin`); role
+  now grants `hk:import:admin`.
+- **Remaining (deferred):** (a) migrate `@Policy`/nav/mobile literals to reference `Permissions.X` (removes
+  raw-string drift entirely; the WO-101 extractor must then resolve `Permissions.X` too); (b) true single
+  source — move `PERMISSION_DEFS` out of `seed.ts` into the catalog and have the seed import it (kills the
+  mirror); (c) run the drift test in CI (WO-102).
+- **Source:** `packages/authorization/src/permissions.ts`; ADR-0042 §11.5.
+
+### WO-101 — Permission contract drift test (guillotine) — P1
+
+- **Why:** a catalog is worthless if it can drift from the seed, the routers, or the UI. ADR-0020 — make
+  drift a build error. This is the "NoDrift" guillotine for permissions.
+- **Delivered (2026-07-09):** `packages/authorization/src/permissions.drift.test.ts` (vitest, runs in the
+  authorization suite — 5 checks, all green). It **independently re-extracts** `PERMISSION_DEFS` +
+  `ROLE_PERM_MAP` from `seed.ts`, scans `apps/api/src/routers/*.router.ts`, `apps/web/lib/nav-config.ts`,
+  and `apps/mob/app/(tabs)/_layout.tsx`, and asserts: (1) catalog == seed `PERMISSION_DEFS`; (2) every
+  `@Policy({ action })` ∈ catalog; (3) every web nav literal ∈ catalog; (4) every mobile `can()` ∈ catalog;
+  (5) every `ROLE_PERM_MAP` string matches a `PERMISSION_DEFS` key (no silent drop).
+- **3 real drifts caught + fixed on first run:**
+  1. `ROLE_PERM_MAP` `"hk:import"` matched no def → silently dropped (see WO-100). Fixed.
+  2. malformed def flat `hk:import:admin:admin` → `hk:import:admin` (see WO-100). Fixed.
+  3. web nav gated **Farms** on `permission: "hk:farm"` and **Subjects** on `"hk:subject"` — resource names,
+     not permissions; `clientCan` is exact-match, so those two admin pages were **always hidden** (fail-closed)
+     for everyone. Fixed nav literals → `hk:farm:read` / `hk:subject:read`.
+- **Remaining (deferred):** (a) run in CI (WO-102 gate); (b) when consumers migrate to `Permissions.X`
+  (WO-100), extend the extractor to resolve `Permissions.X` references, not just raw literals; (c) optional:
+  assert every catalog entry is granted to ≥1 role (no dead catalog entry).
+- **Source:** `packages/authorization/src/permissions.drift.test.ts`; ADR-0042 §11.5; WO-100.
+
+### WO-102 — tRPC boundary guard (prevent TS6059 regression) — P2
+
+- **Why:** ADR-0032 D1/D2 forbid backend-class imports in the generated client — a missing `@Output`
+  makes `nestjs-trpc` emit `ReturnType<RouterClass["method"]>` and import `apps/api` source, triggering
+  `TS6059` + a circular `@rocky/trpc` ↔ `apps/api` dependency. The fix (all 155 procedures now declare
+  `output:`) is done, but without an automated gate a future procedure can silently reintroduce it.
+- **Delivered (2026-07-09):** `scripts/check-trpc-boundary.mjs` — exits non-zero if
+  `packages/trpc/src/generated/server.ts` contains `ReturnType<` **or** a `apps/api`/`@rocky/api` import.
+  Wired as root `pnpm check:trpc-boundary`. Accepts an optional path arg for testing.
+- **Verified both ways:** passes on the real generated client (`0 ReturnType<`, `0` backend imports, exit 0);
+  a tampered copy with one injected `ReturnType<` fails with exit 1 and a clear message.
+- **Gate (regenerate + check):** `pnpm generate:trpc && pnpm check:trpc-boundary`.
+- **Delivery verification:** `pnpm check:trpc-boundary` → ok; `pnpm -C packages/trpc typecheck` → exit 0
+  (literal TS6059 test); `pnpm -C apps/api build` (nest build, 50 files, **0 issues**) → exit 0.
+- **Remaining:** wire `pnpm check:trpc-boundary` (or the regen gate) into the team's external CI / pre-commit.
+  The repo has **no** in-repo `.github/workflows` or `.husky` yet, so the script + root command are the
+  deliverable; the external CI must invoke them. (Optional) register as a `turbo` task.
+- **Source:** `scripts/check-trpc-boundary.mjs`; `package.json` (`check:trpc-boundary`); ADR-0032 §D1/D2/CI Guard.
+
+### WO-105 — Web client permission test suite (vitest) — P2
+
+- **Why:** ADR-0042 §7/§11 mandates a fail-closed client gate (`clientCan*` /
+  `filterNavByPermissions`), but the web app had no test harness, so the gate
+  logic was unverified on the web surface. (mirrors WO-103 on the server side)
+- **Delivered (2026-07-09):** extracted pure gate logic to
+  `apps/web/lib/permissions-core.ts` (no React/Next pull-in); re-exported from
+  `permissions.tsx` + `nav-config.ts` so existing imports are unchanged. Added
+  `apps/web/vitest.config.ts` (native tsconfig path resolution, node env) and a
+  `test` script. 7 checks cover `clientCan` / `clientCanAny` / `clientCanRole`
+  (exact-match + fail-closed) and `filterNavByPermissions` (full / empty /
+  partial). Grounded in the `Permissions` catalog (WO-100) for literals and the
+  `@rocky/testing` `PermissionFactory` for realistic data — no hardcoded strings.
+- **Verified:** `pnpm -C apps/web test` → 7 passed.
+- **Status:** Done.
+- **Source:** `apps/web/lib/permissions-core.ts`, `apps/web/lib/permissions-core.test.ts`,
+  `apps/web/vitest.config.ts`; ADR-0042 §7/§11.
+
 ## 1. Open Code Defects
 
 ### WO-001 — Takeover-file check digit + synthetic tags (B1) — P1

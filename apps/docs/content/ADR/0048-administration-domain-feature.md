@@ -1,6 +1,6 @@
 ---
 title: ADR-0048 — Administration Domain Feature (Web + Mobile)
-status: proposed
+status: accepted
 date: 2026-07-09
 deciders: [Rocky Architecture Board]
 tags: [frontend, mobile, domain, administration, rbac, farm, subject, user, org, adr-standard, client-surface, security]
@@ -13,6 +13,8 @@ tags: [frontend, mobile, domain, administration, rbac, farm, subject, user, org,
 > permissions that every other ADR's `useCan` (0042) consumes**. _sniffs_ — the worker who is gated by a
 > permission is gated by a permission _someone else administered_. And that administration, right now, is
 > **auth-only**: the lock on the locker-room door is the same lock as the pitch.
+
+> **Corrigendum (WO-098 implementation, 2026-07-09):** Administration is implemented and the security keystone is closed. `rbac.router` and `user.router` now carry `@Policy({ authenticated: true, roles: ["SUPER_ADMIN"] })` (server-enforced via ADR-0022 `PolicyEngine.policy.roles`) — verified in the working tree. `farm`/`subject`/`organization` routers remain `@Policy({ authenticated: true })` (RLS-scoped, role decision deferred to ADR-0027). All web admin forms bind Diamond Seal `*RequestSchema` via `zodResolver` (verified: 14/14 forms). Web-only parity is recorded per ADR-0033 §6. Client-side, the "New user" / "Assign role" / "Revoke role" buttons are SUPER_ADMIN-gated; "Register animal" and all `authenticated: true` actions stay visible (no 403 exists — gating would false-hide).
 
 ## 1. Context (verified)
 
