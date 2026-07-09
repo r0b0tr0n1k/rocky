@@ -743,6 +743,13 @@ authenticated session could previously reassign roles / create users — live ga
 farm/subject/organization routers remain `@Policy({ authenticated: true })` with row-level
 RLS isolation, deferred per ADR-0027).
 
+### ADR-0049 — Client Auth & Session Architecture (done)
+
+Authored as the dialectical counterpart to ADR-0021 (backend auth). Ratifies the identity-only
+client session, the single `createRockyAuthClient()` factory for web + mobile, and the out-of-band
+`rbac.myPermissions` permission delivery (WO-089) — no `customSession` RBAC enrichment (keeps
+`packages/auth` RBAC-free). Anchors WO-089; cited by ADR-0042.
+
  (migration.fixed.sql already corrected; code now generates correctly).
 
 ### WO-031 update — root cause + durable source fix
