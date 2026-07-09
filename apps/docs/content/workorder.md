@@ -72,6 +72,9 @@
 | WO-094 | Livestock feature parity + offline/permission sweep (bind mutating actions to sync queue WO-082 + useCan WO-089; confirm mobile↔web parity; verify movement/passport perm literals) | 0044 | P2 | Open   |
 | WO-095 | Health feature parity + offline/role-gating sweep (bind recordVaccination/Treatment/LabTest to sync queue WO-082; clientCanRole gating; confirm session.roles; notifiable→inspection toast WO-088) | 0045 | P2 | Open   |
 | WO-096 | Inspections/Corrections parity + offline/permission sweep (bind completeInspection to sync queue WO-082; useCan analysis:read/run WO-089; flag-in/archived-out toasts WO-088) | 0046 | P2 | Open   |
+| WO-100 | Permission catalog single source (`packages/authorization` Permissions const → seed + `@Policy` + frontend `useCan`); reconcile read `@Policy` vs UI gating | 0042/0050 | P1 | Open   |
+| WO-101 | Contract drift test (`@Policy` action ∈ Permissions ⊂ seed ⊂ frontend literal; build fails on drift) | 0050 | P1 | Open   |
+| WO-102 | CI/pre-commit type-regen gate (`generate:trpc` + stale `server.ts` check blocks frontend typecheck) | 0032/0050 | P2 | Open   |
 | WO-097 | Infrastructure (IoT/device) admin parity + device-sync touchpoint (bind admin forms to Diamond Seal; WO-082 sync→recordSync; document web-only parity in ADR-0033) | 0047 | P2 | Open   |
 | WO-098 | Administration SUPER_ADMIN gate: rbac+user DONE (ADR-0022 roles); farm/subject/org deferred (RLS-scoped, role decision → ADR-0027); bind admin forms to Diamond Seal; document web-only parity in ADR-0033 | 0048 | P1 | Open   |
 | WO-090 | Commit an ADR-0032-compliant `AppRouter` (regenerated client with `transformer: superjson` + 0 `ReturnType<`); the _committed_ `HEAD` version fails ADR-0032's own Definition-of-Done guard, so it must not ship | 0032   | P2       | Done    |
@@ -834,4 +837,15 @@ and packages/domains/inspection/AGENTS.md (contract vs reality, WO-083). NOTE: r
 AGENTS.md still references `apps/mob/AGENTS.md` which does NOT exist — the Mobile Bot
 has no child AGENTS.md. Flagged for creation (candidate for ADR-0054 Mobile Package
 Reconciliation); out of scope for the path reconcile.
+
+### ADR-0050 — Frontend ↔ Backend Contract Synchronization (done)
+
+Authored as the roadmap for "how does the frontend keep up with the backend." Investigation found
+THREE independent permission surfaces (seed catalog ~50 literals; `@Policy` decorators only 10,
+reads use `authenticated: true`; frontend `useCan` tracks the seed) with no shared source — the
+root cause of permission drift (ADR-0042 smell). ADR-0050 mandates: (D1) a single `Permissions`
+const in `packages/authorization` consumed by seed + `@Policy` + frontend; (D2) CI/pre-commit
+`generate:trpc` + stale-types gate; (D3) keep Validator NoDrift; (D4) a contract drift test;
+(D5) ADR cross-ref DoD; (D6) promote `sync` router (WO-081). Roadmap table maps Phases 0–5 + new
+cross-cutting WOs 100/101/102.
 
