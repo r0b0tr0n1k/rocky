@@ -139,6 +139,8 @@ export default function RbacPage() {
           mutation={revoke}
           title="Revoke role"
           description="Remove a role assignment from a user."
+          alert="This permanently removes the role assignment and its scope/validity window."
+          alertVariant="destructive"
           fields={(form) => (
             <>
               <ComboboxField

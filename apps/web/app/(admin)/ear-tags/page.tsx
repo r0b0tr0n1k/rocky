@@ -131,6 +131,8 @@ export default function EarTagsPage() {
               mutation={cancelOrder}
               title="Cancel order"
               description="Cancel an ear tag order."
+              alert="This cancels the ear tag order. This action cannot be undone."
+              alertVariant="destructive"
               fields={(form) => (
                 <>
                   <TextField control={form.control} name="orderId" label="Order ID (UUID)" placeholder="order uuid" />
