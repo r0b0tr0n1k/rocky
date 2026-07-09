@@ -36,7 +36,10 @@ import {
 export class NotificationService {
   constructor(private readonly repo: NotificationRepository) {}
 
-  /** Create a single notification */
+  /**
+   * @description Persists a notification WITHOUT delivery gating (preferences,
+   * quiet hours). The gated, user-facing entry point is {@link send}.
+   */
   async create(input: CreateNotificationInput): Promise<Result<Notification, Error>> {
     return fromAsyncThrowable(async () => {
       const validated = createNotificationSchema.parse(input);
@@ -53,7 +56,10 @@ export class NotificationService {
     }, toAppError)();
   }
 
-  /** Create batch notifications */
+  /**
+   * @description Bulk-persists pre-built notifications in one transaction.
+   * Per-notification gating still runs in {@link send}.
+   */
   async createBatch(input: CreateBatchNotificationsInput): Promise<Result<Notification[], Error>> {
     return fromAsyncThrowable(async () => {
       const validated = createBatchNotificationsSchema.parse(input);
@@ -134,7 +140,7 @@ export class NotificationService {
     }, toAppError)();
   }
 
-  /** List user's notifications */
+  
   async list(input: ListNotificationsInput): Promise<Result<Notification[], Error>> {
     return fromAsyncThrowable(async () => {
       const validated = listNotificationsSchema.parse(input);
@@ -182,7 +188,7 @@ export class NotificationService {
     }, toAppError)();
   }
 
-  /** Get notification template by code */
+  
   async getTemplate(code: string): Promise<Result<unknown, Error>> {
     return fromAsyncThrowable(async () => {
       const template = await this.repo.findTemplateByCode(code);

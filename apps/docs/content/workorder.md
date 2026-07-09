@@ -45,7 +45,7 @@
 | WO-025 | QR-code-scannable ear tags                                    | 0024 §E / 0009 §6 | P3  | Open   |
 | WO-030 | `*.service.workflow.test.ts` per domain (state machines)      | 0020 P1    | P1       | Open   |
 | WO-031 | `*.repository.rls.test.ts` per security-sensitive domain      | 0020 P1    | P1       | Done       |
-| WO-032 | Audit JSDoc: strip WHAT-tautologies, keep WHY-constraints      | 0020 P1    | P1       | Open   |
+| WO-032 | Audit JSDoc: strip WHAT-tautologies, keep WHY-constraints      | 0020 P1    | P1       | Done    |
 | WO-033 | `*/e2e/*.test.ts` border tests (real Postgres RLS)            | 0020 P2    | P2       | Open   |
 | WO-034 | Scaffold `@rocky/observability`; implement `TraceStage`/`MetricsStage` | 0020 P2 / 0003 | P2 | Open |
 | WO-035 | Retire manual `logger.*` in services → span attributes        | 0020 P3    | P3       | Open   |
@@ -69,6 +69,9 @@
 | WO-091 | Add Expo push notifications (register token on login; server emits via Expo Push API; receipt routes via deep-link resolver WO-093) | 0043 | P2 | Open   |
 | WO-092 | Background sync task (expo-background-fetch drains WO-082 sync queue on schedule + network regain; depends WO-081) | 0043 | P2 | Open   |
 | WO-093 | Deep-link resolver + offline parity (Expo Router linking config + listener; routes cached per ADR-0036; else Skeleton/Empty ADR-0041) | 0043 | P3 | Open   |
+| WO-094 | Livestock feature parity + offline/permission sweep (bind mutating actions to sync queue WO-082 + useCan WO-089; confirm mobile↔web parity; verify movement/passport perm literals) | 0044 | P2 | Open   |
+| WO-095 | Health feature parity + offline/role-gating sweep (bind recordVaccination/Treatment/LabTest to sync queue WO-082; clientCanRole gating; confirm session.roles; notifiable→inspection toast WO-088) | 0045 | P2 | Open   |
+| WO-096 | Inspections/Corrections parity + offline/permission sweep (bind completeInspection to sync queue WO-082; useCan analysis:read/run WO-089; flag-in/archived-out toasts WO-088) | 0046 | P2 | Open   |
 | WO-090 | Commit an ADR-0032-compliant `AppRouter` (regenerated client with `transformer: superjson` + 0 `ReturnType<`); the *committed* `HEAD` version fails ADR-0032's own Definition-of-Done guard, so it must not ship | 0032   | P2       | Open   |
 
 ---
@@ -264,7 +267,38 @@ rg -n "Tabs.Screen" "apps/mob/app/(tabs)/_layout.tsx"   # now conditional
   present in the ADR-0036 cache, else show `Skeleton`/`Empty` (ADR-0041) and queue a background fetch (WO-092).
 - **Source:** ADR-0043 §2/§5; ADR-0036 (cache); ADR-0041 (offline UX); `apps/mob/app.json` (`scheme`).
 
+### WO-094 — Livestock feature parity + offline/permission sweep — P2
+- ADR-0044 (first 0044+ domain ADR): livestock is the anchor field workflow (animal/ear-tag/movement/passport).
+  Mobile has the tabs and screens; web has the admin pages; the four routers exist (`@Policy`-guarded).
+- Sweep: bind every mutating livestock action to the offline sync queue (WO-082) and `useCan` (WO-089); confirm
+  mobile↔web parity; verify the movement/passport permission literals used by `@Policy` so `useCan` keys match.
+  Extend `zodResolver(createXxxRequestSchema)` to eartags/movements/passport (mirror `animals/create`, ADR-0038).
+- **Source:** ADR-0044 §2/§3/§7; `apps/mob/app/(tabs)/{animals,eartags,movements,passport}`; backend ADRs 0024/0025/0029.
+
+### WO-095 — Health feature parity + offline/role-gating sweep — P2
+- ADR-0045 (second 0044+ domain ADR): health is the second field-critical domain (vaccination/treatment/lab-test,
+  notifiable → inspection flag). Mobile has split screens (vaccination/treatment/lab-test/index); web is one
+  aggregated `health/page.tsx`.
+- Sweep: bind `recordVaccination`/`recordTreatment`/`recordLabTest` to the offline sync queue (WO-082); add
+  `clientCanRole` gating (user `roles` + `RuleSet.administerRoles`) — a role+RuleSet variant of ADR-0042's
+  `useCan`; confirm `session.roles` is populated (WO-089-class drift check); surface the notifiable→inspection
+  `sonner` toast (WO-088). Fold `clientCanRole` back into `@rocky/authorization` + ADR-0042.
+- **Source:** ADR-0045 §2/§4/§7; `apps/mob/app/(tabs)/health`; backend ADR-0026.
+
+### WO-096 — Inspections/Corrections parity + offline/permission sweep — P2
+- ADR-0046 (third 0044+ domain ADR): inspections (field-complete, office-create) + corrections (office-driven).
+  Mobile `inspections`/`corrections` are view + `[id]` (no creation screens — VI/office-only, documented); web
+  has full CRUD + risk-analysis.
+- Sweep: bind `completeInspection` to the offline sync queue (WO-082); gate risk-analysis buttons via
+  `useCan("analysis:read"/"analysis:run")` (WO-089); surface the flag-in (Health) / archived-out (Archive)
+  `sonner` toasts (WO-088); confirm mobile omits creation screens intentionally.
+- **Source:** ADR-0046 §2/§3/§7; `apps/mob/app/(tabs)/inspections`, `apps/mob/app/(tabs)/corrections`;
+  backend ADRs 0028/0029.
+
 ## 1. Open Code Defects
+
+
+
 
 ### WO-001 — Takeover-file check digit + synthetic tags (B1) — P1
 
@@ -597,6 +631,27 @@ read-isolation by `farm_subjects` and the farmer-write block.
 - `packages/domains/movement/src/repositories/movement.repository.rls.test.ts` — farmer read-isolation via from_farm_id/to_farm_id + farm_subjects.
 
 Harness (per test): non-superuser `rocky_rls_test` for assertions + superuser `tbot` (RLS_ADMIN_URL) for scaffolding; roles driven by `app.current_*` GUCs. Each package gained `postgres` + `drizzle-orm` devDeps. NOTE: `archive_documents` having no FARMER branch is a policy-design choice (official archive records) — flag if farmers should read their own farm's archive docs.
+
+### WO-032 — JSDoc audit (done)
+
+Audited all 23 `*.service.ts` files. Finding: **service JSDoc is already
+WHY-focused** — methods cite business rules (e.g. `Rule 1`, `IE.1+IE.2`,
+`D.1: Idempotency`) and rationale, not restatements. Only **4 pure WHAT-tautologies**
+existed, all in `packages/domains/notification/src/services/notification.service.ts`:
+- `create` / `createBatch` — converted to `@description` WHY (persist *without*
+  delivery gating; the gated entry point is `send`).
+- `list` / `getTemplate` — stripped (pure restatements of the method name).
+
+Kept (genuine WHY): `send` (preference/quiet-hour gating), `getUnreadCount`
+(efficient SQL COUNT), `markAsRead` (IN_APP type), `getPending` (background
+worker), `updateDeliveryStatus` (after delivery attempt).
+
+Aligned with the docs site (Nextra 4.3 TSDoc): WHY belongs in `@description` /
+`@remarks`; the 2 converted comments now use `@description`. Full `@param` /
+`@returns` annotation of every method is a separate, larger effort (not in
+scope of this audit). Build green; nothing committed.
+
+
  (migration.fixed.sql already corrected; code now generates correctly).
 
 ### WO-031 update — root cause + durable source fix
