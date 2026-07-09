@@ -86,7 +86,7 @@ export const navSections: NavSection[] = [
   },
 ];
 
-export function filterNavByPermissions(sections: NavSection[], permissions: string[]): NavSection[] {
+export function filterNavByPermissions(sections: NavSection[], permissions: readonly string[]): NavSection[] {
   // `permissions` come from the server `rbac.myPermissions` query via the
   // PermissionsProvider (ADR-0042/WO-089) — the client-side mirror of
   // `principal.permissions`. Fail CLOSED: items with a `permission` requirement
