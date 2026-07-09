@@ -78,6 +78,7 @@
 | WO-097 | Infrastructure (IoT/device) admin parity + device-sync touchpoint (bind admin forms to Diamond Seal; WO-082 sync→recordSync; document web-only parity in ADR-0033) | 0047 | P2 | Open   |
 | WO-098 | Administration SUPER_ADMIN gate: rbac+user DONE (ADR-0022 roles); farm/subject/org deferred (RLS-scoped, role decision → ADR-0027); bind admin forms to Diamond Seal; document web-only parity in ADR-0033 | 0048 | P1 | Open   |
 | WO-090 | Commit an ADR-0032-compliant `AppRouter` (regenerated client with `transformer: superjson` + 0 `ReturnType<`); the _committed_ `HEAD` version fails ADR-0032's own Definition-of-Done guard, so it must not ship | 0032   | P2       | Done    |
+| WO-103 | Authorization test base (vitest): PolicyEngine SUPER_ADMIN gate + Principal + @Policy readback + PolicyRegistry merge (myPermissions relaxed auth-only); locks WO-098/WO-089 | 0020/0022 | P1 | Done    |
 
 ---
 
@@ -360,8 +361,32 @@ rg -n "Tabs.Screen" "apps/mob/app/(tabs)/_layout.tsx"   # now conditional
 - Also: bind web admin forms to Diamond Seal `zodResolver` (extend ADR-0038); document web-only parity in
   ADR-0033.
 - **Source:** ADR-0048 §1/§2/§4/§7; `apps/web/app/(admin)/{farms,subjects,rbac,users,organizations}`;
+  - **Test base (2026-07-09):** authorization layer now has a vitest suite (WO-103) locking the SUPER_ADMIN gate; it caught + fixed a `myPermissions` merge leak (explicit `roles: []`).
   backend ADRs 0021/0022/0027.
 
+### WO-103 — Authorization test base (vitest) — P1
+
+- **Why:** ADR-0020 (Pragmatic Marxist Doctrine) says test where the code _decides_. The authorization
+  layer — `PolicyEngine`, `Principal`, the `@Policy` decorator + `PolicyRegistry` merge — is the single
+  most security-critical decision point, and it had **zero tests** (and no vitest config in
+  `packages/authorization`). WO-098/WO-089 shipped changes here untested.
+- **Delivered (2026-07-09):** added `packages/authorization/vitest.config.ts` + `test` script + devDeps;
+  4 test files, 20 tests, all green:
+  - `policy-engine.test.ts` — decision matrix incl. the WO-098 SUPER_ADMIN gate (non-admin DENIED,
+    SUPER_ADMIN ALLOWED), authenticated/admin/action/organization paths.
+  - `principal.test.ts` — immutability + `hasRole`/`hasPermission`/`isAdmin`.
+  - `policy-decorator.test.ts` — `@Policy` readback (method policy read from the prototype).
+  - `policy-registry.test.ts` — `PolicyRegistry` merge enforces the rbac router gate; `myPermissions`
+    relaxed to auth-only (`roles: []`) so the class SUPER_ADMIN gate does NOT leak through the merge.
+- **Bug found + fixed by the tests:** `rbac.router.ts#myPermissions` was `@Policy({ authenticated: true })`
+  only; `PolicyRegistry.register` does a shallow merge (`{...class, ...method}`), so the class-level
+  `roles: ["SUPER_ADMIN"]` leaked into `myPermissions`, making it SUPER_ADMIN-gated. Every non-admin
+  (vet/farmer) would get FORBIDDEN on the permission fetch → client fails closed → zero tabs. Fixed by
+  `@Policy({ authenticated: true, roles: [] })` (explicit relaxation) — WO-089 now works for all roles.
+- **Remaining (separate infra):** a guard on the _real_ `RbacRouter` class (assert
+  `PolicyRegistry.get("rbac.myPermissions")` is auth-only) needs apps/api test infra, currently
+  non-functional (no `jest.config`, no ts-jest transform, zero test files despite a `test` script).
+- **Source:** ADR-0020 §I/§IV; `packages/authorization/src/{policies,principal}/*.test.ts`; `apps/api/src/routers/rbac.router.ts`.
 ## 1. Open Code Defects
 
 ### WO-001 — Takeover-file check digit + synthetic tags (B1) — P1
@@ -848,4 +873,13 @@ const in `packages/authorization` consumed by seed + `@Policy` + frontend; (D2) 
 `generate:trpc` + stale-types gate; (D3) keep Validator NoDrift; (D4) a contract drift test;
 (D5) ADR cross-ref DoD; (D6) promote `sync` router (WO-081). Roadmap table maps Phases 0–5 + new
 cross-cutting WOs 100/101/102.
+
+### ADR-0051 — Web↔Mobile Page Matrix & Navigation Logic (done)
+
+Designer-ready screen spec: (A) page matrix (module → web pages / mobile screens / gating
+permission / parity); (B) screen inventory with ✅/🟡 status (existing vs planned gaps);
+(C) navigation logic (web sidebar stack, mobile tab stack, deep links, fail-closed gating).
+Key finding: mobile is the field-data-entry surface, web is the back-office — COMPLEMENTARY,
+not 1:1 (informs ADR-0052 parity contract). Extends ADR-0034/0039; cites ADR-0022/0032/0042/
+0049/0050. 🟡 gaps (web detail pages, mobile create/edit flows) map to WO-094/095/096.
 
