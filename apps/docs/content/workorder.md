@@ -61,11 +61,11 @@
 | WO-081 | Promote mobile sync to top-level `sync` router (syncDownload/syncUpload under `health`) | 0034       | P2       | Open   |
 | WO-082 | Implement mobile offline-first cache + sync queue (expo-sqlite, persistQueryClient, NetInfo, sync router) | 0035       | P2       | Open   |
 | WO-083 | Reconcile AGENTS.md Mobile Bot path apps/mobile -> apps/mob (contract vs reality) | 0035       | P3       | Open   |
-| WO-085 | Filter mobile tabs by RBAC permission (mirror web `filterNavByPermissions`) | 0039       | P2       | Open   |
+| WO-085 | Filter mobile tabs by RBAC permission (mirror web `filterNavByPermissions`) | 0039       | P2       | Done    |
 | WO-086 | Add i18n layer (consume session.language, centralize strings, set dir/RTL-ready) | 0040       | P2       | Open   |
 | WO-087 | Web UX boundaries: error.tsx/not-found.tsx/loading.tsx; use Empty+Skeleton (unused) | 0041       | P2       | Open   |
 | WO-088 | Mobile: add Empty component + sonner toast; use Empty for 0-result lists | 0041       | P2       | Open   |
-| WO-089 | Deliver client `session.permissions` via `rbac.myPermissions` query (not customSession); add `clientCan`/`useCan` on both surfaces; fix dead web `filterNavByPermissions`; enable mobile tab/action gating (ADR-0042) | 0039/0042 | P1 | Open   |
+| WO-089 | Deliver client `session.permissions` via `rbac.myPermissions` query (not customSession); add `clientCan`/`useCan` on both surfaces; fix dead web `filterNavByPermissions`; enable mobile tab/action gating (ADR-0042) | 0039/0042 | P1 | Done    |
 | WO-091 | Add Expo push notifications (register token on login; server emits via Expo Push API; receipt routes via deep-link resolver WO-093) | 0043 | P2 | Open   |
 | WO-092 | Background sync task (expo-background-fetch drains WO-082 sync queue on schedule + network regain; depends WO-081) | 0043 | P2 | Open   |
 | WO-093 | Deep-link resolver + offline parity (Expo Router linking config + listener; routes cached per ADR-0036; else Skeleton/Empty ADR-0041) | 0043 | P3 | Open   |
@@ -749,6 +749,23 @@ Authored as the dialectical counterpart to ADR-0021 (backend auth). Ratifies the
 client session, the single `createRockyAuthClient()` factory for web + mobile, and the out-of-band
 `rbac.myPermissions` permission delivery (WO-089) — no `customSession` RBAC enrichment (keeps
 `packages/auth` RBAC-free). Anchors WO-089; cited by ADR-0042.
+
+### WO-089 + WO-085 — client permission gating (done)
+
+Implemented together (permissions gate both nav and tabs):
+
+- Backend: `rbac.myPermissions` query (ADR-0042) returns `principal.permissions` +
+  `principal.roles`, method-level `@Policy({ authenticated: true })` overriding the
+  router's SUPER_ADMIN class policy (verified method-level overrides class-level).
+- Shared: `clientCan(permissions, required)` pure helper in `@rocky/trpc` (NOT
+  `@rocky/authorization` — server-only, would bloat the client bundle).
+- Web: `apps/web/lib/permissions.tsx` (`PermissionsProvider` + `useCan`/`useHasRole`),
+  mounted in `apps/web/app/layout.tsx`; `admin-shell.tsx` consumes it; `nav-config.ts`
+  `filterNavByPermissions` no longer fail-opens.
+- Mobile: `apps/mob/providers/permissions-provider.tsx` + tab gating in
+  `apps/mob/app/_layout.tsx` (WO-085). `server.ts` regenerated (155 procedures).
+- ADR-0049 (client auth/session) ratifies the identity-only session + out-of-band
+  permission delivery — no `customSession` RBAC enrichment.
 
  (migration.fixed.sql already corrected; code now generates correctly).
 

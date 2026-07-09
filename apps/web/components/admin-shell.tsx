@@ -42,6 +42,7 @@ import {
 
 import { signOut, useSession } from "#lib/auth-client";
 import { filterNavByPermissions, navSections } from "#lib/nav-config";
+import { usePermissions } from "#lib/permissions";
 import { CommandPalette } from "#components/command-palette";
 import { ThemeToggle } from "#components/theme-toggle";
 
@@ -55,7 +56,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
   const user = mounted ? session?.user : undefined;
-  const permissions = (user as { roles?: string[]; permissions?: string[] } | undefined)?.permissions ?? [];
+  const { permissions } = usePermissions();
   const roles = (user as { roles?: string[]; permissions?: string[] } | undefined)?.roles ?? [];
   const pathname = usePathname();
   const [cmdOpen, setCmdOpen] = React.useState(false);

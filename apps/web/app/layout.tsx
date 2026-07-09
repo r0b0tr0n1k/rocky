@@ -1,6 +1,7 @@
 // biome-ignore assist/source/organizeImports: OK
 import { AuthProvider } from "#components/auth/index";
 import { TRPCProvider } from "#components/trpc-provider";
+import { PermissionsProvider } from "#lib/permissions";
 import { ThemeProvider } from "#components/theme-provider";
 import { Toaster } from "@rocky/ui/components/sonner";
 import "@total-typescript/ts-reset";
@@ -18,7 +19,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TRPCProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              <PermissionsProvider>{children}</PermissionsProvider>
+            </AuthProvider>
           </TRPCProvider>
         </ThemeProvider>
         <Toaster />

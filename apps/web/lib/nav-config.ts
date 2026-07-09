@@ -87,14 +87,11 @@ export const navSections: NavSection[] = [
 ];
 
 export function filterNavByPermissions(sections: NavSection[], permissions: string[]): NavSection[] {
-  // Client-side permissions are not available in the current auth architecture:
-  // RBAC enrichment lives in the server-side PrincipalResolver, not in the
-  // Better Auth session (customSession was intentionally split out). When no
-  // permissions are supplied we render the full navigation so the admin UI
-  // stays usable; access is still enforced server-side via @Policy.
-  if (permissions.length === 0) {
-    return sections;
-  }
+  // `permissions` come from the server `rbac.myPermissions` query via the
+  // PermissionsProvider (ADR-0042/WO-089) — the client-side mirror of
+  // `principal.permissions`. Fail CLOSED: items with a `permission` requirement
+  // are hidden unless the principal holds it; items with no `permission` are
+  // always visible. Server `@Policy` remains the authoritative backstop.
   return sections
     .map((s) => ({
       ...s,

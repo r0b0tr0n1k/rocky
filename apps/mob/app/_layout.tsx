@@ -2,6 +2,7 @@ import '@/global.css';
 
 import { NAV_THEME } from '@/lib/theme';
 import { TRPCProvider } from '@/providers/trpc-provider';
+import { PermissionsProvider } from '@/providers/permissions-provider';
 import { SessionProvider } from '@/providers/session-provider';
 import { ActiveFarmProvider } from '@/providers/active-farm-provider';
 import { getConfig } from '@/lib/config';
@@ -44,7 +45,8 @@ export default function RootLayout() {
   return (
     <TRPCProvider apiUrl={config.apiUrl}>
       <SessionProvider>
-        <ActiveFarmProvider>
+        <PermissionsProvider>
+          <ActiveFarmProvider>
           <ThemeProvider value={NAV_THEME[theme ?? 'light']}>
           <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
           <Stack>
@@ -53,7 +55,8 @@ export default function RootLayout() {
           </Stack>
           <PortalHost />
         </ThemeProvider>
-        </ActiveFarmProvider>
+          </ActiveFarmProvider>
+        </PermissionsProvider>
       </SessionProvider>
     </TRPCProvider>
   );
