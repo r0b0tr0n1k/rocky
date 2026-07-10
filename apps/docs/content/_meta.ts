@@ -7,6 +7,7 @@ const meta: Meta = {
   'diamond-seal-audit': 'Diamond Seal Audit',
   workorder: 'Work Order — Pending Tasks',
   'retroui-preview': 'RetroUI Preview',
+  'router-patterns': 'Router Patterns & Anti-Patterns',
 }
 
 export default meta
