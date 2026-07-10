@@ -105,9 +105,18 @@ accept vet / merge. Resolution flips the local row to `SYNCED`.
 
 ### 6. Convergence with web (ADR-0035)
 
-Mobile adopts `createTRPCContext<AppRouter>()` (replacing `createTRPCReact`); both surfaces consume the
-generated `AppRouter` and the `superjson` transformer. The `sync` router is typed like any other
-procedure — no hand-rolled DTOs (ADR-0032).
+Both surfaces consume the generated `AppRouter` and the `superjson` transformer; the `sync` router is
+typed like any other procedure — no hand-rolled DTOs (ADR-0032).
+
+> **Client binding — corrected (2026-07-10).** This section originally stated *"Mobile adopts
+> `createTRPCContext<AppRouter>()` (replacing `createTRPCReact`)."* That migration was **never
+> executed**. The mobile app uses **`createTRPCReact<AppRouter>()`**
+> (`apps/mob/providers/trpc-provider.tsx`) — the canonical React Native tRPC binding (per ADR-0032
+> §mobile, the 2026 tRPC beginner guide, and the Expo Router ecosystem). `createTRPCContext` (from
+> `@trpc/tanstack-react-query`) remains a *documented future intention*, not a requirement: the choice
+> is stylistic and **orthogonal to the offline layer** (`trpc.useUtils()` / `useMutation` resolve
+> identically under either factory). The ADR-0036 §Architecture diagram already shows mobile =
+> `createTRPCReact`, consistent with the code — only this prose was wrong.
 
 ---
 
@@ -245,3 +254,28 @@ The phone never sees the 57-table schema — only the castrated field set, the o
 - **ADR-0030** (RuleSet — feature-flag gating of sync domains).
 - **ADR-0033** (client ADR standard — this is trunk `0036`).
 - **WO-081** (promote `sync` router) · **WO-082** (implement this architecture).
+
+
+## Corrigendum — Castration is realized by RLS, not a profile engine (2026-07-10)
+
+The WO-081 "castrated client" (decision 2) promised a role-stratified mobile
+schema (`models/mobile-schema-profiles.yaml`: farmer=own_farms,
+veterinarian=org_farms, cpc_admin=all). Verification shows the **row-level
+scoping is already enforced by Postgres RLS** — `syncDownload()` runs inside the
+ExecutionPipeline, so every SELECT is auto-scoped via `rlsForFarmColumn()` /
+`farmOwnedByUser()` / `farmInOrgArea()` / admin-role bypass
+(`packages/database/src/schema/rls-helpers.ts`). No JS profile resolver is needed
+in the sync service; adding one would be redundant and risk bypassing RLS.
+
+Two YAML promises are intentionally **not** implemented (and should not be):
+- **Column projection** — the wire contract (`@rocky/validators/api/sync.api.ts`)
+  returns full Diamond-Seal entities; the offline cache requires full shapes to
+  render forms. Column pruning is deferred.
+- **cpc_admin cross-org sync of users/system_parameters/audit_log** — the mobile
+  `syncDownload` returns none of these for any profile (web-admin only). Cross-org
+  "all" remains RLS-org-scoped.
+
+Net: the gap "syncDownload returns the same set to everyone / no profile
+branching" is a **false contradiction** — RLS already performs the castration.
+The Imaginary (YAML profile engine) is sublated by the Real (RLS). No service
+code change required.

@@ -277,15 +277,16 @@ tabs**. The entire WO-089 surface was invisible to anyone but SUPER_ADMIN.
 forgets to zero an inherited restrictive field reintroduces the bug, and the intent ("relax the class
 gate") is invisible at the call site.
 
-**Proper fix (open decision -> file WO-104, Authorization `@Policy` override mechanism):** make method-level
-relaxation first-class rather than implicit. Candidate mechanisms:
+**Proper fix (DELIVERED — WO-104, `@OverridePolicy`):** method-level relaxation is now first-class.
+Added `@OverridePolicy(options)` (method decorator, `POLICY_OVERRIDE_KEY`): in `PolicyRegistry.register` an
+`@OverridePolicy` method REPLACES the class policy entirely (no merge), while `@Policy` keeps its merge
+behavior (adds restrictions). `rbac.myPermissions` uses `@OverridePolicy({ authenticated: true })` —
+auth-only, independent of the class SUPER_ADMIN gate. Candidate mechanisms considered:
 - (i) `@Policy({ authenticated: true, inherit: false })` — method policy fully replaces the class policy;
 - (ii) a dedicated `@Relax("roles" | "admin" | "organization")` marker that clears named inherited fields;
-- (iii) keep merge but treat `roles`/`admin`/`organization` as **replace-if-present** while `authenticated`/
-  `action` remain merge — inconsistent, not recommended.
-
-Until WO-104 lands, **every method that intentionally relaxes a class-level restriction MUST set the
-inherited field to `[]`/`false` explicitly**, and the authorization test base (WO-103) must lock it.
+- (iii) keep merge but treat `roles`/`admin`/`organization` as **replace-if-present** — inconsistent, rejected.
+WO-104 chose a dedicated `@OverridePolicy` (replace). The `@Policy({ roles: [] })` band-aid is no longer
+needed for `myPermissions`; the intent is now explicit at the call site.
 
 ### 11.3 Client gating taxonomy (codified)
 
@@ -328,9 +329,10 @@ The authorization layer now has a vitest base (WO-103): `PolicyEngine` decision 
 SUPER_ADMIN gate), `Principal`, `@Policy` readback, and `PolicyRegistry` merge. **Critical:** guards must
 target `PolicyRegistry.get("router.method")` — the path the `PolicyResolver` middleware actually enforces
 (`@RegisterPolicy` -> `PolicyRegistry.register`). `getPolicyMetadata` is readback-only and is NOT the
-enforcement path; do not assert gate correctness against it. The real `RbacRouter` class guard
-(`PolicyRegistry.get("rbac.myPermissions")` is auth-only) is blocked on apps/api test infra (currently
-non-functional Jest) and should be added alongside WO-104.
+enforcement path; do not assert gate correctness against it. The real `RbacRouter` class guard (`PolicyRegistry.get("rbac.myPermissions")` is auth-only) is now
+DELIVERED in WO-104: the `@OverridePolicy` decorator is the root-cause fix, and the `apps/api` vitest
+harness (`apps/api/src/routers/rbac.router.policy.test.ts`) asserts the gate end-to-end against the real
+router.
 
 ### 11.7 Kill the `better-auth.d.ts` drift
 

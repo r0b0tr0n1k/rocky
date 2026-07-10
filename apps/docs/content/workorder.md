@@ -58,8 +58,9 @@
 | WO-070 | Deferral register: AMR, 10 km buffer, genetic lineage, blockchain, notification SMS | 0023 / 0014 | Future | Deferred |
 | WO-071 | Confirm animal calving-gap divergence (365 d vs legacy 120 d) | 0025       | P3       | Open   |
 | WO-080 | Author frontend/mobile ADR set per ADR-0033 (0034–0043; domain features 0044+) | 0033       | P1       | Done    |
-| WO-081 | Promote mobile sync to top-level `sync` router (syncDownload/syncUpload under `health`) | 0034       | P2       | In Progress |
-| WO-082 | Implement mobile offline-first cache + sync queue (expo-sqlite, persistQueryClient, NetInfo, sync router) | 0035       | P2       | Open   |
+| WO-081 | Promote mobile sync to top-level `sync` router (syncDownload/syncUpload under `health`) | 0034       | P2       | Done ✅ |
+| WO-082 | Implement mobile offline-first cache + sync queue (expo-sqlite, persistQueryClient, NetInfo, sync router) | 0035       | P2       | In Progress ⏳ |
+| WO-108 | Sync: health-record upload conflict detection (getCurrentEntity resolves vaccination/treatment/labTest; closes gap ②) | 0036 | P2 | Done ✅ |
 | WO-083 | Reconcile AGENTS.md Mobile Bot path apps/mobile -> apps/mob (contract vs reality) | 0035       | P3       | Done    |
 | WO-085 | Filter mobile tabs by RBAC permission (mirror web `filterNavByPermissions`) | 0039       | P2       | Done    |
 | WO-086 | Add i18n layer (consume session.language, centralize strings, set dir/RTL-ready) | 0040       | P2       | Open   |
@@ -72,13 +73,15 @@
 | WO-094 | Livestock feature parity + offline/permission sweep (bind mutating actions to sync queue WO-082 + useCan WO-089; confirm mobile↔web parity; verify movement/passport perm literals) | 0044 | P2 | Open   |
 | WO-095 | Health feature parity + offline/role-gating sweep (bind recordVaccination/Treatment/LabTest to sync queue WO-082; clientCanRole gating; confirm session.roles; notifiable→inspection toast WO-088) | 0045 | P2 | Open   |
 | WO-096 | Inspections/Corrections parity + offline/permission sweep (bind completeInspection to sync queue WO-082; useCan analysis:read/run WO-089; flag-in/archived-out toasts WO-088) | 0046 | P2 | Open   |
-| WO-100 | Permission catalog single source — `packages/authorization` `Permissions` const (69 perms mirroring seed `PERMISSION_DEFS`); one typed source for `@Policy`/nav/mobile; reconciles server-enforced `@Policy` actions vs client-visibility literals | 0042/0050 | P1 | Done   |
+| WO-100 | Permission catalog single source - isomorphic `Permissions` const in `@rocky/validators/rbac` (69 perms mirroring seed `PERMISSION_DEFS`), **re-exported** by `@rocky/authorization` so `@Policy` + client `clientCan`/`useCan` share ONE definition (ADR-0050 D1). RN cannot bundle authorization's server deps, so the const lives in isomorphic validators; WO-101 drift test guards seed<->catalog sync. | 0042/0050 | P1 | Done   |
 | WO-101 | Contract drift test — `packages/authorization/src/permissions.drift.test.ts` (vitest); asserts every `@Policy`/nav/mobile/`ROLE_PERM_MAP` literal ∈ catalog AND catalog == seed `PERMISSION_DEFS`; caught + fixed 3 real drifts on first run | 0050 | P1 | Done   |
 | WO-102 | tRPC boundary guard (`scripts/check-trpc-boundary.mjs` + root `pnpm check:trpc-boundary`; regen gate `pnpm generate:trpc && pnpm check:trpc-boundary`); fails build on any `ReturnType<` or backend import in generated client | 0032/0050 | P2 | Done   |
 | WO-097 | Infrastructure (IoT/device) admin parity + device-sync touchpoint (bind admin forms to Diamond Seal; WO-082 sync→recordSync; document web-only parity in ADR-0033) | 0047 | P2 | Open   |
 | WO-098 | Administration SUPER_ADMIN gate: rbac+user DONE (ADR-0022 roles); farm/subject/org deferred (RLS-scoped, role decision → ADR-0027); bind admin forms to Diamond Seal; document web-only parity in ADR-0033 | 0048 | P1 | Done ✅ |
 | WO-090 | Commit an ADR-0032-compliant `AppRouter` (regenerated client with `transformer: superjson` + 0 `ReturnType<`); the _committed_ `HEAD` version fails ADR-0032's own Definition-of-Done guard, so it must not ship | 0032   | P2       | Done    |
 | WO-103 | Authorization test base (vitest): PolicyEngine SUPER_ADMIN gate + Principal + @Policy readback + PolicyRegistry merge (myPermissions relaxed auth-only); locks WO-098/WO-089 | 0020/0022 | P1 | Done    |
+| WO-104 | Mobile permission-gate sweep — wire `useCan(<Permission>)` (typed union from `@rocky/validators/rbac`) onto core write-form submit buttons: `animals/create`+`animals/birth` (`animal:register`), `eartags/create-order` (`eartag:order`), `health/{vaccination,treatment,lab-test}` (`health:write`), `movements/{death,pasture,slaughter}` (`animal:death`/`movement:pasture`/`slaughter:register`); fail-closed (disabled until `rbac.myPermissions` resolves); also fixed pre-existing empty `catch {}` swallow + unused `Badge` imports surfaced by pi-lens | 0042/0050 | P2 | Done ✅ |
+| WO-105 | Adopt Guillotine cross-layer bridge primitives (from reference) into `@rocky/validators` `type-bridge.ts`: `OkType`/`ErrType`/`InferOk`, `SubtypeGuillotine`, `AssertFieldCoverage` - DONE (validators tsc green). **B2b applied to ALL 24 routers** (`apps/api/src/routers/*.router.ts`, 93 aliases on the 19 newly-swept + ~59 on the 5 prior; api tsc green) via `SubtypeGuillotine<z.output<schema>, Awaited<ReturnType<Router['m']>>>` (derived responses -> one-directional; `rbac` uses `NoDrift` where interface is AssertEqual). **3 drifts caught + fixed:** `inspection.riskAnalysisListResponseSchema.data` was `z.array(z.unknown())` -> `z.array(riskAnalysesSelectSchema)`; `audit`+`sync` routers lacked `z` import for `z.output<>` -> added `import { z } from "zod"`. **B1 (`AssertFieldCoverage`) N/A** - sculpted responses make `Api subset Db` false by design (false-positive trap). **B3 N/A** - domain services import `z.infer<>` directly (no separate interface). **OkType unused for B2b** - thin routers unwrap the service `Result`, so `Awaited<ReturnType<Router>>` already resolves T. | 0018/0050 | P2 | Done ✅ |
 
 ---
 
@@ -121,14 +124,63 @@
   `Result`/`SyncUploadResult`, and `createSyncErrorCorrection` on failure. Status bumped to In Progress.
 - **Source:** ADR-0034 (§Context "A Real found while inventorying" / Master table footnote \*).
 
-### WO-082 — Implement mobile offline-first data-fetching — P2
+### WO-082 — Implement mobile offline-first data-fetching — P2 — **In Progress ⏳**
 
-- ADR-0035 prescribes the mobile offline target; today `apps/mob` is online-only (no `expo-sqlite`,
-  `react-query-persist-client`, or `netinfo` in `package.json`).
-- Implement: local `expo-sqlite` (Drizzle-Expo) cache; `persistQueryClient`; `onlineManager`/NetInfo
-  gating; offline writes -> sync queue -> `sync` router (WO-081); converge `createTRPCReact` ->
-  `createTRPCContext<AppRouter>` (ADR-0032).
-- **Source:** ADR-0035 §Decision B / Consequences.
+- **Status:** Offline layer implemented and typechecks (`apps/mob` `tsc --noEmit` → exit 0).
+  Pending native build / device verification (impossible in this harness) and the per-domain
+  wiring sweeps (WO-094/095/096), which adopt `useOfflineMutation` for every mutate.
+- **Deprecation note:** the original brief said "Drizzle-Expo" — ADR-0036 §WO-081 decision 1
+  mandates **raw `expo-sqlite`, no ORM on the phone**; `drizzle-expo` does not exist on npm.
+  Implemented with raw `expo-sqlite` per the ADR. "`createTRPCReact` -> `createTRPCContext`"
+  (ADR-0032) — corrected: ADR-0032 shows mobile as `createTRPCReact` (line 156) and
+  mandates only the _generated-client boundary_ (committed `AppRouter`, superjson, 0 `ReturnType<`),
+  which is satisfied. ADR-0036 line 108 expresses a _future intention_ for mobile to adopt
+  `createTRPCContext`, but it is unexecuted and self-contradicted by ADR-0036's own diagram
+  (line 184, mobile = `createTRPCReact`). The binding choice is **stylistic, not a defect**; the
+  offline layer is orthogonal to it (`trpc.useUtils()`/`useMutation` work under either factory).
+  Left as-is — migrating is optional modernization, not a correctness requirement.
+- **Built (2026-07-10):**
+  - `lib/offline/db.ts` — `getLocalDb()` opens `rocky_offline.db`; migrates `sync_queue`,
+    `local_cache`, `sync_meta`, `query_cache` (raw `expo-sqlite`).
+  - `lib/offline/sync-queue.ts` — outbox (`enqueueMutation`/`listQueue`/`setStatus`/`markSynced`/
+    `markFailed`/`dismissQueueItem`), cache (`upsertCache`/`getCacheByType`/`storeDownload` →
+    advances `watermark`), `setMeta`/`getMeta`, `uuidv4`.
+  - `lib/offline/device-id.ts` — `getDeviceId()` (expo-secure-store).
+  - `lib/offline/persist.ts` — `getQueryPersister()` (`createSyncStoragePersister` over
+    `query_cache`; ADR-0036 d5).
+  - `providers/offline-provider.tsx` — `OfflineProvider` + `useOffline()`; `onlineManager`
+    NetInfo-gated (ADR-0036 d3/d4); download→`syncDownload`, flush→`syncUpload` with per-record
+    success/failure + `failed`→`error_corrections` ticket (ADR-0015/0036 d6/d7); heals on reconnect.
+  - `lib/offline/use-offline-mutation.ts` — `useOfflineMutation(type)` write-local-then-enqueue
+    primitive for the domain sweeps.
+  - `app/(tabs)/sync/index.tsx` — Sync Control Center (network status, pending badge, Sync now,
+    outbox list, dismiss failed → keep server ticket).
+  - `app/(tabs)/animals/create.tsx` — **reference integration**: enqueue when offline, keep online
+    path unchanged (no double-apply).
+  - Wiring: `OfflineProvider` mounted in `app/_layout.tsx`; `persistQueryClient` in
+    `providers/trpc-provider.tsx`; deps added (`expo-sqlite@56`, `@react-native-community/netinfo`,
+    `@tanstack/react-query-persist-client`, `@tanstack/query-sync-storage-persister`).
+- **Latent bugs surfaced by the required `pnpm generate:trpc` + `@rocky/{trpc,validators}` rebuild
+  (ADR-0032):** `app/(tabs)/eartags/index.tsx` rendered `item.tagNumber`/`item.stateCode` (gone
+  after `earTag.listOrders` returns orders) → fixed to `orderNumber`/`orderDate`;
+  `providers/permissions-provider.tsx` consumed `myPermissions` as a flat `string[]` (actual shape
+  `{permissions, roles}`) → fixed to `data?.permissions ?? []`. Both pre-existing, now green.
+- **Source:** ADR-0035 §Decision B / Consequences; ADR-0036 §WO-081.
+
+### WO-108 — Sync health-record conflict detection (gap ②) — P2
+
+- **Where:** `packages/domains/sync/src/services/sync.service.ts` — `getCurrentEntity()`.
+- **Defect:** the `baseUpdatedAt` version/conflict check in `syncUpload` was skipped for
+  health pushes because `getCurrentEntity()` fell through to `default: return null` for
+  `vaccination`/`treatment`/`labTest` ("no generic getById"). So two devices editing the
+  same vaccination offline would never raise a `CONFLICT` — the second sync silently passed.
+- **Fix:** resolve the three health types via `HealthService.getVaccination/getTreatment/getLabTest`
+  (each returns a `vaccinationsSelectSchema`/`treatmentsSelectSchema`/`labTestsSelectSchema`
+  entity that carries `updatedAt`). The conflict path now fires correctly and spawns the
+  `TECHNICIAN_RESOLVABLE` correction ticket per ADR-0015. Health _creates_ (no `data.id`)
+  still skip the check by design.
+- **Verification:** `pnpm -C packages/domains/sync typecheck` → exit 0.
+- **Source:** ADR-0036 §WO-081 (decision 6 conflict check); ADR-0015 (correction on conflict); gap ② from the sync architecture review.
 
 ### WO-083 — Reconcile AGENTS.md Mobile Bot path (apps/mobile -> apps/mob) — P3
 
@@ -487,6 +539,51 @@ rg -n "Tabs.Screen" "apps/mob/app/(tabs)/_layout.tsx"   # now conditional
 - **Source:** `packages/authorization/src/policies/policy.decorator.ts`, `policy.registry.ts`,
   `packages/authorization/src/index.ts`; `apps/api/src/routers/rbac.router.ts`; `apps/api/vitest.config.ts`;
   ADR-0042 §11.
+
+### WO-107 — Whole-monorepo test gate (RLS skipIf + turbo coverage) — P2
+
+- **Why:** The same env-throw anti-pattern from WO-106 existed in 3 sibling RLS suites
+  (movement, passport, archive) — they hard-threw `RLS_ADMIN_URL (superuser) required`
+  without a DB. Worse, those domain packages (and eartag/farm/inspection) had a
+  `vitest.config.ts` but **no `test` script**, so `turbo run test` silently skipped them —
+  the "full gate" wasn't actually full.
+- **Delivered (2026-07-09):** (a) Applied the WO-106 `skipIf(!hasRLSEnv)` fix to the
+  movement/passport/archive RLS suites (skip locally, run in CI where `DATABASE_URL` /
+  `RLS_ADMIN_URL` are set; prod guard retained). (b) Added `"test": "vitest run"` to all six
+  domain packages (movement, passport, archive, eartag, farm, inspection) so turbo actually
+  exercises them. (c) Broadened `ci:checks` from the auth+animal subset to
+  `pnpm generate:trpc && pnpm check:trpc-boundary && pnpm test` (full `turbo run test`).
+- **Verified:** `pnpm ci:checks` green end-to-end (exit 0). 0 failures; 4 RLS suites skip
+  locally, run in CI. Totals: testing 151, authorization 27, correction 16, animal 13(+1 skip),
+  passport 5(+1 skip), movement 4(+1 skip), archive 4(+1 skip), eartag 14, farm 4, inspection 4,
+  web 7, api 2.
+- **Status:** Done.
+- **Source:** `packages/domains/{movement,passport,archive}/src/repositories/*.rls.test.ts`,
+  `packages/domains/{movement,passport,archive,eartag,farm,inspection}/package.json`,
+  root `package.json` (`ci:checks`).
+
+### WO-106 — Animal domain test fixes + factory/schema tests — P2
+
+- **Why:** `turbo run test` surfaced two pre-existing failures in `@rocky/domains-animal`
+  (unrelated to the auth gates): (a) `animal.repository.rls.test.ts` hard-threw
+  `RLS_ADMIN_URL (superuser) required` when the env was absent; (b) `animal.service.test.ts`
+  "invalid calving gap" asserted `ANIMAL_INVALID_CALVING_GAP` but the service returned
+  `ANIMAL_MOTHER_TOO_YOUNG` — the mother was created without an old-enough `birthDate`, so
+  Rule A.4c (mother age) fired before A.4d (calving gap).
+- **Delivered (2026-07-09):** (a) RLS test now `describe.skipIf(!hasRLSEnv)` — skips locally /
+  without secrets, still runs in CI where `DATABASE_URL`/`RLS_ADMIN_URL` are set; the prod
+  safety guard is retained. (b) calving-gap test sets the mother `birthDate` 2y back +
+  `sex: "female"` so the gap check is actually reached. Added `animal.factory.test.ts`
+  (factory output satisfies `animalsSelectSchema`; `createAlive`/`createDead`; overrides) and
+  `animal.service.extra.test.ts` (MOTHER_NOT_ALIVE, INVALID_PARENT_SEX) — both grounded in
+  `AnimalFactory` (`@rocky/testing`) + the existing `animalsSelectSchema` / `ANIMAL_ERRORS` /
+  `ANIMAL_STATUS`. No magic strings / literals.
+- **Verified:** `pnpm -C packages/domains/animal test` → 13 passed, 1 skipped; `pnpm ci:checks` green.
+- **Status:** Done.
+- **Source:** `packages/domains/animal/src/animal.factory.test.ts`,
+  `packages/domains/animal/src/services/animal.service.extra.test.ts`,
+  `packages/domains/animal/src/services/animal.service.test.ts`,
+  `packages/domains/animal/src/repositories/animal.repository.rls.test.ts`.
 
 ### WO-105 — Web client permission test suite (vitest) — P2
 
