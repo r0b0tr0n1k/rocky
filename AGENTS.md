@@ -134,9 +134,9 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 | **Authorization Bot** | `packages/authorization/`      | Principal, @Policy decorator system, PolicyRegistry, PolicyEngine                                                                           |
 | **Execution Bot**     | `packages/execution/`          | ExecutionPipeline, RLS stage, RuntimeBuilder, event emitter                                                                                 |
 | **tRPC Bot**          | `packages/trpc/`               | AppRouter types, AppContext, superjson, generated server types                                                                              |
-| **Frontend Bot**      | `apps/mob/src/`             | Expo tRPC client, components                                                                                                                |
+| **Frontend Bot**      | `apps/mob/app/`            | Expo tRPC client, components                                                                                                                |
 | **Admin Bot**         | `apps/web/`                    | Next.js admin panel                                                                                                                         |
-| **Docs Bot**          | `apps/docs/`                   | Nextra Docs Theme site (Next.js + Nextra 4); MDX content in `content/`. Architecture ADRs in `docs/adr/` (see ADR 0011/0018/0019) |
+| **Docs Bot**          | `apps/docs/`                   | Nextra Docs Theme site (Next.js + Nextra 4); MDX content in `content/`. Architecture ADRs in `apps/docs/content/ADR/` (see ADR 0011/0018/0019) |
 | **EarTag Bot**        | `packages/domains/eartag/`     | Ear tag business rules, state machine, progress                                                                                             |
 | **Animal Bot**        | `packages/domains/animal/`     | Registration business rules, movement rules, error correction, import/export                                                                |
 | **Farm Bot**          | `packages/domains/farm/`       | Farm CRUD, keeper management, farm book workflow                                                                                            |
@@ -224,7 +224,7 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 | UI Bot            | `packages/@rocky/ui/`, shadcn registry                                           | Components, hooks, styles                                    |
 | API Bot           | `apps/api/`, `@rocky/validators`                                                 | Routers, services                                            |
 | Auth Bot          | `apps/api/src/auth/auth.ts`, `apps/web/lib/auth.ts`, `sm/users.ts`, `sm/rbac.ts` | Auth config, session enrichment, admin plugin                |
-| Frontend Bot      | `apps/mob/src/`                                                               | Components, queries                                          |
+| Frontend Bot      | `apps/mob/app/`                                                              | Components, queries                                          |
 | Admin Bot         | `apps/web/`, `@rocky/api/types`                                                  | Admin pages, queries                                         |
 | Docs Bot          | `apps/docs/`, content/                                                           | MDX docs, components                                         |
 | EarTag Bot        | `packages/domains/eartag/`                                                       | Ear tag service, state machine                               |
@@ -267,7 +267,7 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 
 ### The Three Pillars
 
-**1. Neverthrow Sovereignty** — `ok()`, `err()`, `Result<T,E>`, `unwrap()` come from `neverthrow`. Always use `Result<T, E>` as return types from services.
+**1. Result Monad Sovereignty** — `ok()`, `err()`, `Result<T,E>`, `unwrap()`, `fromAsyncThrowable` come from `@rocky/domains-shared` (it re-exports `neverthrow`'s `ok`/`err`). Always use `Result<T, E>` as return types from services.
 
 **2. Error Code Parsimony** — Only create distinct error codes when the frontend needs different branching logic. Consolidate CRUD failures to `NOT_FOUND`, `FORBIDDEN`, `DATABASE_ERROR`.
 
@@ -277,10 +277,10 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 
 | Symbol                                                | Source                | Example                                          |
 | ----------------------------------------------------- | --------------------- | ------------------------------------------------ |
-| `ok`, `err`, `Result`, `unwrap`, `fromAsyncThrowable` | `neverthrow`          | `import { err, ok } from "neverthrow"`           |
+| `ok`, `err`, `Result`, `unwrap`, `fromAsyncThrowable` | `@rocky/domains-shared` | `import { err, ok } from "@rocky/domains-shared"` |
 | Shared error classes                                  | `@rocky/errors`       | `import { NotFoundError } from "@rocky/errors"`  |
 | Domain error classes                                  | Local to service file | `class TodoNotFoundError extends Error`          |
-| tRPC error mapping                                    | `@rocky/errors/trpc`  | `import { mapToTRPC } from "@rocky/errors/trpc"` |
+| tRPC error mapping                                    | `@rocky/validators/errors` + `@rocky/trpc` | `import { ANIMAL_TRPC_ERROR_MAP } from "@rocky/validators/errors"; import { createResultUnwrapper } from "@rocky/trpc"` |
 | `TRPCError`                                           | `@trpc/server`        | Routers only — never in services                 |
 
 ### Pattern
@@ -297,13 +297,15 @@ class TodoService {
   }
 }
 
-// Router — maps domain errors to tRPC
+// Router — maps domain errors to tRPC (use the unwrapper, never manual unwrap/result.data)
+const unwrapResult = createResultUnwrapper(TODO_TRPC_ERROR_MAP); // from @rocky/trpc; TODO_TRPC_ERROR_MAP from @rocky/validators/errors
+
 @Router()
 class TodoRouter {
   @Query({ input: z.string(), output: todoSchema })
   async getById(id: string) {
     const result = await this.todoService.getById(id);
-    return result.unwrap(); // throws TRPCError if Err
+    return unwrapResult(result); // maps domain E → TRPCError
   }
 }
 ```

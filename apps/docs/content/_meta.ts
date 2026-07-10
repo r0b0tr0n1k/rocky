@@ -9,6 +9,7 @@ const meta: Meta = {
   'retroui-preview': 'RetroUI Preview',
   'router-patterns': 'Router Patterns & Anti-Patterns',
   'result-monad-and-error-sovereignty': 'Result Monad & Error Sovereignty',
+  'router-design': 'Router Design (Canonical Blueprint)',
 }
 
 export default meta
