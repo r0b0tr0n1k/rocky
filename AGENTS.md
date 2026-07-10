@@ -126,9 +126,9 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 
 | Bot                   | Scope                          | AGENTS.md                                                                                                                                   |
 | --------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Database Bot**      | `packages/@rocky/database/`    | Drizzle schemas, migrations, RLS                                                                                                            |
-| **Validation Bot**    | `packages/@rocky/validators/`  | Zod 4 Diamond Seal patterns                                                                                                                 |
-| **UI Bot**            | `packages/@rocky/ui/`          | shadcn components, design system                                                                                                            |
+| **Database Bot**      | `packages/database/`    | Drizzle schemas, migrations, RLS                                                                                                            |
+| **Validation Bot**    | `packages/validators/`  | Zod 4 Diamond Seal patterns                                                                                                                 |
+| **UI Bot**            | `packages/ui/`          | shadcn components, design system                                                                                                            |
 | **API Bot**           | `apps/api/`                    | NestJS routers, tRPC generation                                                                                                             |
 | **Auth Bot**          | `packages/auth/`               | Better Auth singleton, session resolution, auth client factory                                                                              |
 | **Authorization Bot** | `packages/authorization/`      | Principal, @Policy decorator system, PolicyRegistry, PolicyEngine                                                                           |
@@ -219,9 +219,9 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 | Bot               | Reads                                                                            | Writes                                                       |
 | ----------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------ |
 | Overseer          | All AGENTS.md, README.md, docs/*                                                 | Plans, coordination                                          |
-| Database Bot      | `packages/@rocky/database/`                                                      | Schemas, migrations, RLS                                     |
+| Database Bot      | `packages/database/`                                                      | Schemas, migrations, RLS                                     |
 | Validation Bot    | `@rocky/validators/`, `@rocky/database/zod/`                                     | Zod schemas                                                  |
-| UI Bot            | `packages/@rocky/ui/`, shadcn registry                                           | Components, hooks, styles                                    |
+| UI Bot            | `packages/ui/`, shadcn registry                                           | Components, hooks, styles                                    |
 | API Bot           | `apps/api/`, `@rocky/validators`                                                 | Routers, services                                            |
 | Auth Bot          | `apps/api/src/auth/auth.ts`, `apps/web/lib/auth.ts`, `sm/users.ts`, `sm/rbac.ts` | Auth config, session enrichment, admin plugin                |
 | Frontend Bot      | `apps/mob/app/`                                                              | Components, queries                                          |
