@@ -1,2 +1,14 @@
 @import "tailwindcss";
 @import "@rocky/ui/globals.css";
+
+/* Typography: IBM Plex Sans (main) + IBM Plex Mono (code).
+   next/font exposes --font-plex-sans / --font-plex-mono on <html>. */
+@theme {
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
+}
+@layer base {
+  body {
+    font-family: var(--font-sans);
+  }
+}

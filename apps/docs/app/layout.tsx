@@ -1,12 +1,26 @@
 import type { ReactNode } from 'react'
+import { IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google'
 import { Footer, Layout, Navbar } from 'nextra-theme-docs'
 import { Banner, Head } from 'nextra/components'
 import { getPageMap } from 'nextra/page-map'
-import 'nextra-theme-docs/style.css'
+import './globals.css'
+
+const plexSans = IBM_Plex_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-plex-sans',
+  display: 'swap',
+})
+const plexMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-plex-mono',
+  display: 'swap',
+})
 
 export const metadata = {
   title: 'Rocky Docs',
-  description: 'Documentation for the Rocky livestock platform'
+  description: 'Documentation for the Rocky livestock platform',
 }
 
 const banner = (
@@ -17,8 +31,20 @@ const footer = <Footer>MIT {new Date().getFullYear()} © Rocky.</Footer>
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning>
-      <Head />
+    <html
+      lang="en"
+      dir="ltr"
+      suppressHydrationWarning
+      className={`${plexSans.variable} ${plexMono.variable}`}
+    >
+      <Head
+        color={{
+          hue: { light: 152, dark: 150 },
+          saturation: { light: 68, dark: 60 },
+          lightness: { light: 38, dark: 68 },
+        }}
+        backgroundColor={{ light: '#f9fdfa', dark: '#0a0a0a' }}
+      />
       <body>
         <Layout
           banner={banner}

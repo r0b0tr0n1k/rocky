@@ -1,0 +1,26 @@
+---
+sidebarTitle: RetroUI Preview
+---
+
+# Clean vs Retro — live preview
+
+This page demonstrates the **"have both" architecture** using only the components
+already in `@rocky/ui` — **no RetroUI registry, no network, no shared-package change**.
+Left is the clean brand (green/gold, soft radius). Right is the *same* components
+inside a `[data-theme="retro"]` scope (hard offset shadows, sharp corners). Colors
+stay on-brand in both.
+
+The retro look here is **pure scoped theming** (~10 CSS lines in `app/globals.css`).
+Pulling the real RetroUI components would add their specific markup/variants on top
+of this same mechanism — only worth it if you want *their* component shapes, not just
+the brutalist shadow treatment.
+
+import { RetroPreview } from "../components/retro-preview"
+
+<RetroPreview />
+
+> [!NOTE]
+>
+> Decide after looking: if the retro shadow treatment is enough, we keep this scoped
+> CSS and skip RetroUI entirely. If you want RetroUI's actual components, we run
+> `shadcn add @retroui/*` into `packages/ui` and namespace them under `retroui/*`.

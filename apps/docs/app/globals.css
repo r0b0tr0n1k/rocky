@@ -1,0 +1,35 @@
+@import "tailwindcss";
+@import "@rocky/ui/globals.css";
+@import "nextra-theme-docs/style.css";
+
+/* Demo-only: scoped "retro" variant to preview the "have both" architecture.
+   Affects ONLY elements inside [data-theme="retro"]. Clean components elsewhere
+   are untouched. Safe to delete once the decision is made. */
+[data-theme="retro"] {
+  --radius: 0;
+  --shadow-xs: 1px 1px 0 0 var(--border);
+  --shadow-sm: 2px 2px 0 0 var(--border);
+  --shadow: 3px 3px 0 0 var(--border);
+  --shadow-md: 4px 4px 0 0 var(--border);
+  --shadow-lg: 6px 6px 0 0 var(--border);
+  --shadow-xl: 10px 10px 0 1px var(--border);
+  --shadow-2xl: 16px 16px 0 1px var(--border);
+  --primary-hover: oklch(0.50 0.12 155);
+}
+[data-theme="retro"] .retro-font {
+  font-family: "Archivo Black", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+
+/* Typography: IBM Plex Sans (main) + IBM Plex Mono (code).
+   next/font exposes --font-plex-sans / --font-plex-mono on <html>. */
+@theme {
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
+}
+@layer base {
+  body {
+    font-family: var(--font-sans);
+  }
+}
