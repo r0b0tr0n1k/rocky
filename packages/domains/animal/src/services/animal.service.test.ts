@@ -212,7 +212,15 @@ describe("AnimalService", () => {
       const farmId = crypto.randomUUID();
       const factory = new AnimalFactory(farmId);
       
-      const mother = factory.create({ status: "alive" });
+      // Mother must be older than minMotherAgeMonths (17) or Rule A.4c fires
+      // MOTHER_TOO_YOUNG *before* the calving-gap check (A.4d) — set birthDate 2y back.
+      const motherBirthDate = new Date();
+      motherBirthDate.setFullYear(motherBirthDate.getFullYear() - 2);
+      const mother = factory.create({
+        status: "alive",
+        sex: "female",
+        birthDate: motherBirthDate.toISOString().split("T")[0],
+      });
       const { createdBy, validTo, ...motherData } = mother;
 
       // Last calf born only 100 days ago (less than calvingPeriodDays = 365)

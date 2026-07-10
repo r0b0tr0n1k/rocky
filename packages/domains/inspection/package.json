@@ -41,6 +41,7 @@
   },
   "scripts": {
     "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",
-    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit"
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit",
+    "test": "vitest run"
   }
 }

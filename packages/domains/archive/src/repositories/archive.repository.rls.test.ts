@@ -16,6 +16,14 @@ import { ArchiveDocumentFactory } from "@rocky/testing";
  */
 const DATABASE_URL = process.env.DATABASE_URL ?? "";
 const ADMIN_URL = process.env.RLS_ADMIN_URL ?? "";
+// Scenario C needs a real Postgres + a superuser scaffold connection. Skip when
+// the required env is absent (local) or points at production (safety). The suite
+// still runs in CI where DATABASE_URL / RLS_ADMIN_URL are provided.
+const hasRLSEnv =
+  DATABASE_URL.length > 0 &&
+  ADMIN_URL.length > 0 &&
+  !DATABASE_URL.includes("prod") &&
+  !ADMIN_URL.includes("prod");
 const FARM_ID = "95ce25b8-6132-465b-8cd7-5101db5a48e1";
 const S1 = "11111111-1111-4111-8111-111111111111";
 const S2 = "22222222-2222-4222-8222-222222222222";
@@ -23,8 +31,8 @@ const ADMIN = "00000000-0000-4000-8000-000000000000";
 const FS_ID = "bbbbbbbb-0000-4000-8000-0000000000bb";
 const D1 = "33333333-3333-4333-8333-333333333333";
 
-const adminClient = postgres(ADMIN_URL);
-const adminDb = drizzle({ client: adminClient });
+const adminClient = hasRLSEnv ? postgres(ADMIN_URL) : null;
+const adminDb = hasRLSEnv ? drizzle({ client: adminClient! }) : null;
 const repoOn = (tx: unknown) => new ArchiveRepository({ client: tx } as unknown as DatabaseProvider);
 async function setCtx(tx: any, userId: string, role: string) {
   await tx.execute(sql`SELECT set_config('app.current_user_id', ${userId}, true)`);
@@ -32,7 +40,7 @@ async function setCtx(tx: any, userId: string, role: string) {
   await tx.execute(sql`SELECT set_config('app.current_org_id', ${ADMIN}, true)`);
 }
 
-describe("ArchiveRepository — RLS admin/vet-only (Scenario C)", () => {
+describe.skipIf(!hasRLSEnv)("ArchiveRepository — RLS admin/vet-only (Scenario C)", () => {
   it("farmers cannot read archive docs; SUPER_ADMIN can", async () => {
     if (DATABASE_URL.includes("prod") || ADMIN_URL.includes("prod")) throw new Error("REFUSING RLS TEST ON PRODUCTION DB");
     if (!ADMIN_URL) throw new Error("RLS_ADMIN_URL (superuser) required for scaffolding");

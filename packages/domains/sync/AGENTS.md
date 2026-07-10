@@ -46,3 +46,18 @@ Router (tRPC) → SyncService (orchestrate) → domain services + SyncRepository
   on `MovementService`); raw rows are returned, not `MovementResponse`.
 - Health master-data `listAll*` methods exist on `HealthRepository`, not
   `HealthService`; `syncDownload()` reuses `HealthService.syncDownload()`.
+- **Row-scoping is RLS-enforced, not a JS profile resolver.** The
+  `models/mobile-schema-profiles.yaml` role profiles (own_farms / org_farms / all)
+  are realized by Postgres RLS (`rlsForFarmColumn` / `farmOwnedByUser` /
+  `farmInOrgArea` / admin bypass in `packages/database/src/schema/rls-helpers.ts`).
+  `syncDownload()` runs inside the ExecutionPipeline, so every SELECT is
+  auto-scoped to the caller's role. Do NOT add a profile resolver to this domain —
+  it would duplicate RLS and risk bypassing it. Column projection from the YAML is
+  deferred (the wire contract returns full Diamond-Seal entities).
+- **Health-record upload conflict detection is wired (gap ② closed).**
+  `getCurrentEntity()` now resolves `vaccination`/`treatment`/`labTest` via
+  `HealthService.getVaccination/getTreatment/getLabTest`, so the `syncUpload`
+  `baseUpdatedAt` version-conflict check is no longer skipped for health pushes
+  (previously `default: return null` made every health update a silent pass).
+  Health *creates* (no `data.id`) still skip the check by design — there is no
+  existing row to conflict with.

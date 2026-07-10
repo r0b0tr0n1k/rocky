@@ -261,8 +261,20 @@ export class SyncService {
       case "earTag":
         res = await this.earTagService.getById(id);
         break;
+      case "vaccination":
+        // Health records DO have a getById (closes sync gap: the version/conflict
+        // check for vaccination/treatment/labTest was previously skipped because
+        // this branch fell through to `default: return null`).
+        res = await this.healthService.getVaccination(id);
+        break;
+      case "treatment":
+        res = await this.healthService.getTreatment(id);
+        break;
+      case "labTest":
+        res = await this.healthService.getLabTest(id);
+        break;
       default:
-        // Health records (vaccination/treatment/labTest) have no generic getById.
+        // Unknown type — no current-entity lookup; conflict check is skipped.
         return null;
     }
     return res && res.isOk() ? res.value : null;

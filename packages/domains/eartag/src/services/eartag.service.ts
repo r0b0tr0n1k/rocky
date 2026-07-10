@@ -19,7 +19,7 @@ import type {
 } from "@rocky/validators/api";
 import { earTagOrderResponseSchema, earTagResponseSchema, earTagTypeResponseSchema, takeoverFileResponseSchema } from "@rocky/validators/api";
 import { EARTAG_ERRORS, EarTagError } from "../errors/eartag.errors.js";
-import { SystemService } from "@rocky/domains-system";
+import type { SystemService } from "@rocky/domains-system";
 import type { EarTagRepository } from "../repositories/eartag.repository.js";
 
 // ── Status State Machine ──────────────────────────────────────────
@@ -99,10 +99,10 @@ export class EarTagService {
     organizationId?: string;
     limit?: number;
     offset?: number;
-  }): Promise<Result<{ data: EarTagResponse[]; total: number }, Error>> {
+  }): Promise<Result<{ data: EarTagOrderResponse[]; total: number }, Error>> {
     return fromAsyncThrowable(async () => {
       const { data, total } = await this.repo.listOrders(input);
-      return { data: earTagResponseSchema.array().parse(data), total };
+      return { data: earTagOrderResponseSchema.array().parse(data), total };
     }, toAppError)();
   }
 
