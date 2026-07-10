@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { NavSection } from "./nav-config.js";
+import type { NavSection } from "./nav-config";
 import { Permissions, formatPermission } from "@rocky/authorization";
 import { PermissionFactory } from "@rocky/testing";
 import {
@@ -7,7 +7,7 @@ import {
   clientCanAny,
   clientCanRole,
   filterNavByPermissions,
-} from "./permissions-core.js";
+} from "./permissions-core";
 
 // Nav fixture built from the existing `Permissions` catalog — no magic strings.
 const navFixture = [

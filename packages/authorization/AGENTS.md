@@ -21,6 +21,15 @@ Authorization infrastructure. Receives `AuthResult` from `@rocky/auth` and produ
 | `policies/register-policy.decorator.ts` | `@RegisterPolicy(alias)` — class decorator that scans prototype for `@Policy()` metadata and registers in `PolicyRegistry`. |
 | `policies/engine.ts` | `PolicyEngine.evaluate(principal, policy)` — evaluates a policy against a principal. Checks: authenticated, admin, roles, organization, action. |
 
+## Permission Catalog (isomorphic single source)
+
+`permissions.ts` is a **re-export** of the isomorphic `Permissions` / `Permission` const defined in
+`@rocky/validators/rbac` (see `packages/validators/AGENTS.md` §2.7). The canonical definition lives
+there because RN cannot bundle this package's server-only deps; this module re-exports it verbatim so
+`@Policy({ action })`, `Principal`, and the client `clientCan`/`useCan` gates all share ONE definition.
+Do **not** redefine permission literals here — edit `@rocky/validators/rbac` (and the seed). WO-101's
+drift test guards seed ↔ catalog sync.
+
 ## The @Policy System Flow
 
 ```

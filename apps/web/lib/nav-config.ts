@@ -88,4 +88,4 @@ export const navSections: NavSection[] = [
 
 // Pure filtering logic lives in `permissions-core.ts` (no React/Next pull-in).
 // Re-exported so existing imports from this module keep working.
-export { filterNavByPermissions } from "./permissions-core.js";
+export { filterNavByPermissions } from "./permissions-core";

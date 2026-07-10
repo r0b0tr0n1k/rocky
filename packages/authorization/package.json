@@ -34,6 +34,7 @@
     "@rocky/auth": "workspace:*",
     "@rocky/database": "workspace:*",
     "@rocky/domains-system": "workspace:*",
+    "@rocky/validators": "workspace:*",
     "drizzle-orm": "catalog:"
   },
   "devDependencies": {

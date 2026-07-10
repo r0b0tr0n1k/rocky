@@ -28,11 +28,18 @@ const PermissionsContext = createContext<PermissionsContextValue | null>(null);
 export function PermissionsProvider({ children }: { children: ReactNode }) {
   const trpc = useTRPC();
   const { data: session } = useSession();
-  const { data: permissions } = useQuery(trpc.rbac.myPermissions.queryOptions());
-  const roles = (session?.user as { roles?: string[] } | undefined)?.roles ?? [];
+  // Only fetch permissions for an authenticated principal. Firing this query
+  // while unauthenticated makes the global PolicyResolver throw UNAUTHORIZED
+  // (spamming the console and retrying on public pages like /auth/sign-in).
+  const authenticated = !!session?.user;
+  const { data } = useQuery(
+    trpc.rbac.myPermissions.queryOptions(undefined, { enabled: authenticated }),
+  );
+  const permissions = data?.permissions ?? [];
+  const roles = data?.roles ?? (session?.user as { roles?: string[] } | undefined)?.roles ?? [];
 
   return (
-    <PermissionsContext.Provider value={{ permissions: permissions ?? [], roles }}>
+    <PermissionsContext.Provider value={{ permissions, roles }}>
       {children}
     </PermissionsContext.Provider>
   );
@@ -47,8 +54,8 @@ export function usePermissions(): PermissionsContextValue {
 // ── Pure client-side authorization mirrors (ADR-0042 §7) ──
 // Extracted to `permissions-core.ts` (pure, node-runnable). Re-exported so
 // imports from `#lib/permissions` keep working.
-export { clientCan, clientCanAny, clientCanRole } from "./permissions-core.js";
-import { clientCan } from "./permissions-core.js";
+export { clientCan, clientCanAny, clientCanRole } from "./permissions-core";
+import { clientCan } from "./permissions-core";
 
 /** Hook form of `clientCan`. */
 export function useCan(permission: string): boolean {

@@ -1,6 +1,8 @@
 import "reflect-metadata";
 import { describe, expect, it } from "vitest";
-import { OverridePolicy, Policy, PolicyRegistry, RegisterPolicy } from "./index.js";
+import { OverridePolicy, Policy } from "./policy.decorator.js";
+import { RegisterPolicy } from "./register-policy.decorator.js";
+import { PolicyRegistry } from "./policy.registry.js";
 
 // @Policy must sit BELOW @RegisterPolicy so it executes first (bottom-up) and
 // its class metadata is present when @RegisterPolicy scans (see register-policy.decorator.ts).

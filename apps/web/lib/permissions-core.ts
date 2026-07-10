@@ -5,7 +5,7 @@
 // without pulling in React / Next.js. No runtime imports — only a type-only
 // reference to the nav shapes.
 
-import type { NavSection } from "./nav-config.js";
+import type { NavSection } from "./nav-config";
 
 /** Mirror of `Principal.hasPermission`. */
 export function clientCan(permissions: readonly string[], required: string): boolean {
