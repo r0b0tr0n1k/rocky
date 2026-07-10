@@ -14,7 +14,7 @@ The Router does **not** think. It does **not** decide. It does **not** contain b
 
 **Related panopticon rules:** `LAW1`, `LAW3I`, `LAW5S`, `LAW19B`, `law30` (NAPI: force `z.strictObject()` in api/ and events/ validators)
 
-**Related documents:** `ROUTER_DESIGN.md` (ideological crimes + canonical blueprint), `RESULT_MONAD_AND_ERROR_SOVEREIGNTY.md` (Result pattern)
+**Related documents:** `ROUTER_DESIGN.md` (ideological crimes + canonical blueprint), `result-monad-and-error-sovereignty.md` (Result pattern)
 
 ---
 

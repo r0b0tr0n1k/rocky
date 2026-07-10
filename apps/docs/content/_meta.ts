@@ -8,6 +8,7 @@ const meta: Meta = {
   workorder: 'Work Order — Pending Tasks',
   'retroui-preview': 'RetroUI Preview',
   'router-patterns': 'Router Patterns & Anti-Patterns',
+  'result-monad-and-error-sovereignty': 'Result Monad & Error Sovereignty',
 }
 
 export default meta
