@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AnimalPicker } from "@/components/animals/animal-picker";
 import { FarmPicker } from "@/components/farms/farm-picker";
 import { trpc } from "@/providers/trpc-provider";
+import { useCan } from "@/providers/permissions-provider";
 import { useRouter } from "expo-router";
 import { ADMIN_ROUTE } from "@rocky/validators/enums";
 import type { administrationRouteType } from "@rocky/validators/enums";
@@ -32,6 +33,8 @@ export default function VaccinationScreen() {
     onSuccess: () => { router.back(); },
     onError: (e) => { Alert.alert("Error", e.message); },
   });
+
+  const canWriteHealth = useCan("health:write");
 
   const handleSubmit = () => {
     if (!animalId || !farmId || !vaccineId || !batchId || !route || !adminDate) {
@@ -99,7 +102,10 @@ export default function VaccinationScreen() {
           <Label nativeID="notes">Notes (optional)</Label>
           <Input placeholder="Any notes" value={notes} onChangeText={setNotes} />
         </View>
-        <Button onPress={handleSubmit} disabled={recordVaccination.isPending} size="lg">
+        {!canWriteHealth ? (
+          <Text className="text-sm text-muted-foreground">You don't have permission to record health events.</Text>
+        ) : null}
+        <Button onPress={handleSubmit} disabled={recordVaccination.isPending || !canWriteHealth} size="lg">
           {recordVaccination.isPending ? <ActivityIndicator color="white" /> : <Text>Record Vaccination</Text>}
         </Button>
       </View>

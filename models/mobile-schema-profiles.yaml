@@ -140,3 +140,29 @@ roleMapping:
 #
 # 5. Data sync is per-role — on app init, the sync engine looks up the
 #    user's role and selects the appropriate schema profile.
+
+# ══════════════════════════════════════════════════════════════════════
+# REALIZATION STATUS (RobotFarm corrigendum, 2026-07-10)
+# ══════════════════════════════════════════════════════════════════════
+# The three profiles below (farmer = own_farms, veterinarian = org_farms,
+# cpc_admin = all) describe the INTENDED data scope. That scope is NOT
+# enforced by a JS profile resolver in the sync service — it is enforced by
+# Postgres Row-Level Security, which already implements the same triad:
+#   - own_farms  -> rlsHelpers.farmOwnedByUser()  (FARM_READ_ROLES)
+#   - org_farms  -> rlsHelpers.farmInOrgArea()    (ORG_READ_ROLES)
+#   - all        -> admin-role bypass             (ADMIN_ROLES)
+# (see packages/database/src/schema/rls-helpers.ts + per-table pgPolicy).
+# syncDownload() runs inside the ExecutionPipeline, so every SELECT is
+# auto-scoped to the caller's role. A separate profile engine would be
+# redundant bureaucratic fetishism that risks bypassing RLS.
+#
+# DEFERRED (intentional contract choice, NOT a contradiction):
+#   - COLUMN PROJECTION: this file lists per-table columns, but the wire
+#     contract (@rocky/validators/api/sync.api.ts) returns FULL Diamond-Seal
+#     entities (animalSummarySchema, farmResponseSchema, ...). The offline
+#     cache needs full shapes to render forms, so column pruning is deferred.
+#   - cpc_admin "all" cross-org users/system_parameters/audit_log: the mobile
+#     syncDownload returns NONE of these for ANY profile (web-admin only).
+#     Cross-org "all" remains RLS-org-scoped; a literal system-wide SUPER_ADMIN
+#     sync is a separate decision, not wired today.
+# ══════════════════════════════════════════════════════════════════════

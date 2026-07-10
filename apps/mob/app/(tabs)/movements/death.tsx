@@ -4,10 +4,10 @@ import { Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { AnimalPicker } from "@/components/animals/animal-picker";
 import { FarmPicker } from "@/components/farms/farm-picker";
 import { trpc } from "@/providers/trpc-provider";
+import { useCan } from "@/providers/permissions-provider";
 import { useRouter } from "expo-router";
 
 export default function DeathScreen() {
@@ -24,14 +24,14 @@ export default function DeathScreen() {
     onError: (e) => { Alert.alert("Error", e.message); },
   });
 
-  const handleSubmit = async () => {
+  const canRecordDeath = useCan("animal:death");
+
+  const handleSubmit = () => {
     if (!animalId || !farmId || !deathDate || !deathCause) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
-    try {
-      await recordDeath.mutateAsync({ animalId, farmId, deathDate, deathCause });
-    } catch {}
+    recordDeath.mutate({ animalId, farmId, deathDate, deathCause });
   };
 
   return (
@@ -55,7 +55,10 @@ export default function DeathScreen() {
           <Label nativeID="deathCause">Cause of Death</Label>
           <Input placeholder="e.g. disease, accident, old age" value={deathCause} onChangeText={setDeathCause} />
         </View>
-        <Button onPress={handleSubmit} disabled={recordDeath.isPending} size="lg">
+        {!canRecordDeath ? (
+          <Text className="text-sm text-muted-foreground">You don't have permission to record animal deaths.</Text>
+        ) : null}
+        <Button onPress={handleSubmit} disabled={recordDeath.isPending || !canRecordDeath} size="lg">
           <Text>Record Death</Text>
         </Button>
       </View>

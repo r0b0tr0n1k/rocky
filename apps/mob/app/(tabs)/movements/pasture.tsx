@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/providers/trpc-provider";
+import { useCan } from "@/providers/permissions-provider";
 import { useRouter } from "expo-router";
 
 export default function PastureScreen() {
@@ -21,19 +22,19 @@ export default function PastureScreen() {
     onError: (e) => { Alert.alert("Error", e.message); },
   });
 
-  const handleSubmit = async () => {
+  const canDeclarePasture = useCan("movement:pasture");
+
+  const handleSubmit = () => {
     if (!animalIds || !fromFarmId || !toFarmId || !departureDate || !expectedReturnDate || !pastureType) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
     const ids = animalIds.split(",").map(s => s.trim());
-    try {
-      await declarePasture.mutateAsync({
-        animalIds: ids,
-        fromFarmId, toFarmId, departureDate,
-        expectedReturnDate, pastureType,
-      });
-    } catch {}
+    declarePasture.mutate({
+      animalIds: ids,
+      fromFarmId, toFarmId, departureDate,
+      expectedReturnDate, pastureType,
+    });
   };
 
   return (
@@ -63,7 +64,10 @@ export default function PastureScreen() {
           <Label nativeID="pastureType">Pasture Type</Label>
           <Input placeholder="e.g. summer, winter, alpine" value={pastureType} onChangeText={setPastureType} />
         </View>
-        <Button onPress={handleSubmit} disabled={declarePasture.isPending} size="lg">
+        {!canDeclarePasture ? (
+          <Text className="text-sm text-muted-foreground">You don't have permission to declare pasture movements.</Text>
+        ) : null}
+        <Button onPress={handleSubmit} disabled={declarePasture.isPending || !canDeclarePasture} size="lg">
           <Text>Declare Pasture Movement</Text>
         </Button>
       </View>

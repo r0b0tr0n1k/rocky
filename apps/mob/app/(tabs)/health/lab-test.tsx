@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AnimalPicker } from "@/components/animals/animal-picker";
 import { FarmPicker } from "@/components/farms/farm-picker";
 import { trpc } from "@/providers/trpc-provider";
+import { useCan } from "@/providers/permissions-provider";
 import { useRouter } from "expo-router";
 import { TEST_TYPE, TEST_RESULT } from "@rocky/validators/enums";
 import type { testTypeType, testResultType } from "@rocky/validators/enums";
@@ -32,6 +33,8 @@ export default function LabTestScreen() {
     onSuccess: () => { router.back(); },
     onError: (e) => { Alert.alert("Error", e.message); },
   });
+
+  const canWriteHealth = useCan("health:write");
 
   const handleSubmit = () => {
     if (!animalId || !farmId || !testType || !result || !sampleDate || !resultDate) {
@@ -93,7 +96,10 @@ export default function LabTestScreen() {
           <Label nativeID="resultDate">Result Date (YYYY-MM-DD)</Label>
           <Input placeholder="2026-01-20" value={resultDate} onChangeText={setResultDate} />
         </View>
-        <Button onPress={handleSubmit} disabled={recordLabTest.isPending} size="lg">
+        {!canWriteHealth ? (
+          <Text className="text-sm text-muted-foreground">You don't have permission to record health events.</Text>
+        ) : null}
+        <Button onPress={handleSubmit} disabled={recordLabTest.isPending || !canWriteHealth} size="lg">
           <Text>Record Lab Test</Text>
         </Button>
       </View>

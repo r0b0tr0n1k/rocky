@@ -4,10 +4,10 @@ import { Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { AnimalPicker } from "@/components/animals/animal-picker";
 import { FarmPicker } from "@/components/farms/farm-picker";
 import { trpc } from "@/providers/trpc-provider";
+import { useCan } from "@/providers/permissions-provider";
 import { useRouter } from "expo-router";
 
 export default function SlaughterScreen() {
@@ -25,18 +25,18 @@ export default function SlaughterScreen() {
     onError: (e) => { Alert.alert("Error", e.message); },
   });
 
-  const handleSubmit = async () => {
+  const canRecordSlaughter = useCan("slaughter:register");
+
+  const handleSubmit = () => {
     if (!animalId || !fromFarmId || !slaughterhouseId || !slaughterDate) {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
-    try {
-      await recordSlaughter.mutateAsync({
-        animalId, fromFarmId, slaughterhouseId,
-        slaughterDate,
-        arrivalDate: arrivalDate || undefined,
-      });
-    } catch {}
+    recordSlaughter.mutate({
+      animalId, fromFarmId, slaughterhouseId,
+      slaughterDate,
+      arrivalDate: arrivalDate || undefined,
+    });
   };
 
   return (
@@ -64,7 +64,10 @@ export default function SlaughterScreen() {
           <Label nativeID="arrivalDate">Arrival Date (optional, YYYY-MM-DD)</Label>
           <Input placeholder="2026-01-14" value={arrivalDate} onChangeText={setArrivalDate} />
         </View>
-        <Button onPress={handleSubmit} disabled={recordSlaughter.isPending} size="lg">
+        {!canRecordSlaughter ? (
+          <Text className="text-sm text-muted-foreground">You don't have permission to record slaughters.</Text>
+        ) : null}
+        <Button onPress={handleSubmit} disabled={recordSlaughter.isPending || !canRecordSlaughter} size="lg">
           <Text>Record Slaughter</Text>
         </Button>
       </View>

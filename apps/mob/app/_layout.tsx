@@ -5,6 +5,7 @@ import { TRPCProvider } from '@/providers/trpc-provider';
 import { PermissionsProvider } from '@/providers/permissions-provider';
 import { SessionProvider } from '@/providers/session-provider';
 import { ActiveFarmProvider } from '@/providers/active-farm-provider';
+import { OfflineProvider } from '@/providers/offline-provider';
 import { getConfig } from '@/lib/config';
 import { ThemeProvider } from 'expo-router/react-navigation';
 import { PortalHost } from '@rn-primitives/portal';
@@ -44,6 +45,7 @@ export default function RootLayout() {
 
   return (
     <TRPCProvider apiUrl={config.apiUrl}>
+      <OfflineProvider>
       <SessionProvider>
         <PermissionsProvider>
           <ActiveFarmProvider>
@@ -58,6 +60,7 @@ export default function RootLayout() {
           </ActiveFarmProvider>
         </PermissionsProvider>
       </SessionProvider>
+      </OfflineProvider>
     </TRPCProvider>
   );
 }

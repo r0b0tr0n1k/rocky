@@ -29,8 +29,8 @@ export default function EarTagOrdersScreen() {
         renderItem={({ item }) => (
           <TouchableOpacity className="flex-row items-center justify-between py-3 border-b border-border">
             <View>
-              <Text className="text-foreground font-medium">Tag #{item.tagNumber}</Text>
-              <Text className="text-muted-foreground text-sm">{item.stateCode}</Text>
+              <Text className="text-foreground font-medium">Order #{item.orderNumber}</Text>
+              <Text className="text-muted-foreground text-sm">{item.orderDate}</Text>
             </View>
             <Badge><Text className="text-xs">{item.status}</Text></Badge>
           </TouchableOpacity>

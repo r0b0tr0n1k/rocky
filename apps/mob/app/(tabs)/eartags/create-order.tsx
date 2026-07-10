@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/providers/trpc-provider";
+import { useCan } from "@/providers/permissions-provider";
 import { useRouter } from "expo-router";
 
 export default function CreateOrderScreen() {
@@ -19,17 +20,17 @@ export default function CreateOrderScreen() {
     onError: (e) => { Alert.alert("Error", e.message); },
   });
 
-  const handleSubmit = async () => {
+  const canCreateOrder = useCan("eartag:order");
+
+  const handleSubmit = () => {
     if (!organizationId || !supplierOrgId || !supplierName || !quantity) {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
-    try {
-      await createOrder.mutateAsync({
-        organizationId, supplierOrganizationId: supplierOrgId,
-        supplierName, quantity: parseInt(quantity, 10),
-      });
-    } catch {}
+    createOrder.mutate({
+      organizationId, supplierOrganizationId: supplierOrgId,
+      supplierName, quantity: parseInt(quantity, 10),
+    });
   };
 
   return (
@@ -51,7 +52,10 @@ export default function CreateOrderScreen() {
           <Label nativeID="quantity">Quantity</Label>
           <Input placeholder="Number of tags" value={quantity} onChangeText={setQuantity} keyboardType="numeric" />
         </View>
-        <Button onPress={handleSubmit} disabled={createOrder.isPending} size="lg">
+        {!canCreateOrder ? (
+          <Text className="text-sm text-muted-foreground">You don't have permission to place ear tag orders.</Text>
+        ) : null}
+        <Button onPress={handleSubmit} disabled={createOrder.isPending || !canCreateOrder} size="lg">
           <Text>Create Order</Text>
         </Button>
       </View>

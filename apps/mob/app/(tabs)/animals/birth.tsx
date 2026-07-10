@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
 import { trpc } from "@/providers/trpc-provider";
+import { useCan } from "@/providers/permissions-provider";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, View } from "react-native";
@@ -33,6 +34,8 @@ export default function BirthNotificationScreen() {
       Alert.alert("Error", error.message);
     },
   });
+
+  const canRegister = useCan("animal:register");
 
   const handleSubmit = async () => {
     if (!earTagNumber || earTagNumber.length !== 8) {
@@ -119,7 +122,10 @@ export default function BirthNotificationScreen() {
           <Input placeholder="e.g. 45" value={birthWeight} onChangeText={setBirthWeight} keyboardType="numeric" />
         </View>
 
-        <Button onPress={handleSubmit} disabled={isLoading} size="lg">
+        {!canRegister ? (
+          <Text className="text-sm text-muted-foreground">You don't have permission to register animals.</Text>
+        ) : null}
+        <Button onPress={handleSubmit} disabled={isLoading || !canRegister} size="lg">
           {isLoading ? <ActivityIndicator color="white" /> : <Text>Submit Birth Notification</Text>}
         </Button>
       </View>

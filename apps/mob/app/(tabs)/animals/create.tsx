@@ -5,7 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { FarmPicker } from "@/components/farms/farm-picker";
 import { useActiveFarm } from "@/providers/active-farm-provider";
+import { onlineManager } from "@tanstack/react-query";
 import { trpc } from "@/providers/trpc-provider";
+import { enqueueMutation } from "@/lib/offline/sync-queue";
+import { useOffline } from "@/providers/offline-provider";
+import { useCan } from "@/providers/permissions-provider";
 import { useRouter } from "expo-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type Resolver } from "react-hook-form";
@@ -55,6 +59,8 @@ export default function CreateAnimalScreen() {
   const router = useRouter();
   const { activeFarm, setActiveFarm } = useActiveFarm();
   const utils = trpc.useUtils();
+  const { deviceId } = useOffline();
+  const canRegister = useCan("animal:register");
 
   const {
     handleSubmit,
@@ -90,7 +96,7 @@ export default function CreateAnimalScreen() {
     // Guarded by the disabled state below, but kept defensive: a farm must be
     // selected (context) before an animal can be registered to it.
     if (!activeFarm.id) return;
-    createAnimal.mutate({
+    const payload = {
       earTagNumber: values.earTagNumber.toUpperCase(),
       // Validation already guarantees `sex` is set by the time we reach here.
       sex: values.sex as sexType,
@@ -100,7 +106,16 @@ export default function CreateAnimalScreen() {
       birthWeight: values.birthWeight ? Number(values.birthWeight) : undefined,
       currentFarmId: activeFarm.id,
       stateCode: activeFarm.stateCode,
-    });
+    };
+    if (!onlineManager.isOnline()) {
+      // Offline: write-local-then-enqueue (WO-082). The outbox drains on
+      // reconnect via OfflineProvider; the Server re-validates @Policy + RLS.
+      if (deviceId) enqueueMutation({ type: "animal", payload, deviceId });
+      utils.animal.list.invalidate();
+      router.back();
+      return;
+    }
+    createAnimal.mutate(payload);
   });
 
   const sex = watch("sex");
@@ -122,6 +137,7 @@ export default function CreateAnimalScreen() {
             onChangeText={(t) => setValue("earTagNumber", t, { shouldValidate: true })}
             maxLength={8}
             autoCapitalize="characters"
+            accessibilityLabelledBy="earTag"
           />
         </FormField>
 
@@ -139,6 +155,7 @@ export default function CreateAnimalScreen() {
             placeholder="e.g. Holstein"
             value={watch("breed")}
             onChangeText={(t) => setValue("breed", t, { shouldValidate: true })}
+            accessibilityLabelledBy="breed"
           />
         </FormField>
 
@@ -151,6 +168,7 @@ export default function CreateAnimalScreen() {
             placeholder="2026-01-15"
             value={watch("birthDate")}
             onChangeText={(t) => setValue("birthDate", t, { shouldValidate: true })}
+            accessibilityLabelledBy="birthDate"
           />
         </FormField>
 
@@ -173,12 +191,23 @@ export default function CreateAnimalScreen() {
             value={watch("birthWeight")}
             onChangeText={(t) => setValue("birthWeight", t, { shouldValidate: true })}
             keyboardType="numeric"
+            accessibilityLabelledBy="birthWeight"
           />
         </FormField>
 
+        {!activeFarm.id ? (
+          <Text className="text-sm text-muted-foreground">Select a farm to enable registration.</Text>
+        ) : !canRegister ? (
+          <Text className="text-sm text-muted-foreground">You don't have permission to register animals.</Text>
+        ) : !onlineManager.isOnline() ? (
+          <Text className="text-sm text-muted-foreground">
+            Offline — the animal is saved locally and syncs when you reconnect.
+          </Text>
+        ) : null}
+
         <Button
           onPress={onSubmit}
-          disabled={isSubmitting || !activeFarm.id}
+          disabled={isSubmitting || !activeFarm.id || !canRegister}
           size="lg"
         >
           {isSubmitting ? <ActivityIndicator color="white" /> : <Text>Register Animal</Text>}

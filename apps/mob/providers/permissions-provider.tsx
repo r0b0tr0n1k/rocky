@@ -1,6 +1,7 @@
 import { createContext, useContext, type ReactNode } from "react";
 import { useSession } from "@/providers/session-provider";
 import { trpc } from "@/providers/trpc-provider";
+import { type Permission } from "@rocky/validators/rbac";
 
 type PermissionsContextValue = {
   permissions: readonly string[];
@@ -18,11 +19,11 @@ const PermissionsContext = createContext<PermissionsContextValue | null>(null);
  */
 export function PermissionsProvider({ children }: { children: ReactNode }) {
   const { data: session } = useSession();
-  const { data: permissions, isLoading } = trpc.rbac.myPermissions.useQuery();
+  const { data, isLoading } = trpc.rbac.myPermissions.useQuery();
   const roles = (session?.user as { roles?: string[] } | undefined)?.roles ?? [];
 
   return (
-    <PermissionsContext.Provider value={{ permissions: permissions ?? [], roles, isLoading }}>
+    <PermissionsContext.Provider value={{ permissions: data?.permissions ?? [], roles, isLoading }}>
       {children}
     </PermissionsContext.Provider>
   );
@@ -34,13 +35,13 @@ export function usePermissions(): PermissionsContextValue {
   return ctx;
 }
 
-/** Mirror of `Principal.hasPermission`. */
-export function clientCan(permissions: readonly string[], required: string): boolean {
+/** Mirror of `Principal.hasPermission`. `required` is a typed catalog literal. */
+export function clientCan(permissions: readonly string[], required: Permission): boolean {
   return permissions.includes(required);
 }
 
 /** Any-of variant. */
-export function clientCanAny(permissions: readonly string[], required: readonly string[]): boolean {
+export function clientCanAny(permissions: readonly string[], required: readonly Permission[]): boolean {
   return required.some((p) => permissions.includes(p));
 }
 
@@ -50,6 +51,6 @@ export function clientCanRole(roles: readonly string[], requiredRoles: readonly 
 }
 
 /** Hook form of `clientCan`. */
-export function useCan(permission: string): boolean {
+export function useCan(permission: Permission): boolean {
   return clientCan(usePermissions().permissions, permission);
 }

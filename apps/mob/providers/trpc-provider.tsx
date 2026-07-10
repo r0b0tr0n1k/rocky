@@ -2,9 +2,11 @@ import { authClient } from "@/lib/auth";
 import type { AppRouter } from "@rocky/trpc";
 import { transformer } from "@rocky/trpc/superjson";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { persistQueryClient } from "@tanstack/react-query-persist-client";
+import { getQueryPersister } from "@/lib/offline/persist";
 import { httpBatchLink, httpSubscriptionLink, loggerLink, splitLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
-import { createContext, type ReactNode, useState } from "react";
+import { createContext, type ReactNode, useEffect, useState } from "react";
 import { Platform } from "react-native";
 
 export const trpc = createTRPCReact<AppRouter>();
@@ -12,7 +14,18 @@ export const trpc = createTRPCReact<AppRouter>();
 export const TRPCContext = createContext<typeof trpc | undefined>(undefined);
 
 export function TRPCProvider({ children, apiUrl }: { children: ReactNode; apiUrl: string }) {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(() =>
+    new QueryClient({
+      defaultOptions: { queries: { gcTime: 1000 * 60 * 60 * 24 } },
+    }),
+  );
+  useEffect(() => {
+    void persistQueryClient({
+      queryClient,
+      persister: getQueryPersister(),
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
+  }, [queryClient]);
   const [trpcClient] = useState(() =>
     trpc.createClient({
       links: [

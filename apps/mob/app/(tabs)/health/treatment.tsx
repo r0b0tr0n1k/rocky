@@ -4,10 +4,10 @@ import { Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { AnimalPicker } from "@/components/animals/animal-picker";
 import { FarmPicker } from "@/components/farms/farm-picker";
 import { trpc } from "@/providers/trpc-provider";
+import { useCan } from "@/providers/permissions-provider";
 import { useRouter } from "expo-router";
 
 export default function TreatmentScreen() {
@@ -26,21 +26,21 @@ export default function TreatmentScreen() {
     onError: (e) => { Alert.alert("Error", e.message); },
   });
 
-  const handleSubmit = async () => {
+  const canWriteHealth = useCan("health:write");
+
+  const handleSubmit = () => {
     if (!animalId || !farmId || !diagnosisDate) {
       Alert.alert("Error", "Please fill in animal, farm, and diagnosis date");
       return;
     }
-    try {
-      await recordTreatment.mutateAsync({
-        animalId, farmId,
-        diseaseId: diseaseId || null,
-        vetId: "00000000-0000-0000-0000-000000000000",
-        diagnosisDate,
-        treatmentDesc: treatmentDesc || undefined,
-        isolated,
-      });
-    } catch {}
+    recordTreatment.mutate({
+      animalId, farmId,
+      diseaseId: diseaseId || null,
+      vetId: "00000000-0000-0000-0000-000000000000",
+      diagnosisDate,
+      treatmentDesc: treatmentDesc || undefined,
+      isolated,
+    });
   };
 
   return (
@@ -72,7 +72,10 @@ export default function TreatmentScreen() {
           <Label>Isolated</Label>
           <Switch value={isolated} onValueChange={setIsolated} />
         </View>
-        <Button onPress={handleSubmit} disabled={recordTreatment.isPending} size="lg">
+        {!canWriteHealth ? (
+          <Text className="text-sm text-muted-foreground">You don't have permission to record health events.</Text>
+        ) : null}
+        <Button onPress={handleSubmit} disabled={recordTreatment.isPending || !canWriteHealth} size="lg">
           <Text>Record Treatment</Text>
         </Button>
       </View>
