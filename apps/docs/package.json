@@ -9,7 +9,8 @@
     "start": "next start --port 3002",
     "lint": "biome check .",
     "check-types": "tsc --noEmit",
-    "test:doctrine": "node --test scripts/verify-result-doctrine.mjs"
+    "test:doctrine": "node --test scripts/verify-result-doctrine.mjs",
+    "test:offline": "TSX_TSCONFIG_PATH=scripts/tsconfig.offline-test.json node --import tsx --test scripts/verify-offline-doctrine.mjs"
   },
   "dependencies": {
     "next": "catalog:",

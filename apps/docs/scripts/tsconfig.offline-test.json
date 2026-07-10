@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "expo-sqlite": ["./_fakes/expo-sqlite.fake.ts"],
+      "expo-secure-store": ["./_fakes/expo-secure-store.fake.ts"]
+    }
+  }
+}
