@@ -1,4 +1,4 @@
-> *Adapted from the Diamond Seal `@repo/*` doctrine to the Rocky `@rocky/*` monorepo — package scope `@repo/*` → `@rocky/*` and tooling `bun` → `pnpm`. This reflects the **actual** codebase: the `Result` monad (`ok`/`err`/`unwrap`) lives in `@rocky/domains-shared`. Note: the `AGENTS.md` Error Sovereignty import-ownership table still lists `neverthrow` — that table is stale and should be updated to match this doctrine.*
+> *Adapted from the Diamond Seal `@repo/*` doctrine to the Rocky `@rocky/*` monorepo — package scope `@repo/*` → `@rocky/*` and tooling `bun` → `pnpm`. This reflects the **actual** codebase: the `Result` monad (`ok`/`err`/`isError`/`Result`) lives in `@rocky/domains-shared`. The `AGENTS.md` Error Sovereignty import-ownership table now matches this doctrine (Result from `@rocky/domains-shared`, tRPC maps from `@rocky/validators/errors` + `createResultUnwrapper` from `@rocky/trpc`).*
 
 # The Law of the Result Monad & Error Sovereignty
 
@@ -7,7 +7,7 @@
 **Status:** Active Doctrine
 **Date:** 2026-05-09
 **Author:** System Architecture Review
-**Decision:** The `Result` monad (`ok`, `err`, `unwrap`, `isError`, `Result<T,E>`) and shared error codes (`SHARED_ERRORS`) are owned by `@rocky/domains-shared` (L4), NOT `@rocky/validators` (L1). Domain error codes live in `packages/domains/[domain]/src/`. TRPC error mappings live in `packages/validators/src/errors/`. These are separate concerns. The Panopticon enforces both.
+**Decision:** The `Result` monad (`ok`, `err`, `isError`, `Result<T,E>`) and shared error codes (`SHARED_ERRORS`) are owned by `@rocky/domains-shared` (L4), NOT `@rocky/validators` (L1). Domain error codes live in `packages/domains/[domain]/src/`. TRPC error mappings live in `packages/validators/src/errors/`. These are separate concerns. The Panopticon enforces both.
 
 ---
 
@@ -31,12 +31,11 @@ Look at the imports in a typical domain service:
 
 ```typescript
 // ❌ WRONG — The Capitalist Illusion (Schizophrenic Imports)
-import { unwrap } from "@rocky/domains-shared";
 import { err, ok, type Result } from "@rocky/validators";
 import { SHARED_ERRORS } from "@rocky/validators/errors";
 ```
 
-This is **schizophrenia**. The `Result` monad (`ok`, `err`) and its utility (`unwrap`) are part of the exact same concept. Why is one coming from `domains-shared` and the others from `validators`?
+This is **schizophrenia**. The `Result` monad (`ok`, `err`) and its method (`unwrap()`) are part of the exact same concept. Why is one coming from `domains-shared` and the others from `validators`?
 
 This happens because of an incomplete migration. The `Result` type was moved from `validators` to `domains-shared`, but imports were never updated across the codebase. TypeScript panics because `dist` folders are stale.
 
@@ -55,7 +54,6 @@ Under the purified Diamond Seal architecture, every domain file MUST follow this
 ```typescript
 // ✅ CORRECT — The Marxist-Materialist Reality
 import {
-  unwrap,
   err,
   ok,
   type Result,
@@ -64,7 +62,7 @@ import {
 import { GEO_ERRORS, type GeoErrorCode } from "./geo.errors"; // Local domain errors!
 ```
 
-**EVERYTHING** related to the generic Result monad — `ok`, `err`, `Result`, `unwrap`, `isError` — MUST be imported from `@rocky/domains-shared`.
+**EVERYTHING** related to the generic Result monad — `ok`, `err`, `Result`, `isError` — MUST be imported from `@rocky/domains-shared`.
 
 **EVERYTHING** related to domain-specific error codes — `GEO_ERRORS`, `RIDE_ERRORS`, etc. — MUST live in the domain package itself (`packages/domains/[domain]/src/errors/[domain].errors.ts`).
 
@@ -74,7 +72,7 @@ import { GEO_ERRORS, type GeoErrorCode } from "./geo.errors"; // Local domain er
 
 | Symbol                                     | Correct Import Source               | Wrong Import Source          |
 | ------------------------------------------ | ----------------------------------- | ---------------------------- |
-| `ok`, `err`, `Result`, `unwrap`, `isError` | `@rocky/domains-shared`              | `@rocky/validators` ❌        |
+| `ok`, `err`, `Result`, `isError`                | `@rocky/domains-shared`              | `@rocky/validators` ❌        |
 | `SHARED_ERRORS`                            | `@rocky/domains-shared`              | `@rocky/validators/errors` ❌ |
 | `GEO_ERRORS`, `RIDE_ERRORS`, etc.          | `./[domain].errors` (local)         | `@rocky/validators/errors` ❌ |
 | `RIDE_TRPC_ERROR_MAP`                      | `@rocky/validators/errors` (L1 only) | Any domain file ❌           |
@@ -101,7 +99,7 @@ Ensure `packages/domains/shared/src/index.ts` exports the full Result monad:
 
 ```typescript
 // packages/domains/shared/src/index.ts
-export * from "./result"; // exports Result, ok, err, unwrap, isError
+export * from "./result"; // exports Result, ok, err, fromAsyncThrowable, isError
 export * from "./errors"; // exports SHARED_ERRORS
 ```
 
@@ -130,7 +128,7 @@ Use a subagent to scan and fix all files in `packages/domains/`:
 > **Agent Prompt:**
 > "We have moved the Result monad. Scan all files in `packages/domains/`.
 >
-> 1. Remove ANY imports of `Result`, `ok`, `err`, `isError`, `unwrap`, or `SHARED_ERRORS` from `@rocky/validators` or `@rocky/validators/errors`.
+> 1. Remove ANY imports of `Result`, `ok`, `err`, `isError`, or `SHARED_ERRORS` from `@rocky/validators` or `@rocky/validators/errors`.
 > 2. Add those exact imports to the existing `@rocky/domains-shared` import statement.
 > 3. Run `pnpm exec tsc --noEmit`. Do not stop until the domain compiles."
 
@@ -205,10 +203,7 @@ If the database fails, or an external API returns 500, use `DATABASE_ERROR` or `
 // ✅ CORRECT — Generic code, descriptive message
 export const rideErr = {
   configSaveFailed: (configType: string, details?: string) =>
-    err(
-      RIDE_ERRORS.DATABASE_ERROR,
-      `Failed to save ${configType} config: ${details}`,
-    ),
+    err(new RideError(RIDE_ERRORS.DATABASE_ERROR, `Failed to save ${configType} config: ${details}`)),
 };
 ```
 
@@ -251,16 +246,21 @@ export const RIDE_ERRORS = {
 
 export type RideErrorCode = (typeof RIDE_ERRORS)[keyof typeof RIDE_ERRORS];
 
+export class RideError extends Error {
+  constructor(public readonly code: RideErrorCode, message?: string) {
+    super(message ?? code);
+    this.name = "RideError";
+  }
+}
+
+// Real domain errors carry `.code` (see packages/domains/movement/src/errors).
+// neverthrow's `err` takes ONE argument — wrap the coded error, never two strings.
 export const rideErr = {
-  rideNotFound: (id: string) => err("RIDE_NOT_FOUND", `Ride ${id} not found`),
-  driverTooFar: (distance: number) =>
-    err("DRIVER_TOO_FAR", `Driver is ${distance}m away`),
-  insufficientFunds: (balance: number) =>
-    err("INSUFFICIENT_FUNDS", `Balance ${balance} insufficient`),
-  invalidState: (entity: string, from: string, to: string) =>
-    err("INVALID_STATE", `Cannot transition ${entity} from ${from} to ${to}`),
-  dbError: (operation: string, details?: string) =>
-    err("DATABASE_ERROR", `DB failed on ${operation}: ${details}`),
+  rideNotFound: (id: string) => err(new RideError("RIDE_NOT_FOUND", `Ride ${id} not found`)),
+  driverTooFar: (distance: number) => err(new RideError("DRIVER_TOO_FAR", `Driver is ${distance}m away`)),
+  insufficientFunds: (balance: number) => err(new RideError("INSUFFICIENT_FUNDS", `Balance ${balance} insufficient`)),
+  invalidState: (entity: string, from: string, to: string) => err(new RideError("INVALID_STATE", `Cannot transition ${entity} from ${from} to ${to}`)),
+  dbError: (operation: string, details?: string) => err(new RideError("DATABASE_ERROR", `DB failed on ${operation}: ${details}`)),
 };
 ```
 
@@ -341,7 +341,7 @@ The Domain Service does not change. Not one line. Whether you expose tRPC, Graph
 
 ### The Three Pillars
 
-1. **Result Monad Sovereignty** — `ok`/`err`/`unwrap` live in `@rocky/domains-shared`, not validators
+1. **Result Monad Sovereignty** — `ok`/`err`/`isError`/`Result` live in `@rocky/domains-shared`, not validators
 2. **Error Code Parsimony** — Only create distinct codes for UI branching logic; consolidate CRUD failures
 3. **Church and State** — Domain error codes in `packages/domains/`, TRPC mappings in `packages/validators/`
 
@@ -350,7 +350,7 @@ The Domain Service does not change. Not one line. Whether you expose tRPC, Graph
 ## Execution Checklist
 
 - [ ] Run Bootstrapping Sequence (Steps 1-4) to rebuild `dist` folders
-- [ ] Dispatch subagent to fix all domain imports (`Result`, `ok`, `err`, `unwrap`, `SHARED_ERRORS` → `@rocky/domains-shared`)
+- [ ] Dispatch subagent to fix all domain imports (`Result`, `ok`, `err`, `isError`, `SHARED_ERRORS` → `@rocky/domains-shared`)
 - [ ] Prune error code hyperinflation in all domain error files
 - [ ] Split mixed error files: domain codes → `packages/domains/[domain]/src/`, TRPC maps → `packages/validators/src/errors/`
 - [ ] Run `pnpm exec tsc --noEmit` — must pass
