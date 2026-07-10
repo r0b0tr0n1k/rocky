@@ -50,13 +50,12 @@ const useFormField = () => {
     throw new Error("useFormField should be used within <FormField>");
   }
 
-  if (!itemContext) {
-    throw new Error("useFormField should be used within <FormItem>");
-  }
-
+  // FormItem supplies a stable id. The newer shadcn Field/FieldGroup API
+  // (Path A) wraps FormControl without a FormItem, so fall back to a
+  // generated id instead of throwing. This keeps aria wiring working for
+  // both the legacy FormItem and the new Field primitives.
+  const id = itemContext?.id ?? React.useId();
   const fieldState = getFieldState(fieldContext.name, formState);
-
-  const { id } = itemContext;
 
   return {
     id,

@@ -6,6 +6,7 @@
   "author": "",
   "license": "UNLICENSED",
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "dev": "turbo run dev",
     "dev:stop": "bash scripts/stop-dev.sh",
     "build": "turbo run build",
@@ -14,7 +15,7 @@
     "test:e2e": "turbo run test:e2e",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "generate:trpc": "pnpx nestjs-trpc generate --entrypoint apps/api/src/trpc/trpc.module.ts --output packages/trpc/src/generated/ --import-extension=js",
+    "generate:trpc": "pnpx nestjs-trpc generate --entrypoint apps/api/src/app.module.ts --output packages/trpc/src/generated && node scripts/patch-trpc-transformer.mjs",
     "generate:enums": "node scripts/regenerate-enums.mjs",
     "generate:zod": "node scripts/generate-dumb-zod.mjs",
     "generate:all": "node scripts/regenerate-enums.mjs && node scripts/generate-dumb-zod.mjs",

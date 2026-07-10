@@ -33,7 +33,7 @@
  * JSONB overrides live in `_overrides.ts` — the only hand-written file in this
  * directory.
  *
- * @see ADR 0010 docs/adr/0010-date-coercion-architecture.md
+ * @see ADR 0010 apps/docs/content/ADR/0010-date-coercion-architecture.md
  * @see https://orm.drizzle.team/docs/zod
  */
 

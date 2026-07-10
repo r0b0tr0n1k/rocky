@@ -344,7 +344,7 @@ test -f apps/api/src/trpc/server.ts && echo "REMOVE STALE GENERATED FILE" || ech
 
 ---
 
-## CI Guard (recommended)
+## CI Guard (implemented — WO-102)
 
 Add a step that fails the build if the generated client regresses:
 
@@ -354,3 +354,5 @@ test "$(rg -c 'from "@rocky/api' packages/trpc/src/generated/server.ts)" = "0" |
 ```
 
 This catches a missing `@Output` (or a reintroduced import rewrite) at PR time instead of at `tsc`.
+
+**Implemented (2026-07-09, WO-102):** the guard is `scripts/check-trpc-boundary.mjs` (root command `pnpm check:trpc-boundary`); it also fails on a `apps/api`/`@rocky/api` import. As a regen gate run `pnpm generate:trpc && pnpm check:trpc-boundary`. The repo has no in-repo CI workflow yet, so the external CI / pre-commit hook must invoke this command.
