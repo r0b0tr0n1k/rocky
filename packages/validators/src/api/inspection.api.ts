@@ -6,6 +6,7 @@ import { z } from "zod";
 import {
   inspectionsSelectSchema,
   inspectionsInsertSchema,
+  riskAnalysesSelectSchema,
 } from "@rocky/database/zod";
 import {
   inspectionStatusSchema,
@@ -42,8 +43,8 @@ export const riskAnalysisRunResponseSchema = z
   .strip();
 export type RiskAnalysisRunResponse = z.infer<typeof riskAnalysisRunResponseSchema>;
 
-/** Paginated list of risk analyses (raw rows) */
-export const riskAnalysisListResponseSchema = z.object({ data: z.array(z.unknown()), total: z.number() }).strip();
+/** Paginated list of risk analyses (faithful projection of the risk-analysis row) */
+export const riskAnalysisListResponseSchema = z.object({ data: z.array(riskAnalysesSelectSchema), total: z.number() }).strip();
 export type RiskAnalysisListResponse = z.infer<typeof riskAnalysisListResponseSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════

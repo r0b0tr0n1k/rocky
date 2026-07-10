@@ -19,6 +19,8 @@ import {
   type SyncUploadResponse,
 } from "@rocky/validators/api/index.js";
 import { Ctx, Input, Mutation, Query, Router } from "nestjs-trpc";
+import { z } from "zod";
+import type { SubtypeGuillotine, ActivateGuillotines } from "@rocky/validators/utils";
 
 const unwrap = createResultUnwrapper();
 
@@ -44,3 +46,20 @@ export class SyncRouter {
     );
   }
 }
+
+// SubtypeGuillotine (one-directional: schema output ⊆ return type) — response
+// schemas are Drizzle-derived projections; the hand-written interface is the
+// wider SSOT, so AssertEqual would false-positive. See audit G3.
+type _verify_syncDownloadOutput = SubtypeGuillotine<
+  z.output<typeof syncDownloadResponseSchema>,
+  Awaited<ReturnType<SyncRouter["syncDownload"]>>
+>;
+type _verify_syncUploadOutput = SubtypeGuillotine<
+  z.output<typeof syncUploadResponseSchema>,
+  Awaited<ReturnType<SyncRouter["syncUpload"]>>
+>;
+
+export type _SyncGuillotines = ActivateGuillotines<[
+  _verify_syncDownloadOutput,
+  _verify_syncUploadOutput
+]>;

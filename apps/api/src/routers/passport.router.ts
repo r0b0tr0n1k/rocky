@@ -19,6 +19,7 @@ import {
 import { PASSPORT_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
 import { Ctx, Input, Mutation, Query, Router } from "nestjs-trpc";
 import { z } from "zod";
+import type { SubtypeGuillotine, ActivateGuillotines } from "@rocky/validators/utils";
 
 const idParam = z.object({ id: z.uuid() });
 const unwrap = createResultUnwrapper(PASSPORT_TRPC_ERROR_MAP);
@@ -71,3 +72,45 @@ export class PassportRouter {
     return unwrap(await this.passportService.reprint(input.originalPassportId));
   }
 }
+
+// SubtypeGuillotine (one-directional: schema output ⊆ return type) — response
+// schemas are Drizzle-derived projections; the hand-written interface is the
+// wider SSOT, so AssertEqual would false-positive. See audit G3.
+type _verify_getByIdOutput = SubtypeGuillotine<
+  z.output<typeof passportResponseSchema>,
+  Awaited<ReturnType<PassportRouter["getById"]>>
+>;
+type _verify_listOutput = SubtypeGuillotine<
+  z.output<typeof passportListResponseSchema>,
+  Awaited<ReturnType<PassportRouter["list"]>>
+>;
+type _verify_issueForAnimalOutput = SubtypeGuillotine<
+  z.output<typeof passportResponseSchema>,
+  Awaited<ReturnType<PassportRouter["issueForAnimal"]>>
+>;
+type _verify_shipToVsOutput = SubtypeGuillotine<
+  z.output<typeof passportResponseSchema>,
+  Awaited<ReturnType<PassportRouter["shipToVs"]>>
+>;
+type _verify_deliverToKeeperOutput = SubtypeGuillotine<
+  z.output<typeof passportResponseSchema>,
+  Awaited<ReturnType<PassportRouter["deliverToKeeper"]>>
+>;
+type _verify_seizeOutput = SubtypeGuillotine<
+  z.output<typeof passportResponseSchema>,
+  Awaited<ReturnType<PassportRouter["seize"]>>
+>;
+type _verify_reprintOutput = SubtypeGuillotine<
+  z.output<typeof passportResponseSchema>,
+  Awaited<ReturnType<PassportRouter["reprint"]>>
+>;
+
+export type _PassportGuillotines = ActivateGuillotines<[
+  _verify_getByIdOutput,
+  _verify_listOutput,
+  _verify_issueForAnimalOutput,
+  _verify_shipToVsOutput,
+  _verify_deliverToKeeperOutput,
+  _verify_seizeOutput,
+  _verify_reprintOutput
+]>;

@@ -22,6 +22,10 @@
       "types": "./dist/enums/index.d.ts",
       "default": "./dist/enums/index.js"
     },
+    "./rbac": {
+      "types": "./dist/rbac/index.d.ts",
+      "default": "./dist/rbac/index.js"
+    },
     "./events": {
       "types": "./dist/events/index.d.ts",
       "default": "./dist/events/index.js"

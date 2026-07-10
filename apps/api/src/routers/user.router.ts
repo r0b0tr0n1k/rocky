@@ -20,10 +20,15 @@ import {
 import { USER_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
 import { Ctx, Input, Mutation, Query, Router } from "nestjs-trpc";
 import { z } from "zod";
+import type { SubtypeGuillotine, ActivateGuillotines } from "@rocky/validators/utils";
 
 const idParam = z.object({ id: z.uuid() });
 const unwrap = createResultUnwrapper(USER_TRPC_ERROR_MAP);
 
+
+// Named output schemas (were inline) — required so Bridge 2b can reference
+// `z.output<typeof X>` and prove the declared contract vs the service Result.
+const userArraySchema = z.array(userSummarySchema);
 @Router({ alias: "user" })
 @RegisterPolicy("user")
 @Policy({ authenticated: true, roles: ["SUPER_ADMIN"] })
@@ -36,7 +41,7 @@ export class UserRouter {
     return unwrap(await this.userService.getById(input.id));
   }
 
-  @Query({ input: userListRequestSchema, output: z.array(userSummarySchema) })
+  @Query({ input: userListRequestSchema, output: userArraySchema })
   async list(@Input() input: UserListRequest): Promise<UserSummary[]> {
     const result = await this.userService.list(input);
     return unwrap(result).data;
@@ -53,3 +58,30 @@ export class UserRouter {
     return unwrap(await this.userService.update(id, data));
   }
 }
+
+// SubtypeGuillotine (one-directional: schema output ⊆ return type) — response
+// schemas are Drizzle-derived projections; the hand-written interface is the
+// wider SSOT, so AssertEqual would false-positive. See audit G3.
+type _verify_getByIdOutput = SubtypeGuillotine<
+  z.output<typeof userResponseSchema>,
+  Awaited<ReturnType<UserRouter["getById"]>>
+>;
+type _verify_listOutput = SubtypeGuillotine<
+  z.output<typeof userArraySchema>,
+  Awaited<ReturnType<UserRouter["list"]>>
+>;
+type _verify_createOutput = SubtypeGuillotine<
+  z.output<typeof userResponseSchema>,
+  Awaited<ReturnType<UserRouter["create"]>>
+>;
+type _verify_updateOutput = SubtypeGuillotine<
+  z.output<typeof userResponseSchema>,
+  Awaited<ReturnType<UserRouter["update"]>>
+>;
+
+export type _UserGuillotines = ActivateGuillotines<[
+  _verify_getByIdOutput,
+  _verify_listOutput,
+  _verify_createOutput,
+  _verify_updateOutput
+]>;

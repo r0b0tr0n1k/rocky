@@ -18,6 +18,7 @@ import {
 import { SYSTEM_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
 import { Input, Mutation, Query, Router } from "nestjs-trpc";
 import { z } from "zod";
+import type { SubtypeGuillotine, ActivateGuillotines } from "@rocky/validators/utils";
 
 const unwrap = createResultUnwrapper(SYSTEM_TRPC_ERROR_MAP);
 
@@ -48,3 +49,20 @@ export class SystemParametersRouter {
     return unwrap(await this.systemService.updateParameter(input.code, input.data.value, input.data.isActive));
   }
 }
+
+// SubtypeGuillotine (one-directional: schema output ⊆ return type) — response
+// schemas are Drizzle-derived projections; the hand-written interface is the
+// wider SSOT, so AssertEqual would false-positive. See audit G3.
+type _verify_listOutput = SubtypeGuillotine<
+  z.output<typeof systemParameterListResponseSchema>,
+  Awaited<ReturnType<SystemParametersRouter["list"]>>
+>;
+type _verify_updateOutput = SubtypeGuillotine<
+  z.output<typeof systemParameterResponseSchema>,
+  Awaited<ReturnType<SystemParametersRouter["update"]>>
+>;
+
+export type _SystemParametersGuillotines = ActivateGuillotines<[
+  _verify_listOutput,
+  _verify_updateOutput
+]>;

@@ -24,10 +24,15 @@ import {
 import { INSPECTION_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
 import { Ctx, Input, Mutation, Query, Router } from "nestjs-trpc";
 import { z } from "zod";
+import type { SubtypeGuillotine, ActivateGuillotines } from "@rocky/validators/utils";
 
 const idParam = z.object({ id: z.uuid() });
 const unwrap = createResultUnwrapper(INSPECTION_TRPC_ERROR_MAP);
 
+
+// Named output schemas (were inline) — required so Bridge 2b can reference
+// `z.output<typeof X>` and prove the declared contract vs the service Result.
+const printFormSchema = z.any();
 @Router({ alias: "inspection" })
 @RegisterPolicy("inspection")
 @Policy({ authenticated: true })
@@ -66,7 +71,7 @@ export class InspectionRouter {
 
   // -- Form Generation --
 
-  @Mutation({ input: printInspectionFormRequestSchema, output: z.any() })
+  @Mutation({ input: printInspectionFormRequestSchema, output: printFormSchema })
   async printForm(@Input() input: PrintInspectionFormRequest) {
     return unwrap(
       await this.inspectionService.generateInspectionForm({
@@ -108,3 +113,50 @@ export class InspectionRouter {
     return unwrap(await this.inspectionService.runRiskAnalysis({ ...input, createdBy: ctx.execution?.principal.id }));
   }
 }
+
+// SubtypeGuillotine (one-directional: schema output ⊆ return type) — response
+// schemas are Drizzle-derived projections; the hand-written interface is the
+// wider SSOT, so AssertEqual would false-positive. See audit G3.
+type _verify_getByIdOutput = SubtypeGuillotine<
+  z.output<typeof inspectionResponseSchema>,
+  Awaited<ReturnType<InspectionRouter["getById"]>>
+>;
+type _verify_listOutput = SubtypeGuillotine<
+  z.output<typeof inspectionListResponseSchema>,
+  Awaited<ReturnType<InspectionRouter["list"]>>
+>;
+type _verify_createOutput = SubtypeGuillotine<
+  z.output<typeof inspectionResponseSchema>,
+  Awaited<ReturnType<InspectionRouter["create"]>>
+>;
+type _verify_scheduleOutput = SubtypeGuillotine<
+  z.output<typeof inspectionResponseSchema>,
+  Awaited<ReturnType<InspectionRouter["schedule"]>>
+>;
+type _verify_completeOutput = SubtypeGuillotine<
+  z.output<typeof inspectionResponseSchema>,
+  Awaited<ReturnType<InspectionRouter["complete"]>>
+>;
+type _verify_printFormOutput = SubtypeGuillotine<
+  Awaited<ReturnType<InspectionRouter["printForm"]>>,
+  z.output<typeof printFormSchema>
+>;
+type _verify_listRiskAnalysesOutput = SubtypeGuillotine<
+  z.output<typeof riskAnalysisListResponseSchema>,
+  Awaited<ReturnType<InspectionRouter["listRiskAnalyses"]>>
+>;
+type _verify_runRiskAnalysisOutput = SubtypeGuillotine<
+  z.output<typeof riskAnalysisRunResponseSchema>,
+  Awaited<ReturnType<InspectionRouter["runRiskAnalysis"]>>
+>;
+
+export type _InspectionGuillotines = ActivateGuillotines<[
+  _verify_getByIdOutput,
+  _verify_listOutput,
+  _verify_createOutput,
+  _verify_scheduleOutput,
+  _verify_completeOutput,
+  _verify_printFormOutput,
+  _verify_listRiskAnalysesOutput,
+  _verify_runRiskAnalysisOutput
+]>;

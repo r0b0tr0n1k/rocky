@@ -10,6 +10,7 @@ import { earTagsSelectSchema, earTagOrdersSelectSchema, earTagTypesSelectSchema 
 import { z } from "zod";
 import {
   contingentTypeSchema,
+  earTagOrderStatusSchema,
   earTagStatusSchema,
   orderStatusSchema,
   sortByEartagSchema,
@@ -35,7 +36,9 @@ export type EarTagResponse = z.infer<typeof earTagResponseSchema>;
 export const earTagOrderResponseSchema = earTagOrdersSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
-    status: orderStatusSchema,
+    // Ear-tag procurement orders use the ear_tag_order_status pgEnum
+    // (draft/pending/ordered/...), NOT the generic movement ORDER_STATUS_VALUES.
+    status: earTagOrderStatusSchema,
   }).strip();
 
 export type EarTagOrderResponse = z.infer<typeof earTagOrderResponseSchema>;
@@ -85,6 +88,19 @@ export const earTagListResponseSchema = z.strictObject({
 });
 
 export type EarTagListResponse = z.infer<typeof earTagListResponseSchema>;
+
+// Orders use their own list schema: `listOrders` returns ear-tag-ORDER rows
+// (earTagOrders table), not ear-tag rows. Sharing earTagListResponseSchema with
+// `list` (ear tags) would validate orders against the ear-tag response schema.
+export const earTagOrderListResponseSchema = z.strictObject({
+  data: z.array(earTagOrderResponseSchema),
+  total: z.int().nonnegative(),
+  limit: z.int(),
+  offset: z.int(),
+});
+
+export type EarTagOrderListResponse = z.infer<typeof earTagOrderListResponseSchema>;
+type _drift_earTagOrderListResponse = NoDrift<z.infer<typeof earTagOrderListResponseSchema>, EarTagOrderListResponse>;
 
 export const orderStatusTransitionSchema = z.strictObject({
   orderId: z.uuid(),

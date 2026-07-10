@@ -20,6 +20,7 @@ import {
 import { SYSTEM_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
 import { Input, Mutation, Query, Router } from "nestjs-trpc";
 import { z } from "zod";
+import type { SubtypeGuillotine, ActivateGuillotines } from "@rocky/validators/utils";
 
 const unwrap = createResultUnwrapper(SYSTEM_TRPC_ERROR_MAP);
 
@@ -48,3 +49,20 @@ export class ModulesRouter {
     return unwrap(await this.systemService.updateModule(input.id, input.data.isActive));
   }
 }
+
+// SubtypeGuillotine (one-directional: schema output ⊆ return type) — response
+// schemas are Drizzle-derived projections; the hand-written interface is the
+// wider SSOT, so AssertEqual would false-positive. See audit G3.
+type _verify_listOutput = SubtypeGuillotine<
+  z.output<typeof moduleListResponseSchema>,
+  Awaited<ReturnType<ModulesRouter["list"]>>
+>;
+type _verify_updateOutput = SubtypeGuillotine<
+  z.output<typeof moduleResponseSchema>,
+  Awaited<ReturnType<ModulesRouter["update"]>>
+>;
+
+export type _ModulesGuillotines = ActivateGuillotines<[
+  _verify_listOutput,
+  _verify_updateOutput
+]>;

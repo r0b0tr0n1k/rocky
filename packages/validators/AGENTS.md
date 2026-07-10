@@ -198,7 +198,7 @@ Every `api/[domain].api.ts` file must import from:
 - `@rocky/database/zod` — for `*SelectSchema` and `*InsertSchema` (Dumb Zod)
 - `../enums/index.js` — the public barrel: all branded zEnum schemas (`*Schema`) and curated dictionaries (never `domain.js`)
 - `zod` — for `z.strictObject()`, `z.uuid()`, `z.coerce.date()`, `.refine()`, etc.
-- `../utils/type-bridge.js` — for `NoDrift`, `NoDriftSimple`, `ActivateGuillotines`
+- `../utils/type-bridge.js` — for `NoDrift`, `NoDriftSimple`, `ActivateGuillotines`, `OkType`, `SubtypeGuillotine`, `AssertFieldCoverage`
 
 Every schema must end with:
 
@@ -215,6 +215,27 @@ Every file must end with:
 - `@rocky/validators/api` — no cross-domain API imports between domains
 - `@rocky/validators/events` — no event imports in API files
 - `@rocky/domains-*` — domain services consume schemas, NOT the other way around
+
+---
+
+## 2.7 RBAC Permission Catalog (`rbac/permissions.ts`) — isomorphic shared const
+
+`packages/validators/src/rbac/permissions.ts` exports the typed `Permissions` map and
+`Permission` union — the **single isomorphic definition** of every `${resource}:${action}`
+code. It is intentionally isomorphic (no server-only deps) so both the mobile PDA app and
+the web admin import it (`import { type Permission } from "@rocky/validators/rbac"`).
+
+`@rocky/authorization` **re-exports** these exact symbols (`packages/authorization/src/permissions.ts`),
+so the server-side `@Policy({ action })` system and the client `clientCan`/`useCan` gates
+share ONE definition. This is ADR-0050 (D1): a single `Permissions` const, consumed by
+seed + `@Policy` + frontend. The isomorphic boundary (RN cannot bundle `@rocky/authorization`'s
+server deps) is why the const is defined here and re-exported there — NOT duplicated.
+
+- **Ultimate SSOT:** `PERMISSION_DEFS` in `packages/database/src/seed.ts`.
+- **Drift guard:** WO-101's drift test (run via `@rocky/authorization`'s suite) compares the
+  seed against this catalog and fails on any mismatch.
+- **Adding a permission:** add to `PERMISSION_DEFS` in seed.ts AND `Permissions` here, grant via
+  `ROLE_PERM_MAP`, then reference from `@rocky/authorization` `@Policy`/nav/mobile.
 
 ---
 
@@ -476,7 +497,46 @@ export type _AnimalGuillotines = ActivateGuillotines<
 
 **Rule**: Every `*.api.ts` and every event file MUST export a `*Guillotines` type alias.
 
-### Common Interface Drifts and Fixes
+### Cross-Layer Bridge Primitives (adopted from the Guillotine reference)
+
+The three core tiers prove a schema against its own interface. The bridge
+primitives prove relationships ACROSS layers — DB→API, service→schema, and
+L4 consumer→validator. They live in `utils/type-bridge.ts`:
+
+| Primitive | Direction | Catches |
+| --- | --- | --- |
+| `OkType<Result<T,E>>` / `ErrType` / `InferOk` | extracts `T` from a neverthrow `Result` | Bridge 2b: prove a service's `result.unwrap()` success type matches `z.output<schema>` |
+| `SubtypeGuillotine<A, B>` | `A extends B` (A covers B) | Bridge 3: an L4 domain consumer proves the validator output covers its expected interface. Lives in the domain, NEVER in validators — the Diamond Seal forbids `L1←L4` imports, so the domain holds the axe |
+| `AssertFieldCoverage<Api, Db>` | `Api extends Db` | Bridge 1: API output must keep every field the Drizzle DB select now requires — catches a silent DB→API column drop |
+
+```typescript
+// Bridge 2b — router/service: service Result<T> == schema output
+//   (no neverthrow import needed — OkType is structural)
+type _verify_getWallet = NoDrift<
+  OkType<ReturnType<WalletService["getWallet"]>>,
+  z.output<typeof getWalletOutputSchema>
+>;
+
+// Bridge 3 — domain service (L4) proves validator covers its input
+type _bridge = SubtypeGuillotine<
+  z.output<typeof telegramMessageSchema>, TelegramMessageHandlerInput
+>;
+
+// Bridge 1 — api file: API output ⊆ DB select output (minus tenantId)
+type _bridge = AssertFieldCoverage<
+  z.output<typeof dispatchPaginationSchema>,
+  z.output<typeof dispatchSelectSchema.omit({ tenantId: true })>
+>;
+```
+
+**Preempted by the framework:** Bridge 2's router *input* check is unnecessary
+here — `nestjs-trpc` binds `@Mutation({ input: schema })`, so the input IS the
+schema and can never drift to an inline `{ userId: string }` type (the reference's
+"worst offender"). Only the *return* (`OkType`) check adds coverage we lack.
+
+**Out of scope:** Tier-1 vendor `AssertEqual<z.infer<schema>, VendorSDK>` does not
+apply — there is no external SDK boundary (our edge is Postgres/Drizzle ↔ tRPC).
+See audit G5.
 
 | Error                   | Direction   | Cause                                                                                                                                   | Fix                             |
 | ----------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
@@ -729,7 +789,7 @@ packages/validators/src/
 ├── vendor-enums/              ← Future: pure re-exports for pgEnum integration
 └── utils/
     ├── check-digit.ts          ← Ear tag + Farm ID check digit algorithms
-    └── type-bridge.ts          ← NoDrift, AssertEqual, NoDriftSimple, ActivateGuillotines
+    └── type-bridge.ts          ← NoDrift, NoDriftSimple, AssertEqual, ExpectTrue, ActivateGuillotines (core tiers) + OkType, ErrType, SubtypeGuillotine, AssertFieldCoverage (cross-layer bridges)
 ```
 
 ---

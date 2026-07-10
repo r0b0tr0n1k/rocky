@@ -23,6 +23,7 @@ import {
 import { ANIMAL_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
 import { Ctx, Input, Mutation, Query, Router } from "nestjs-trpc";
 import { z } from "zod";
+import type { SubtypeGuillotine, ActivateGuillotines } from "@rocky/validators/utils";
 
 const idParam = z.object({ id: z.uuid() });
 const unwrap = createResultUnwrapper(ANIMAL_TRPC_ERROR_MAP);
@@ -59,3 +60,33 @@ export class AnimalRouter {
     return unwrap(await this.animalService.update(input.id, input));
   }
 }
+
+// ── Bridge 2b: thin router return (service success type) vs declared `output:` ──
+// SubtypeGuillotine (one-directional: schema output ⊆ return type) — response
+// schemas are Drizzle-derived projections; the hand-written interface is the
+// wider SSOT, so AssertEqual would false-positive. See audit G3.
+type _verify_getByIdOutput = SubtypeGuillotine<
+  z.output<typeof animalResponseSchema>,
+  Awaited<ReturnType<AnimalRouter["getById"]>>
+>;
+type _verify_findByTagOutput = SubtypeGuillotine<
+  z.output<typeof animalResponseSchema>,
+  Awaited<ReturnType<AnimalRouter["findByTag"]>>
+>;
+type _verify_listOutput = SubtypeGuillotine<
+  z.output<typeof animalListResponseSchema>,
+  Awaited<ReturnType<AnimalRouter["list"]>>
+>;
+type _verify_createOutput = SubtypeGuillotine<
+  z.output<typeof animalResponseSchema>,
+  Awaited<ReturnType<AnimalRouter["create"]>>
+>;
+type _verify_updateOutput = SubtypeGuillotine<
+  z.output<typeof animalResponseSchema>,
+  Awaited<ReturnType<AnimalRouter["update"]>>
+>;
+
+export type _AnimalGuillotines = ActivateGuillotines<
+  [_verify_getByIdOutput, _verify_findByTagOutput, _verify_listOutput,
+   _verify_createOutput, _verify_updateOutput]
+>;

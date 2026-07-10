@@ -22,6 +22,7 @@ import {
 import { SUBJECT_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
 import { Ctx, Input, Mutation, Query, Router } from "nestjs-trpc";
 import { z } from "zod";
+import type { SubtypeGuillotine, ActivateGuillotines } from "@rocky/validators/utils";
 
 const idParam = z.object({ id: z.uuid() });
 const searchParam = z.object({
@@ -32,6 +33,11 @@ const searchParam = z.object({
 
 const unwrap = createResultUnwrapper(SUBJECT_TRPC_ERROR_MAP);
 
+
+// Named output schemas (were inline) — required so Bridge 2b can reference
+// `z.output<typeof X>` and prove the declared contract vs the service Result.
+const searchSchema = z.object({ data: z.array(subjectSummarySchema), total: z.number() });
+const unbindFromFarmSchema = z.object({ deleted: z.boolean() });
 @Router({ alias: "subject" })
 @RegisterPolicy("subject")
 @Policy({ authenticated: true })
@@ -47,7 +53,7 @@ export class SubjectRouter {
     return unwrap(await this.subjectService.getById(input.id));
   }
 
-  @Query({ input: searchParam, output: z.object({ data: z.array(subjectSummarySchema), total: z.number() }) })
+  @Query({ input: searchParam, output: searchSchema })
   async search(
     @Input() input: { q: string; limit: number; offset: number },
   ): Promise<{ data: import("@rocky/validators/api").SubjectSummary[]; total: number }> {
@@ -75,8 +81,45 @@ export class SubjectRouter {
     return unwrap(await this.subjectService.bindToFarm(input));
   }
 
-  @Mutation({ input: unbindSubjectFromFarmRequestSchema, output: z.object({ deleted: z.boolean() }) })
+  @Mutation({ input: unbindSubjectFromFarmRequestSchema, output: unbindFromFarmSchema })
   async unbindFromFarm(@Input() input: { bindingId: string }): Promise<{ deleted: boolean }> {
     return unwrap(await this.subjectService.unbindFromFarm(input.bindingId));
   }
 }
+
+// SubtypeGuillotine (one-directional: schema output ⊆ return type) — response
+// schemas are Drizzle-derived projections; the hand-written interface is the
+// wider SSOT, so AssertEqual would false-positive. See audit G3.
+type _verify_getByIdOutput = SubtypeGuillotine<
+  z.output<typeof subjectResponseSchema>,
+  Awaited<ReturnType<SubjectRouter["getById"]>>
+>;
+type _verify_searchOutput = SubtypeGuillotine<
+  z.output<typeof searchSchema>,
+  Awaited<ReturnType<SubjectRouter["search"]>>
+>;
+type _verify_createOutput = SubtypeGuillotine<
+  z.output<typeof subjectResponseSchema>,
+  Awaited<ReturnType<SubjectRouter["create"]>>
+>;
+type _verify_updateOutput = SubtypeGuillotine<
+  z.output<typeof subjectResponseSchema>,
+  Awaited<ReturnType<SubjectRouter["update"]>>
+>;
+type _verify_bindToFarmOutput = SubtypeGuillotine<
+  z.output<typeof farmSubjectBindingResponseSchema>,
+  Awaited<ReturnType<SubjectRouter["bindToFarm"]>>
+>;
+type _verify_unbindFromFarmOutput = SubtypeGuillotine<
+  z.output<typeof unbindFromFarmSchema>,
+  Awaited<ReturnType<SubjectRouter["unbindFromFarm"]>>
+>;
+
+export type _SubjectGuillotines = ActivateGuillotines<[
+  _verify_getByIdOutput,
+  _verify_searchOutput,
+  _verify_createOutput,
+  _verify_updateOutput,
+  _verify_bindToFarmOutput,
+  _verify_unbindFromFarmOutput
+]>;

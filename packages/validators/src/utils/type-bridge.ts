@@ -106,3 +106,71 @@ export type NoDriftSimple<A, B> = A extends B
  * footgun: every *.api.ts / *.events.ts file must declare ≥1 _drift_* alias.
  */
 export type ActivateGuillotines<T extends [true, ...true[]]> = T;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CROSS-LAYER BRIDGE PRIMITIVES (adopted from the Guillotine reference)
+//
+// The core tiers (satisfies / NoDrift / ActivateGuillotines) already exist.
+// These three prove the Directional / Result-aware relationships the core
+// tiers do NOT: DB→API field coverage (Bridge 1), service-return↔schema
+// (Bridge 2b via OkType), and L4 consumer↔validator coverage (Bridge 3).
+// All are pure types — they evaporate at compile time, 0 runtime bytes.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * **OkType / ErrType / InferOk** — extract the branches of a neverthrow
+ * `Result<T, E>` at the type level (Bridge 2b).
+
+ * Routers call `result.unwrap()`, returning the success `T`. To prove that
+ * `T` matches a schema's output, extract it here WITHOUT importing
+ * neverthrow into the validators package:
+ *
+ *   NoDrift<OkType<ReturnType<WalletService["getWallet"]>>,
+ *           z.output<typeof getWalletOutputSchema>>
+ *
+ * Resolves to `never` if the value is not a `Result` — itself a compile
+ * error inside a guillotine.
+ */
+export type OkType<T> = T extends Promise<infer P>
+  ? OkType<P>
+  : Extract<T, { isOk: true }> extends { value: infer V }
+    ? V
+    : never;
+export type ErrType<T> = T extends Promise<infer P>
+  ? ErrType<P>
+  : Extract<T, { isErr: true }> extends { error: infer E }
+    ? E
+    : never;
+export type InferOk<T> = OkType<T>;
+
+/**
+ * **SubtypeGuillotine** — Directional coverage proof (Bridge 3).
+ *
+ * Proves `A` is assignable to `B` (A extends B): the validator schema
+ * output must COVER the domain consumer's expected interface. Lives in the
+ * CONSUMER layer (L4 domain service), never in validators — the Diamond
+ * Seal forbids L1←L4 imports, so the domain holds the axe:
+ *
+ *   type _bridge = SubtypeGuillotine<
+ *     z.output<typeof telegramMessageSchema>, TelegramMessageHandlerInput
+ *   >;
+ */
+export type SubtypeGuillotine<A, B> =
+  A extends B ? true : ["SCHEMA DOES NOT COVER DOMAIN ──", { schema: A; expected: B }];
+
+/**
+ * **AssertFieldCoverage** — DB→API drift detection (Bridge 1).
+ *
+ * Proves the API schema's OUTPUT is assignable to the Drizzle-Zod DB
+ * SELECT schema's OUTPUT (minus explicitly omitted fields like tenantId).
+ * If the DB adds a required column the API output silently drops, this
+ * severs the build — catching drift between generated Dumb Zod and the
+ * hand-sculpted API schema:
+ *
+ *   type _bridge = AssertFieldCoverage<
+ *     z.output<typeof dispatchPaginationSchema>,
+ *     z.output<typeof dispatchSelectSchema.omit({ tenantId: true })>
+ *   >;
+ */
+export type AssertFieldCoverage<Api, Db> =
+  Api extends Db ? true : ["API DROPPED DB FIELD ──", { db: Db; api: Api }];

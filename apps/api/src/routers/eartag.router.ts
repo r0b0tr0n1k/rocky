@@ -23,11 +23,13 @@ import {
   createOrderRequestSchema,
   type EarTagListRequest,
   type EarTagListResponse,
+  type EarTagOrderListResponse,
   type EarTagOrderResponse,
   type EarTagResponse,
   type EarTagTypeResponse,
   earTagListRequestSchema,
   earTagListResponseSchema,
+  earTagOrderListResponseSchema,
   earTagOrderResponseSchema,
   earTagResponseSchema,
   earTagTypeResponseSchema,
@@ -47,9 +49,11 @@ import {
 import { EARTAG_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
 import { Ctx, Input, Mutation, Query, Router } from "nestjs-trpc";
 import { z } from "zod";
+import type { SubtypeGuillotine, ActivateGuillotines } from "@rocky/validators/utils";
 
 const idParam = z.object({ id: z.uuid() });
 const unwrap = createResultUnwrapper(EARTAG_TRPC_ERROR_MAP);
+const earTagTypeListSchema = z.array(earTagTypeResponseSchema);
 
 @Router({ alias: "earTag" })
 @RegisterPolicy("earTag")
@@ -91,7 +95,7 @@ export class EarTagRouter {
     return unwrap(await this.earTagService.getTypeById(input.id));
   }
 
-  @Query({ input: z.looseObject({}), output: z.array(earTagTypeResponseSchema) })
+  @Query({ input: z.looseObject({}), output: earTagTypeListSchema })
   async listTypes(): Promise<EarTagTypeResponse[]> {
     return unwrap(await this.earTagService.listTypes());
   }
@@ -102,8 +106,8 @@ export class EarTagRouter {
     return unwrap(result);
   }
 
-  @Query({ input: orderListRequestSchema, output: earTagListResponseSchema })
-  async listOrders(@Input() input: OrderListRequest): Promise<EarTagListResponse> {
+  @Query({ input: orderListRequestSchema, output: earTagOrderListResponseSchema })
+  async listOrders(@Input() input: OrderListRequest): Promise<EarTagOrderListResponse> {
     const result = unwrap(await this.earTagService.listOrders(input));
     return { ...result, limit: input.limit ?? 20, offset: input.offset ?? 0 };
   }
@@ -220,3 +224,31 @@ export class EarTagRouter {
     return unwrap(await this.earTagService.generateTakeoverFile(input));
   }
 }
+
+// ── Bridge 2b: thin router return (service success type) vs declared `output:` ──
+type _verify_getByIdOutput = SubtypeGuillotine<z.output<typeof earTagResponseSchema>, Awaited<ReturnType<EarTagRouter["getById"]>>>;
+type _verify_listOutput = SubtypeGuillotine<z.output<typeof earTagListResponseSchema>, Awaited<ReturnType<EarTagRouter["list"]>>>;
+type _verify_findByNumberOutput = SubtypeGuillotine<z.output<typeof earTagResponseSchema>, Awaited<ReturnType<EarTagRouter["findByNumber"]>>>;
+type _verify_getTypeOutput = SubtypeGuillotine<z.output<typeof earTagTypeResponseSchema>, Awaited<ReturnType<EarTagRouter["getType"]>>>;
+type _verify_listTypesOutput = SubtypeGuillotine<z.output<typeof earTagTypeListSchema>, Awaited<ReturnType<EarTagRouter["listTypes"]>>>;
+type _verify_getOrderByIdOutput = SubtypeGuillotine<z.output<typeof earTagOrderResponseSchema>, Awaited<ReturnType<EarTagRouter["getOrderById"]>>>;
+type _verify_listOrdersOutput = SubtypeGuillotine<z.output<typeof earTagOrderListResponseSchema>, Awaited<ReturnType<EarTagRouter["listOrders"]>>>;
+type _verify_generateTagNumbersOutput = SubtypeGuillotine<z.output<typeof generateTagNumbersResponseSchema>, Awaited<ReturnType<EarTagRouter["generateTagNumbers"]>>>;
+type _verify_transitionStatusOutput = SubtypeGuillotine<z.output<typeof earTagOrderResponseSchema>, Awaited<ReturnType<EarTagRouter["transitionStatus"]>>>;
+type _verify_collectOrderTagsOutput = SubtypeGuillotine<z.output<typeof earTagOrderResponseSchema>, Awaited<ReturnType<EarTagRouter["collectOrderTags"]>>>;
+type _verify_createDuplicateOrderOutput = SubtypeGuillotine<z.output<typeof earTagOrderResponseSchema>, Awaited<ReturnType<EarTagRouter["createDuplicateOrder"]>>>;
+type _verify_createOrderOutput = SubtypeGuillotine<z.output<typeof earTagOrderResponseSchema>, Awaited<ReturnType<EarTagRouter["createOrder"]>>>;
+type _verify_cancelOrderOutput = SubtypeGuillotine<z.output<typeof earTagOrderResponseSchema>, Awaited<ReturnType<EarTagRouter["cancelOrder"]>>>;
+type _verify_cancelOrderItemOutput = SubtypeGuillotine<z.output<typeof earTagOrderResponseSchema>, Awaited<ReturnType<EarTagRouter["cancelOrderItem"]>>>;
+type _verify_appendToOrderOutput = SubtypeGuillotine<z.output<typeof earTagOrderResponseSchema>, Awaited<ReturnType<EarTagRouter["appendToOrder"]>>>;
+type _verify_assignSupplierContingentOutput = SubtypeGuillotine<z.output<typeof earTagResponseSchema>, Awaited<ReturnType<EarTagRouter["assignSupplierContingent"]>>>;
+type _verify_getTakeoverFileOutput = SubtypeGuillotine<z.output<typeof takeoverFileResponseSchema>, Awaited<ReturnType<EarTagRouter["getTakeoverFile"]>>>;
+
+export type _EarTagGuillotines = ActivateGuillotines<[
+  _verify_getByIdOutput, _verify_listOutput, _verify_findByNumberOutput, _verify_getTypeOutput,
+  _verify_listTypesOutput, _verify_getOrderByIdOutput, _verify_listOrdersOutput,
+  _verify_generateTagNumbersOutput, _verify_transitionStatusOutput, _verify_collectOrderTagsOutput,
+  _verify_createDuplicateOrderOutput, _verify_createOrderOutput, _verify_cancelOrderOutput,
+  _verify_cancelOrderItemOutput, _verify_appendToOrderOutput, _verify_assignSupplierContingentOutput,
+  _verify_getTakeoverFileOutput
+]>;

@@ -13,12 +13,17 @@ import {
 import { NOTIFICATION_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
 import { Ctx, Input, Mutation, Query, Router } from "nestjs-trpc";
 import { z } from "zod";
+import type { SubtypeGuillotine, ActivateGuillotines } from "@rocky/validators/utils";
 
 // Local type aliases for decorator-safe usage
 type NotificationOutput = z.infer<typeof notificationOutputSchema>;
 
 const unwrapResult = createResultUnwrapper(NOTIFICATION_TRPC_ERROR_MAP);
 
+
+// Named output schemas (were inline) — required so Bridge 2b can reference
+// `z.output<typeof X>` and prove the declared contract vs the service Result.
+const unreadCountSchema = z.object({ count: z.number() });
 @Router({ alias: "notification" })
 @RegisterPolicy("notification")
 @Policy({ authenticated: true })
@@ -29,7 +34,7 @@ export class NotificationRouter {
     private readonly notificationService: NotificationService,
   ) { }
 
-  @Query({ output: z.object({ count: z.number() }) })
+  @Query({ output: unreadCountSchema })
   async unreadCount(@Ctx() ctx: AppContext): Promise<{ count: number }> {
     const count = unwrapResult(
       await this.notificationService.getUnreadCount(ctx.execution!.principal.id),
@@ -77,3 +82,25 @@ export class NotificationRouter {
     );
   }
 }
+
+// SubtypeGuillotine (one-directional: schema output ⊆ return type) — response
+// schemas are Drizzle-derived projections; the hand-written interface is the
+// wider SSOT, so AssertEqual would false-positive. See audit G3.
+type _verify_unreadCountOutput = SubtypeGuillotine<
+  z.output<typeof unreadCountSchema>,
+  Awaited<ReturnType<NotificationRouter["unreadCount"]>>
+>;
+type _verify_sendOutput = SubtypeGuillotine<
+  z.output<typeof notificationOutputSchema>,
+  Awaited<ReturnType<NotificationRouter["send"]>>
+>;
+type _verify_markAsReadOutput = SubtypeGuillotine<
+  z.output<typeof notificationOutputSchema>,
+  Awaited<ReturnType<NotificationRouter["markAsRead"]>>
+>;
+
+export type _NotificationGuillotines = ActivateGuillotines<[
+  _verify_unreadCountOutput,
+  _verify_sendOutput,
+  _verify_markAsReadOutput
+]>;

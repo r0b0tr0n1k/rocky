@@ -47,6 +47,7 @@ import {
 import { HEALTH_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
 import { Ctx, Input, Mutation, Query, Router } from "nestjs-trpc";
 import { z } from "zod";
+import type { SubtypeGuillotine, ActivateGuillotines } from "@rocky/validators/utils";
 
 const idParam = z.object({ id: z.uuid() });
 const unwrap = createResultUnwrapper(HEALTH_TRPC_ERROR_MAP);
@@ -182,3 +183,35 @@ export class HealthRouter {
   }
 
 }
+
+// ── Bridge 2b: thin router return (service success type) vs declared `output:` ──
+type _verify_getDiseaseOutput = SubtypeGuillotine<z.output<typeof diseaseResponseSchema>, Awaited<ReturnType<HealthRouter["getDisease"]>>>;
+type _verify_listDiseasesOutput = SubtypeGuillotine<z.output<typeof diseaseListResponseSchema>, Awaited<ReturnType<HealthRouter["listDiseases"]>>>;
+type _verify_createDiseaseOutput = SubtypeGuillotine<z.output<typeof diseaseResponseSchema>, Awaited<ReturnType<HealthRouter["createDisease"]>>>;
+type _verify_getVaccineOutput = SubtypeGuillotine<z.output<typeof vaccineResponseSchema>, Awaited<ReturnType<HealthRouter["getVaccine"]>>>;
+type _verify_listVaccinesOutput = SubtypeGuillotine<z.output<typeof vaccineListResponseSchema>, Awaited<ReturnType<HealthRouter["listVaccines"]>>>;
+type _verify_createVaccineOutput = SubtypeGuillotine<z.output<typeof vaccineResponseSchema>, Awaited<ReturnType<HealthRouter["createVaccine"]>>>;
+type _verify_createVaccineBatchOutput = SubtypeGuillotine<z.output<typeof vaccineBatchResponseSchema>, Awaited<ReturnType<HealthRouter["createVaccineBatch"]>>>;
+type _verify_getVaccinationOutput = SubtypeGuillotine<z.output<typeof vaccinationResponseSchema>, Awaited<ReturnType<HealthRouter["getVaccination"]>>>;
+type _verify_listVaccinationsOutput = SubtypeGuillotine<z.output<typeof vaccinationListResponseSchema>, Awaited<ReturnType<HealthRouter["listVaccinations"]>>>;
+type _verify_recordVaccinationOutput = SubtypeGuillotine<z.output<typeof vaccinationResponseSchema>, Awaited<ReturnType<HealthRouter["recordVaccination"]>>>;
+type _verify_getTreatmentOutput = SubtypeGuillotine<z.output<typeof treatmentResponseSchema>, Awaited<ReturnType<HealthRouter["getTreatment"]>>>;
+type _verify_listTreatmentsOutput = SubtypeGuillotine<z.output<typeof treatmentListResponseSchema>, Awaited<ReturnType<HealthRouter["listTreatments"]>>>;
+type _verify_recordTreatmentOutput = SubtypeGuillotine<z.output<typeof treatmentResponseSchema>, Awaited<ReturnType<HealthRouter["recordTreatment"]>>>;
+type _verify_listBatchesOutput = SubtypeGuillotine<z.output<typeof vaccineBatchListResponseSchema>, Awaited<ReturnType<HealthRouter["listBatches"]>>>;
+type _verify_getLabTestOutput = SubtypeGuillotine<z.output<typeof labTestResponseSchema>, Awaited<ReturnType<HealthRouter["getLabTest"]>>>;
+type _verify_listLabTestsOutput = SubtypeGuillotine<z.output<typeof labTestListResponseSchema>, Awaited<ReturnType<HealthRouter["listLabTests"]>>>;
+type _verify_recordLabTestOutput = SubtypeGuillotine<z.output<typeof labTestResponseSchema>, Awaited<ReturnType<HealthRouter["recordLabTest"]>>>;
+type _verify_getVaccineDiseasesOutput = SubtypeGuillotine<z.output<typeof vaccineDiseaseListResponseSchema>, Awaited<ReturnType<HealthRouter["getVaccineDiseases"]>>>;
+type _verify_linkVaccineDiseaseOutput = SubtypeGuillotine<z.output<typeof vaccineDiseaseResponseSchema>, Awaited<ReturnType<HealthRouter["linkVaccineDisease"]>>>;
+type _verify_unlinkVaccineDiseaseOutput = SubtypeGuillotine<z.output<typeof vaccineDiseaseUnlinkResponseSchema>, Awaited<ReturnType<HealthRouter["unlinkVaccineDisease"]>>>;
+
+export type _HealthGuillotines = ActivateGuillotines<[
+  _verify_getDiseaseOutput, _verify_listDiseasesOutput, _verify_createDiseaseOutput, _verify_getVaccineOutput,
+  _verify_listVaccinesOutput, _verify_createVaccineOutput, _verify_createVaccineBatchOutput,
+  _verify_getVaccinationOutput, _verify_listVaccinationsOutput, _verify_recordVaccinationOutput,
+  _verify_getTreatmentOutput, _verify_listTreatmentsOutput, _verify_recordTreatmentOutput,
+  _verify_listBatchesOutput, _verify_getLabTestOutput, _verify_listLabTestsOutput,
+  _verify_recordLabTestOutput, _verify_getVaccineDiseasesOutput, _verify_linkVaccineDiseaseOutput,
+  _verify_unlinkVaccineDiseaseOutput
+]>;
