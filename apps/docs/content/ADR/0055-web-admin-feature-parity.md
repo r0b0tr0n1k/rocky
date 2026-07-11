@@ -180,6 +180,20 @@ Target state: web invokes all 24 routers (`sync` exempt as monitor); every Mutat
    `Permissions` (ADR-0050).
 5. **Silent gap** — adding a backend procedure with no web affordance and no `check:web-parity` guard.
 
+
+## Decomposition (per-tier ADRs)
+
+ADR-0055 is the charter; the domain detail lives in per-tier ADRs so no single
+document becomes a 2000-line monolith (ADR-0055 §Anti-Patterns). Each plans every
+domain's frontend representation with a distinctive design signature.
+
+- **ADR-0056** — Web UI: Tier 0 (Presence) — `farmBook`, `vsContract`, `vsAssignment`, `sync` → Phase 1.
+- **ADR-0057** — Web UI: Tier 1 Lifecycle (Regulatory core) — `earTag`, `health`, `passport` → Phase 2.
+- **ADR-0058** — Web UI: Tier 1 Operational — `correction`, `iot`, `notification`, `rbac`, `systemParameters`, `document` → Phase 3.
+- **ADR-0059** — Web UI: Tier 2 Deepen — `archive`, `device`, `inspection`, `movement`, `organization` → Phase 3.
+
+The 24-router coverage matrix above remains the index.
+
 ## Related ADRs
 
 - **ADR-0050** — Frontend ↔ Backend Contract Synchronization (code-level contract, not UI parity).
