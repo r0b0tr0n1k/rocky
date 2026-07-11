@@ -97,6 +97,7 @@ Every architecture and documentation decision in this repo is governed by two AD
 - `check:adrs` — every `NNNN-*.md` in `content/ADR/` conforms to ADR-0033.
 - `check:md-links` — every internal doc link resolves; no `../` escapes.
 - `check:agents` — every bot declared in the Child RobotFarm Index owns an `AGENTS.md`; no stale child-index references.
+> ⚠️ **Build gate ≠ `ci:checks`.** `ci:checks` = `generate:trpc` + the link/ADR/agent guardians + `pnpm test` (vitest, **no `tsc` build**). It does **not** run the production build: `next build` (docs) or `nest build` (api — which type-checks the `*.test.ts` files). The real gate that catches build-rot is the full **`pnpm build`** (turbo). A green `ci:checks` is **not** a green build — run `pnpm build` before declaring done. (Lived this session: a 4-layer rot — api test TS7023 → docs TSDoc `next-mdx-import-source-file` → `MDXComponents` TS2742 → `page.tsx` `<Wrapper>` TS2786 — was invisible to `ci:checks` and only surfaced at `pnpm build`.)
 
 ### Recipes (how-to)
 - [Write an ADR](https://github.com/r0b0tr0n1k/rocky/blob/main/apps/docs/content/how-to/write-an-adr.mdx) · [Add a doc page](https://github.com/r0b0tr0n1k/rocky/blob/main/apps/docs/content/how-to/add-a-doc-page.mdx) · [Run the Guardians](https://github.com/r0b0tr0n1k/rocky/blob/main/apps/docs/content/how-to/run-the-guardians.mdx)
