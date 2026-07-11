@@ -21,6 +21,7 @@ import {
   SlidersHorizontal,
   ToggleLeft,
   FileSignature,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
 
@@ -67,6 +68,7 @@ export const navSections: NavSection[] = [
     title: "Infrastructure",
     items: [
       { title: "Farms", href: "/farms", permission: "hk:farm:read", icon: Building2 },
+      { title: "Farm Books", href: "/farm-books", icon: BookOpen },
       { title: "Organizations", href: "/organizations", permission: "sm:orgs:read", icon: Users },
       { title: "Subjects", href: "/subjects", permission: "hk:subject:read", icon: UserCircle },
       { title: "PDA Devices", href: "/devices", permission: "pda:sync", icon: TabletSmartphone },
