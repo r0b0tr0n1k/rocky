@@ -11,7 +11,7 @@
 | **Source** | IMSOC Reg (EU) 2019/1715; TRACES NT; CHED-A (Common Health Entry Document — Animals); ADR-0054 R9; ADR-0061 (GDPR); ADR-0030 (RuleSet) |
 | **Supersedes** | None |
 | **Superseded** | None |
-| **Related** | ADR-0054 (regulatory framework, strike 9 / R9); ADR-0061 (GDPR — CHED as lawful PII disclosure); ADR-0030 (RuleSet); PDF Bot `packages/pdf`; Movement domain |
+| **Related** | ADR-0054 (regulatory framework, strike 9 / R9); ADR-0061 (GDPR — CHED as lawful PII disclosure); ADR-0030 (RuleSet); PDF Bot `packages/pdf`; Movement domain; ADR-0009 (document-generation architecture — CHED as a PDF/document template) |
 
 ## Context
 

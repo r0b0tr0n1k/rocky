@@ -2,7 +2,7 @@
 
 | Key            | Value                                                                  |
 | -------------- | ---------------------------------------------------------------------- |
-| **Status**     | Proposed                       |
+| **Status**     | Accepted                       |
 | **Date**       | 2026-07-11                                                             |
 | **Author**     | Architecture Review (Geo & Regulatory strike, prompted by user direction) |
 | **Source**     | User directive "The Map and the Territory"; TRACES NT; EU AHL 2016/429; INSPIRE Directive 2007/2/EC; LPIS / CAP; Baudrillard _Simulacra and Simulation_ |

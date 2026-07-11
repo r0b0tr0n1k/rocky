@@ -7,7 +7,7 @@
 | **Author** | Architecture Review (regulatory strike, prompted by user directive) |
 | **Supersedes** | None |
 | **Superseded** | None |
-| **Related** | ADR-0053 (geo / WO-110 PostGIS); ADR-0054 (R1); ADR-0030 (RuleSet); WO-115 (EUDR) |
+| **Related** | ADR-0053 (geo / WO-110 PostGIS); ADR-0054 (R1); ADR-0030 (RuleSet); WO-115 (EUDR); ADR-0025 (animal-movement-domain — EUDR gates movement create) |
 
 ## Context
 

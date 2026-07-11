@@ -1291,14 +1291,14 @@ audited contractor (conflict of interest) — rejected.
 | WO-112 | OSM boundaries doc + Nominatim reverse-geocode (telemetry/display only) | 0053       | P3       | Draft  |
 | WO-113 | AMR withdrawal guillotine in `MovementService` (block slaughter; 403 `WITHDRAWAL_PERIOD_ACTIVE`) | 0054 / 0030 | P2 | Done ✅ |
 | WO-114 | Transport welfare max-hours + mandatory rest-stop leg alert          | 0054 / 0030   | P2       | Done ✅  |
-| WO-115 | EUDR due-diligence: pasture polygon overlay + deforestation cutoff   | 0054 / 0053   | P2       | Done  |
+| WO-115 | EUDR due-diligence: pasture polygon overlay + deforestation cutoff   | 0054 / 0053 / 0063 | P2       | Done  |
 | WO-116 | FSMA §204 KDE/CTE export + Lineage & Traceability Graph API (General Food Law) | 0054 / 0030 | P2 | Done ✅   |
-| WO-117 | GDPR pseudonymization on subject exit (keep `subject_id`, scrub PII)  | 0054 / 0030   | P2       | Draft  |
+| WO-117 | GDPR pseudonymization on subject exit (keep `subject_id`, scrub PII)  | 0054 / 0030 / 0061 | P2       | Draft  |
 | WO-118 | ISO 11784/11785 15-digit tag format + jurisdiction prefix (840=US)    | 0054 / 0030   | P2       | Done ✅  |
-| WO-119 | Disease-zone spatial block (3 km / 10 km) via `geofences.polygon` + RuleSet radii | 0054 / 0053 | P2 | Done |
+| WO-119 | Disease-zone spatial block (3 km / 10 km) via `geofences.polygon` + RuleSet radii | 0054 / 0053 / 0064 | P2 | Done |
 | WO-120 | Bovine I&R 7/20 as **non-overridable EU floor** (R8): harden WO-022 deadlines; clamp RuleSet `TAGGING_DAYS` >= EU min | 0054 / 0028 | P2 | Done ✅ |
-| WO-121 | IMSOC / CHED export compliance (R9): export movements emit CHED-compliant JSON/XML (TRACES NT) | 0054 / 0054 | P2 | ✅ Done |
-| WO-122 | GDPR public-health exception (R10): Art.6(1)(c)+9(2)(i) defeat erasure; protect audit_log | 0054 / 0054 | P2 | Draft |
+| WO-121 | IMSOC / CHED export compliance (R9): export movements emit CHED-compliant JSON/XML (TRACES NT) | 0054 / 0062 | P2 | ✅ Done |
+| WO-122 | GDPR public-health exception (R10): Art.6(1)(c)+9(2)(i) defeat erasure; protect audit_log | 0054 / 0061 | P2 | Draft |
 
 ---
 

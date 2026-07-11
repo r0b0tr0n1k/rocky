@@ -2,7 +2,7 @@
 
 | Key            | Value                                                                  |
 | -------------- | ---------------------------------------------------------------------- |
-| **Status**     | Proposed                       |
+| **Status**     | Accepted                       |
 | **Date**       | 2026-07-11                                                             |
 | **Author**     | Architecture Review (Regulatory strike, prompted by user directive)    |
 | **Source**     | EUDR 2023/1115; USDA APHIS ADT; FDA FSMA §204; EU 2019/6 (Vet Med/AMR); EC 1/2005 (Transport Welfare); EC 178/2002 (General Food Law); GDPR |

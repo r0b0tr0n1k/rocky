@@ -7,7 +7,7 @@
 | **Author** | Architecture Review (regulatory strike, prompted by user directive) |
 | **Supersedes** | None |
 | **Superseded** | None |
-| **Related** | WO-119 · ADR-0053 (Geo/PostGIS) · ADR-0054 (Regulatory R1–R10, AHL 2016/429) · WO-115 (EUDR overlay) · WO-121 (CHED `requireDiseaseClear`) |
+| **Related** | WO-119 · ADR-0053 (Geo/PostGIS) · ADR-0054 (Regulatory R1–R10, AHL 2016/429) · WO-115 (EUDR overlay) · WO-121 (CHED `requireDiseaseClear`); ADR-0025 (animal-movement-domain — disease-zone gates cross-farm moves) |
 
 ## Context
 

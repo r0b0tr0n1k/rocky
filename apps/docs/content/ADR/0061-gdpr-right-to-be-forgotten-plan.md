@@ -499,3 +499,6 @@ derivation in the erasure service.
 - **ADR-0030** — RuleSet; every threshold / override here is a jurisdiction param, not a constant.
 - **ADR-0023** — traceability; the epidemiological continuity that justifies keeping facts.
 - **root AGENTS.md** — ExecutionPipeline `ExecutionEventEmitter`; RLS; Error Sovereignty doctrine.
+- **ADR-0003** — execution pipeline; the audit log (D7) is emitted via its `ExecutionEventEmitter`.
+- **ADR-0007** — audit via lifecycle events; the signed, tamper-evident access-log is the concrete instance.
+- **ADR-0016** — subversive audit metadata; the `prev_sig` hash-chain that makes the log tamper-evident.
