@@ -106,6 +106,59 @@ Acceptance: no page uses raw `div`+`space-y-*` forms or custom `Badge` spans; al
 6. Rebuilding `data-table` instead of composing it.
 7. Treating `sync` as an editor (it is a read-only monitor — ADR-0056).
 
+
+## Validation & tRPC data flow
+
+**No separate frontend Zod.** The backend router declares `@Mutation({ input: createXRequestSchema })`; that *same* schema lives in `@rocky/validators/api` and is imported by the web. Binding it to react-hook-form via `useValidatedForm(schema)` (which uses `zodResolver`) makes **client validation === server contract** — the Diamond Seal / NoDrift guarantee (ADR-0052). A second, frontend-only Zod would *recreate the very drift the Seal forbids*.
+
+**Source-of-truth imports (the web never imports `@rocky/database`):**
+- Schemas + Summary/Response types: `@rocky/validators/api` (e.g. `issuePassportRequestSchema`, `PassportSummary`).
+- Enum *choices*: `@rocky/validators/enums` (e.g. `PASSPORT_STATUS`, `CORRECTION_STATUS`).
+- Procedure types: `AppRouter` from `@rocky/trpc` (generated from `packages/trpc/src/generated/server.ts`); `useTRPC()` yields the typed client.
+
+### Canonical recipe (proven in `passports/page.tsx`)
+```tsx
+import { issuePassportRequestSchema, type AnimalSummary, type FarmSummary }
+  from "@rocky/validators/api";
+import { PASSPORT_STATUS, type passportStatusType } from "@rocky/validators/enums";
+import { useTRPC } from "#lib/trpc";
+import { ActionDialog } from "#components/shared/action-dialog";
+import { ComboboxField } from "#components/shared/form-fields";
+
+const trpc = useTRPC();
+const issue = useMutation(trpc.passport.issueForAnimal.mutationOptions({
+  onSuccess: () => { invalidate(); notifySuccess("Passport issued"); },
+}));
+// Dynamic FK choices from tRPC queries (not hardcoded):
+const animals = useQuery(trpc.animal.list.queryOptions({ limit: 100 }));
+const animalOptions = (animals.data?.data ?? [] as AnimalSummary[]).map(a => ({ value: a.id, label: a.earTagNumber }));
+// Static enum choices:
+Object.values(PASSPORT_STATUS).map(s => <SelectItem value={s}>{s}</SelectItem>);
+
+<ActionDialog schema={issuePassportRequestSchema} mutation={issue}
+  fields={(form) => <ComboboxField control={form.control} name="animalId" label="Animal" options={animalOptions} />} />
+```
+
+`ActionDialog` internally calls `useValidatedForm(schema)` and submits to `mutation.mutate(values)` — schema + validation + tRPC mutation + overlay in one primitive.
+
+### Modern UX tricks with the data
+1. **Enum choices from constants** — derive `Select`/`Combobox`/`ToggleGroup` options from `@rocky/validators/enums` (`Object.values(STATUS)`); type-safe, zero drift.
+2. **FK choices from tRPC queries** — `useQuery(trpc.x.list)` → map to `{value,label}` → `ComboboxField` (type-ahead). "Knowing the choices" comes from the server.
+3. **Dependent options** — chain queries with `enabled: !!parentId` (pick farm → fetch its animals).
+4. **Async uniqueness** — debounced tRPC query + `z.superRefine` advisory (server stays authoritative), e.g. `earTag.findByNumber`.
+5. **Prefill edit forms** — `defaultValues` from `trpc.x.getById.useQuery()` output (the `XResponse` type).
+6. **Optimistic + toast** — `mutationOptions({ onSuccess: () => { invalidate(); notifySuccess() } })` (ADR-0060 contract).
+7. **Dates via superjson** — `DateField` emits a real `Date`; `z.date()` accepts; survives the wire (`transformer` from `@rocky/trpc/superjson`).
+8. **Disable from server state** — disable a form + show `Alert` when a query says so (e.g. `farmHasOverdueBirths` blocks `movement`).
+9. **Type-safe errors** — router maps domain errors → `TRPCError`; client shows `notifyError`.
+
+### Anti-Patterns
+1. A separate frontend Zod (recreates drift — forbidden by the Diamond Seal).
+2. Hardcoding enum option arrays instead of `@rocky/validators/enums`.
+3. Importing `@rocky/database` from the web.
+4. Not reusing `ActionDialog` / `ValidatedForm` (hand-rolling the overlay).
+5. Mutations without `notifySuccess` / `notifyError` (ADR-0060 contract).
+
 ## Related ADRs
 
 - **ADR-0055** — parity charter; **ADR-0056 / 0057 / 0058 / 0059** — per-tier, per-domain maps.
