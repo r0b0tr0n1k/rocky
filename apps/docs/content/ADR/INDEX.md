@@ -74,7 +74,7 @@ All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 66
 | ADR-0060 | Web UI Component & Feedback Map |
 
 
-### Regulatory, Geo & Recent Architecture (0053-0066)
+### Regulatory, Geo & Recent Architecture (0053-0067)
 
 | ADR | Title |
 | --- | --- |
@@ -92,6 +92,7 @@ All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 66
 | ADR-0064 | Disease-Zone Spatial Block (WO-119) |
 | ADR-0065 | Regulatory Gating on Mobile / Offline |
 | ADR-0066 | Error Sovereignty — Result Monad as the Domain↔Transport Boundary |
+| ADR-0067 | ISMS Posture & ISO 27001 / 27701:2025 Conformity Roadmap |
 
 
 > Generated from `apps/docs/content/ADR/*.md` first-heading titles. Regenerate after adding an ADR.
