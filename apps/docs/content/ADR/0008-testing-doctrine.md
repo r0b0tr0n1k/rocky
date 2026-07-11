@@ -12,7 +12,7 @@
 
 ## Context
 
-The Rocky codebase had **zero tests**. The testing infrastructure needed to be designed from scratch, aligned with the existing Diamond Seal architecture (Drizzle → Dumb Zod → API Zod → Factory) and the architecture defined in the [Auth Architecture](../AUTH_ARCHITECTURE.md) and [Testing Doctrine](../TESTING_DOCTRINE.md).
+The Rocky codebase had **zero tests**. The testing infrastructure needed to be designed from scratch, aligned with the existing Diamond Seal architecture (Drizzle → Dumb Zod → API Zod → Factory) and the architecture defined in the [Auth Architecture](https://github.com/r0b0tr0n1k/rocky/blob/main/docs/AUTH_ARCHITECTURE.md) and [Testing Doctrine](../TESTING_DOCTRINE.md).
 
 The codebase has several specific properties that constrain the testing approach:
 

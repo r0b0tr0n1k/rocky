@@ -43,6 +43,6 @@ Both are corrected in `result-monad-and-error-sovereignty.md`.
 ## Related
 
 - [Result Monad & Error Sovereignty](./result-monad-and-error-sovereignty.md) — the doctrine under test
-- [Offline Subsystem Doctrine Test](../scripts/verify-offline-doctrine.mjs) — same doc-test pattern applied to the mobile offline contract (WO-082); run with `pnpm --filter docs test:offline`
+- [Offline Subsystem Doctrine Test](https://github.com/r0b0tr0n1k/rocky/blob/main/apps/docs/scripts/verify-offline-doctrine.mjs) — same doc-test pattern applied to the mobile offline contract (WO-082); run with `pnpm --filter docs test:offline`
 - [Router Patterns & Anti-Patterns](./router-patterns.md)
 - [Router Design (Canonical Blueprint)](./router-design.md)

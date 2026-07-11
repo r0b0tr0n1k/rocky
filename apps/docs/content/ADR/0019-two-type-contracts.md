@@ -284,7 +284,7 @@ conforms to the same external type at runtime.
   the api shape, errors in `*.errors.ts`.
 - **Static check:** `npx tsc --noEmit` (guillotine) + the ADR 0011 import-boundary lint
   already enforce the boundaries this ADR describes.
-- Reference: `docs/VALIDATOR_DESIGN_GUIDE.md` for the full `api.ts` construction how-to.
+- Reference: `https://github.com/r0b0tr0n1k/rocky/blob/main/docs/VALIDATOR_DESIGN_GUIDE.md` for the full `api.ts` construction how-to.
 
 ## Alternatives Considered
 

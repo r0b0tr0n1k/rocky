@@ -126,5 +126,5 @@ _Fig. 1 — The composable stage chain. Ordering is load-bearing: `RLSStage` mus
 
 ## References
 
-- [AUTH_ARCHITECTURE.md](../AUTH_ARCHITECTURE.md) — Refinement 7: Execution Pipeline and Refinement 8: Audit via Lifecycle Events
+- [AUTH_ARCHITECTURE.md](https://github.com/r0b0tr0n1k/rocky/blob/main/docs/AUTH_ARCHITECTURE.md) — Refinement 7: Execution Pipeline and Refinement 8: Audit via Lifecycle Events
 - `apps/api/src/trpc/middlewares/` — current tRPC-specific middlewares

@@ -83,6 +83,6 @@ The only value that crosses the boundary from `auth` to `authorization` is the *
 
 ## References
 
-- [AUTH_ARCHITECTURE.md](../AUTH_ARCHITECTURE.md) — full architecture document
+- [AUTH_ARCHITECTURE.md](https://github.com/r0b0tr0n1k/rocky/blob/main/docs/AUTH_ARCHITECTURE.md) — full architecture document
 - `apps/api/src/auth/auth.ts` — current Better Auth configuration
 - `packages/database/src/schema/sm/rbac.ts` — current RBAC schema

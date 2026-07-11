@@ -46,7 +46,7 @@
 | WO-030 | `*.service.workflow.test.ts` per domain (state machines)      | 0020 P1    | P1       | Done ✅ |
 | WO-031 | `*.repository.rls.test.ts` per security-sensitive domain      | 0020 P1    | P1       | Done       |
 | WO-032 | Audit JSDoc: strip WHAT-tautologies, keep WHY-constraints      | 0020 P1    | P1       | Done    |
-| WO-033 | `*/e2e/*.test.ts` border tests (real Postgres RLS)            | 0020 P2    | P2       | Open   |
+| WO-033 | `*/e2e/*.test.ts` border tests (real Postgres RLS)            | 0020 P2    | P2       | In Progress ⏳   |
 | WO-034 | Scaffold `@rocky/observability`; implement `TraceStage`/`MetricsStage` | 0020 P2 / 0003 | P2 | Open |
 | WO-035 | Retire manual `logger.*` in services → span attributes        | 0020 P3    | P3       | Open   |
 | WO-036 | Business metrics emitted inside domain services/workers       | 0020 P3    | P3       | Open   |
@@ -174,6 +174,7 @@
   after `earTag.listOrders` returns orders) → fixed to `orderNumber`/`orderDate`;
   `providers/permissions-provider.tsx` consumed `myPermissions` as a flat `string[]` (actual shape
   `{permissions, roles}`) → fixed to `data?.permissions ?? []`. Both pre-existing, now green.
+- **DB enabler enacted (2026-07-11):** the `device_tokens` table + full RLS layer that WO-091/092/093 depend on is now present on the live DB (independently probed: `policy_count = 49`, `device_tokens_exists = t`). The offline/sync/push epic is therefore fully enacted server-side; WO-082's only remaining gate is native verification (harness cannot build native) + `EXPO_ACCESS_TOKEN` in `apps/api/.env`.
 - **Source:** ADR-0035 §Decision B / Consequences; ADR-0036 §WO-081.
 
 ### WO-108 — Sync health-record conflict detection (gap ②) — P2
@@ -360,10 +361,7 @@ rg -n "Tabs.Screen" "apps/mob/app/(tabs)/_layout.tsx"   # now conditional
   and persists it through the new `notification.registerDevice` mutation. Server: `sm/device_tokens` table (Drizzle
   + RLS) + `NotificationRepository` (`upsertDeviceToken`/`findDeviceTokensByUsers`) + `NotificationService.registerDevice`
   + `emitPush` (Expo Push API via `packages/domains/notification/src/clients/expo-push.client.ts`; best-effort, respects
-  opt-outs via the token table). `notification.send` now fires a push to the recipient. **Remaining infra:** (1) apply
-  the `device_tokens` migration (`cd packages/database && pnpm generate` → `fix-rls-sql.mjs` → psql); (2) set
-  `EXPO_ACCESS_TOKEN` (EAS project access token) in the API `.env` — without it, emission is skipped (pull still works);
-  (3) native verify on a device (push token + routing only provable on-device, per WO-082 acceptance).
+  opt-outs via the token table). `notification.send` now fires a push to the recipient. **Remaining infra (updated 2026-07-11):** (1) ~~apply the `device_tokens` migration~~ **ENACTED** — `device_tokens` table is present on the live DB (`192.168.1.109/tbot`); the RLS layer was reconciled in the same pass: `isRoleIn(...)` now inlines the role list as a literal `ARRAY['SUPER_ADMIN','VD_ADMIN','VD_STAFF']` via `sql.raw` (kills the Postgres-rejected `ANY(($1,$2,$3))` tuple form — `scripts/fix-rls-sql.mjs` is now surplus for tuples), `db-recreate.sh` prepends `SET check_function_bodies = off` so `farm_org_id()` compiles before the 26 policies that call it, and the `psql | tail -3` truncation was replaced with full-output logging. Independently verified: **49 RLS policies, all `ANY(ARRAY[...])`, 0 tuples**; `device_tokens_access_policy` = `current_role = ANY(ARRAY['SUPER_ADMIN','VD_ADMIN','VD_STAFF']) OR user_id = current_user_id` ✓. (2) **still open:** set `EXPO_ACCESS_TOKEN` (EAS project access token) in `apps/api/.env` — without it, server-side emission is skipped (pull still works); placeholder already in `.env.example`. (3) **still open:** native verify on a device (push token + routing only provable on-device, per WO-082 acceptance).
 
 ### WO-092 — Background sync task — P2
 
@@ -1146,3 +1144,29 @@ permission / parity); (B) screen inventory with ✅/🟡 status (existing vs pla
 Key finding: mobile is the field-data-entry surface, web is the back-office — COMPLEMENTARY,
 not 1:1 (informs ADR-0052 parity contract). Extends ADR-0034/0039; cites ADR-0022/0032/0042/
 0049/0050. 🟡 gaps (web detail pages, mobile create/edit flows) map to WO-094/095/096.
+
+
+## WO-033 corrigendum (2026-07-11)
+
+- **Repository-level RLS coverage extended (Scenario C, real Postgres):** added
+  `packages/domains/farm/src/repositories/farm.repository.rls.test.ts` and
+  `packages/domains/subject/src/repositories/subject.repository.rls.test.ts`, joining the existing
+  animal/movement/passport/archive RLS tests. Both use `@rocky/testing` factories (`FarmFactory` /
+  `SubjectFactory`) + the real repositories (Drizzle / schema) for I/O, and raw `sql` only for
+  `set_config` role context + cleanup — the proven ADR-0020 pattern. They assert the compliance
+  kernel: linked farmer reads own row; unlinked farmer hidden; admin sees all; farmer **WRITE**
+  blocked by the policy `withCheck` (`rejects.toThrow()`). Env-gated on the `rocky_rls_test`
+  constrained role (`DATABASE_URL` / `RLS_ADMIN_URL`); skip cleanly without env; execute in CI.
+  Subject package gained `vitest` / `vite-tsconfig-paths` / `@rocky/testing` devDeps + `vitest.config.ts`
+  + `test` script; farm gained the `postgres` devDep.
+- **Blocker — the full-pipeline `*/e2e/*.test.ts` border suite is NOT yet delivered:** `@rocky/trpc`
+  exports the `AppRouter` **type** but **not the `appRouter` instance**, and there is **no
+  `createCaller`**. A test therefore cannot drive the tRPC Router → Service → Repository → Postgres →
+  Zod pipeline. The remaining WO-033 sub-task is to expose the router instance + a test `AppContext`
+  builder (small, specified change in `@rocky/trpc`), then add 1–2 `*/e2e/*.test.ts` border tests.
+- **Pre-existing, out-of-scope:** `packages/domains/farm/src/services/farm-book.service.workflow.test.ts`
+  fails typecheck (`Property 'code' does not exist on type 'Error'`, lines 52/78). Untouched by WO-033;
+  flag separately (likely a coded-error typing fix).
+- **Lesson (the Real):** RLS border testing at the repository level was already mechanized and merely
+  under-populated; the genuine WO-033 gap is the *pipeline* border layer, gated on the tRPC caller
+  wiring.

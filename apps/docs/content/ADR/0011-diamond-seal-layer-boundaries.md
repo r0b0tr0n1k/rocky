@@ -274,7 +274,7 @@ These additions will be implemented when the codebase reaches sufficient scale t
 
 ## References
 
-- [Diamond Seal Validation Doctrine](../../packages/validators/src/utils/type-bridge.ts)
+- [Diamond Seal Validation Doctrine](https://github.com/r0b0tr0n1k/rocky/blob/main/packages/validators/src/utils/type-bridge.ts)
 - [NestJS Providers](https://docs.nestjs.com/providers)
 - [neverthrow Result Pattern](https://neverthrow.gitbook.io/neverthrow)
 

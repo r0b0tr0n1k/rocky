@@ -211,7 +211,7 @@ breaks the tether and lets drift through.
 - Template: copy any of the fully-compliant reference files — `farms.api.ts`, `health.api.ts`,
   `inspection.api.ts`, `iot.api.ts`, `movements.api.ts`, or `notifications.api.ts`
   (all carry `satisfies z.ZodType` **and** `ActivateGuillotines`).
-- Full how-to: `docs/VALIDATOR_DESIGN_GUIDE.md`.
+- Full how-to: `https://github.com/r0b0tr0n1k/rocky/blob/main/docs/VALIDATOR_DESIGN_GUIDE.md`.
 
 ## Alternatives Considered
 

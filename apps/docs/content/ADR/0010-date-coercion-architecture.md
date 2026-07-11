@@ -288,8 +288,8 @@ const service = {
 
 - [Drizzle Zod Documentation](https://orm.drizzle.team/docs/zod)
 - [Zod Coerce Documentation](https://zod.dev/?id=coercion-for-primitives)
-- [Diamond Seal Validation Doctrine](../../packages/validators/src/utils/type-bridge.ts)
-- [Validator Design Guide](../VALIDATOR_DESIGN_GUIDE.md)
+- [Diamond Seal Validation Doctrine](https://github.com/r0b0tr0n1k/rocky/blob/main/packages/validators/src/utils/type-bridge.ts)
+- [Validator Design Guide](https://github.com/r0b0tr0n1k/rocky/blob/main/docs/VALIDATOR_DESIGN_GUIDE.md)
 
 ## Related ADRs
 

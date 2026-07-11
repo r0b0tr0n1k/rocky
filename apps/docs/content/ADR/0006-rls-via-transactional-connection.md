@@ -134,7 +134,7 @@ async use(opts: MiddlewareOptions<AppContext>) {
 
 ## References
 
-- [AUTH_ARCHITECTURE.md](../AUTH_ARCHITECTURE.md) — CRITICAL: Transaction Scoping Problem
+- [AUTH_ARCHITECTURE.md](https://github.com/r0b0tr0n1k/rocky/blob/main/docs/AUTH_ARCHITECTURE.md) — CRITICAL: Transaction Scoping Problem
 - [PostgreSQL SET documentation](https://www.postgresql.org/docs/current/sql-set.html)
 - `packages/database/src/index.ts` — postgres client with `max: 20`
 - `packages/trpc/src/middleware/withRls.ts` — current `injectRlsContext` utility

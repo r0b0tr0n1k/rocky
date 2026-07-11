@@ -130,6 +130,6 @@ Examples:
 
 ## References
 
-- [AUTH_ARCHITECTURE.md](../AUTH_ARCHITECTURE.md) — Refinement 5: Policy Engine Only Understands Actions
+- [AUTH_ARCHITECTURE.md](https://github.com/r0b0tr0n1k/rocky/blob/main/docs/AUTH_ARCHITECTURE.md) — Refinement 5: Policy Engine Only Understands Actions
 - `apps/api/src/trpc/middlewares/permission.guard.ts` — current permission guard
 - `apps/api/src/trpc/middlewares/scope.guard.ts` — current scope guard

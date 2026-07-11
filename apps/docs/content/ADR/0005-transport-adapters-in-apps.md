@@ -128,6 +128,6 @@ export abstract class PipelineAdapter {
 
 ## References
 
-- [AUTH_ARCHITECTURE.md](../AUTH_ARCHITECTURE.md) — Refinement 9: Transport Adapters in `apps/api/adapters/`
+- [AUTH_ARCHITECTURE.md](https://github.com/r0b0tr0n1k/rocky/blob/main/docs/AUTH_ARCHITECTURE.md) — Refinement 9: Transport Adapters in `apps/api/adapters/`
 - `apps/api/src/routers/` — current tRPC routers
 - `apps/api/src/app.module.ts` — NestJS module wiring

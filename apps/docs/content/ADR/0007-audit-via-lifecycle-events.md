@@ -223,6 +223,6 @@ Subscribers should follow a convention for ordering when they depend on side eff
 
 ## References
 
-- [AUTH_ARCHITECTURE.md](../AUTH_ARCHITECTURE.md) — Refinement 8: Audit via Lifecycle Events
+- [AUTH_ARCHITECTURE.md](https://github.com/r0b0tr0n1k/rocky/blob/main/docs/AUTH_ARCHITECTURE.md) — Refinement 8: Audit via Lifecycle Events
 - `apps/api/src/app.module.ts` — current NestJS module configuration
 - [OpenTelemetry JavaScript](https://opentelemetry.io/docs/languages/js/)

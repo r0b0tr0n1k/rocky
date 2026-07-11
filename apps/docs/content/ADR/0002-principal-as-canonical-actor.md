@@ -118,6 +118,6 @@ const ClaimKeys = {
 
 ## References
 
-- [AUTH_ARCHITECTURE.md](../AUTH_ARCHITECTURE.md) — Refinement 2: Introduce First-Class Principal
+- [AUTH_ARCHITECTURE.md](https://github.com/r0b0tr0n1k/rocky/blob/main/docs/AUTH_ARCHITECTURE.md) — Refinement 2: Introduce First-Class Principal
 - `apps/api/src/app.context.ts` — current AppContext
 - `apps/api/src/trpc/middlewares/protected.middleware.ts` — current auth enrichment
