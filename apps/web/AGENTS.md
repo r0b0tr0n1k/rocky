@@ -10,6 +10,7 @@ Next.js admin panel for CPC/VD back-office workflows.
 ## Responsibilities
 
 - Build admin UI with `@rocky/ui` (shared shadcn components) and `@rocky/validators` (Zod).
+- Web-specific composition primitives live in `apps/web/components/shared/` (e.g. `ValidatedForm`, `data-table`, `status-badge`, `form-fields`, and `Stepper` for lifecycle state). Prefer these over hand-rolled markup.
 - Wire tRPC queries/mutations to the NestJS backend.
 - Owns the Web Admin ADRs (per ADR-0033) in `apps/docs/content/ADR/`.
 

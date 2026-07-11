@@ -16,5 +16,8 @@
     "lib": "#lib",
     "hooks": "#hooks",
     "utils": "@rocky/ui/lib/utils"
+  },
+  "registries": {
+    "@7ovr": "https://7ovr.com/r/{name}.json"
   }
 }
