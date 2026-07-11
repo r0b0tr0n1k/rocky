@@ -74,7 +74,7 @@ All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 66
 | ADR-0060 | Web UI Component & Feedback Map |
 
 
-### Regulatory, Geo & Recent Architecture (0053-0067)
+### Regulatory, Geo & Recent Architecture (0053-0072)
 
 | ADR | Title |
 | --- | --- |
@@ -93,6 +93,11 @@ All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 66
 | ADR-0065 | Regulatory Gating on Mobile / Offline |
 | ADR-0066 | Error Sovereignty — Result Monad as the Domain↔Transport Boundary |
 | ADR-0067 | ISMS Posture & ISO 27001 / 27701:2025 Conformity Roadmap |
+| ADR-0068 | Lawful Basis Register (A.1.2.3 / GDPR Art 6) |
+| ADR-0069 | Data Protection Impact Assessment Template (A.1.2.5 / GDPR Art 35) |
+| ADR-0070 | Records of Processing Activities - Derived, Not Stored (A.1.2.9 / GDPR Art 30) |
+| ADR-0071 | Cryptography-at-Rest via Off-Server Envelope Encryption (A.8.24 / GDPR Art 32) |
+| ADR-0072 | Personal Data Breach Notification Workflow (A.3.11/.12 / GDPR Art 33-34) |
 
 
 > Generated from `apps/docs/content/ADR/*.md` first-heading titles. Regenerate after adding an ADR.
