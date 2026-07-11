@@ -109,7 +109,7 @@ Acceptance: no page uses raw `div`+`space-y-*` forms or custom `Badge` spans; al
 
 ## Validation & tRPC data flow
 
-**No separate frontend Zod.** The backend router declares `@Mutation({ input: createXRequestSchema })`; that *same* schema lives in `@rocky/validators/api` and is imported by the web. Binding it to react-hook-form via `useValidatedForm(schema)` (which uses `zodResolver`) makes **client validation === server contract** — the Diamond Seal / NoDrift guarantee (ADR-0052). A second, frontend-only Zod would *recreate the very drift the Seal forbids*.
+**Reuse the shared schema; local/inlined Zod is fine for UI-only fields.** The backend router declares `@Mutation({ input: createXRequestSchema })`; that *same* schema lives in `@rocky/validators/api` — a **shared** package (the Diamond Seal), consumed by *both* backend and frontend, so it is not "the backend." Importing it makes **client validation === server contract** (NoDrift, ADR-0052) and is the preferred path. A frontend-local Zod is acceptable for concerns *outside* the backend contract (e.g. confirm-password, client-side transforms); you may even derive it from the tRPC data via `inferRouterInputs<AppRouter>`. But it must never be produced by importing backend internals. **The hard rule:** the web never imports `@rocky/database`, backend routers, or backend services — its only windows into the backend are `@rocky/validators` (schemas/enums) and `@rocky/trpc` (`AppRouter` types).
 
 **Source-of-truth imports (the web never imports `@rocky/database`):**
 - Schemas + Summary/Response types: `@rocky/validators/api` (e.g. `issuePassportRequestSchema`, `PassportSummary`).
@@ -153,7 +153,7 @@ Object.values(PASSPORT_STATUS).map(s => <SelectItem value={s}>{s}</SelectItem>);
 9. **Type-safe errors** — router maps domain errors → `TRPCError`; client shows `notifyError`.
 
 ### Anti-Patterns
-1. A separate frontend Zod (recreates drift — forbidden by the Diamond Seal).
+1. A *divergent* frontend Zod that shadows the backend contract (recreates drift — the Diamond Seal's NoDrift guard). Local UI-only Zod is fine; a second *source of truth* for server-shaped data is not.
 2. Hardcoding enum option arrays instead of `@rocky/validators/enums`.
 3. Importing `@rocky/database` from the web.
 4. Not reusing `ActionDialog` / `ValidatedForm` (hand-rolling the overlay).
