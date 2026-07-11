@@ -93,6 +93,8 @@ overridable per jurisdiction). The disease-zone intersection (strike 1's spatial
 
 - **WO-113 implemented:** `MovementService.create` throws `WITHDRAWAL_PERIOD_ACTIVE` (HTTP 403 FORBIDDEN via `MOVEMENT_TRPC_ERROR_MAP`) when a SLAUGHTERHOUSE/HOME_SLAUGHTER movement targets an animal with an active treatment (`treatments.diagnosis_date + withdrawal_period > now`). Also fixed a WO-022 gap: `FARM_LOCKED` now maps to 403. RuleSet default `amr.withdrawalPeriodDays` deferred to a follow-up (the treatment record is the authoritative per-product/species value per R4).
 
+- **WO-114 implemented (WO-114a):** `MovementService.create` enforces EC 1/2005 Ch.V transport-welfare maxima. Day-granular (schema has `date`-only `movementDate`/`arrivalDate`): unweaned calves (age < `welfare.unweanedMaxAgeDays`, default 120d) blocked from any overnight journey (`journeyDays >= welfare.maxSingleLegDays`=1); adult cattle blocked from multi-day journeys (`journeyDays >= welfare.multiDayMaxDays`=2). Maxima are jurisdiction-pluggable `RuleSet.welfare` params (non-throwing defaults in `WELFARE_DEFAULTS`, read from `system_parameters`). Movement types reference the canonical `MOVEMENT_TYPE` enum (no inline strings). **WO-114b deferred:** hour-precise R5 (14h/9h) needs `departureTs`/`arrivalTs` timestamps, and the rest-stop-leg rule (`parentMovementId`) needs that field on `CreateMovementRequest`.
+
 ## Workorder strikes (draft)
 
 - **WO-113** — AMR withdrawal guillotine in `MovementService` (block slaughter; 403 `WITHDRAWAL_PERIOD_ACTIVE`); RuleSet `amr.withdrawalPeriodDays`.

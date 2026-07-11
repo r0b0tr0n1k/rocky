@@ -183,6 +183,41 @@ export class MovementService {
         }
       }
 
+      // ── WO-114: Transport welfare guillotine (EC 1/2005 Ch.V) ──
+      // Day-granular (schema has date-only departure/arrival; hour-precise R5 14h/9h
+      // needs departureTs/arrivalTs timestamps — see WO-114b). Welfare-protective:
+      // unweaned calves may not do overnight transport; adult cattle may not exceed
+      // the 28h ceiling (14h+rest+14h). Rest-stop-leg enforcement (parentMovementId)
+      // is deferred to WO-114b (needs the field on CreateMovementRequest + timestamps).
+      const transportTypes: string[] = [
+        MOVEMENT_TYPE.SALE,
+        MOVEMENT_TYPE.PURCHASE,
+        MOVEMENT_TYPE.IMPORT,
+        MOVEMENT_TYPE.EXPORT,
+        MOVEMENT_TYPE.SLAUGHTERHOUSE,
+        MOVEMENT_TYPE.HOME_SLAUGHTER,
+      ];
+      if (transportTypes.includes(input.type ?? MOVEMENT_TYPE.SALE) && input.arrivalDate) {
+        const ruleSet = await this.system.getRuleSet();
+        if (ruleSet.isErr()) throw ruleSet.error;
+        const w = ruleSet.value.welfare;
+        const departure = new Date(input.movementDate);
+        const arrival = new Date(input.arrivalDate);
+        const journeyDays = daysBetween(departure, arrival);
+        const ageDays = daysBetween(new Date(animal.birthDate), departure);
+        const isUnweaned = ageDays < w.unweanedMaxAgeDays;
+        if (isUnweaned && journeyDays >= w.maxSingleLegDays) {
+          throw new MovementError(MOVEMENT_ERRORS.TRANSPORT_WELFARE_MAX_EXCEEDED, {
+            animalId: input.animalId, journeyDays, unweaned: true,
+          });
+        }
+        if (!isUnweaned && journeyDays >= w.multiDayMaxDays) {
+          throw new MovementError(MOVEMENT_ERRORS.TRANSPORT_WELFARE_MAX_EXCEEDED, {
+            animalId: input.animalId, journeyDays, unweaned: false,
+          });
+        }
+      }
+
       // ── Rule E.3: Single-farm org restriction ──
       // (Enforced via RLS — no code-level check needed)
 

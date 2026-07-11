@@ -1290,7 +1290,7 @@ audited contractor (conflict of interest) — rejected.
 | WO-111 | `addresses.location` varchar → PostGIS POINT (4326)                  | 0053          | P3       | Draft  |
 | WO-112 | OSM boundaries doc + Nominatim reverse-geocode (telemetry/display only) | 0053       | P3       | Draft  |
 | WO-113 | AMR withdrawal guillotine in `MovementService` (block slaughter; 403 `WITHDRAWAL_PERIOD_ACTIVE`) | 0054 / 0030 | P2 | Done ✅ |
-| WO-114 | Transport welfare max-hours + mandatory rest-stop leg alert          | 0054 / 0030   | P2       | Draft  |
+| WO-114 | Transport welfare max-hours + mandatory rest-stop leg alert          | 0054 / 0030   | P2       | Done ✅  |
 | WO-115 | EUDR due-diligence: pasture polygon overlay + deforestation cutoff   | 0054 / 0053   | P2       | Draft  |
 | WO-116 | FSMA §204 KDE/CTE export + Lineage & Traceability Graph API (General Food Law) | 0054 / 0030 | P2 | Draft |
 | WO-117 | GDPR pseudonymization on subject exit (keep `subject_id`, scrub PII)  | 0054 / 0030   | P2       | Draft  |

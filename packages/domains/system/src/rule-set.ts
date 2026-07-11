@@ -39,6 +39,17 @@ export interface RuleSetWeights {
   region: number;
 }
 
+export interface RuleSetWelfare {
+  /** Calves younger than this (days) are treated as unweaned for transport branching (EC 1/2005). */
+  unweanedMaxAgeDays: number;
+  /** A single transport leg spanning >= this many days exceeds the species single-leg max (14h adult / 9h unweaned). */
+  maxSingleLegDays: number;
+  /** A journey spanning >= this many days exceeds the 28h ceiling (14h+rest+14h) without rest legs. */
+  multiDayMaxDays: number;
+  /** A journey spanning >= this many days requires a rest-stop leg (parentMovementId). */
+  restStopAfterDays: number;
+}
+
 export interface RuleSet {
   /** Jurisdiction code this RuleSet represents (MK = seeded default). */
   jurisdiction: string;
@@ -52,7 +63,19 @@ export interface RuleSet {
   administerRoles: string[];
   thresholds: RuleSetThresholds;
   weights: RuleSetWeights;
+  /** Transport-welfare maxima (WO-114, EC 1/2005 Ch.V). Day-granular; hour-precise needs timestamps. */
+  welfare: RuleSetWelfare;
 }
+
+/** WO-114 default transport-welfare maxima (EC 1/2005 Ch.V, day-granular).
+ *  Overridable per jurisdiction via system_parameters; these are only fallback
+ *  defaults when a jurisdiction has not seeded the WELFARE_* params. Not inline. */
+export const WELFARE_DEFAULTS = {
+  unweanedMaxAgeDays: 120,
+  maxSingleLegDays: 1,
+  multiDayMaxDays: 2,
+  restStopAfterDays: 1,
+} as const;
 
 /** Minimal shape of a `system_parameters` row needed to build a RuleSet. */
 export interface RuleSetParamRow {
@@ -96,6 +119,13 @@ export function buildRuleSet(
     return n;
   };
 
+  const wParam = (code: string, fallback: number): number => {
+    const row = byCode.get(code);
+    if (!row) return fallback;
+    const n = Number(row.value);
+    return Number.isNaN(n) ? fallback : n;
+  };
+
   return {
     jurisdiction,
     farmerCanAdminister: byCode.get("FARMER_CAN_ADMINISTER")?.value !== "false",
@@ -123,6 +153,12 @@ export function buildRuleSet(
       history: num("HISTORY_WEIGHT"),
       species: num("SPECIES_WEIGHT"),
       region: num("REGION_WEIGHT"),
+    },
+    welfare: {
+      unweanedMaxAgeDays: wParam("WELFARE_UNWEANED_MAX_AGE_DAYS", WELFARE_DEFAULTS.unweanedMaxAgeDays),
+      maxSingleLegDays: wParam("WELFARE_MAX_SINGLE_LEG_DAYS", WELFARE_DEFAULTS.maxSingleLegDays),
+      multiDayMaxDays: wParam("WELFARE_MULTI_DAY_MAX_DAYS", WELFARE_DEFAULTS.multiDayMaxDays),
+      restStopAfterDays: wParam("WELFARE_REST_STOP_AFTER_DAYS", WELFARE_DEFAULTS.restStopAfterDays),
     },
   };
 }
