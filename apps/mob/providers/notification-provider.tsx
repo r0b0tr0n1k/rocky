@@ -18,15 +18,19 @@ import { IS_WEB } from "@/lib/offline/db";
 import { navigateToRoute } from "@/lib/deep-link";
 
 // Surface foreground notifications as banners; the listener below routes them.
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldShowBanner: true,
-    shouldShowList: false,
-    shouldPlaySound: false,
-    shouldSetBadge: true,
-  }),
-});
+// Native-only: web has no notification subsystem, so skip configuring a handler
+// that would otherwise touch a native module which does not exist on web.
+if (!IS_WEB) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldShowBanner: true,
+      shouldShowList: false,
+      shouldPlaySound: false,
+      shouldSetBadge: true,
+    }),
+  });
+}
 
 async function registerForPushAsync(): Promise<string | null> {
   if (IS_WEB) return null;
@@ -66,8 +70,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     };
   }, [session?.user, registerDevice]);
 
-  // Foreground: notification received → route.
+  // Foreground: notification received → route. Native-only (web has no
+  // notification delivery), so skip the listener entirely on web.
   useEffect(() => {
+    if (IS_WEB) return;
     const sub = Notifications.addNotificationReceivedListener((n) => {
       const route = n.request.content.data?.route as string | undefined;
       if (route) download();
@@ -76,8 +82,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     return () => sub.remove();
   }, [download]);
 
-  // App opened from a tapped notification → route.
+  // App opened from a tapped notification → route. Native-only: getLastNotificationResponse
+  // has no web implementation, so the whole effect is skipped on web.
   useEffect(() => {
+    if (IS_WEB) return;
     let active = true;
     Notifications.getLastNotificationResponseAsync().then((res) => {
       if (!active || !res) return;
