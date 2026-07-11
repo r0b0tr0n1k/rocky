@@ -5,7 +5,7 @@
 
 | Key | Value |
 | --- | --- |
-| **Status** | Proposed |
+| **Status** | Proposed (reframed 2026-07-11; Phase 1 functional, Phase 2 compliance) |
 | **Date** | 2026-07-11 |
 | **Author** | Architecture Review (regulatory strike, prompted by user directive) |
 | **Source** | GDPR 2016/679 Arts.4(5),5,17,25,32; Art.17(3)(b)/(c); Art.6(1)(c); Art.9(2)(i); EU 2019/6 (Vet Med/AMR) Art.108; AHL 2016/429; IMSOC 2019/1715; national animal-health / public-health acts (per-jurisdiction, TBD); ADR-0054 R7 / R10 |
@@ -35,6 +35,66 @@ thinking, and re-reading before any code exists. The plan must answer, in order:
 9. The cron apparatus (retention enforcement, erasure queue, audit rotation).
 10. The RuleSet param set (ADR-0030) that makes all of this jurisdiction-pluggable.
 
+## Reframing (2026-07-11): developer-protective posture
+
+A review of this ADR — and a hard look at GDPR in practice — **re-orders the priorities**.
+GDPR is, frankly, *good intentions gone bad*: a regulation built to protect people that
+mainly manufactures liability for the developers who must implement it. The lesson is NOT
+to build the full erasure machinery first. It is to do the two things that are both
+**achievable AND defensible**, and to treat the right-to-erasure as a theoretical ideal we
+acknowledge but do not prioritize.
+
+**What does NOT drive the build order:** *who* exercises the right, and *when*. DSAR
+identity-verification, break-glass procedure, KMS custody — real concerns, but process/policy.
+Chasing them first is exactly how good intentions go bad.
+
+**What DOES matter — the achievable, defensible safeguard:**
+
+1. **Encrypt PII at rest — the no-brainer.** Names, addresses, phone numbers, emails, and
+   national IDs are encrypted at the application layer (AES-256-GCM, per-subject DEK). Critically,
+   **the key is NOT stored anywhere on the server** — envelope encryption where the KEK lives
+   off-server (KMS / HSM / external secret, injected at boot, never persisted). This is the
+   primary, low-risk safeguard and it is buildable now, independent of erasure. It also delivers
+   practical erasure for free: destroy the off-server key and the ciphertext is unrecoverable
+   everywhere (D4 + Reframing principle 4).
+2. **Log every access to PII.** Every view of personal data is written to the signed,
+   tamper-evident audit log (D7) with actor, role, purpose, entity, fields, decision. This
+   protects *us* — we can prove what was seen, by whom, under what legal basis.
+3. **The log must not itself become a PII leak.** Seeing personal data must NOT reveal *who
+   has seen it*. The access log records the event and is cryptographically signed for
+   accountability, but the viewer's identity is minimized: the actor reference is anonymized
+   (salted hash) so the log is evidence of access without becoming a re-identification vector
+   or a panopticon that violates the very privacy it serves. This is the dialectical
+   resolution — we comply with "log access" while refusing to let the log become a secondary
+   PII exposure.
+4. **Right-to-erasure: acknowledged, deferred.** In practice it is *quite impossible to ask* —
+   correct implementation needs DSAR verification, lifecycle-gated holds (dog-owner refinement),
+   KMS key custody. We keep it in the plan as the ideal, but it is NOT a build priority. Note:
+   encryption-at-rest already delivers the *practical* erasure for free — destroying the
+   per-subject DEK crypto-shreds the PII in the live DB AND every backup (D4). "Erase" becomes
+   "destroy the key," not "delete the row."
+
+**Subject scope (who the right applies to):** only *natural persons* have the right to be
+  forgotten (GDPR Art.4(1) — an identified or identifiable natural person). **Animals are facts,
+  not data subjects** — never erasure-eligible. **Companies / legal entities** (`companyName`,
+  `vatNumber`) are likewise outside the erasure right. Therefore erasure logic targets the
+  *individual keeper* PII only (firstName, lastName, personalId, phoneNumber, email, address).
+  That said, company and animal-linked PII is still **encrypted** as good practice — encryption
+  is universal; erasure is person-specific.
+
+**Revised build order (pragmatic):**
+   - **(0) reveal-gate + tamper-evident access log — NEAR-TERM, no encryption needed** (see dedicated section).
+   - (1) encrypt PII at rest + `pii_sealed` — **PAUSED** (key custody pending advisor input; the no-brainer, not rushed).
+   - (2) PII masking via `PII_FIELD_REGISTRY` (`defaultExcluded`) — **DONE**, drives blur-by-default.
+   - (3) RuleSet params (D10).
+   - … ; (N) full erasure / crons — **deferred pending advisor input**.
+access-log with viewer-anonymity; (3) PII_FIELD_REGISTRY masking (D1 — DONE); (4) RuleSet
+params (D10); … ; (N) full erasure / crons — **deferred pending advisor input**.
+
+This reframing does not contradict the detailed Decision below; it re-orders it. The
+mechanics in D1-D10 remain the design, but encryption + access-logging + log-minimization
+are the fist we make first.
+
 ## Decision
 
 ### D1 — PII taxonomy (define what PII IS, exhaustively)
@@ -53,7 +113,10 @@ archive (can contain names).
 **Rule**: any column or derived field that can single out, correlate, or infer a natural person is
 PII and falls under this ADR. The taxonomy is enforced as a machine-readable registry
 (`PII_FIELD_REGISTRY`) so validators, the API projection layer, and the UI know what to mask, sign,
-and log. The registry is the single source of truth — no field is "PII by intuition".
+and log. The registry is the single source of truth — no field is "PII by intuition". A future
+refinement adds an `erasureEligible` flag: natural-person PII (firstName, lastName, personalId,
+phoneNumber, email, address) is erasure-eligible; legal-entity PII (companyName, vatNumber) and
+animal facts are encrypted but NOT erasure-eligible (see Reframing, Subject scope).
 
 ### D2 — Indirect-disclosure guard (other data must NOT reveal PII)
 
@@ -101,7 +164,10 @@ animal-health act win over Art.17 without a code fork.
   `subject_pseudonym` + `pii_sealed=true` — never plaintext PII.
 - **Encryption at rest.** Application-layer AES-256-GCM. Per-subject DEK wrapped by a KEK from KMS
   (AWS KMS / HashiCorp Vault transit / local HSM). `key_ref` points to the KEK id; the DEK is never
-  stored unencrypted at rest.
+  stored unencrypted at rest. **The KEK is NEVER persisted on the server or in the database** — it is
+  envelope encryption: the DEK sits in the vault, the KEK is external (injected at boot). This is what
+  makes crypto-shredding reach every backup and what makes 'erase = destroy the key' possible with
+  zero row churn (Reframing principle 1 + 4).
 - **Crypto-shredding.** Erasure = destroy (or rotate) the per-subject DEK in KMS. The vault row and
   operational rows become unrecoverable ciphertext with ZERO row churn — scales to millions.
 - **Backups are covered for free.** Because erasure destroys the DEK in KMS, every backup copy of the vault (and any PII-bearing export) is ALSO unrecoverable — crypto-shred is the only erasure method that reaches tape / object-store. Key-rotation policy must destroy retired DEKs too. Pair with TLS in transit and DB-level TDE as defense in depth.
@@ -149,7 +215,8 @@ The procedure is the procedural guillotine that makes "who saw what, and why" au
   payload_hash)`, key from KMS. Tampering with any historical row breaks the chain and is detectable
   on verification (alerts fire). Verification is CONTINUOUS (a background job re-walks the chain), not only on read. Signing-key custody follows separation of duties: the KMS key that signs is distinct from any role that can edit PII, and the chain genesis (`prev_sig`) is anchored out-of-band so a total rewrite is detectable.
 - **Self-minimization:** the subject is logged as `subject_pseudonym`; after `retention_until`,
-  `actor_id` is anonymized (replaced with a salted hash) to limit the log's own PII footprint.
+  `actor_id` is anonymized (replaced with a salted hash) to limit the log's own PII footprint. The viewer's identity is minimized so that using the system never reveals *who has seen*
+  the PII — the log is accountability evidence, not a re-identification vector (Reframing, principle 3). Operationalized as the reveal-gate + tamper-evident access log — see the dedicated section below.
 - **Wiring:** emitted via the ExecutionPipeline `ExecutionEventEmitter` (root AGENTS.md) so access /
   erasure / retention events are signed centrally — one path, not scattered `INSERT`s.
 - The log is the defensible artifact for both GDPR accountability (Art.5(2)) and the regulatory
@@ -194,6 +261,51 @@ gdpr: {
 ```
 
 No regulatory constant is hardcoded (ADR-0054 cross-cutting principle). Jurisdiction covers all of it.
+
+## Reveal-gate + tamper-evident access log (near-term, achievable slice)
+
+Encryption-at-rest is the eventual no-brainer but is **intentionally PAUSED** — we are not
+comfortable shipping it until the key-custody approach is settled (advisor input). The piece
+we CAN and SHOULD build now is the **access-audit pattern**, which needs **no encryption** and
+already follows from the committed `PII_FIELD_REGISTRY` (its `defaultExcluded` flag).
+
+### Flow
+1. **Masked by default.** Any `defaultExcluded` column in `PII_FIELD_REGISTRY` renders **blurred**
+   in the frontend (e.g. `••••••`). PII never reaches the screen unless explicitly revealed. The API
+   projection layer (D5) omits these fields unless the caller holds `pii:read` + `purpose`; the UI
+   blurs whatever it is nonetheless shown. Defense in depth — the registry is the single source of truth.
+2. **Purpose gate (the "are you sure?" popup).** Reveal requires an explicit confirmation capturing the
+   *purpose* (legal basis for the view). Only a user with `pii:read` AND a declared purpose may proceed.
+   No purpose → no reveal → nothing logged as "viewed". The popup is the friction that makes the access
+   *conscious* and *attributable*.
+3. **Access audit entry.** On reveal, an entry is written:
+   - `actor_id` — the viewer, but **anonymized** (salted hash) so the log never exposes *who has seen it*
+     (Reframing principle 3).
+   - `table` / `entity_id` — **the ROW that was revealed** (e.g. `subjects` / `uuid`). The log stores the
+     *reference to the row*, never the decrypted name.
+   - `column` — which field was revealed (e.g. `firstName`).
+   - `subject_pseudonym` — stable subject reference (groups entries per subject without the plaintext).
+   - `purpose`, `decision = ALLOWED`, `ts`.
+   The plaintext name is **NOT in the log**. Whoever can *decrypt names* (holds the key) resolves
+   `table`+`entity_id` back to the row and sees the name; a plain **log-viewer cannot** — they see only that
+   row X of table Y, column Z was viewed, by an anonymized actor, for purpose W. ('not sure about the name'
+   = the name is the logged *subject*, but only as a tamper-proof ROW REFERENCE, not as plaintext.)
+4. **Tamper-evidence (the "break the chain" guarantee).** The log is **append-only and cryptographically
+   chained**: each entry commits to `H(prev_entry_hash || payload)` and is signed (Ed25519). Altering,
+   deleting, or reordering ANY entry changes its hash and severs the chain to every subsequent entry —
+   detectable on verification. This is the "whatever method": change one row and the signature breaks.
+   The log is evidence; it cannot be quietly edited. (D7.)
+
+### What this buys us (now)
+- We comply with "log access to PII" **without encrypting anything yet**.
+- We protect the *developers*: a signed, purpose-tagged trail proves what was seen, by whom (anonymized),
+  under what basis — our defense if challenged.
+- The log records the **row reference** (`table`+`entity_id`), not the plaintext name — so the value PII stays
+  with the data (resolvable only by name-decryption key-holders) while the *viewer's* PII is minimized
+  (anonymized actor). Tamper-evident + access-controlled: an immutable accountability record, not a
+  quietly-editable one.
+- It is the natural front-end to the later encryption slice: when encryption lands, the SAME reveal-gate
+  writes the SAME audit entry; only the storage of the value changes. No rework of the UX or the log.
 
 ## Open Questions (surfaced by the read to think to re-read loop)
 
@@ -241,13 +353,33 @@ These MUST be answered before any code is written — they are the gaps the firs
 - Schema fields largely exist; this ADR is mostly new tables (`pseudonym_vault`, `gdpr_audit_log`,
   `gdpr_erasure_request`), flags (`pii_sealed`, `legal_hold`, `retention_until`), and logic.
 
-## Implementation (deferred — plan only)
+## Implementation stance — make it work first; compliance is phase 2
 
-Owning Bot: a new `@rocky/domains-privacy` (or extend `@rocky/domains-system`) for erasure /
-retention / pseudonymize; Validators for erasure-request + audit-entry Zod; API crons in `apps/api`;
-tRPC endpoints gated by `pii:read` / `gdpr:*` permissions; audit wired to ExecutionPipeline. RobotFarm
-pass: add WO-117 (pseudonymization) + WO-122 (GDPR exception / precedence) rows to WORKORDER and
-update root AGENTS.md Bot descriptions.
+**Phase 1 (now): make it work.** Ship functional value first. The achievable, non-destructive slice:
+(1) PII masking via the committed `PII_FIELD_REGISTRY` (`defaultExcluded`) — **DONE**; (2) reveal-gate
+("are you sure?" purpose popup) + **tamper-evident access log** recording the ROW REFERENCE (not the
+plaintext name), actor anonymized — see the dedicated section. **NO encryption yet**; the developer is
+not comfortable shipping key-custody until it is settled. Functionality before formalism.
+
+**Phase 2 (later): the "government checks".** The full GDPR/governance apparatus — DPIA (Art.35), DPO
+ownership (Art.37), periodic + automated log review, separation of duties, Art.33 breach response,
+ISO/IEC 27701 alignment, encryption-at-rest + `pii_sealed`, and the erasure vault/crons (D8/D9) — is a
+SECOND phase, added AFTER the system works.
+
+**Expert consultation.** The developer will consult ISO 27701 / GDPR experts. The governance/compliance
+details (DPIA scope, DPO mandate, log-retention period, supervisory authority, breach procedure) will be
+added to this and related ADRs as **addendums** once advised. Until then those items are explicitly OUT
+OF SCOPE for coding — this ADR records the *architecture*, not a certified compliance posture. We skip
+the rabbit hole for now.
+
+**Deferred (pending expert input):** encryption-at-rest, full erasure vault + crypto-shred + lifecycle
+holds + crons (D8/D9), and the `gdpr:*` / `pii:read` RBAC surface beyond what Phase 1 needs. The
+right-to-erasure is acknowledged as ideal but not prioritized.
+
+Owning Bot (Phase 2): a new `@rocky/domains-privacy` (or extend `@rocky/domains-system`); Validators for
+erasure-request + audit-entry Zod; API crons in `apps/api`; tRPC endpoints gated by `pii:read` / `gdpr:*`;
+audit wired to ExecutionPipeline. RobotFarm pass (Phase 2): add WO-117 (pseudonymization) + WO-122 (GDPR
+exception / precedence) rows to WORKORDER and update root AGENTS.md Bot descriptions.
 
 ## Verification (Definition of Done — when implemented)
 
