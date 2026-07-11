@@ -111,10 +111,11 @@ Acceptance: no page uses raw `div`+`space-y-*` forms or custom `Badge` spans; al
 
 **Reuse the shared schema; local/inlined Zod is fine for UI-only fields.** The backend router declares `@Mutation({ input: createXRequestSchema })`; that *same* schema lives in `@rocky/validators/api` — a **shared** package (the Diamond Seal), consumed by *both* backend and frontend, so it is not "the backend." Importing it makes **client validation === server contract** (NoDrift, ADR-0052) and is the preferred path. A frontend-local Zod is acceptable for concerns *outside* the backend contract (e.g. confirm-password, client-side transforms); you may even derive it from the tRPC data via `inferRouterInputs<AppRouter>`. But it must never be produced by importing backend internals. **The hard rule:** the web never imports `@rocky/database`, backend routers, or backend services — its only windows into the backend are `@rocky/validators` (schemas/enums) and `@rocky/trpc` (`AppRouter` types).
 
-**Source-of-truth imports (the web never imports `@rocky/database`):**
-- Schemas + Summary/Response types: `@rocky/validators/api` (e.g. `issuePassportRequestSchema`, `PassportSummary`).
-- Enum *choices*: `@rocky/validators/enums` (e.g. `PASSPORT_STATUS`, `CORRECTION_STATUS`).
-- Procedure types: `AppRouter` from `@rocky/trpc` (generated from `packages/trpc/src/generated/server.ts`); `useTRPC()` yields the typed client.
+**The two seams — and nothing else:**
+- **Types, with no Zod import.** `AppRouter` (from `@rocky/trpc`, generated from `packages/trpc/src/generated/server.ts`) *is* the contract. `inferRouterInputs<AppRouter>` / `inferRouterOutputs<AppRouter>` yield the exact procedure I/O types; `useTRPC()` is fully typed. **This is tRPC's purpose:** the server declares each router once (with its Zod input/output) and the client is typed end-to-end — no codegen, no redeclared client types, no drift. (Not "for fun" — it is the type-safe transport that makes the no-drift architecture real; `superjson` carries `Date`/`BigInt` across the wire.)
+- **Runtime validation — the `/api` surface only.** `@rocky/validators/api` (e.g. `issuePassportRequestSchema`, `PassportSummary`) is the *API Zod*, the sole validators surface for the frontend (bound via `useValidatedForm` → `zodResolver`). The rest of `@rocky/validators` (`rbac`, `events`, `utils`, Dumb Zod) is backend-internal — do not import it. (`/errors` is also a legit frontend surface, for the tRPC error maps consumed by `createResultUnwrapper`.)
+- **Enum *choices*:** `@rocky/validators/enums` (e.g. `PASSPORT_STATUS`, `CORRECTION_STATUS`).
+- **Hard rule:** the web never imports `@rocky/database`, backend routers, backend services, or non-surface `@rocky/validators` subpaths (`rbac` / `events` / `utils`).
 
 ### Canonical recipe (proven in `passports/page.tsx`)
 ```tsx
@@ -158,6 +159,7 @@ Object.values(PASSPORT_STATUS).map(s => <SelectItem value={s}>{s}</SelectItem>);
 3. Importing `@rocky/database` from the web.
 4. Not reusing `ActionDialog` / `ValidatedForm` (hand-rolling the overlay).
 5. Mutations without `notifySuccess` / `notifyError` (ADR-0060 contract).
+6. Importing non-surface `@rocky/validators` subpaths (`rbac`, `events`, `utils`, Dumb Zod) — only `/api`, `/enums`, `/errors` are the frontend surface.
 
 ## Related ADRs
 
