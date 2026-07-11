@@ -1,3 +1,4 @@
+import type { GdprArticleId } from "../compliance/gdpr-articles.js";
 /**
  * PII Field Registry (ADR-0061 D1)
  *
@@ -45,43 +46,45 @@ export interface PiiField {
   /** Omitted from default projections unless pii:read + purpose (D5). */
   defaultExcluded: boolean;
   description: string;
+  /** Canonical GDPR articles governing this field (audit/reference only, NOT enforcement). */
+  governingArticles?: GdprArticleId[];
 }
 
 export const PII_FIELD_REGISTRY: readonly PiiField[] = [
   // ── Subjects (keepers/holders) — the core direct PII ──
-  { table: "subjects", column: "firstName", category: "direct", type: "name", defaultExcluded: true, description: "Keeper given name" },
-  { table: "subjects", column: "firstNameAlt", category: "direct", type: "name", defaultExcluded: true, description: "Keeper given name (alternate script)" },
-  { table: "subjects", column: "lastName", category: "direct", type: "name", defaultExcluded: true, description: "Keeper family name" },
-  { table: "subjects", column: "lastNameAlt", category: "direct", type: "name", defaultExcluded: true, description: "Keeper family name (alternate script)" },
+  { table: "subjects", column: "firstName", category: "direct", type: "name", defaultExcluded: true, description: "Keeper given name", governingArticles: ['ART_05', 'ART_06'] },
+  { table: "subjects", column: "firstNameAlt", category: "direct", type: "name", defaultExcluded: true, description: "Keeper given name (alternate script)", governingArticles: ['ART_05', 'ART_06'] },
+  { table: "subjects", column: "lastName", category: "direct", type: "name", defaultExcluded: true, description: "Keeper family name", governingArticles: ['ART_05', 'ART_06'] },
+  { table: "subjects", column: "lastNameAlt", category: "direct", type: "name", defaultExcluded: true, description: "Keeper family name (alternate script)", governingArticles: ['ART_05', 'ART_06'] },
   { table: "subjects", column: "shortName", category: "indirect", type: "name", defaultExcluded: true, description: "Display name; personal when subject is an individual" },
   { table: "subjects", column: "shortNameAlt", category: "indirect", type: "name", defaultExcluded: true, description: "Display name (alternate script)" },
-  { table: "subjects", column: "companyName", category: "direct", type: "name", defaultExcluded: true, description: "Legal entity name (keeper-as-company)" },
-  { table: "subjects", column: "personalId", category: "direct", type: "nationalId", defaultExcluded: true, description: "National personal identifier (UCN) — highest-sensitivity PII" },
+  { table: "subjects", column: "companyName", category: "direct", type: "name", defaultExcluded: true, description: "Legal entity name (keeper-as-company)", governingArticles: ['ART_05', 'ART_06'] },
+  { table: "subjects", column: "personalId", category: "direct", type: "nationalId", defaultExcluded: true, description: "National personal identifier (UCN) — highest-sensitivity PII", governingArticles: ['ART_05', 'ART_06'] },
   { table: "subjects", column: "vatNumber", category: "direct", type: "taxId", defaultExcluded: true, description: "VAT / tax registration number" },
-  { table: "subjects", column: "phoneNumber", category: "direct", type: "contact", defaultExcluded: true, description: "Keeper phone number" },
-  { table: "subjects", column: "email", category: "direct", type: "contact", defaultExcluded: true, description: "Keeper email address" },
-  { table: "subjects", column: "addressId", category: "indirect", type: "linkage", defaultExcluded: true, description: "FK to addresses — resolves to street-level PII" },
+  { table: "subjects", column: "phoneNumber", category: "direct", type: "contact", defaultExcluded: true, description: "Keeper phone number", governingArticles: ['ART_05', 'ART_06', 'ART_13'] },
+  { table: "subjects", column: "email", category: "direct", type: "contact", defaultExcluded: true, description: "Keeper email address", governingArticles: ['ART_05', 'ART_06', 'ART_13'] },
+  { table: "subjects", column: "addressId", category: "indirect", type: "linkage", defaultExcluded: true, description: "FK to addresses — resolves to street-level PII", governingArticles: ['ART_05', 'ART_06', 'ART_13'] },
 
   // ── Addresses (resolved via subjects.addressId / farms.addressId) ──
   { table: "addresses", column: "name", category: "direct", type: "address", defaultExcluded: true, description: "Address label" },
-  { table: "addresses", column: "geocodedAddress", category: "direct", type: "address", defaultExcluded: true, description: "Full geocoded street address" },
+  { table: "addresses", column: "geocodedAddress", category: "direct", type: "address", defaultExcluded: true, description: "Full geocoded street address", governingArticles: ['ART_05', 'ART_06', 'ART_13'] },
   { table: "addresses", column: "zipCodeId", category: "indirect", type: "address", defaultExcluded: true, description: "FK to zip_codes (postal code + city)" },
   { table: "zipCodes", column: "zipCode", category: "indirect", type: "address", defaultExcluded: true, description: "Postal code" },
   { table: "zipCodes", column: "name", category: "indirect", type: "address", defaultExcluded: true, description: "Commune / locality name" },
 
   // ── Farms — GPS + operator note ──
   { table: "farms", column: "addressId", category: "indirect", type: "linkage", defaultExcluded: true, description: "FK to addresses" },
-  { table: "farms", column: "location", category: "indirect", type: "geo", defaultExcluded: true, description: "Farm GPS point — ties a natural person to a place (Art.9-adjacent)" },
+  { table: "farms", column: "location", category: "indirect", type: "geo", defaultExcluded: true, description: "Farm GPS point — ties a natural person to a place (Art.9-adjacent)", governingArticles: ['ART_05', 'ART_06'] },
   { table: "farms", column: "verificationNote", category: "indirect", type: "freeText", defaultExcluded: true, description: "Free-text verification note — may contain names" },
 
   // ── Farm-Subject binding — the singling-out linkage ──
-  { table: "farm_subjects", column: "subjectId", category: "indirect", type: "linkage", defaultExcluded: true, description: "Keeper<->farm link; enables re-identification via holdings" },
+  { table: "farm_subjects", column: "subjectId", category: "indirect", type: "linkage", defaultExcluded: true, description: "Keeper<->farm link; enables re-identification via holdings", governingArticles: ['ART_05', 'ART_06'] },
   { table: "farm_subjects", column: "farmId", category: "indirect", type: "linkage", defaultExcluded: false, description: "Farm link (kept; the farm is not PII, the keeper behind it is)" },
   { table: "farm_subjects", column: "role", category: "indirect", type: "linkage", defaultExcluded: false, description: "Role on farm (not PII itself)" },
 
   // ── System users (operators/admins are natural persons too) ──
-  { table: "auth_user", column: "email", category: "direct", type: "contact", defaultExcluded: true, description: "Operator email" },
-  { table: "auth_user", column: "phone", category: "direct", type: "contact", defaultExcluded: true, description: "Operator phone" },
+  { table: "auth_user", column: "email", category: "direct", type: "contact", defaultExcluded: true, description: "Operator email", governingArticles: ['ART_05', 'ART_06', 'ART_13'] },
+  { table: "auth_user", column: "phone", category: "direct", type: "contact", defaultExcluded: true, description: "Operator phone", governingArticles: ['ART_05', 'ART_06', 'ART_13'] },
 
   // ── Sessions + audit — behavioral PII ──
   { table: "auth_session", column: "ipAddress", category: "indirect", type: "behavioral", defaultExcluded: true, description: "Client IP at login" },

@@ -357,6 +357,22 @@ fields reach the wire. This is the concrete "mask by default" mechanism:
 This is gap #4 from the ADR audit; recorded here (not as a separate ADR) to keep the privacy surface in
 one document.
 
+## Compliance Reference Module (homework artifact)
+
+To make the GDPR article references above *machine-readable* (and to feed the PII
+registry's `governingArticles`), a typed reference module now lives in
+`@rocky/validators/compliance` (`packages/validators/src/compliance/gdpr-articles.ts`):
+
+- `GDPR_ARTICLES` — `as const` catalog of the PII/privacy articles (Art.4–Art.82).
+- `VALIDATED_CROSSWALK` — the 15 validated GDPR <-> MK LPDP <-> AL Law 124
+  equivalences, sourced verbatim from `graphgrc-main/mappings/golden_mappings.yaml`.
+- `crossWalkFor(gdprId)` — lookup helper.
+
+**Homework, not legal advice.** It is audit/reference only (D5: the masking + signing
+layers consult it; it never enforces). ISO/IEC 27701 equivalences are intentionally
+`undefined` pending review by counsel competent in both technology and data-protection
+law — the broader mapping set is only partially validated.
+
 ## Open Questions (surfaced by the read to think to re-read loop)
 
 These MUST be answered before any code is written — they are the gaps the first draft papered over:
