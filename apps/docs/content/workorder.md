@@ -38,7 +38,7 @@
 | WO-013 | `farmerCanAdminister` flag + `@Policy` wiring                 | 0030       | P1       | Done ✅   |
 | WO-014 | Retention + role vocab sourced from RuleSet                   | 0030       | P1       | Done ✅   |
 | WO-020 | Health stock-reconciliation job                               | 0026 / 0023 | P2       | Open   |
-| WO-021 | Persist per-farm risk-analysis results (`risk_analysis_results`) | 0028 / 0023 | P2   | Open   |
+| WO-021 | Persist per-farm risk-analysis results (`risk_analysis_results`) | 0028 / 0023 | P2   | Done ✅ |
 | WO-022 | Enforce birth-notification deadlines (7/20 d)                 | 0028 / 0023 | P2       | Open   |
 | WO-023 | Inspection weighted params → RuleSet `GN_ANLS_PARAMS`         | 0028 / 0030 | P1       | Done ✅   |
 | WO-024 | Complete `FIELD_CHANGED` → VD approval lock (field-diff pipeline) | 0027     | P3       | Open   |
@@ -766,9 +766,18 @@ domains. ADR-0030 is _accepted as design_; the build below is the pending implem
 
 ### WO-021 — Persist per-farm risk results — P2
 
-- Add `risk_analysis_results` table (legacy `GN_ANLS_RESULTS` unique-key guarantee). Only a count is
-  persisted today.
-- **Source:** ADR-0028 (Deferred), ADR-0023.
+- Add `risk_analysis_results` table (legacy `GN_ANLS_RESULTS` unique-key guarantee). Per-farm rows now persisted
+  in `RiskAnalysisService.runAnalysis()` with `risk_factors_snapshot` (JSONB) — the OCR 2017/625 audit alibi.
+- **Source:** ADR-0028 (Deferred → enacted), ADR-0023.
+
+> **Corrigendum (WO-021, 2026-07-11):** TRACES NT / EU AHL (2016/429) / OCR (2017/625) compliance.
+> `risk_analysis_results` added in `packages/database/src/schema/an/risk-analyses.ts`: `analysisId` (FK →
+> `risk_analyses`), `farmId` (FK → `farms`), `score` (numeric), `selected` (bool), `riskFactorsSnapshot`
+> (JSONB), unique `(analysisId, farmId)`. `runAnalysis()` now persists every candidate farm with a frozen
+> snapshot of the exact risk variables + RuleSet weights at analysis time. Validator response schemas added
+> (`riskAnalysisResultResponseSchema`, `riskAnalysisResultListResponseSchema`). Side fix: registered the
+> previously-unclaimed `deviceTokens` + `syncIdempotency` tables in `_domain-map.ts` so the Dumb Zod generator
+> runs again. Typecheck green across database/validators/inspection.
 
 ### WO-022 — Enforce birth-notification deadlines — P2
 

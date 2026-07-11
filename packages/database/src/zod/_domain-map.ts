@@ -79,6 +79,7 @@ export const DOMAIN_TABLE_MAP = {
     ],
     user: [
         "sm/users.ts",
+        "sm/device-tokens.ts",
     ],
     organization: [
         "sm/organizations.ts",
@@ -102,6 +103,9 @@ export const DOMAIN_TABLE_MAP = {
     ],
     outbox: [
         "sm/outbox-events.ts",
+    ],
+    sync: [
+        "sync.ts",
     ],
     demo: [
         "demo/todos.ts",

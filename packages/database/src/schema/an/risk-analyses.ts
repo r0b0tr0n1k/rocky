@@ -1,7 +1,8 @@
 // ── Drizzle Schema: Risk Analyses ──
 // CPC annual risk analysis - selects 10% of farms for on-spot inspection
 
-import { boolean, index, integer, jsonb, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, index, integer, jsonb, numeric, pgTable, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
+import { farms } from "../hk/farms.js";
 
 export const riskAnalyses = pgTable(
   "risk_analyses",
@@ -32,4 +33,27 @@ export const riskAnalyses = pgTable(
     validTo: timestamp("valid_to"),
   },
   (table) => [index("idx_risk_analyses_year").on(table.year), index("idx_risk_analyses_status").on(table.status)],
+);
+
+// ── Drizzle Schema: Risk Analysis Results ──
+// Per-farm results for a risk analysis run — the bureaucratic alibi (OCR 2017/625).
+// risk_factors_snapshot freezes the exact variables + RuleSet weights at analysis time,
+// so an EU auditor years later can verify the score was objectively correct.
+
+export const riskAnalysisResults = pgTable(
+  "risk_analysis_results",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    analysisId: uuid("analysis_id").notNull().references(() => riskAnalyses.id, { onDelete: "cascade" }),
+    farmId: uuid("farm_id").notNull().references(() => farms.id, { onDelete: "restrict" }),
+    score: numeric("score", { precision: 12, scale: 6 }).notNull(),
+    selected: boolean("selected").notNull().default(false),
+    riskFactorsSnapshot: jsonb("risk_factors_snapshot").notNull().$type<Record<string, number | string | boolean>>(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("uk_risk_analysis_results_analysis_farm").on(table.analysisId, table.farmId),
+    index("idx_risk_analysis_results_farm").on(table.farmId),
+    index("idx_risk_analysis_results_analysis").on(table.analysisId),
+  ],
 );

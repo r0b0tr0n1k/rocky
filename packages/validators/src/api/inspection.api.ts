@@ -7,6 +7,7 @@ import {
   inspectionsSelectSchema,
   inspectionsInsertSchema,
   riskAnalysesSelectSchema,
+  riskAnalysisResultsSelectSchema,
 } from "@rocky/database/zod";
 import {
   inspectionStatusSchema,
@@ -218,3 +219,14 @@ export type _InspectionGuillotines = ActivateGuillotines<
     _drift_printForm,
   ]
 >;
+
+// ── Per-farm risk analysis results (WO-021) — the bureaucratic alibi (OCR 2017/625) ──
+/** A single per-farm result for one risk-analysis run. */
+export const riskAnalysisResultResponseSchema = riskAnalysisResultsSelectSchema.strip();
+export type RiskAnalysisResultResponse = z.infer<typeof riskAnalysisResultResponseSchema>;
+
+/** Paginated list of per-farm risk-analysis results. */
+export const riskAnalysisResultListResponseSchema = z
+  .object({ data: z.array(riskAnalysisResultResponseSchema), total: z.number() })
+  .strict();
+export type RiskAnalysisResultListResponse = z.infer<typeof riskAnalysisResultListResponseSchema>;

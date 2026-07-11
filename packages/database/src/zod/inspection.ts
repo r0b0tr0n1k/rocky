@@ -2,7 +2,7 @@
 /** DO NOT EDIT. To add a table, update _domain-map.ts and re-run the generator. */
 
 import { inspections } from "../schema/an/inspections.js";
-import { riskAnalyses } from "../schema/an/risk-analyses.js";
+import { riskAnalyses, riskAnalysisResults } from "../schema/an/risk-analyses.js";
 import { createInsertSchema, createSelectSchema } from "./factory.js";
 
 export const inspectionsSelectSchema = createSelectSchema(inspections);
@@ -10,3 +10,6 @@ export const inspectionsInsertSchema = createInsertSchema(inspections);
 
 export const riskAnalysesSelectSchema = createSelectSchema(riskAnalyses);
 export const riskAnalysesInsertSchema = createInsertSchema(riskAnalyses);
+
+export const riskAnalysisResultsSelectSchema = createSelectSchema(riskAnalysisResults);
+export const riskAnalysisResultsInsertSchema = createInsertSchema(riskAnalysisResults);

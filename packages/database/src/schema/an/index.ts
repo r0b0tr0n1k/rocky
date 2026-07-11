@@ -16,7 +16,7 @@ export { cattlePassports } from "./cattle-passports.js";
 export { errorCorrections } from "./error-corrections.js";
 export { importExportRecords } from "./import-export-records.js";
 export { inspections } from "./inspections.js";
-export { riskAnalyses } from "./risk-analyses.js";
+export { riskAnalyses, riskAnalysisResults } from "./risk-analyses.js";
 
 // ── IoT / Biologging ──
 export { iotDevices } from "./iot-devices.js";

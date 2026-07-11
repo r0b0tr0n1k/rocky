@@ -8,7 +8,7 @@
 import { ok, err, type Result } from "neverthrow";
 import type { DatabaseProvider } from "@rocky/database";
 import { SystemService } from "@rocky/domains-system";
-import { farms as farmsTable, animals as animalsTable, inspections as inspectionsTable, riskAnalyses as riskAnalysesTable } from "@rocky/database";
+import { farms as farmsTable, animals as animalsTable, inspections as inspectionsTable, riskAnalyses as riskAnalysesTable, riskAnalysisResults as riskAnalysisResultsTable } from "@rocky/database";
 import { eq, and, sql, desc, } from "drizzle-orm";
 import { InspectionError, INSPECTION_ERRORS } from "../errors/inspection.errors.js";
 
@@ -74,17 +74,20 @@ export class RiskAnalysisService {
       const maxAnimalCount = Math.max(...farmsWithRiskFactors.map(f => f.animalCount), 1);
       const maxPastInspections = Math.max(...farmsWithRiskFactors.map(f => f.pastInspections), 1);
 
-      const candidates = farmsWithRiskFactors.map(farm => {
-        const sizeScore = farm.animalCount / maxAnimalCount;
-        const speciesScore = farm.type !== "FARM" ? 1 : 0;
-        const historyScore = farm.pastInspections / maxPastInspections;
-        const score = 1.0
-          + weights.farmSize * sizeScore
-          + weights.history * historyScore
-          + weights.species * speciesScore
-          + weights.region * Math.random();
-        return { id: farm.id, score };
-      });
+            const candidates = farmsWithRiskFactors.map(farm => {
+              const sizeScore = farm.animalCount / maxAnimalCount;
+              const speciesScore = farm.type !== "FARM" ? 1 : 0;
+              const historyScore = farm.pastInspections / maxPastInspections;
+              const regionScore = Math.random();
+              const score = 1.0
+                + weights.farmSize * sizeScore
+                + weights.history * historyScore
+                + weights.species * speciesScore
+                + weights.region * regionScore;
+              return { id: farm.id, animalCount: farm.animalCount, pastInspections: farm.pastInspections, type: farm.type, sizeScore, speciesScore, historyScore, regionScore, score };
+            });
+            // Immutable copy for persistence (the selection loop below mutates `candidates`)
+            const allCandidates = candidates.map((c) => ({ ...c }));
 
       let totalScore = candidates.reduce((s, f) => s + f.score, 0);
       const selectedIds: string[] = [];
@@ -126,11 +129,38 @@ export class RiskAnalysisService {
           new InspectionError(INSPECTION_ERRORS.INVALID_INPUT, { reason: "Failed to create risk analysis record" }),
         );
 
-      return ok({
-        analysisId: analysis.id,
-        selectedFarmCount,
-        totalFarmCount: totalFarms,
-      });
+            // Persist per-farm results (WO-021) — the bureaucratic alibi for OCR 2017/625 audits.
+            // risk_factors_snapshot freezes the exact variables + RuleSet weights at analysis time.
+            await this.dbp.client
+              .insert(riskAnalysisResultsTable)
+              .values(
+                allCandidates.map((c) => ({
+                  analysisId: analysis.id,
+                  farmId: c.id,
+                  score: c.score.toFixed(6),
+                  selected: selectedIds.includes(c.id),
+                  riskFactorsSnapshot: {
+                    animalCount: c.animalCount,
+                    pastInspections: c.pastInspections,
+                    farmType: c.type,
+                    farmSizeWeight: weights.farmSize,
+                    historyWeight: weights.history,
+                    speciesWeight: weights.species,
+                    regionWeight: weights.region,
+                    sizeScore: Number(c.sizeScore.toFixed(4)),
+                    speciesScore: Number(c.speciesScore.toFixed(4)),
+                    historyScore: Number(c.historyScore.toFixed(4)),
+                    regionScore: Number(c.regionScore.toFixed(4)),
+                    selectionPercentage: percentage,
+                  },
+                })),
+              );
+      
+            return ok({
+              analysisId: analysis.id,
+              selectedFarmCount,
+              totalFarmCount: totalFarms,
+            });
     } catch (error) {
       return err(
         new InspectionError(INSPECTION_ERRORS.INVALID_INPUT, {

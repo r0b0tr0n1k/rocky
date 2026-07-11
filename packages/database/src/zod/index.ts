@@ -22,4 +22,5 @@ export * from "./organization.js";
 export * from "./outbox.js";
 export * from "./passport.js";
 export * from "./rbac.js";
+export * from "./sync.js";
 export * from "./user.js";

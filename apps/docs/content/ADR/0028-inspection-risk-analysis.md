@@ -109,7 +109,7 @@ stateDiagram-v2
 
 ### 1. Persist full per-farm risk results
 
-**Deferred.** Adds a `risk_analysis_results` table; valuable for audit but out of current scope. Logged
+**Enacted (WO-021).** Adds a `risk_analysis_results` table (with `risk_factors_snapshot` JSONB audit alibi for OCR 2017/625); now in scope. Logged
 in ADR-0023.
 
 ### 2. Inspection service calls Archive service directly
