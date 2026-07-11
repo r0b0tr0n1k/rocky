@@ -359,8 +359,8 @@ rg -n "Tabs.Screen" "apps/mob/app/(tabs)/_layout.tsx"   # now conditional
   `expo-notifications` plugin. Client: `providers/notification-provider.tsx` registers the Expo push token on
   login (via `getExpoPushTokenAsync({ projectId })` — `projectId` from `eas init`, the cloud identity set this turn)
   and persists it through the new `notification.registerDevice` mutation. Server: `sm/device_tokens` table (Drizzle
-  + RLS) + `NotificationRepository` (`upsertDeviceToken`/`findDeviceTokensByUsers`) + `NotificationService.registerDevice`
-  + `emitPush` (Expo Push API via `packages/domains/notification/src/clients/expo-push.client.ts`; best-effort, respects
+  - RLS) + `NotificationRepository` (`upsertDeviceToken`/`findDeviceTokensByUsers`) + `NotificationService.registerDevice`
+  - `emitPush` (Expo Push API via `packages/domains/notification/src/clients/expo-push.client.ts`; best-effort, respects
   opt-outs via the token table). `notification.send` now fires a push to the recipient. **Remaining infra (updated 2026-07-11):** (1) ~~apply the `device_tokens` migration~~ **ENACTED** — `device_tokens` table is present on the live DB (`192.168.1.109/tbot`); the RLS layer was reconciled in the same pass: `isRoleIn(...)` now inlines the role list as a literal `ARRAY['SUPER_ADMIN','VD_ADMIN','VD_STAFF']` via `sql.raw` (kills the Postgres-rejected `ANY(($1,$2,$3))` tuple form — `scripts/fix-rls-sql.mjs` is now surplus for tuples), `db-recreate.sh` prepends `SET check_function_bodies = off` so `farm_org_id()` compiles before the 26 policies that call it, and the `psql | tail -3` truncation was replaced with full-output logging. Independently verified: **49 RLS policies, all `ANY(ARRAY[...])`, 0 tuples**; `device_tokens_access_policy` = `current_role = ANY(ARRAY['SUPER_ADMIN','VD_ADMIN','VD_STAFF']) OR user_id = current_user_id` ✓. (2) **still open:** set `EXPO_ACCESS_TOKEN` (EAS project access token) in `apps/api/.env` — without it, server-side emission is skipped (pull still works); placeholder already in `.env.example`. (3) **still open:** native verify on a device (push token + routing only provable on-device, per WO-082 acceptance).
 
 ### WO-092 — Background sync task — P2
@@ -773,12 +773,12 @@ domains. ADR-0030 is _accepted as design_; the build below is the pending implem
   3. No new migration (columns are varchar / existing pgEnum; `complex` already in `CORRECTION_CASE_TYPE`).
   4. `nest build` (api) = 0 issues.
 - **Corrigendum (the Real the Line of Credit always already knew):** the mass-balance drift is not a bug
-  the system *discovers* — it is the **symptom** the bureaucratic Line-of-Credit apparatus *presupposes*.
+  the system _discovers_ — it is the **symptom** the bureaucratic Line-of-Credit apparatus _presupposes_.
   The Line of Credit computed `quantity_remaining` as `received − issued`; a-posteriori reconciliation only
-  *confesses* the gap between the symbolic ledger and the Real of the fridge. Closing it (WO-020) does not
-  eliminate the gap — it *institutionalizes* it as a correction case, i.e. transforms the Real into a
-  manageable bureaucratic object. The VI audit is the fetish that lets the system disavow: *je sais bien,
-  mais quand même* — I know doses are missing, but nevertheless I open a case.
+  _confesses_ the gap between the symbolic ledger and the Real of the fridge. Closing it (WO-020) does not
+  eliminate the gap — it _institutionalizes_ it as a correction case, i.e. transforms the Real into a
+  manageable bureaucratic object. The VI audit is the fetish that lets the system disavow: _je sais bien,
+  mais quand même_ — I know doses are missing, but nevertheless I open a case.
 
 ### WO-021 — Persist per-farm risk results — P2
 
@@ -809,7 +809,8 @@ domains. ADR-0030 is _accepted as design_; the build below is the pending implem
 > (`apps/api/src/jobs/birth-deadline.job.ts`, `@Cron(EVERY_DAY_AT_2AM)`) calls
 > `AnimalService.enforceBirthDeadlines()` which bulk-transitions PENDING->OVERDUE and publishes
 > `birth_notification.overdue` to the outbox. `AnimalRepository` gained `findOverduePendingBirthNotifications`
-> + `markBirthNotificationsOverdue`; `MovementRepository.farmHasOverdueBirths` + a `FARM_LOCKED` guard in
+>
+> - `markBirthNotificationsOverdue`; `MovementRepository.farmHasOverdueBirths` + a `FARM_LOCKED` guard in
 > `MovementService.create` enforce the derived farm lock. Typecheck green (apps/api = 0; remaining errors are
 > pre-existing test-file noise).
 
@@ -939,7 +940,7 @@ domains. ADR-0030 is _accepted as design_; the build below is the pending implem
 ### WO-041 — `.omit()` → `.pick()` migration — P2 — **Done ✅**
 
 - Prevents new DB columns leaking into the create API. Verified: zero `InsertSchema.omit(` in `packages/validators/src/api` (e.g. `createAnimalRequestSchema` now derives via `animalsInsertSchema.pick({clientFields})`).
-- `createSubjectRequestSchema` uses `subjectsSelectSchema.omit({...}).extend({...}).strict()` — a **request** schema (client input), so `.strict()` is correct and safe (the client never sends the omitted audit fields). The trap only applies to *response* schemas fed full DB rows.
+- `createSubjectRequestSchema` uses `subjectsSelectSchema.omit({...}).extend({...}).strict()` — a **request** schema (client input), so `.strict()` is correct and safe (the client never sends the omitted audit fields). The trap only applies to _response_ schemas fed full DB rows.
 - Type fix spotted during hardening: `contingentType` string-literal widened to `contingentTypeType` in `eartags.api.ts`.
 
 ---
@@ -1182,7 +1183,6 @@ Key finding: mobile is the field-data-entry surface, web is the back-office — 
 not 1:1 (informs ADR-0052 parity contract). Extends ADR-0034/0039; cites ADR-0022/0032/0042/
 0049/0050. 🟡 gaps (web detail pages, mobile create/edit flows) map to WO-094/095/096.
 
-
 ## WO-033 corrigendum (2026-07-11)
 
 - **Repository-level RLS coverage extended (Scenario C, real Postgres):** added
@@ -1195,7 +1195,7 @@ not 1:1 (informs ADR-0052 parity contract). Extends ADR-0034/0039; cites ADR-002
   blocked by the policy `withCheck` (`rejects.toThrow()`). Env-gated on the `rocky_rls_test`
   constrained role (`DATABASE_URL` / `RLS_ADMIN_URL`); skip cleanly without env; execute in CI.
   Subject package gained `vitest` / `vite-tsconfig-paths` / `@rocky/testing` devDeps + `vitest.config.ts`
-  + `test` script; farm gained the `postgres` devDep.
+  - `test` script; farm gained the `postgres` devDep.
 - **Blocker — the full-pipeline `*/e2e/*.test.ts` border suite is NOT yet delivered:** `@rocky/trpc`
   exports the `AppRouter` **type** but **not the `appRouter` instance**, and there is **no
   `createCaller`**. A test therefore cannot drive the tRPC Router → Service → Repository → Postgres →
@@ -1205,9 +1205,8 @@ not 1:1 (informs ADR-0052 parity contract). Extends ADR-0034/0039; cites ADR-002
   fails typecheck (`Property 'code' does not exist on type 'Error'`, lines 52/78). Untouched by WO-033;
   flag separately (likely a coded-error typing fix).
 - **Lesson (the Real):** RLS border testing at the repository level was already mechanized and merely
-  under-populated; the genuine WO-033 gap is the *pipeline* border layer, gated on the tRPC caller
+  under-populated; the genuine WO-033 gap is the _pipeline_ border layer, gated on the tRPC caller
   wiring.
-
 
 ## WO-033 corrigendum #2 (2026-07-11) — e2e border suite delivered
 
@@ -1216,7 +1215,7 @@ not 1:1 (informs ADR-0052 parity contract). Extends ADR-0034/0039; cites ADR-002
 1. **Expropriated `appRouter`** — `scripts/patch-trpc-transformer.mjs` now rewrites
    `const appRouter = t.router({` -> `export const appRouter = t.router({` (idempotent,
    regeneration-safe; verified re-running is a no-op). `packages/trpc/src/index.ts`
-   re-exports it. nestjs-trpc's `generate` only emitted the `AppRouter` *type*; the
+   re-exports it. nestjs-trpc's `generate` only emitted the `AppRouter` _type_; the
    instance is now seized for tests.
 2. **Wire-boundary e2e** — `packages/trpc/src/e2e/trpc-wire-boundary.test.ts`:
    `appRouter.createCaller({ headers })` asserts the real Zod @Input schemas are
@@ -1231,7 +1230,7 @@ not 1:1 (informs ADR-0052 parity contract). Extends ADR-0034/0039; cites ADR-002
 
 **Critical architectural finding (dialectical limit of the original plan):**
 nestjs-trpc `generate` emits **PLACEHOLDER resolvers** (`async () => "PLACEHOLDER_DO_NOT_REMOVE"`)
-for type-inference only. The *real* runtime router — with domain services,
+for type-inference only. The _real_ runtime router — with domain services,
 `ExecutionMiddleware` (RLS), `PolicyResolver`, and the `TRPC_ERROR_MAP` translation —
 is assembled **internally by nestjs-trpc and never exported**. Therefore a true
 full-pipeline e2e via `appRouter.createCaller` (Router -> Service -> Repo -> Postgres
@@ -1240,6 +1239,7 @@ exposure. The `globalMiddlewares` (ExecutionMiddleware, PolicyResolver) also run
 in the Nest HTTP layer, so `createCaller` skips them.
 
 **Consequence — scope resolved dialectically:**
+
 - The tRPC<->Zod **wire boundary** (what the e2e suite now covers) is tested via the
   generated router's real Zod schemas.
 - The **error-map translation** (the user's explicit ask) is covered by the isolated
@@ -1253,22 +1253,22 @@ in the Nest HTTP layer, so `createCaller` skips them.
 exposing nestjs-trpc's assembled router (separate, larger effort) and is left for a
 follow-up if desired.
 
-
 ## WO-002 corrigendum (2026-07-11) — VI subject role added (Horn A)
 
 **Resolved (Bug B3, Horn A).** Domain-owner decision: in the MK jurisdiction the Veterinary
-Inspector (VI) is a *state agent* of the Food and Veterinary Agency (CPC), distinct from the private
+Inspector (VI) is a _state agent_ of the Food and Veterinary Agency (CPC), distinct from the private
 Veterinary Station (VS) and its Veterinarian. Collapsing VI into VS would merge police with the
 audited contractor (conflict of interest) — rejected.
 
 **Changes:**
+
 - `packages/database/src/constants/subject-role.ts`: added `VI: "vi"` to `SUBJECT_ROLE` and
   `SUBJECT_ROLE_VALUES`.
 - `scripts/regenerate-enums.mjs`: regenerated enum codegen (`subjectRoleSchema = zEnum(SUBJECT_ROLE_VALUES)`
   picks up `vi` at runtime). No literal value hardcoded — Single Source of Truth preserved.
 - **No DB migration:** `farm_subjects.role` is `varchar` + Zod `zEnum` (not a Postgres `pgEnum`), so
   the change is code-only. `ADMINISTER_ROLES` (ADR-0030) can now include `"vi"` per jurisdiction.
-- VI *system* access uses the existing `USER_ROLE.VD_STAFF` + org-area RLS (no new user role).
+- VI _system_ access uses the existing `USER_ROLE.VD_STAFF` + org-area RLS (no new user role).
   `subject_access_policy` already allows `VD_STAFF` (an `ADMIN_ROLE`) to read all subjects — no RLS
   change required.
 - Enables a `Subject` for the inspector, referenced by `inspections.inspectorId` and
@@ -1299,3 +1299,37 @@ audited contractor (conflict of interest) — rejected.
 | WO-120 | Bovine I&R 7/20 as **non-overridable EU floor** (R8): harden WO-022 deadlines; clamp RuleSet `TAGGING_DAYS` >= EU min | 0054 / 0028 | P2 | Done ✅ |
 | WO-121 | IMSOC / CHED export compliance (R9): export movements emit CHED-compliant JSON/XML (TRACES NT) | 0054 / 0054 | P2 | Draft |
 | WO-122 | GDPR public-health exception (R10): Art.6(1)(c)+9(2)(i) defeat erasure; protect audit_log | 0054 / 0054 | P2 | Draft |
+
+---
+
+## 7. Web Admin Feature Parity with Backend (ADR-0055) — P0 program
+
+- **Why:** the web admin (`apps/web`) invokes 20 of 24 backend routers but is uneven — 4 routers have no
+  page (Tier 0), 12 of 24 areas are list-only with no create/edit forms (Tier 1), the rest are partial
+  CRUD (Tier 2). The backend exposes 156 procedures; the admin can view but not act on most. For a
+  regulatory veterinary system, view-only administration is a fetish. ADR-0055 (Accepted, 2026-07-11)
+  ratifies the parity program.
+- **Target:** every backend procedure has a web affordance (list / create / edit-detail / state-transition
+  action), Zod-validated (`@rocky/validators`), RBAC-gated (`@rocky/authorization` `@Policy`), standard
+  empty/error/toast states. `sync` stays mobile-owned (web = read-only monitor).
+- **Source:** ADR-0055 (decision + phased plan + gap matrix), ADR-0052 (`api-reference.mdx` = surface of
+  truth), ADR-0050 / ADR-0051 (contract sync / page matrix context).
+
+### WO-123 — Web↔Backend parity program (phased) — P0
+
+- **Phase 0 — Web CRUD scaffold & RBAC foundation:** reusable `<EntityPage>` / `<ResourceForm>`
+  (`@rocky/ui` + `@rocky/validators` + `trpc`) + client permission-gating hook (extends WO-105
+  `permissions-core`). De-risks all later phases. ~1 sprint.
+- **Phase 1 — Tier 0 (presence):** `vsContract` (5) → `vsAssignment` (6) → `farmBook` (4) → `sync`
+  (read-only monitor). ~17 procs. VS workflow + farm book are legally mandatory.
+- **Phase 2 — Tier 1 lifecycle depth:** `earTag` (17) → `health` (20) → `passport` (7) → deepen
+  `movement` + `inspection` (risk analysis). Regulatory core made actionable.
+- **Phase 3 — Tier 1 remainder + Tier 2 deepen:** `correction` → `iot` → `archive` (retention) →
+  `document` (generate) → `notification` → `rbac` → `systemParameters` → `organization` (edit) → wire
+  missing procs in `device` / `animal` / `farm` / `subject` / `user`.
+- **Phase 4 — Polish + institutionalize parity:** dashboard analytics, pagination standard, e2e for
+  animal→passport→movement→earTag→health; new **`check:web-parity`** guardian (diff `api-reference.mdx`
+  TOC vs `trpc.<router>` usage in `apps/web`) — fails CI if a backend procedure lacks a web affordance.
+- **Acceptance (program complete):** web invokes all 24 routers (`sync` exempt as monitor); every Mutation
+  has a form/action; `pnpm check:web-parity` green; `pnpm ci:checks` green.
+- **Status:** Proposed (program opened 2026-07-11). Phase 0 not yet started.
