@@ -69,6 +69,17 @@ rg -n "trpc.earTag.transitionStatus|trpc.health.recordVaccination|trpc.passport.
 2. `health` as separate list pages with no timeline (the clinical story is sequential).
 3. `passport` actions shown to users lacking the `@Policy` permission.
 
+
+## Component & feedback map
+
+Cross-cutting design contract: **ADR-0060**.
+
+| Domain | Distinctive components | Design / feedback note |
+| --- | --- | --- |
+| `earTag` | **Stepper** (build, ADR-0060); `data-table`→`sheet`; `row-actions`; `validated-form`; `alert-dialog` | 6-stage stepper is the hero; `notifySuccess` on `transitionStatus` |
+| `health` | **Timeline** (build); `tabs`; `card` batch panel + `alert`; `validated-form` | clinical timeline; batch-expiry `alert`; `notifyError` if batch expired |
+| `passport` | `status-badge` + gated action rail; `tabs`; `alert-dialog` | actions appear by `@Policy`; `alert-dialog` for `seize`/`reprint` |
+
 ## Related ADRs
 
 - **ADR-0055** — parity charter (Tier 1, Phase 2).

@@ -84,6 +84,18 @@ Acceptance: all four routers invoked by web; `sync` page is read-only (no mutati
 2. Flat table for `farmBook` — it is a *timeline*; order carries meaning.
 3. `vsAssignment` shown without the farm→VS relationship made visible.
 
+
+## Component & feedback map
+
+Cross-cutting design contract (feedback/notifications, permission gating, empty/loading, form law, dark mode, semantic tokens): **ADR-0060**.
+
+| Domain | Distinctive components | Design / feedback note |
+| --- | --- | --- |
+| `farmBook` | `data-table`→`sheet`; **Timeline** (build, ADR-0060); `validated-form` | ledger sequence via Timeline; `notifySuccess` on create; `alert` on terminal status |
+| `vsContract` | `data-table`+`combobox` filter; **Stepper** (build); `status-badge`; `stat-card`; `alert-dialog` | lifecycle badge + stepper; `alert-dialog` for TERMINATED |
+| `vsAssignment` | farm `card` grid + `avatar`+`badge`; `combobox` assign; `alert-dialog` | `clientCan("vs:assign")` gates the action rail |
+| `sync` | `stat-card`+`progress`+`chart`; **NO forms** | read-only monitor; `skeleton` while polling `syncDownload`/`syncUpload` |
+
 ## Related ADRs
 
 - **ADR-0055** — parity charter (Tier 0, Phase 1).

@@ -84,6 +84,20 @@ rg -n "trpc.(correction|iot|notification|rbac|systemParameters|document)" apps/w
 2. `systemParameters` as ungrouped key-values (it is a RuleSet — group it).
 3. `document` without a download path for the generated artifact.
 
+
+## Component & feedback map
+
+Cross-cutting design contract: **ADR-0060**.
+
+| Domain | Distinctive components | Design / feedback note |
+| --- | --- | --- |
+| `correction` | `data-table` queue + `status-badge`; `sheet`+`accordion`; `row-actions`(`alert-dialog`) | case queue; `alert-dialog` for `reject` |
+| `iot` | `resizable` + **Map** (ADR-0031); `data-table`; `chart` sparklines; `dialog` geofence | map deferred; placeholder pane until ADR-0031 |
+| `notification` | `data-table`+delivery `status-badge`; `dialog` compose; `markAsRead` | unread `badge` on nav bell; `notifySuccess` on send |
+| `rbac` | `table` roles×perms grid; `combobox`; cell toggle / `alert-dialog` | `clientCan("rbac:write")` gates cells |
+| `systemParameters` | `tabs` by group; `field` forms; `validated-form` | `notifySuccess` on save; `alert` if threshold invalid |
+| `document` | `combobox` type→`validated-form`→download `button`; `data-table` browser | YAML/XML download |
+
 ## Related ADRs
 
 - **ADR-0055** — parity charter (Tier 1, Phase 3).

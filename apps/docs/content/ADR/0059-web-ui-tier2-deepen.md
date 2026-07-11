@@ -79,6 +79,19 @@ rg -n "trpc.(archive.markDestroyed|inspection.runRiskAnalysis|movement.recordSla
 2. `movement` as one giant form (it is *per-type* — branch by movement kind).
 3. `inspection` risk score shown without citing the RuleSet weights that produced it.
 
+
+## Component & feedback map
+
+Cross-cutting design contract: **ADR-0060**.
+
+| Domain | Distinctive components | Design / feedback note |
+| --- | --- | --- |
+| `archive` | `combobox` tier filter; retention `badge`/`alert`; `data-table` bulk + `alert-dialog` | bulk `markDestroyed` on `listExpired` |
+| `device` | `data-table` + online/offline `badge` + token `status-badge`; `row-actions` | gated `recordSync`/`unblock` |
+| `inspection` | `stat-card` risk + `accordion`(9 sections)+`calendar`; `button` runRisk; `alert-dialog` | `notifySuccess` on `complete`; `printForm` |
+| `movement` | `toggle-group` type→per-type `validated-form`; **Timeline** lineage; `alert` farm-lock | WO-022 overdue-births `alert` |
+| `organization` | extend with `update` `sheet`; `data-table` member/role + `assignRole` | wire the missing edit surface |
+
 ## Related ADRs
 
 - **ADR-0055** — parity charter (Tier 2, Phase 3).
