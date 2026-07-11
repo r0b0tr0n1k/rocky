@@ -46,6 +46,14 @@ Two rejected extremes, recorded so we do not drift back to them:
 - **Obscure via VoIP / never show the number** -- bureaucratic absurdity; GDPR
   protects the farmer while enabling the lawful call.
 
+**Scope (jurisdiction).** Albania is out of detailed scope for this protocol; it is
+present in the app from a prior GDPR project. Both North Macedonia (MK LPDP) and
+Albania (AL Law 124) are GDPR-derived, so a GDPR-aligned edge protocol satisfies
+both. Jurisdiction-specific *veterinary-law* variance (e.g. whether a farmer ID is
+mandated) is carried by the **RuleSet domain** (ADR-0030), not hardcoded here -- if
+a jurisdiction mandates farmer ID, the RuleSet expresses it and the edge protocol
+honours the hidden-by-default rule above.
+
 ## Decision
 
 Adopt a **role-aware edge data policy**. Field roles receive **contact-only PII
@@ -213,7 +221,10 @@ current proposal; the following remain open:
    police-with-warrant only, server-side and legally gated. The butcher uses the
    death-certificate / passport *reference* (document key), not the keeper's national ID.
    AL jurisdiction: default EXCLUDE until a legal basis says otherwise -- **confirm**.
-4. Cross-border (MK <-> AL) implications for contact PII -- **open**.
+4. ~~Cross-border (MK <-> AL) implications~~ -> **RESOLVED by scope**: Albania is
+   out of detailed scope (prior GDPR project); both MK LPDP and AL Law 124 are
+   GDPR-derived, so the GDPR-aligned edge protocol satisfies both. Veterinary-law
+   variance per jurisdiction is carried by the RuleSet domain (ADR-0030), not here.
 5. Who owns the reveal-log retention and the breach assessment if a device is lost --
    **open** (ties to ADR-0072).
 
