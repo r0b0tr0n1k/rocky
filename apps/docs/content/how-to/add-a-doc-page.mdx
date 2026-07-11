@@ -1,0 +1,40 @@
+---
+title: Add a doc page
+sidebarTitle: Add a Doc Page
+---
+
+# Add a doc page
+
+New docs live under `apps/docs/content/` in one of the Diátaxis quadrants defined by [ADR-0052](/ADR/0052-documentation-architecture). Pick the genre *before* you write.
+
+## Where does it go? (decision)
+| If the page is… | Put it in | Example |
+| --- | --- | --- |
+| a *decision record* | `ADR/` (use [Write an ADR](/how-to/write-an-adr)) | `ADR/0052-*.md` |
+| *learning*-oriented onboarding | `tutorials/` | `tutorials/index.mdx` |
+| *why* / architecture narrative | `explanation/` | `offline-architecture.md` |
+| a *do-this* task recipe | `how-to/` | `how-to/add-trpc-router.mdx` |
+| *facts* / lookup / API | `reference/` | `reference/api-reference.mdx` |
+| an *operational* procedure | `runbooks/` | `runbooks/db-recreate.mdx` |
+
+Each folder has an `index.mdx` (`asIndexPage: true`) — don't recreate it. Add your page as a sibling `.mdx`.
+
+## Steps
+1. Create `content/<quadrant>/your-slug.mdx` with frontmatter:
+   ```mdx
+   ---
+   title: Your Title
+   sidebarTitle: Short
+   ---
+   ```
+   (`asIndexPage: true` only for the folder landing.)
+2. Link to existing pages with absolute paths from `content/`: `[Foo](/ADR/0033-frontend-mobile-adr-standard)`. Never use `../` escapes — the link guardian rejects them.
+3. **Validate locally**
+   ```bash
+   pnpm check:md-links
+   ```
+   It resolves every `[text](url)` against the filesystem, warns on missing anchors, and skips inline-code spans. Fix until `✓ No broken internal links.`
+4. If the page is a *new top-level section*, add it to the root `_meta.ts` (group with a `type: 'separator'` if needed — the guardian now skips separators).
+
+## Guardrail
+`check:md-links` runs in `pnpm ci:checks`. See [Run the Guardians](/how-to/run-the-guardians).

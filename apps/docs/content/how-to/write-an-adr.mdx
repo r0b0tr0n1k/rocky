@@ -1,0 +1,30 @@
+---
+title: Write an ADR
+sidebarTitle: Write an ADR
+---
+
+# Write an ADR
+
+Architecture decisions are recorded as ADRs in `apps/docs/content/ADR/`. The standard is [ADR-0033](/ADR/0033-frontend-mobile-adr-standard); the taxonomy that places ADRs as the *Decisions* section is [ADR-0052](/ADR/0052-documentation-architecture).
+
+## When you need one
+Start a Proposed ADR before any non-trivial architecture decision (new domain, new cross-layer contract, new dependency, new pattern). Don't bury the decision in a PR description — record it.
+
+## Steps
+1. **Copy the template**
+   ```bash
+   cp apps/docs/content/ADR/ADR-TEMPLATE.md apps/docs/content/ADR/00NN-slug.md
+   ```
+   Use the next free 4-digit number (see the `ADR/` folder). The filename is `NNNN-kebab-slug.md` — that slug is the URL (`/ADR/NNNN-kebab-slug`).
+2. **Fill the header table** — `Status: Proposed`, `Date`, `Author`, `Supersedes: None`, `Superseded: None`.
+3. **Write the sections** — `## Context`, `## Decision`, `## Consequences`, `## Implementation`, `## Verification`, `## Anti-Patterns`, `## Related ADRs`. The first H1 must be `# ADR-NNNN: <title>`.
+4. **Validate locally**
+   ```bash
+   pnpm check:adrs
+   ```
+   The guardian enforces: H1 format, the 5 header-table keys, a valid `Status` value, and the required sections. Fix until it prints `✓ N ADRs conform to ADR-0033.`
+5. **Link it** from related ADRs' `Related ADRs` and from the relevant `how-to`/`explanation` page. Keep decision *claims* in the ADR; other docs *reference* it (don't duplicate).
+6. **Ratify** by setting `Status: Accepted` once implemented (or keep `Proposed` if still under discussion).
+
+## Guardrail
+`check:adrs` runs in `pnpm ci:checks` — a malformed ADR fails CI. See [Run the Guardians](/how-to/run-the-guardians).
