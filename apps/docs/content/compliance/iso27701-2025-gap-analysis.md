@@ -28,8 +28,8 @@ The two canonical control catalogs were re-evaluated against the Real of the fil
   ("Procedures must be documented / implemented / reviewed …") repeat on every control,
   adding no per-control analytical value.
 - **`gdprMapping` — PRESENT and useful** (esp. 27701, which carries rich GDPR articles).
-- **Edition label — VERIFY.** `iso27701_2025` claims the **2025** edition; ISO 27701 was
-  originally published **2019**. Confirm the edition before any conformity claim.
+- **Edition — current.** Both ISO/IEC 27001:2022 and ISO/IEC 27701:2025 are the latest
+  published revisions (as of 2026); no edition caveat applies.
 - **Guardian false-positive — FIXED.** `check-md-links` previously emitted 8
   `undefined-ref` warnings from Python `print(f"…")` inside fenced code — dict access
   `validation['legal_compliance']['compliance_status']` misread as a `[a][b]` reference
