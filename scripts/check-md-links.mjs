@@ -75,6 +75,7 @@ for (const f of allFiles) {
       const pre = ln.slice(0, m.index);
       if ((pre.match(/`/g) || []).length % 2 === 1) continue; // inside inline-code span -> not a real link
       if (SKIP_SCHEME.test(raw)) continue;
+      if (raw.startsWith("../scf/")) continue; // GraphGRC SCF annotations; files intentionally orphaned per ADR-0067
       const anchor = raw.includes("#") ? raw.slice(raw.indexOf("#") + 1) : "";
       const cands = candidates(dir, raw);
       const hit = cands.find(exists);
@@ -100,6 +101,7 @@ for (const f of allFiles) {
       const def = refDefs[m[1].toLowerCase()];
       if (!def) { warns.push({ f, line: i + 1, raw: m[0], kind: "undefined-ref" }); continue; }
       if (SKIP_SCHEME.test(def)) continue;
+      if (def.startsWith("../scf/")) continue; // GraphGRC SCF annotations; intentionally orphaned per ADR-0067
       const cands = candidates(dir, def);
       if (!cands.find(exists)) broken.push({ f, line: i + 1, raw: def });
     }

@@ -1,6 +1,9 @@
 export default {
   "iso27701-2025-gap-analysis": { title: "ISO 27701:2025 / 27001:2022 Gap Analysis" },
   "isms-policy": { title: "ISMS / PIMS Policy (Rocky)" },
+  "rocky-ropa": { title: "Records of Processing Activities (RoPA)" },
+  "rocky-erasure-retention-procedure": { title: "Erasure & Retention Procedure" },
+  "rocky-lawful-basis-register": { title: "Lawful Basis Register" },
   "MACEDONIAN_LPDP_GDPR_ISO27701_COMPLIANCE_GUIDE": { title: "LPDP+GDPR+ISO27701 Compliance Guide (MK)" },
   "MACEDONIAN_LPDP_GDPR_ISO27701_CONTROLS_MATRIX": { title: "LPDP+GDPR+ISO27701 Controls Matrix (MK)" },
   "MACEDONIAN_LPDP_GDPR_ISO27701_EXECUTIVE_SUMMARY": { title: "LPDP+GDPR+ISO27701 Exec Summary (MK)" },
