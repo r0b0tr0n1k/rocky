@@ -7,6 +7,7 @@
 
 import { movementListRequestSchema } from "@rocky/validators/api";
 import { movementResponseSchema } from "@rocky/validators/api";
+import type { LineageGraph } from "@rocky/validators/api";
 
 import type {
   MovementResponse,
@@ -984,5 +985,69 @@ export class MovementService {
         });
       return movementResponseSchema.parse(mov);
     }, toAppError)();
+  }
+
+  // ── WO-116: Lineage & Traceability Graph (R6 EC 178/2002) ──
+  async getLineage(animalId: string): Promise<Result<LineageGraph, Error>> {
+    return fromAsyncThrowable(async () => {
+      const ruleSet = await this.system.getRuleSet();
+      if (ruleSet.isErr()) throw ruleSet.error;
+      return this.buildLineageGraph(animalId, ruleSet.value.traceability.maxDepth);
+    }, toAppError)();
+  }
+
+  private async buildLineageGraph(rootAnimalId: string, maxDepth: number): Promise<LineageGraph> {
+    type LNode = { kind: "animal" | "holding"; id: string; label?: string };
+    type LEdge = {
+      kind: "movement" | "parentage";
+      animalId: string;
+      from?: string;
+      to?: string;
+      date?: string;
+      type?: string;
+      parentId?: string;
+    };
+    const visited = new Set<string>();
+    const nodes = new Map<string, LNode>();
+    const edges: LEdge[] = [];
+    const queue: Array<{ id: string; depth: number }> = [{ id: rootAnimalId, depth: 0 }];
+    let truncated = false;
+    const CAP = 500;
+    while (queue.length > 0) {
+      const { id, depth } = queue.shift()!;
+      if (visited.has(id)) continue;
+      visited.add(id);
+      const animal = await this.animalRepo.findById(id);
+      if (!animal) continue;
+      nodes.set(`animal:${id}`, { kind: "animal", id, label: animal.earTagNumber ?? id });
+      if (animal.currentFarmId) {
+        nodes.set(`holding:${animal.currentFarmId}`, { kind: "holding", id: animal.currentFarmId });
+      }
+      const movements = await this.repo.findMovementsByAnimal(id);
+      for (const m of movements) {
+        if (m.fromFarmId) nodes.set(`holding:${m.fromFarmId}`, { kind: "holding", id: m.fromFarmId });
+        if (m.toFarmId) nodes.set(`holding:${m.toFarmId}`, { kind: "holding", id: m.toFarmId });
+        edges.push({
+          kind: "movement",
+          animalId: id,
+          from: m.fromFarmId ?? undefined,
+          to: m.toFarmId,
+          date: m.movementDate ? String(m.movementDate) : undefined,
+          type: m.type,
+        });
+      }
+      const parents = await this.repo.findAnimalParents(id);
+      for (const par of parents) {
+        edges.push({ kind: "parentage", animalId: id, parentId: par.parentId });
+        if (depth < maxDepth && !visited.has(par.parentId)) queue.push({ id: par.parentId, depth: depth + 1 });
+      }
+      const offspring = await this.repo.findAnimalOffspring(id);
+      for (const o of offspring) {
+        edges.push({ kind: "parentage", animalId: o.animalId, parentId: id });
+        if (depth < maxDepth && !visited.has(o.animalId)) queue.push({ id: o.animalId, depth: depth + 1 });
+      }
+      if (visited.size > CAP) { truncated = true; break; }
+    }
+    return { animalId: rootAnimalId, nodes: Array.from(nodes.values()), edges, truncated };
   }
 }

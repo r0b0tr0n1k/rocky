@@ -5,7 +5,7 @@
  */
 
 import { eq, and, desc, asc, sql, gte, lte, inArray, gt, isNotNull, type SQL } from "drizzle-orm";
-import { movements as movementsTable, pastureDeclarations as pastureDeclarationsTable, farms as farmsTable, birthNotifications as birthNotificationsTable, treatments as treatmentsTable } from "@rocky/database";
+import { movements as movementsTable, pastureDeclarations as pastureDeclarationsTable, farms as farmsTable, birthNotifications as birthNotificationsTable, treatments as treatmentsTable, animalParents as animalParentsTable } from "@rocky/database";
 import { importExportRecords as importExportRecordsTable } from "@rocky/database";
 import { BaseRepository } from "@rocky/domains-shared";
 import { SORT_BY_MOVEMENT, SORT_ORDER, BIRTH_NOTIFICATION_STATUS } from "@rocky/database/constants";
@@ -150,6 +150,19 @@ export class MovementRepository extends BaseRepository {
       )
       .limit(1);
     return row !== undefined;
+  }
+
+  // ── WO-116: Lineage graph walks (R6 EC 178/2002) ──
+  async findMovementsByAnimal(animalId: string) {
+    return this.client.select().from(movementsTable).where(eq(movementsTable.animalId, animalId));
+  }
+
+  async findAnimalParents(animalId: string) {
+    return this.client.select().from(animalParentsTable).where(eq(animalParentsTable.animalId, animalId));
+  }
+
+  async findAnimalOffspring(animalId: string) {
+    return this.client.select().from(animalParentsTable).where(eq(animalParentsTable.parentId, animalId));
   }
 
   /**

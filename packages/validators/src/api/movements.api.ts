@@ -403,3 +403,29 @@ export type _MovementsGuillotines = ActivateGuillotines<
    _drift_exportAnimal, _drift_recordMarketTransaction, _drift_recordMarketUnsold,
    _drift_recordMarketSlaughter]
 >;
+
+// ── WO-116: Lineage & Traceability Graph (R6 EC 178/2002) ──
+export const lineageRequestSchema = z.object({ animalId: z.uuid() });
+export type LineageRequest = z.infer<typeof lineageRequestSchema>;
+
+export const lineageNodeSchema = z.object({
+  kind: z.enum(["animal", "holding"]),
+  id: z.string(),
+  label: z.string().optional(),
+});
+export const lineageEdgeSchema = z.object({
+  kind: z.enum(["movement", "parentage"]),
+  animalId: z.string(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+  date: z.string().optional(),
+  type: z.string().optional(),
+  parentId: z.string().optional(),
+});
+export const lineageGraphSchema = z.object({
+  animalId: z.string(),
+  nodes: z.array(lineageNodeSchema),
+  edges: z.array(lineageEdgeSchema),
+  truncated: z.boolean(),
+});
+export type LineageGraph = z.infer<typeof lineageGraphSchema>;

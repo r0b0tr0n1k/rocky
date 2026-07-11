@@ -14,6 +14,7 @@ export { PdfModule } from "./pdf.module.js";
 export { InspectionFormTemplate } from "./templates/inspection-form.template.js";
 export { PassportTemplate } from "./templates/passport.template.js";
 export { MovementTemplate } from "./templates/movement.template.js";
+export { ChedTemplate } from "./templates/ched.template.js";
 
 // Services
 export { DocumentService } from "./services/document.service.js";

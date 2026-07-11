@@ -57,6 +57,7 @@ import {
   InspectionFormTemplate,
   PassportTemplate,
   MovementTemplate,
+  ChedTemplate,
 } from "@rocky/pdf/index.js";
 import { ClsModule } from "nestjs-cls";
 import { AuthCoreModule } from "./auth/auth-core.module.js";
@@ -454,6 +455,12 @@ import { TrpcModule } from "./trpc/trpc.module.js";
         farmRepo: FarmRepository,
       ) => new MovementTemplate(movementRepo, animalRepo, farmRepo),
       inject: [MovementRepository, AnimalRepository, FarmRepository],
+    },
+    {
+      provide: ChedTemplate,
+      useFactory: (movementRepo: MovementRepository, animalRepo: AnimalRepository) =>
+        new ChedTemplate(movementRepo, animalRepo),
+      inject: [MovementRepository, AnimalRepository],
     },
 
     {

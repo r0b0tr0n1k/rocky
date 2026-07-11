@@ -43,6 +43,20 @@ export interface RuleSetWeights {
   region: number;
 }
 
+export interface RuleSetTraceability {
+  /** Max BFS depth for the lineage graph (R6, EC 178/2002). Bounds parent/offspring recursion. */
+  maxDepth: number;
+  /** Traceability record retention years (R3, FSMA + R6). Default 2. */
+  retentionYears: number;
+}
+
+export interface RuleSetFsma {
+  /** CTE KDE export format (R3, FSMA 204). Default json. */
+  cteExportFormat: string;
+  /** Response SLA for KDE export in hours (R3, FSMA 204 <= 24h). Default 24. */
+  responseSlaHours: number;
+}
+
 export interface RuleSetTag {
   /** Ear-tag format for the jurisdiction (WO-118, R2): ISO_11784_15 (15-digit ISO 11784/11785) or MK_8 (8-digit MK national). */
   format: string;
@@ -78,6 +92,10 @@ export interface RuleSet {
   welfare: RuleSetWelfare;
   /** Ear-tag format config (WO-118, R2 USDA APHIS ADT). */
   tag: RuleSetTag;
+  /** Traceability graph config (WO-116, R6 EC 178/2002). */
+  traceability: RuleSetTraceability;
+  /** FSMA 204 KDE export config (WO-116, R3). */
+  fsma: RuleSetFsma;
   /** Whether this jurisdiction aligns with EU cattle I&R mandates (R8). When true, birth deadlines may not be loosened below the EU floor. */
   euAligned: boolean;
 }
@@ -194,6 +212,14 @@ export function buildRuleSet(
       prefix: byCode.get("TAG_PREFIX")?.value ?? MK_ISO_COUNTRY_CODE,
     },
     euAligned: byCode.get("EU_ALIGNED")?.value !== "false",
+    traceability: {
+      maxDepth: wParam("TRACEABILITY_MAX_DEPTH", 10),
+      retentionYears: wParam("TRACEABILITY_RETENTION_YEARS", 2),
+    },
+    fsma: {
+      cteExportFormat: byCode.get("FSMA_CTE_EXPORT_FORMAT")?.value ?? "json",
+      responseSlaHours: wParam("FSMA_RESPONSE_SLA_HOURS", 24),
+    },
   };
   validateSovereignLimits(ruleSet);
   return ruleSet;

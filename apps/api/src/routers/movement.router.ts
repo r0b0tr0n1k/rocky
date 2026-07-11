@@ -24,6 +24,10 @@ import {
   movementListRequestSchema,
   movementListResponseSchema,
   movementResponseSchema,
+  type LineageRequest,
+  type LineageGraph,
+  lineageGraphSchema,
+  lineageRequestSchema,
   type RecordDeathRequest,
   type RecordMarketSlaughterRequest,
   type RecordMarketTransactionRequest,
@@ -62,6 +66,11 @@ export class MovementRouter {
   @Query({ input: idParam, output: movementResponseSchema })
   async getById(@Input() input: { id: string }): Promise<MovementResponse> {
     return unwrap(await this.movementService.getById(input.id));
+  }
+
+  @Query({ input: lineageRequestSchema, output: lineageGraphSchema })
+  async getLineage(@Input() input: LineageRequest): Promise<LineageGraph> {
+    return unwrap(await this.movementService.getLineage(input.animalId));
   }
 
   @Query({ input: movementListRequestSchema, output: movementListResponseSchema })
