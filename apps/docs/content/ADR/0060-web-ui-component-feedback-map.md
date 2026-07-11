@@ -68,6 +68,31 @@ The set covers ~everything **except** three signatures our ADRs require. Build t
 | Identity | `avatar` |
 
 Per-domain component picks are in **ADR-0056** (Tier 0), **ADR-0057** (Tier 1 Lifecycle), **ADR-0058** (Tier 1 Operational), **ADR-0059** (Tier 2 Deepen).
+## Canonical monorepo tRPC pattern
+
+This is **not** an accidental convention — it is the standard way a tRPC
+frontend is built inside a monorepo, and the repo already implements every
+piece. Documented explicitly so future developers know it is intentional and
+idiomatic, not incidental.
+
+| Standard monorepo-tRPC piece | This repo |
+| --- | --- |
+| Shared **type-only** package | `@rocky/trpc` exports `AppRouter` (type) + `superjson` transformer + `createResultUnwrapper` |
+| Generated `AppRouter` | `nestjs-trpc generate` → `packages/trpc/src/generated/server.ts` |
+| Typed client (tRPC v11 + TanStack RQ) | `createTRPCContext<AppRouter>()` → `useTRPC()` fully typed; `trpc.x.queryOptions()` / `mutationOptions()` |
+| Shared validation package | `@rocky/validators/api` imported by *both* server (router input) and client (form via `zodResolver`) |
+| Shared transformer | `superjson` on `httpBatchLink` / `httpSubscriptionLink` and the server — `Date`/`BigInt` survive the wire |
+| Error contract | domain `Result<E>` → `TRPCError`, typed through `AppRouter` |
+
+### Why it is the idiom (not a deviation)
+- **Single typed contract.** The server declares each router once; `AppRouter` infers input, output, *and* error types. The client is typed end-to-end with **no codegen step and no redeclared client types** — the source of truth is the router, not a generated client stub.
+- **No validation drift.** The same `/api` Zod schema validates on the server (router `input`) and the client (form `zodResolver`). One schema, two sides (Diamond Seal / NoDrift).
+- **Deployment wrinkle is orthogonal.** `trpc.ts` routes the browser → Next.js relative URL → rewrite proxy → API. That is a CORS/origin concern (the API is a separate NestJS server behind the Next gateway), **not** an architecture deviation.
+- **Backend framework is a detail.** The API uses `nestjs-trpc` (NestJS) to *produce* `AppRouter`; the frontend consumption is 100% vanilla tRPC. The generator differs; the contract does not.
+
+### Proof it is already real
+`apps/web/app/(admin)/passports/page.tsx` exercises every seam: shared `issuePassportRequestSchema` + `PASSPORT_STATUS` + `PassportSummary` from `@rocky/validators`, types from `useTRPC()` (`AppRouter`), validation via `ActionDialog` → `useValidatedForm`, and the typed `TRPCError` via `notifyError`.
+
 
 ## Consequences
 
@@ -166,4 +191,5 @@ Object.values(PASSPORT_STATUS).map(s => <SelectItem value={s}>{s}</SelectItem>);
 - **ADR-0055** — parity charter; **ADR-0056 / 0057 / 0058 / 0059** — per-tier, per-domain maps.
 - **ADR-0031** — IoT connectivity / geofence map decision.
 - **ADR-0042** — permission UI; **ADR-0050 / 0051** — Permissions catalog + page matrix.
+- **ADR-0032** — tRPC output schema / surface (the generated `AppRouter` contract).
 - **ADR-0033** — frontend/mobile ADR standard.
