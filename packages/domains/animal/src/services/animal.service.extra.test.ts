@@ -9,19 +9,36 @@ import { ANIMAL_STATUS } from "@rocky/database/constants";
 
 function makeRuleSet() {
   return ok({
-    jurisdiction: "MK",
-    thresholds: {
-      orderIntervalDays: 120,
-      maxOrdersPerYear: 4,
-      minVaccinationAgeDays: 30,
-      slaughterMinAgeDays: 25,
-      stillbornThresholdDays: 25,
-      arrivalCorrectionDays: 2,
-      minMotherAgeMonths: 17,
-      calvingPeriodDays: 365,
-    },
-    weights: { selectionPercentage: 10, farmSize: 0.3, history: 0.3, species: 0.2, region: 0.2 },
-  });
+        jurisdiction: "MK",
+        farmerCanAdminister: true,
+        retention: { cpc: 3, vs: 3, vi: 3, bip: 3 },
+        roleVocab: ["owner", "keeper", "veterinarian", "trader", "slaughterhouse_op", "market_op", "technician", "guardian"],
+        administerRoles: ["veterinarian"],
+        thresholds: {
+          orderIntervalDays: 120,
+          maxOrdersPerYear: 4,
+          minVaccinationAgeDays: 30,
+          slaughterMinAgeDays: 25,
+          stillbornThresholdDays: 25,
+          arrivalCorrectionDays: 2,
+          minMotherAgeMonths: 17,
+          calvingPeriodDays: 365,
+          taggingDays: 20,
+          notificationDays: 7,
+        },
+        weights: { selectionPercentage: 10, farmSize: 0.3, history: 0.3, species: 0.2, region: 0.2 },
+        welfare: {
+          unweanedMaxAgeDays: 120,
+          maxSingleLegDays: 1,
+          multiDayMaxDays: 2,
+          restStopAfterDays: 1,
+        },
+        // WO-118: ear-tag format config — was missing from the pre-WO-118 mock, causing tag.format to crash
+        tag: { format: "MK_8", prefix: "807" },
+        traceability: { maxDepth: 10, retentionYears: 2 },
+        fsma: { cteExportFormat: "json", responseSlaHours: 24 },
+        euAligned: true,
+      });
 }
 
 function oldMother(factory: AnimalFactory) {

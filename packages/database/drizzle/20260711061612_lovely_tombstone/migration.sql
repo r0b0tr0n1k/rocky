@@ -1,15 +1,3 @@
-CREATE OR REPLACE FUNCTION public.farm_org_id(p_farm_id uuid)
-  RETURNS uuid
-  LANGUAGE sql
-  SECURITY DEFINER
-  AS $function$
-    SELECT oa.organization_id
-    FROM farms f
-    JOIN addresses a ON f.address_id = a.id
-    JOIN org_areas oa ON a.commune_id = oa.commune_id
-    WHERE f.id = p_farm_id
-  $function$;
-
 CREATE TYPE "admin_roles" AS ENUM('SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF');--> statement-breakpoint
 CREATE TYPE "administration_route" AS ENUM('intramuscular', 'subcutaneous', 'intranasal', 'oral', 'topical', 'other');--> statement-breakpoint
 CREATE TYPE "allocation_status" AS ENUM('PENDING', 'PARTIALLY_FULFILLED', 'FULFILLED', 'CANCELLED');--> statement-breakpoint
@@ -19,7 +7,7 @@ CREATE TYPE "approval_action" AS ENUM('APPROVE', 'REJECT', 'REQUEST_CHANGES');--
 CREATE TYPE "archive_document_type" AS ENUM('passport', 'census_form', 'tagging_receipt', 'order_form', 'inspection_form', 'slaughter_list', 'correspondence', 'other');--> statement-breakpoint
 CREATE TYPE "archive_location" AS ENUM('cpc', 'vs', 'vi', 'bip');--> statement-breakpoint
 CREATE TYPE "audit_action" AS ENUM('CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'EXPORT', 'IMPORT');--> statement-breakpoint
-CREATE TYPE "birth_notification_status" AS ENUM('PENDING', 'SENT', 'FAILED');--> statement-breakpoint
+CREATE TYPE "birth_notification_status" AS ENUM('PENDING', 'SENT', 'FAILED', 'OVERDUE');--> statement-breakpoint
 CREATE TYPE "birth_type" AS ENUM('single', 'twin', 'triplet', 'stillborn');--> statement-breakpoint
 CREATE TYPE "conflict_resolution_status" AS ENUM('none', 'invalidated_natural', 'invalidated_data_error', 'reinstated');--> statement-breakpoint
 CREATE TYPE "contingent_type" AS ENUM('supplier', 'vd', 'vs');--> statement-breakpoint
@@ -85,7 +73,7 @@ CREATE TYPE "sort_by_movement" AS ENUM('movementDate', 'createdAt');--> statemen
 CREATE TYPE "sort_by_user" AS ENUM('username', 'createdAt', 'lastLoginAt');--> statement-breakpoint
 CREATE TYPE "sort_order" AS ENUM('asc', 'desc');--> statement-breakpoint
 CREATE TYPE "state_code" AS ENUM('MK');--> statement-breakpoint
-CREATE TYPE "subject_role" AS ENUM('owner', 'keeper', 'veterinarian', 'trader', 'slaughterhouse_op', 'market_op', 'technician', 'guardian');--> statement-breakpoint
+CREATE TYPE "subject_role" AS ENUM('owner', 'keeper', 'veterinarian', 'vi', 'trader', 'slaughterhouse_op', 'market_op', 'technician', 'guardian');--> statement-breakpoint
 CREATE TYPE "sync_error_type" AS ENUM('PARSE_ERROR', 'VALIDATION_ERROR', 'NETWORK_ERROR', 'DUPLICATE', 'UNKNOWN');--> statement-breakpoint
 CREATE TYPE "sync_record_type" AS ENUM('vaccination', 'treatment', 'labTest', 'animal', 'farm', 'movement', 'inspection', 'earTag');--> statement-breakpoint
 CREATE TYPE "sync_status" AS ENUM('PASSED', 'WARNING', 'REJECTED');--> statement-breakpoint
@@ -454,6 +442,8 @@ CREATE TABLE "geofences" (
 	"farm_id" uuid NOT NULL,
 	"pasture_id" uuid,
 	"geometry" jsonb NOT NULL,
+	"polygon" geometry(point,4326),
+	"cadastral_reference" varchar(100),
 	"fence_type" "fence_type" NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
@@ -633,6 +623,16 @@ CREATE TABLE "risk_analyses" (
 	"created_by" uuid,
 	"updated_at" timestamp,
 	"valid_to" timestamp
+);
+--> statement-breakpoint
+CREATE TABLE "risk_analysis_results" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+	"analysis_id" uuid NOT NULL,
+	"farm_id" uuid NOT NULL,
+	"score" numeric(12,6) NOT NULL,
+	"selected" boolean DEFAULT false NOT NULL,
+	"risk_factors_snapshot" jsonb NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "sensor_readings" (
@@ -905,6 +905,9 @@ CREATE TABLE "admin_units" (
 	"legacy_id" integer UNIQUE,
 	"name" varchar(50) NOT NULL,
 	"au_id" varchar(20) NOT NULL,
+	"level" varchar(12) DEFAULT 'LAU' NOT NULL,
+	"parent_id" uuid,
+	"nuts_code" varchar(20),
 	"is_active" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"created_by" uuid,
@@ -1447,6 +1450,7 @@ CREATE INDEX "idx_geofences_farm" ON "geofences" ("farm_id");--> statement-break
 CREATE INDEX "idx_geofences_pasture" ON "geofences" ("pasture_id");--> statement-breakpoint
 CREATE INDEX "idx_geofences_type" ON "geofences" ("fence_type");--> statement-breakpoint
 CREATE INDEX "idx_geofences_active" ON "geofences" ("is_active");--> statement-breakpoint
+CREATE INDEX "idx_geofences_polygon" ON "geofences" USING gist ("polygon");--> statement-breakpoint
 CREATE INDEX "idx_import_export_animal" ON "import_export_records" ("animal_id");--> statement-breakpoint
 CREATE INDEX "idx_import_export_farm" ON "import_export_records" ("from_farm_id");--> statement-breakpoint
 CREATE INDEX "idx_import_export_status" ON "import_export_records" ("status");--> statement-breakpoint
@@ -1471,6 +1475,9 @@ CREATE INDEX "idx_pasture_to" ON "pasture_declarations" ("to_farm_id");--> state
 CREATE INDEX "idx_pasture_type" ON "pasture_declarations" ("pasture_type");--> statement-breakpoint
 CREATE INDEX "idx_risk_analyses_year" ON "risk_analyses" ("year");--> statement-breakpoint
 CREATE INDEX "idx_risk_analyses_status" ON "risk_analyses" ("status");--> statement-breakpoint
+CREATE UNIQUE INDEX "uk_risk_analysis_results_analysis_farm" ON "risk_analysis_results" ("analysis_id","farm_id");--> statement-breakpoint
+CREATE INDEX "idx_risk_analysis_results_farm" ON "risk_analysis_results" ("farm_id");--> statement-breakpoint
+CREATE INDEX "idx_risk_analysis_results_analysis" ON "risk_analysis_results" ("analysis_id");--> statement-breakpoint
 CREATE INDEX "idx_sensor_readings_device" ON "sensor_readings" ("device_id");--> statement-breakpoint
 CREATE INDEX "idx_sensor_readings_animal" ON "sensor_readings" ("animal_id");--> statement-breakpoint
 CREATE INDEX "idx_sensor_readings_farm" ON "sensor_readings" ("farm_id");--> statement-breakpoint
@@ -1509,6 +1516,8 @@ CREATE INDEX "idx_addresses_zip" ON "addresses" ("zip_code_id");--> statement-br
 CREATE INDEX "idx_addresses_commune" ON "addresses" ("commune_id");--> statement-breakpoint
 CREATE INDEX "idx_addresses_city" ON "addresses" ("city");--> statement-breakpoint
 CREATE INDEX "idx_admin_units_auid" ON "admin_units" ("au_id");--> statement-breakpoint
+CREATE INDEX "idx_admin_units_level" ON "admin_units" ("level");--> statement-breakpoint
+CREATE INDEX "idx_admin_units_parent" ON "admin_units" ("parent_id");--> statement-breakpoint
 CREATE INDEX "idx_communes_name" ON "communes" ("name");--> statement-breakpoint
 CREATE UNIQUE INDEX "idx_states_short_name" ON "states" ("short_name");--> statement-breakpoint
 CREATE INDEX "idx_zip_codes_code" ON "zip_codes" ("zip_code");--> statement-breakpoint
@@ -1623,6 +1632,8 @@ ALTER TABLE "movements" ADD CONSTRAINT "movements_animal_id_animals_id_fkey" FOR
 ALTER TABLE "movements" ADD CONSTRAINT "movements_from_farm_id_farms_id_fkey" FOREIGN KEY ("from_farm_id") REFERENCES "farms"("id");--> statement-breakpoint
 ALTER TABLE "movements" ADD CONSTRAINT "movements_to_farm_id_farms_id_fkey" FOREIGN KEY ("to_farm_id") REFERENCES "farms"("id");--> statement-breakpoint
 ALTER TABLE "pda_devices" ADD CONSTRAINT "pda_devices_current_user_id_users_id_fkey" FOREIGN KEY ("current_user_id") REFERENCES "users"("id");--> statement-breakpoint
+ALTER TABLE "risk_analysis_results" ADD CONSTRAINT "risk_analysis_results_analysis_id_risk_analyses_id_fkey" FOREIGN KEY ("analysis_id") REFERENCES "risk_analyses"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "risk_analysis_results" ADD CONSTRAINT "risk_analysis_results_farm_id_farms_id_fkey" FOREIGN KEY ("farm_id") REFERENCES "farms"("id") ON DELETE RESTRICT;--> statement-breakpoint
 ALTER TABLE "sensor_readings" ADD CONSTRAINT "sensor_readings_device_id_iot_devices_id_fkey" FOREIGN KEY ("device_id") REFERENCES "iot_devices"("id");--> statement-breakpoint
 ALTER TABLE "sensor_readings" ADD CONSTRAINT "sensor_readings_animal_id_animals_id_fkey" FOREIGN KEY ("animal_id") REFERENCES "animals"("id");--> statement-breakpoint
 ALTER TABLE "sensor_readings" ADD CONSTRAINT "sensor_readings_farm_id_farms_id_fkey" FOREIGN KEY ("farm_id") REFERENCES "farms"("id");--> statement-breakpoint
@@ -1711,7 +1722,7 @@ CREATE POLICY "birth_notification_access_policy" ON "birth_notifications" AS PER
         OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN'])
             AND (farm_org_id("birth_notifications"."farm_id") = current_setting('app.current_org_id', true)::uuid
                  OR "birth_notifications"."assigned_to" = current_setting('app.current_user_id', true)::uuid))
-        OR (current_setting('app.current_role', true) = 'SUPER_ADMIN'
+        OR (current_setting('app.current_role', true) = $1
             AND "birth_notifications"."farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
     WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid
@@ -1843,10 +1854,10 @@ CREATE POLICY "movement_access_policy" ON "movements" AS PERMISSIVE FOR ALL TO p
       ));--> statement-breakpoint
 CREATE POLICY "pasture_access_policy" ON "pasture_declarations" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
-        OR (current_setting('app.current_role', true) = 'SUPER_ADMIN'
+        OR (current_setting('app.current_role', true) = $1
             AND (farm_org_id("pasture_declarations"."from_farm_id") = current_setting('app.current_org_id', true)::uuid
                  OR farm_org_id("pasture_declarations"."to_farm_id") = current_setting('app.current_org_id', true)::uuid))
-        OR (current_setting('app.current_role', true) = 'VD_ADMIN'
+        OR (current_setting('app.current_role', true) = $2
             AND ("pasture_declarations"."from_farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
     WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid
@@ -1931,7 +1942,7 @@ CREATE POLICY "subject_access_policy" ON "subjects" AS PERMISSIVE FOR ALL TO pub
       )) WITH CHECK (current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF']));--> statement-breakpoint
 CREATE POLICY "sync_error_access_policy" ON "sync_errors" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
-        OR (current_setting('app.current_role', true) = 'SUPER_ADMIN' AND farm_org_id("sync_errors"."farm_id") = current_setting('app.current_org_id', true)::uuid)
+        OR (current_setting('app.current_role', true) = $1 AND farm_org_id("sync_errors"."farm_id") = current_setting('app.current_org_id', true)::uuid)
       ));--> statement-breakpoint
 CREATE POLICY "vs_assignment_access_policy" ON "vs_assignments" AS PERMISSIVE FOR ALL TO public USING ((
     current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
@@ -1981,7 +1992,7 @@ CREATE POLICY "session_access_policy" ON "user_sessions" AS PERMISSIVE FOR ALL T
       ));--> statement-breakpoint
 CREATE POLICY "user_access_policy" ON "users" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN'])
-        OR (current_setting('app.current_role', true) = 'SUPER_ADMIN'
+        OR (current_setting('app.current_role', true) = $1
             AND "users"."organization_id" = current_setting('app.current_org_id', true)::uuid)
         OR "users"."id" = current_setting('app.current_user_id', true)::uuid
       )) WITH CHECK (current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN']));

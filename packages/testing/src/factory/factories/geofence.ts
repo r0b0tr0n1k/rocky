@@ -47,6 +47,9 @@ export class GeofenceFactory extends SchemaDataFactory<GeofenceRecord> {
       createdBy: null,
       updatedAt: null,
       validTo: null,
+      // WO-110: nullable PostGIS foundation columns — populated only by real IoT writes
+      polygon: null,
+      cadastralReference: null,
     });
   }
 

@@ -71,6 +71,11 @@ export const adminUnits = pgTable(
     legacyId: integer("legacy_id").unique(),
     name: varchar("name", { length: 50 }).notNull(),
     auId: varchar("au_id", { length: 20 }).notNull(),
+
+    // NUTS/LAU hierarchy (WO-109) — empty tree until backend/ETL populates it
+    level: varchar("level", { length: 12 }).notNull().default("LAU"),
+    parentId: uuid("parent_id"), // WO-109: logical parent in NUTS/LAU tree; FK deferred until backend/ETL populates the hierarchy
+    nutsCode: varchar("nuts_code", { length: 20 }),
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     createdBy: uuid("created_by"),
@@ -78,6 +83,8 @@ export const adminUnits = pgTable(
   },
   (table) => ({
     auIdIdx: index("idx_admin_units_auid").on(table.auId),
+    levelIdx: index("idx_admin_units_level").on(table.level),
+    parentIdx: index("idx_admin_units_parent").on(table.parentId),
   }),
 );
 

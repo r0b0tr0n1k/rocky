@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "33a20a23-1a63-4e24-ac99-2193787ecf95",
+  "id": "443a967f-ad8f-4b4b-88b8-2bcdf4793d04",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -118,7 +118,8 @@
       "values": [
         "PENDING",
         "SENT",
-        "FAILED"
+        "FAILED",
+        "OVERDUE"
       ],
       "name": "birth_notification_status",
       "entityType": "enums",
@@ -884,6 +885,7 @@
         "owner",
         "keeper",
         "veterinarian",
+        "vi",
         "trader",
         "slaughterhouse_op",
         "market_op",
@@ -1198,6 +1200,12 @@
     {
       "isRlsEnabled": false,
       "name": "risk_analyses",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "risk_analysis_results",
       "entityType": "tables",
       "schema": "public"
     },
@@ -5221,6 +5229,32 @@
       "table": "geofences"
     },
     {
+      "type": "geometry(point,4326)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "polygon",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "geofences"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cadastral_reference",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "geofences"
+    },
+    {
       "type": "fence_type",
       "typeSchema": "public",
       "notNull": true,
@@ -7169,6 +7203,97 @@
       "entityType": "columns",
       "schema": "public",
       "table": "risk_analyses"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "risk_analysis_results"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "analysis_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "risk_analysis_results"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "farm_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "risk_analysis_results"
+    },
+    {
+      "type": "numeric(12,6)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "score",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "risk_analysis_results"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "selected",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "risk_analysis_results"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "risk_factors_snapshot",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "risk_analysis_results"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "risk_analysis_results"
     },
     {
       "type": "uuid",
@@ -9844,6 +9969,45 @@
       "generated": null,
       "identity": null,
       "name": "au_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "admin_units"
+    },
+    {
+      "type": "varchar(12)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'LAU'",
+      "generated": null,
+      "identity": null,
+      "name": "level",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "admin_units"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "parent_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "admin_units"
+    },
+    {
+      "type": "varchar(20)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "nuts_code",
       "entityType": "columns",
       "schema": "public",
       "table": "admin_units"
@@ -15967,6 +16131,27 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "polygon",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "gist",
+      "concurrently": false,
+      "name": "idx_geofences_polygon",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "geofences"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "animal_id",
           "isExpression": false,
           "asc": true,
@@ -16466,6 +16651,76 @@
       "entityType": "indexes",
       "schema": "public",
       "table": "risk_analyses"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "analysis_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "farm_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "uk_risk_analysis_results_analysis_farm",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "risk_analysis_results"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "farm_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_risk_analysis_results_farm",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "risk_analysis_results"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "analysis_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_risk_analysis_results_analysis",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "risk_analysis_results"
     },
     {
       "nameExplicit": true,
@@ -17296,6 +17551,48 @@
       "method": "btree",
       "concurrently": false,
       "name": "idx_admin_units_auid",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "admin_units"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "level",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_admin_units_level",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "admin_units"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "parent_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_admin_units_parent",
       "entityType": "indexes",
       "schema": "public",
       "table": "admin_units"
@@ -19627,6 +19924,40 @@
     {
       "nameExplicit": false,
       "columns": [
+        "analysis_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "risk_analyses",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "risk_analysis_results_analysis_id_risk_analyses_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "risk_analysis_results"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "farm_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "farms",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "risk_analysis_results_farm_id_farms_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "risk_analysis_results"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "device_id"
       ],
       "schemaTo": "public",
@@ -20692,6 +21023,16 @@
       "name": "risk_analyses_pkey",
       "schema": "public",
       "table": "risk_analyses",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "risk_analysis_results_pkey",
+      "schema": "public",
+      "table": "risk_analysis_results",
       "entityType": "pks"
     },
     {

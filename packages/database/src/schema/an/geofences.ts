@@ -10,6 +10,7 @@ import type { GeofenceGeometry } from "../../geometry/coordinate-schema.js";
 import { boolean, index, jsonb, pgPolicy, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { fenceTypePgEnum } from "../../schemas/enums/fence-type.js";
+import { polygonGeometry } from "../../geometry/postgis.js";
 import { adminWrite, rlsForFarmColumn } from "../rls-helpers.js";
 import { farms } from "../hk/farms.js";
 import { pastureDeclarations } from "./pasture.js";
@@ -30,6 +31,12 @@ export const geofences = pgTable(
 		// Geofence shape — validated at API layer via GeofenceGeometry Zod schema
 		geometry: jsonb("geometry").$type<GeofenceGeometry>().notNull(),
 
+		// PostGIS polygon (WO-110) — dual-write with jsonb geometry during transition window
+		polygon: polygonGeometry("polygon"),
+
+		// Legal cadastral parcel reference (WO-110) — truth reported to TRACES/LPIS
+		cadastralReference: varchar("cadastral_reference", { length: 100 }),
+
 		// Type
 		fenceType: fenceTypePgEnum("fence_type").notNull(),
 
@@ -47,6 +54,7 @@ export const geofences = pgTable(
 		index("idx_geofences_pasture").on(table.pastureId),
 		index("idx_geofences_type").on(table.fenceType),
 		index("idx_geofences_active").on(table.isActive),
+		index("idx_geofences_polygon").using("gist", table.polygon),
 		pgPolicy("geofence_access_policy", {
 			as: "permissive",
 			to: "public",

@@ -10,3 +10,7 @@ import { geometry as geometryColumn } from "drizzle-orm/pg-core";
 export function geometry(columnName: string) {
   return geometryColumn(columnName, { mode: "xy", type: "point", srid: 4326 });
 }
+
+export function polygonGeometry(columnName: string) {
+  return geometryColumn(columnName, { mode: "xy", type: "polygon", srid: 4326 });
+}

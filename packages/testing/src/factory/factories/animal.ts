@@ -14,6 +14,7 @@ import {
   SEX_VALUES,
   STATE_CODE,
 } from "@rocky/database/constants";
+import { calculateEarTagCheckDigit } from "@rocky/validators";
 import { animalsSelectSchema } from "@rocky/database/zod";
 import { SchemaDataFactory } from "../base.js";
 import type { InferSelectSchema } from "../type-helpers.js";
@@ -25,7 +26,8 @@ export class AnimalFactory extends SchemaDataFactory<AnimalRecord> {
     super(animalsSelectSchema, {
       id: faker.string.uuid(),
       stateCode: STATE_CODE.MK,
-      earTagNumber: faker.string.numeric({ length: 8 }),
+      // WO-118: emit a MK_8-compliant ear tag (7 base digits + canonical MK check digit)
+      earTagNumber: (() => { const b = faker.string.numeric({ length: 7 }); return `${b}${calculateEarTagCheckDigit(b)}`; })(),
       birthDate: faker.date.recent({ days: 365 }).toISOString().split("T")[0],
       sex: faker.helpers.arrayElement(SEX_VALUES),
       breed: faker.animal.type(),

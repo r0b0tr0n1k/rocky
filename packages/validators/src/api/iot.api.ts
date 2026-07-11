@@ -126,7 +126,9 @@ export interface GeofenceResponse {
   description: string | null;
   farmId: string;
   pastureId: string | null;
+  cadastralReference: string | null;
   geometry: any;
+  polygon: any;
   fenceType: fenceTypeType;
   isActive: boolean;
   createdAt: Date;
@@ -275,6 +277,7 @@ export interface ListReadingsRequest {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const createGeofenceRequestSchema = z.strictObject({
+  cadastralReference: z.string().optional(),
   name: z.string().min(1).max(200),
   description: z.string().optional(),
   farmId: z.uuid(),
@@ -308,6 +311,7 @@ export interface CreateGeofenceRequest {
   description?: string;
   farmId: string;
   pastureId?: string;
+  cadastralReference?: string;
   fenceType: fenceTypeType;
   geometry:
     | {

@@ -141,6 +141,7 @@ export class IotService {
         pastureId: data.pastureId,
         fenceType: data.fenceType,
         geometry: data.geometry,
+        cadastralReference: data.cadastralReference,
        });
        return geofenceResponseSchema.parse(geofence);
     }, toAppError)();

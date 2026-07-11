@@ -1285,8 +1285,8 @@ audited contractor (conflict of interest) — rejected.
 
 | WO   | Task                                                                 | Source ADR    | Priority | Status |
 | ---- | -------------------------------------------------------------------- | ------------- | -------- | ------ |
-| WO-109 | `admin_units` NUTS/LAU hierarchy (`level` + `parent_id` + `nuts_code`) | 0053 / 0030   | P2       | Draft  |
-| WO-110 | `geofences` PostGIS POLYGON + GiST + `cadastral_reference`; `postgis.ts` polygon helper; dual-write + API migration | 0053 | P2 | Draft |
+| WO-109 | `admin_units` NUTS/LAU hierarchy (`level` + `parent_id` + `nuts_code`, self-ref FK deferred) | 0053 / 0030   | P2       | Done   |
+| WO-110 | `geofences` PostGIS POLYGON (nullable foundation) + GiST + `cadastral_reference`; `postgis.ts` polygon helper | 0053 | P2 | Done   |
 | WO-111 | `addresses.location` varchar → PostGIS POINT (4326)                  | 0053          | P3       | Draft  |
 | WO-112 | OSM boundaries doc + Nominatim reverse-geocode (telemetry/display only) | 0053       | P3       | Draft  |
 | WO-113 | AMR withdrawal guillotine in `MovementService` (block slaughter; 403 `WITHDRAWAL_PERIOD_ACTIVE`) | 0054 / 0030 | P2 | Done ✅ |

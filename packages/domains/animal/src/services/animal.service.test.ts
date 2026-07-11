@@ -24,6 +24,10 @@ describe("AnimalService", () => {
     mockSystem = {
       getRuleSet: vi.fn().mockResolvedValue(ok({
         jurisdiction: "MK",
+        farmerCanAdminister: true,
+        retention: { cpc: 3, vs: 3, vi: 3, bip: 3 },
+        roleVocab: ["owner", "keeper", "veterinarian", "trader", "slaughterhouse_op", "market_op", "technician", "guardian"],
+        administerRoles: ["veterinarian"],
         thresholds: {
           orderIntervalDays: 120,
           maxOrdersPerYear: 4,
@@ -33,14 +37,21 @@ describe("AnimalService", () => {
           arrivalCorrectionDays: 2,
           minMotherAgeMonths: 17,
           calvingPeriodDays: 365,
+          taggingDays: 20,
+          notificationDays: 7,
         },
-        weights: {
-          selectionPercentage: 10,
-          farmSize: 0.3,
-          history: 0.3,
-          species: 0.2,
-          region: 0.2,
+        weights: { selectionPercentage: 10, farmSize: 0.3, history: 0.3, species: 0.2, region: 0.2 },
+        welfare: {
+          unweanedMaxAgeDays: 120,
+          maxSingleLegDays: 1,
+          multiDayMaxDays: 2,
+          restStopAfterDays: 1,
         },
+        // WO-118: ear-tag format config — was missing from the pre-WO-118 mock, causing tag.format to crash
+        tag: { format: "MK_8", prefix: "807" },
+        traceability: { maxDepth: 10, retentionYears: 2 },
+        fsma: { cteExportFormat: "json", responseSlaHours: 24 },
+        euAligned: true,
       })),
     } as unknown as SystemService;
 
