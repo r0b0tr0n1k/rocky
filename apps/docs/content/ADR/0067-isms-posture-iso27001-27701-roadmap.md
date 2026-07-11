@@ -83,7 +83,10 @@ run; build the governance we have deferred; certify only after expert review.**
   (crypto-at-rest).
 - RobotFarm pass: add WO (ISMS Phase 1 — harvest code into policy) to WORKORDER;
   update Bot descriptions in root AGENTS.md (Docs/Validators/Auth/Execution).
-- The gap-analysis doc (8d4fe99) is the living register; this ADR is its ruling.
+- The gap-analysis doc (`apps/docs/content/compliance/iso27701-2025-gap-analysis.md`, 8d4fe99) is the living register.
+- The ISMS / PIMS policy (`apps/docs/content/compliance/isms-policy.md`) harvests the
+  enforcement already in operation into the recital + article + Statement-of-Applicability
+  form; this ADR is their ruling.
 
 ## Verification (Definition of Done)
 
