@@ -765,6 +765,7 @@ domains. ADR-0030 is _accepted as design_; the build below is the pending implem
   asserts `quantity_received == quantity_remaining + COUNT(vaccinations WHERE batch_id = batch.id)`.
   Any drift opens an **a-posteriori / COMPLEX** `error_corrections` case (`detection_source = a_posteriori`,
   `error_type = vaccine_stock_mismatch`, `case_type = complex`) so a Veterinary Inspector physically audits the VS fridge.
+- **Test coverage:** `apps/api/src/health/health.service.test.ts` — 6 vitest cases for `reconcileVaccineStock` (drifted batches → a-posteriori COMPLEX cases; no drift → none; `correctionService` absent → silent no-op; case-creation failure → `correctionsCreated: 0`) plus `VaccineReconciliationJob.runReconciliation` (happy + error path). Guards WO-020 against regressions.
 - **Source:** ADR-0026 (Implementation), ADR-0023.
 - **Acceptance criteria (all met):**
   1. A daily job runs the mass-balance check across `vaccine_batches` × `vaccinations`.
@@ -1275,3 +1276,23 @@ audited contractor (conflict of interest) — rejected.
 
 **Verified:** `@rocky/validators` + `@rocky/database` typecheck green (NoDrift guillotine intact).
 **Status: Done ✅.**
+
+## Geo & Regulatory Compliance (Draft — ADR-0053 / ADR-0054)
+
+> _sniffs_ Draft strikes extracted from the "Map and the Territory" + "Digital International Law"
+> directive. Held here pending RobotFarm sign-off; **not yet in the Master List**. Every regulatory
+> threshold routes through the RuleSet (ADR-0030) — jurisdiction covers ALL, no hardcoded constants.
+
+| WO   | Task                                                                 | Source ADR    | Priority | Status |
+| ---- | -------------------------------------------------------------------- | ------------- | -------- | ------ |
+| WO-109 | `admin_units` NUTS/LAU hierarchy (`level` + `parent_id` + `nuts_code`) | 0053 / 0030   | P2       | Draft  |
+| WO-110 | `geofences` PostGIS POLYGON + GiST + `cadastral_reference`; `postgis.ts` polygon helper; dual-write + API migration | 0053 | P2 | Draft |
+| WO-111 | `addresses.location` varchar → PostGIS POINT (4326)                  | 0053          | P3       | Draft  |
+| WO-112 | OSM boundaries doc + Nominatim reverse-geocode (telemetry/display only) | 0053       | P3       | Draft  |
+| WO-113 | AMR withdrawal guillotine in `MovementService` (block slaughter; 403 `WITHDRAWAL_PERIOD_ACTIVE`) | 0054 / 0030 | P2 | Draft |
+| WO-114 | Transport welfare max-hours + mandatory rest-stop leg alert          | 0054 / 0030   | P2       | Draft  |
+| WO-115 | EUDR due-diligence: pasture polygon overlay + deforestation cutoff   | 0054 / 0053   | P2       | Draft  |
+| WO-116 | FSMA §204 KDE/CTE export + Lineage & Traceability Graph API (General Food Law) | 0054 / 0030 | P2 | Draft |
+| WO-117 | GDPR pseudonymization on subject exit (keep `subject_id`, scrub PII)  | 0054 / 0030   | P2       | Draft  |
+| WO-118 | ISO 11784/11785 15-digit tag format + jurisdiction prefix (840=US)    | 0054 / 0030   | P2       | Draft  |
+| WO-119 | Disease-zone spatial block (3 km / 10 km) via `geofences.polygon` + RuleSet radii | 0054 / 0053 | P2 | Draft |
