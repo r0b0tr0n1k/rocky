@@ -1,4 +1,11 @@
 export default {
   "iso27701-2025-gap-analysis": { title: "ISO 27701:2025 / 27001:2022 Gap Analysis" },
   "isms-policy": { title: "ISMS / PIMS Policy (Rocky)" },
-} as const;
+  "MACEDONIAN_LPDP_GDPR_ISO27701_COMPLIANCE_GUIDE": { title: "LPDP+GDPR+ISO27701 Compliance Guide (MK)" },
+  "MACEDONIAN_LPDP_GDPR_ISO27701_CONTROLS_MATRIX": { title: "LPDP+GDPR+ISO27701 Controls Matrix (MK)" },
+  "MACEDONIAN_LPDP_GDPR_ISO27701_EXECUTIVE_SUMMARY": { title: "LPDP+GDPR+ISO27701 Exec Summary (MK)" },
+  "MACEDONIAN_LPDP_GDPR_ISO27701_IMPLEMENTATION_GUIDE": { title: "LPDP+GDPR+ISO27701 Implementation Guide (MK)" },
+  "MACEDONIAN_LPDP_GDPR_ISO27701_QUICK_REFERENCE": { title: "LPDP+GDPR+ISO27701 Quick Reference (MK)" },
+  "MACEDONIAN_LPDP_ISO27701_HEADER_DOCUMENTATION": { title: "ISO27701 Header Documentation (MK)" },
+  "MACEDONIAN_LPDP_ISO27701_HEADER_IMPLEMENTATION_PLAN": { title: "ISO27701 Header Implementation Plan (MK)" },
+  } as const;

@@ -6,9 +6,12 @@
 
 | Key            | Value                                                                  |
 | -------------- | ---------------------------------------------------------------------- |
-| **Status**     | Proposed (Phase 2 -- mobile edge, server-authored controls)                 |
+| **Status** | Proposed |
+| **Phase**  | Phase 2 -- mobile edge, server-authored controls |
 | **Date**       | 2026-07-11                                                             |
 | **Author**     | Architecture Review (Compliance homework)                                    |
+| **Supersedes** | — |
+| **Superseded** | — |
 | **Source**     | `apps/mob/AGENTS.md` (offline contract); ADR-0061 D5; ADR-0036; ADR-0067; graphgrc gap register |
 | **Related**    | ADR-0061; ADR-0067; ADR-0071; ADR-0068; ADR-0007; ADR-0036; ADR-0003 |
 

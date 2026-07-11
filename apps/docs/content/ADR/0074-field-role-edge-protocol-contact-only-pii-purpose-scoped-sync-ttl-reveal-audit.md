@@ -6,9 +6,12 @@
 
 | Key            | Value                                                                  |
 | -------------- | ---------------------------------------------------------------------- |
-| **Status**     | Proposed (Phase 2 -- mobile edge; **pending stakeholder confirmation**)      |
+| **Status** | Proposed |
+| **Phase**  | Phase 2 -- mobile edge; **pending stakeholder confirmation** |
 | **Date**       | 2026-07-11                                                             |
 | **Author**     | Architecture Review (Compliance homework)                                    |
+| **Supersedes** | — |
+| **Superseded** | — |
 | **Source**     | user direction (vet needs name+phone; dial-from-app; 24h TTL; device auth; butcher scan); ADR-0073; ADR-0061 D5; ADR-0007; ADR-0036; role constants |
 | **Related**    | ADR-0061; ADR-0067; ADR-0073; ADR-0007; ADR-0022; ADR-0068; ADR-0036; ADR-0069; ADR-0072 |
 

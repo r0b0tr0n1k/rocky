@@ -5,9 +5,12 @@
 
 | Key            | Value                                                                  |
 | -------------- | ---------------------------------------------------------------------- |
-| **Status**     | Proposed (Phase 2 -- governance, pending expert review)                      |
+| **Status** | Proposed |
+| **Phase**  | Phase 2 -- governance, pending expert review |
 | **Date**       | 2026-07-11                                                             |
 | **Author**     | Architecture Review (Compliance homework)                                    |
+| **Supersedes** | — |
+| **Superseded** | — |
 | **Source**     | graphgrc-main analysis; `iso27701-2025-gap-analysis.md`; ADR-0067 (ISMS roadmap) |
 | **Related**    | ADR-0061; ADR-0067; ADR-0068; ADR-0007; compliance module |
 

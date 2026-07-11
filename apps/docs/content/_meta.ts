@@ -12,6 +12,8 @@ const meta: Meta = {
   // --- Decide / Understand ---
   '###decide': { type: 'separator', title: 'Architecture' },
   ADR: 'Decision Records (ADR)',
+  Standardization: 'ISO 27001 / 27701 Standardization',
+  compliance: 'Compliance — ISMS / PIMS / GDPR',
   explanation: 'Explanation',
 
   // --- Build & Operate ---

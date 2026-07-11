@@ -9,6 +9,8 @@
 | **Status**     | Proposed                                                               |
 | **Date**       | 2026-07-11                                                             |
 | **Author**     | Architecture Review (Compliance homework)                                    |
+| **Supersedes** | — |
+| **Superseded** | — |
 | **Source**     | Gap analysis `apps/docs/content/compliance/iso27701-2025-gap-analysis.md` (8d4fe99); `graphgrc-main/iso27001.json` (93 Annex A), `graphgrc-main/iso27701_2025.json` (115 PIMS) |
 | **Related**    | ADR-0061 (GDPR erasure/retention); ADR-0066 (Error Sovereignty); ADR-0030 (RuleSet); ADR-0054 (Regulatory); ADR-0007 (audit); ADR-0003 (execution) |
 

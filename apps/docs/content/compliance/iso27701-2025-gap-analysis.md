@@ -11,6 +11,30 @@ as leads, not authority.
 
 ---
 
+## 0. Source Revaluation (2026-07)
+
+The two canonical control catalogs were re-evaluated against the Real of the files
+([`iso27001_2022.md`](../Standardization/iso27001_2022.md) and
+[`iso27701_2025.md`](../Standardization/iso27701_2025.md)):
+
+- **Structure — FAITHFUL.** ISO 27001:2022 ships all **93** Annex-A controls across
+  A.5–A.8 with correct 2022 renumbering and `legacy_mappings` (old A.8/A.9/A.13 →
+  new A.5/A.8). ISO 27701:2025 ships **115** controls across Tables A.1 (controllers),
+  A.2 (processors), A.3 (shared) and B.1 (guidance). The Symbolic order is intact.
+- **Legal-framework mappings — ~45% EMPTY in BOTH.** 42/93 (27001) and 52/115 (27701)
+  controls carry empty `MK_LPDP` / `AL_LAW124` blocks. Some empties are *legitimate*
+  (no direct national-law article), but the proportion signals incomplete enrichment.
+- **`compliance_checklist` — BOILERPLATE.** Where present, the same six generic lines
+  ("Procedures must be documented / implemented / reviewed …") repeat on every control,
+  adding no per-control analytical value.
+- **`gdprMapping` — PRESENT and useful** (esp. 27701, which carries rich GDPR articles).
+- **Edition label — VERIFY.** `iso27701_2025` claims the **2025** edition; ISO 27701 was
+  originally published **2019**. Confirm the edition before any conformity claim.
+- **Guardian false-positive — FIXED.** `check-md-links` previously emitted 8
+  `undefined-ref` warnings from Python `print(f"…")` inside fenced code — dict access
+  `validation['legal_compliance']['compliance_status']` misread as a `[a][b]` reference
+  link. The checker is now fence-aware; those warnings were never real broken links.
+
 ## 1. Source & Structure
 
 | Standard | File | Shape | Controls |
@@ -56,7 +80,7 @@ Our enforcement lacks the Imaginary commitment (the documented ISMS) and the cer
 ### A.5 Organisational Controls (37)
 | Clause | Requirement | Rocky | Status |
 | --- | --- | --- | --- |
-| A.5.1 | Policies for information security | No documented ISMS policy set | **GAP** |
+| A.5.1 | Policies for information security | `isms-policy.md` (ROCKY-ISMS-001, Adopted v1.0) | **MET** (Phase 1) |
 | A.5.2 / A.5.3 | Roles & segregation of duties | RBAC + Principal + Policy engine exist technically; no documented InfoSec org | **PARTIAL** |
 | A.5.4 | Management responsibilities | No top-management ISMS commitment statement | **GAP** |
 | A.5.9 / A.5.12 / A.5.13 | Inventory / classification / labelling | `PII_FIELD_REGISTRY` is an explicit PII inventory + category (`direct/indirect/derived`) | **MET** (rare) |
@@ -145,7 +169,7 @@ Better Auth et al. not formalised).
 
 | # | Control(s) | Gap | Recommended action | Owning Bot | Phase |
 | --- | --- | --- | --- | --- | --- |
-| G1 | A.5.1 / A.5.4 / A.5.34 | No ISMS policy / leadership commitment / PII-protection policy | Author `ism-policy.md` + top-management sign-off | Docs Bot | 2 |
+| G1 | A.5.1 / A.5.4 / A.5.34 | No ISMS policy / leadership commitment / PII-protection policy | **DONE** — `isms-policy.md` Adopted v1.0 (ROCKY-ISMS-001); A.5.1 MET | Docs Bot | 2 |
 | G2 | A.1.2.3 / A.1.2.7 / A.2.* | No lawful basis register, processor DPAs | Legal register + Better Auth DPA | Auth/Legal | 2 |
 | G3 | A.1.2.5 / A.1.3.11 | No DPIA / automated-decision workflow | DPIA template wired to high-risk ops (health/risk) | Health/Inspection Bot | 2 |
 | G4 | A.1.3.7 / A.1.4.6 / A.1.4.8 | Erasure + retention not enforced | Implement ADR-0061 Phase 2 (crypto-shred + retention cron) | Validators/DB Bot | 2 |

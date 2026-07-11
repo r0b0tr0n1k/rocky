@@ -58,7 +58,14 @@ for (const f of allFiles) {
     const h = ln.match(/^#{1,6}\s+(.*?)\s*#*\s*$/);
     if (h) headingSlugs.add(slugify(h[1]));
   }
+  // Skip fenced code blocks (``` ... ```): they hold code, not MD links.
+  const skip = new Array(lines.length).fill(false);
+  { let inFence = false;
+    for (let i = 0; i < lines.length; i++) {
+      if (/^\s*```/.test(lines[i])) { inFence = !inFence; skip[i] = true; continue; }
+      if (inFence) skip[i] = true; } }
   lines.forEach((ln, i) => {
+    if (skip[i]) return;
     const rd = ln.match(refDefRe);
     if (rd) refDefs[rd[1].toLowerCase()] = rd[2];
     let m;
@@ -84,9 +91,12 @@ for (const f of allFiles) {
   let r;
   refUseRe.lastIndex = 0;
   lines.forEach((ln, i) => {
+    if (skip[i]) return;
     let m;
     refUseRe.lastIndex = 0;
     while ((m = refUseRe.exec(ln))) {
+      const preR = ln.slice(0, m.index);
+      if ((preR.match(/\`/g) || []).length % 2 === 1) continue; // inside inline-code span -> not a real link
       const def = refDefs[m[1].toLowerCase()];
       if (!def) { warns.push({ f, line: i + 1, raw: m[0], kind: "undefined-ref" }); continue; }
       if (SKIP_SCHEME.test(def)) continue;

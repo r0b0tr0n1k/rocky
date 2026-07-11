@@ -5,9 +5,12 @@
 
 | Key            | Value                                                                  |
 | -------------- | ---------------------------------------------------------------------- |
-| **Status**     | Proposed (Phase 2 -- governance, pending expert review)                      |
+| **Status** | Proposed |
+| **Phase**  | Phase 2 -- governance, pending expert review |
 | **Date**       | 2026-07-11                                                             |
 | **Author**     | Architecture Review (Compliance homework)                                    |
+| **Supersedes** | — |
+| **Superseded** | — |
 | **Source**     | User clarification (subprocessor position); GDPR Art 28(4); MK LPDP Art 28; ISO/IEC 27701:2025 B.5.2.1, B.2.2.1; ADR-0067 |
 | **Related**    | ADR-0067 (ISMS roadmap); ADR-0061 (GDPR spine); ADR-0072 (breach); ADR-0054 (regulatory) |
 

@@ -2,7 +2,7 @@
 
 > ⚠️ **AUTO-GENERATED** from `apps/api/src/routers/*.router.ts` via `pnpm gen:api-reference`. Do not edit by hand — re-run the generator when routers change.
 
-The Rocky API is a **tRPC** layer generated from NestJS routers (`@Router` / `@Query` / `@Mutation`) by `nestjs-trpc generate` into `packages/trpc/src/generated/server.ts`. It currently exposes **24 routers / 157 procedures**. The NoDrift ideology holds at the boundary: the client `AppRouter` type *is* the contract, so drift is impossible by construction (enforced by `check:trpc-boundary` in `ci:checks`).
+The Rocky API is a **tRPC** layer generated from NestJS routers (`@Router` / `@Query` / `@Mutation`) by `nestjs-trpc generate` into `packages/trpc/src/generated/server.ts`. It currently exposes **24 routers / 159 procedures**. The NoDrift ideology holds at the boundary: the client `AppRouter` type *is* the contract, so drift is impossible by construction (enforced by `check:trpc-boundary` in `ci:checks`).
 
 ## Where the surface lives
 
@@ -29,7 +29,7 @@ Nextra’s `<TSDoc>` component turns TS types into property / parameter / return
 - [inspection](#inspection) — 8 procedures
 - [iot](#iot) — 11 procedures
 - [modules](#modules) — 2 procedures
-- [movement](#movement) — 15 procedures
+- [movement](#movement) — 17 procedures
 - [notification](#notification) — 4 procedures
 - [organization](#organization) — 4 procedures
 - [passport](#passport) — 7 procedures
@@ -209,6 +209,8 @@ Nextra’s `<TSDoc>` component turns TS types into property / parameter / return
 | `getById` | Query | `idParam` | `movementResponseSchema` |
 | `getLineage` | Query | `lineageRequestSchema` | `lineageGraphSchema` |
 | `list` | Query | `movementListRequestSchema` | `movementListResponseSchema` |
+| `eudrDueDiligence` | Query | `eudrDueDiligenceRequestSchema` | `eudrDueDiligenceResponseSchema` |
+| `diseaseZoneCheck` | Query | `diseaseZoneCheckRequestSchema` | `diseaseZoneCheckResponseSchema` |
 | `create` | Mutation | `createMovementRequestSchema` | `movementResponseSchema` |
 | `recordDeath` | Mutation | `recordDeathRequestSchema` | `movementResponseSchema` |
 | `declarePasture` | Mutation | `declarePastureRequestSchema` | `z.array(movementResponseSchema)` |
