@@ -84,6 +84,26 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 
 ---
 
+## Documentation Discipline
+
+Every architecture and documentation decision in this repo is governed by two ADRs and enforced by automated guardians. This discipline is **inherited by every child AGENTS.md** (bot contract) — do not repeat it locally; reference it.
+
+### Laws (decisions)
+- **[ADR-0033](https://github.com/r0b0tr0n1k/rocky/blob/main/apps/docs/content/ADR/0033-frontend-mobile-adr-standard.md)** — the ADR house standard (header table + required sections). New architecture decisions get an ADR: `cp apps/docs/content/ADR/ADR-TEMPLATE.md apps/docs/content/ADR/00NN-slug.md`, Proposed → Accepted once implemented.
+- **[ADR-0052](https://github.com/r0b0tr0n1k/rocky/blob/main/apps/docs/content/ADR/0052-documentation-architecture.md)** — the documentation taxonomy (Diátaxis): `tutorials/` (learn), `explanation/` (why), `how-to/` (do), `reference/` (facts), `runbooks/` (operate), `ADR/` (decisions).
+
+### Guardians (enforcement) — `pnpm ci:checks`
+`generate:trpc` → `check:trpc-boundary` → `check:adrs` → `check:md-links` → `check:agents` → `test`.
+- `check:adrs` — every `NNNN-*.md` in `content/ADR/` conforms to ADR-0033.
+- `check:md-links` — every internal doc link resolves; no `../` escapes.
+- `check:agents` — every bot declared in the Child RobotFarm Index owns an `AGENTS.md`; no stale child-index references.
+
+### Recipes (how-to)
+- [Write an ADR](https://github.com/r0b0tr0n1k/rocky/blob/main/apps/docs/content/how-to/write-an-adr.mdx) · [Add a doc page](https://github.com/r0b0tr0n1k/rocky/blob/main/apps/docs/content/how-to/add-a-doc-page.mdx) · [Run the Guardians](https://github.com/r0b0tr0n1k/rocky/blob/main/apps/docs/content/how-to/run-the-guardians.mdx)
+
+### RobotFarm pass
+Every meaningful change requires a RobotFarm pass: update the owning `AGENTS.md` (purpose/scope/contract) and, if a decision was made, its ADR. The guardians make this non-optional.
+
 ## RobotFarm: AIMCS Agent Network
 
 ```

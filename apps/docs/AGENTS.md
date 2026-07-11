@@ -108,3 +108,4 @@ the green theme. The real praxis is: **delete the cache, not the code.**
 - Docs Bot owns `apps/docs/` (per root Child RobotFarm Index).
 - Doc-tests follow `content/TESTING_DOCTRINE.md`.
 - ADRs are authored as MDX in `content/ADR/` (see ADR-0011 / 0018 / 0019 for architecture).
+- Docs changes keep `pnpm check:adrs` (52/52) and `pnpm check:md-links` (0 broken) green — they run in `pnpm ci:checks` alongside `check:agents`. The repo-wide standard is root `AGENTS.md` §Documentation Discipline; the operating recipes are `how-to/write-an-adr`, `how-to/add-a-doc-page`, `how-to/run-the-guardians`.
