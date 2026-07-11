@@ -22,6 +22,8 @@ import {
   ToggleLeft,
   FileSignature,
   BookOpen,
+  Link2,
+  RefreshCw,
   type LucideIcon,
 } from "lucide-react";
 
@@ -51,6 +53,7 @@ export const navSections: NavSection[] = [
       { title: "Passports", href: "/passports", permission: "passport:read", icon: BookUser },
       { title: "Ear Tags", href: "/ear-tags", permission: "eartag:read", icon: Tags },
       { title: "VS Contracts", href: "/vs-contracts", icon: FileSignature },
+      { title: "VS Assignments", href: "/vs-assignments", icon: Link2 },
     ],
   },
   {
@@ -73,6 +76,7 @@ export const navSections: NavSection[] = [
       { title: "Subjects", href: "/subjects", permission: "hk:subject:read", icon: UserCircle },
       { title: "PDA Devices", href: "/devices", permission: "pda:sync", icon: TabletSmartphone },
       { title: "IoT", href: "/iot", permission: "pda:sync", icon: RadioTower },
+      { title: "Offline Sync", href: "/sync", icon: RefreshCw },
     ],
   },
   {
