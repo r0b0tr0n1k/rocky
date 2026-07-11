@@ -15,6 +15,7 @@ import type {
   UpdateAnimalRequest,
 } from "@rocky/validators/api";
 import { animalResponseSchema, animalSummarySchema } from "@rocky/validators/api";
+import { validateEarTagFormat } from "@rocky/validators/utils/check-digit";
 import { ANIMAL_ERRORS, AnimalError } from "../errors/animal.errors.js";
 import type { SystemService } from "@rocky/domains-system";
 import type { AnimalRepository } from "../repositories/animal.repository.js";
@@ -69,6 +70,20 @@ export class AnimalService {
         });
       }
 
+      // ── WO-118: ISO 11784/11785 ear-tag format (R2, USDA APHIS ADT 9 CFR 86) ──
+      // Reject non-compliant tags at registration: ISO_11784_15 = 15 digits prefixed by
+      // the jurisdiction ISO country code (840=USA); MK_8 = 8 digits w/ MK check digit.
+      const ruleSet = await this.system.getRuleSet();
+      if (ruleSet.isErr()) throw ruleSet.error;
+      const { tag } = ruleSet.value;
+      if (!validateEarTagFormat(input.earTagNumber, tag.format, tag.prefix)) {
+        throw new AnimalError(ANIMAL_ERRORS.INVALID_EAR_TAG, {
+          earTagNumber: input.earTagNumber,
+          expectedFormat: tag.format,
+          expectedPrefix: tag.prefix,
+        });
+      }
+
       // ── Pre-generate animal ID for self-reference guard ──
       const animalId = randomUUID();
 
@@ -101,8 +116,6 @@ export class AnimalService {
           });
         }
 
-        const ruleSet = await this.system.getRuleSet();
-        if (ruleSet.isErr()) throw ruleSet.error;
         const { thresholds } = ruleSet.value;
 
         // Rule A.4c: Mother must be >= minMotherAgeMonths old at birth

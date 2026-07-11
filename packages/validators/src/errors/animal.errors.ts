@@ -13,4 +13,5 @@ export const ANIMAL_TRPC_ERROR_MAP: TRPCErrorMap = {
   ANIMAL_EAR_TAG_ALREADY_USED: { code: "CONFLICT", message: "Ear tag already applied to another animal" },
   ANIMAL_SELF_MOTHER: { code: "BAD_REQUEST", message: "Animal cannot be its own mother" },
   ANIMAL_INVALID_PARENT_SEX: { code: "BAD_REQUEST", message: "Invalid parent sex (mother must be female, father must be male)" },
+  ANIMAL_INVALID_EAR_TAG: { code: "BAD_REQUEST", message: "Ear tag does not match the jurisdiction format (ISO 11784/11785 15-digit or MK 8-digit)" },
 };

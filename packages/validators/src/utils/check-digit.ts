@@ -209,3 +209,19 @@ export const notBeforeBirth = (birthDate: Date) =>
     (d) => d >= birthDate,
     "Date must be after birth date"
   );
+
+/**
+ * WO-118 — ISO 11784/11785 ear-tag format validation (R2, USDA APHIS ADT 9 CFR 86).
+ * ISO_11784_15: exactly 15 digits, prefixed by the jurisdiction ISO 3166-1 numeric
+ * country code (e.g. "840" = USA). MK_8: 8 digits with the MK weighted check digit.
+ * Takes primitives (not the RuleSet) to avoid a validators->system dependency.
+ */
+export function validateEarTagFormat(tagNumber: string, format: string, prefix: string): boolean {
+  if (format === "ISO_11784_15") {
+    return /^\d{15}$/.test(tagNumber) && tagNumber.startsWith(prefix);
+  }
+  if (format === "MK_8") {
+    return getCheckDigitProvider().validate(tagNumber);
+  }
+  return false;
+}

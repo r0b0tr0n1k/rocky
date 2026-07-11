@@ -43,6 +43,13 @@ export interface RuleSetWeights {
   region: number;
 }
 
+export interface RuleSetTag {
+  /** Ear-tag format for the jurisdiction (WO-118, R2): ISO_11784_15 (15-digit ISO 11784/11785) or MK_8 (8-digit MK national). */
+  format: string;
+  /** ISO 3166-1 numeric country prefix for ISO_11784_15 (e.g. "840" = USA, "807" = MK). */
+  prefix: string;
+}
+
 export interface RuleSetWelfare {
   /** Calves younger than this (days) are treated as unweaned for transport branching (EC 1/2005). */
   unweanedMaxAgeDays: number;
@@ -69,6 +76,8 @@ export interface RuleSet {
   weights: RuleSetWeights;
   /** Transport-welfare maxima (WO-114, EC 1/2005 Ch.V). Day-granular; hour-precise needs timestamps. */
   welfare: RuleSetWelfare;
+  /** Ear-tag format config (WO-118, R2 USDA APHIS ADT). */
+  tag: RuleSetTag;
   /** Whether this jurisdiction aligns with EU cattle I&R mandates (R8). When true, birth deadlines may not be loosened below the EU floor. */
   euAligned: boolean;
 }
@@ -82,6 +91,9 @@ export const WELFARE_DEFAULTS = {
   multiDayMaxDays: 2,
   restStopAfterDays: 1,
 } as const;
+
+/** MK ISO 3166-1 numeric country code (North Macedonia). Used as the default ISO prefix for MK_8 tags. */
+export const MK_ISO_COUNTRY_CODE = "807" as const;
 
 /** WO-120 — EU sovereignty floors for bovine birth I&R (R8). Absolute MAXIMUMS:
  *  a RuleSet may be stricter (<=) but NEVER looser. Delegated Reg (EU) 2019/2035
@@ -176,6 +188,10 @@ export function buildRuleSet(
       maxSingleLegDays: wParam("WELFARE_MAX_SINGLE_LEG_DAYS", WELFARE_DEFAULTS.maxSingleLegDays),
       multiDayMaxDays: wParam("WELFARE_MULTI_DAY_MAX_DAYS", WELFARE_DEFAULTS.multiDayMaxDays),
       restStopAfterDays: wParam("WELFARE_REST_STOP_AFTER_DAYS", WELFARE_DEFAULTS.restStopAfterDays),
+    },
+    tag: {
+      format: byCode.get("TAG_FORMAT")?.value ?? "MK_8",
+      prefix: byCode.get("TAG_PREFIX")?.value ?? MK_ISO_COUNTRY_CODE,
     },
     euAligned: byCode.get("EU_ALIGNED")?.value !== "false",
   };
