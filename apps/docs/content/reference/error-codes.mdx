@@ -1,0 +1,17 @@
+---
+title: Error Codes
+sidebarTitle: Error Codes
+---
+
+# Error Codes
+
+Errors follow the **Error Sovereignty** doctrine: domain services return `Result<T, E>` (never throw to callers); tRPC routers map `E → TRPCError` via `createResultUnwrapper(map)`. See [ADR-0008](/ADR/0008-testing-doctrine) + [Result Monad](/result-monad-and-error-sovereignty).
+
+## Shared codes (seed)
+| Code | Meaning | Thrown by |
+| --- | --- | --- |
+| `NOT_FOUND` | Entity missing | `NotFoundError` (`@rocky/errors`) |
+| `FORBIDDEN` | Policy/role gate failed | `Principal.hasPermission` |
+| `DATABASE_ERROR` | Query/transaction failure | repository layer |
+
+> Domain errors (e.g. `MovementError`, `RideError`) carry their own `.code`; consolidate CRUD failures to `NOT_FOUND` / `FORBIDDEN` / `DATABASE_ERROR` per the parsimony rule. Status: **seed**.

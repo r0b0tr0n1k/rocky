@@ -1,0 +1,17 @@
+---
+title: Permissions Catalog
+sidebarTitle: Permissions
+---
+
+# Permissions Catalog
+
+The authorization model is **action-based** (not permission-string based) — routers declare `@Policy({ action })` and `Principal.hasPermission(action)` gates UI. See [ADR-0004](/ADR/0004-policy-actions-not-permissions) + [ADR-0022](/ADR/0022-authorization-policy-engine).
+
+## Known permission families (seed — expand from `@rocky/authorization`)
+| Family | Examples | Governs |
+| --- | --- | --- |
+| `analysis` | `analysis:read`, `analysis:run` | Inspection risk analysis ([ADR-0028](/ADR/0028-inspection-risk-analysis)) |
+| `notification` | `notification:register` | Push device tokens ([ADR-0043](/ADR/0043-push-background-sync-deeplink)) |
+| `farm` | `farm:read`, `farm:write` | Farm registry ([ADR-0027](/ADR/0027-farm-holder-subject)) |
+
+> Status: **seed** — the authoritative list is the typed `Permission` catalog in `@rocky/authorization`; regenerate from there rather than hand-maintaining this table.

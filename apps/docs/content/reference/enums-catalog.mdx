@@ -1,0 +1,17 @@
+---
+title: Enums Catalog
+sidebarTitle: Enums
+---
+
+# Enums Catalog
+
+Database enums are a **Single Source of Truth**: defined once in `packages/database/src/constants/*`, regenerated into Zod + TS via `scripts/regenerate-enums.mjs`. Never hardcode a literal. See [ADR-0011](/ADR/0011-diamond-seal-layer-boundaries) + the [Diamond Seal Audit](/diamond-seal-audit).
+
+## Key enums (seed)
+| Enum | Source | Where used |
+| --- | --- | --- |
+| `SUBJECT_ROLE_VALUES` | `constants/subject-role.ts` | `farm_subjects.role` ([ADR-0002](/ADR/0002-principal-as-canonical-actor), [WO-002](/workorder)) |
+| `EAR_TAG_ORDER_STATUS` | `constants/ear-tag.ts` | ear-tag lifecycle ([ADR-0024](/ADR/0024-ear-tag-domain)) |
+| `ANIMAL_MOVEMENT_TYPE` | `constants/animal.ts` | movement rules ([ADR-0025](/ADR/0025-animal-movement-domain)) |
+
+> Status: **seed** — run `pnpm generate:enums` to refresh; this table is a pointer, not the source.

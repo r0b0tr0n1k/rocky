@@ -1,0 +1,21 @@
+---
+title: Add a Zod validator (Diamond Seal guillotine)
+sidebarTitle: Add Zod Validator
+---
+
+# Add a Zod validator (Diamond Seal guillotine)
+
+API validation lives in `@rocky/validators` as Dumb Zod → API Zod with a `satisfies` guillotine.
+
+## Prerequisites
+- [ADR-0018](/ADR/0018-api-validator-design) — how `api.ts` is constructed
+- [ADR-0019](/ADR/0019-two-type-contracts) — the cross-layer type flow
+- [ADR-0032](/ADR/0032-trpc-output-schema-ts6059) — `@Output` for tRPC
+
+## Steps (skeleton — expand me)
+1. Dumb Zod in `packages/validators/src/dumb/*.ts` (no `z` brand).
+2. API Zod in `packages/validators/src/api/*.ts` with `satisfies` on the Dumb type.
+3. Export the schema + a `*_TRPC_ERROR_MAP` (lives in `@rocky/validators/errors`, NOT domains).
+4. `pnpm generate:zod` (NoDrift check stays green).
+
+> Status: **seed** — flesh out with the real schema + the guillotine error.

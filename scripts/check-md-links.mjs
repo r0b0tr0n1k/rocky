@@ -105,7 +105,7 @@ for (const f of walkMeta(CONTENT)) {
   let m;
   while ((m = keyRe.exec(txt))) {
     const k = m[1];
-    if (k === "..." || k === "index" || k.startsWith("-") || k.includes("/") || k.startsWith("*")) continue;
+    if (k === "..." || k === "index" || k.startsWith("-") || k.includes("/") || k.startsWith("*") || /separator/.test(txt.slice(m.index, m.index + 140))) continue;
     const ok = exists(path.join(dir, k + ".mdx")) || exists(path.join(dir, k + ".md")) ||
       exists(path.join(dir, k, "index.mdx")) || exists(path.join(dir, k, "index.md")) ||
       fs.existsSync(path.join(dir, k)) && fs.statSync(path.join(dir, k)).isDirectory();

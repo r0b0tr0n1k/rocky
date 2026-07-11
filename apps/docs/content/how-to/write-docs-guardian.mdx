@@ -1,0 +1,24 @@
+---
+title: Write a docs guardian script
+sidebarTitle: Write Docs Guardian
+---
+
+# Write a docs guardian script
+
+The docs have two guardians wired into `ci:checks`: `check:adrs` (ADR-0033 skeleton) and `check:md-links` (internal MD link resolution). Add your own the same way.
+
+## Prerequisites
+- [ADR-0052](/ADR/0052-documentation-architecture) — docs governance
+- [ADR-0033](/ADR/0033-frontend-mobile-adr-standard) — the ADR standard the guardian enforces
+
+## Pattern (skeleton — expand me)
+1. `scripts/check-<thing>.mjs` — pure Node, walk `apps/docs/content`, assert, `process.exit(1)` on violation.
+2. Add `"check:<thing>": "node scripts/check-<thing>.mjs"` to root `package.json` `scripts`.
+3. Chain it in `ci:checks` *before* `pnpm test`.
+4. Keep it dependency-free (no `npm` install in CI) — use `node:fs`/`node:path`.
+
+## Existing examples to copy
+- `scripts/check-adrs.mjs` — header-table + section enforcement, scoped to `^\d{4}-` files.
+- `scripts/check-md-links.mjs` — resolves every `[text](url)`, warns on escapes + missing anchors, skips inline-code spans.
+
+> Status: **seed** — flesh out with your specific invariant.

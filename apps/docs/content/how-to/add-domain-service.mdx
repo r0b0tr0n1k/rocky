@@ -1,0 +1,22 @@
+---
+title: Add a domain service + repository (X Bot)
+sidebarTitle: Add Domain Service
+---
+
+# Add a domain service + repository (X Bot)
+
+A domain owns its Drizzle schema, repository (events), and service (Result-monad).
+
+## Prerequisites
+- [ADR-0011](/ADR/0011-diamond-seal-layer-boundaries) — layer import boundaries
+- [ADR-0003](/ADR/0003-execution-pipeline-stages) — services run inside the `ExecutionPipeline`
+- [ADR-0007](/ADR/0007-audit-via-lifecycle-events) / [ADR-0012](/ADR/0012-transactional-outbox-domain-events) — emit lifecycle events
+
+## Steps (skeleton — expand me)
+1. `packages/domains/<x>/src/schema/*.ts` — Drizzle tables + RLS via `rls-helpers`.
+2. `*.repository.ts` — `find/create` + `ExecutionEventEmitter` emit.
+3. `*.service.ts` — returns `Result<T,E>`; never throws to callers.
+4. Wire the router (see [Add a tRPC router](/how-to/add-trpc-router)).
+5. `pnpm db:generate` + `pnpm seed` for local dev.
+
+> Status: **seed** — flesh out with the real `<x>` example + Bot `AGENTS.md` entry.

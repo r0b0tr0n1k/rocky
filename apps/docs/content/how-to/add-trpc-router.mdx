@@ -1,0 +1,22 @@
+---
+title: Add a tRPC router (API Bot)
+sidebarTitle: Add tRPC Router
+---
+
+# Add a tRPC router (API Bot)
+
+Stand up a new `@Router()` in `apps/api` and expose it through the generated `AppRouter`.
+
+## Prerequisites
+- [ADR-0032](/ADR/0032-trpc-output-schema-ts6059) — `@Output` schemas are mandatory (prevents TS6059 + circular deps)
+- [ADR-0018](/ADR/0018-api-validator-design) — API Zod lives in `@rocky/validators`
+- [ADR-0022](/ADR/0022-authorization-policy-engine) — gate with `@Policy` + `registerPolicy`
+
+## Steps (skeleton — expand me)
+1. Create `apps/api/src/routers/<x>.router.ts` with `@Router()`, `@Query`/`@Mutation`.
+2. Add input/output Zod in `@rocky/validators` (`api.ts`); reference the Dumb Zod.
+3. Declare `@Policy({ action })` + `@RegisterPolicy("alias")` (decorator order matters).
+4. Map domain `E → TRPCError` via `createResultUnwrapper(<MAP>)` from `@rocky/trpc`.
+5. `pnpm generate:trpc` — regenerates `AppRouter`; rebuild `@rocky/trpc`.
+
+> Status: **seed** — flesh out with the real `<x>` example.

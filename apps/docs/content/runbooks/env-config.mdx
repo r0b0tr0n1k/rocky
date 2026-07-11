@@ -1,0 +1,15 @@
+---
+title: Environment Config
+sidebarTitle: Env Config
+---
+
+# Environment Config
+
+## Variables (seed)
+| Var | Scope | Notes |
+| --- | --- | --- |
+| `DATABASE_URL` | `packages/database/.env` | dev DB `192.168.1.109:5432/tbot`; loaded via `dotenv/config` |
+| `EXPO_ACCESS_TOKEN` | `apps/api/.env` | enables server Expo push; absent → `sendExpoPush` no-ops |
+| `EXPO_PROJECT_ID` / `EXPO_PUBLIC_*` | `apps/mob/.env` | Expo project + public bundle id |
+
+> Status: **seed** — confirm the real var names from `apps/*/.env.example` before trusting this table.

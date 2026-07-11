@@ -31,6 +31,20 @@ No child packages. `scripts/` holds doc-tests:
 - `_fakes/` — in-memory `expo-sqlite` / `expo-secure-store` shims used by `test:offline` (state on `globalThis`).
 - `tsconfig.offline-test.json` — `paths` that redirect the native deps to the fakes.
 
+## Content structure
+
+Docs follow the **Diátaxis** taxonomy (see [ADR-0052](content/ADR/0052-documentation-architecture.md)):
+
+- `content/ADR/` — decision records (51 + this ADR), enforced by `check:adrs`
+- `content/tutorials/` — learning-oriented onboarding
+- `content/explanation/` — why/how-it-works narratives (the former flat prose links here)
+- `content/how-to/` — task recipes (add router / domain / validator / migration / guardian)
+- `content/reference/` — API reference (TSDoc) + catalogs (permissions / enums / errors)
+- `content/runbooks/` — operational procedures (DB recreate / deploy / env)
+
+The root `_meta.ts` groups these via Nextra separators (Learn / Architecture / Build & Operate / Project).
+Every new doc is an asset (ADR-0033 D2); links are guarded by `check:md-links`.
+
 ## Layout contract
 
 `app/layout.tsx` uses Nextra's `<Head color={...} backgroundColor={...}>` to set the theme
