@@ -71,7 +71,18 @@ farmer = {
   // farmer keeps HIS OWN data on the phone; it is low-risk and offline-capable
 }
 back-office (web) = { syncScope: "web", piiResidency: "full", deviceAuth: "required", revealLog: true }
+# GLOBAL: neverOnDevice = ["nationalId"]   -- excluded from EVERY device, all roles
+# (police/warrant access is a server-side, legally-gated path, not a device cache)
 ```
+
+### Hard rule: nationalId is NEVER on a field device
+`personalId` / national ID (UCN) is **never** sent to any field device, for any
+role. In North Macedonia its broad display is forbidden; it is accessible only to
+law enforcement with a warrant -- a server-side, legally-gated path (ADR-0061 D5 /
+ADR-0068: legal obligation / official authority), never the PDA. The butcher's
+manifest uses the death-certificate / passport *reference* (a document key), which
+is distinct from the keeper's national ID. (AL jurisdiction: to be confirmed; the
+default remains EXCLUDE until a legal basis says otherwise.)
 
 ### What is IN the field-role offline bundle (per visit / per site)
 - Animal / health / movement operational data for the synced farm or site.
@@ -174,9 +185,11 @@ current proposal; the following remain open:
 1. ~~Which contact fields~~ -> **answered**: name + phone + email, clickable + logged.
 2. ~~TTL length / mechanism~~ -> **answered**: 24h working; lazy opportunistic purge
    (S4); never force offline.
-3. Does `personalId` / national ID ever legitimately appear? **Proposal**: no for vet/
-   inspector; the butcher needs the death-certificate / passport *reference* (a manifest
-   document key), not the keeper's national ID -- **confirm**.
+3. ~~Does `personalId` / national ID ever appear?~~ -> **RESOLVED (MK)**: no, for any
+   field role and any device. In North Macedonia its broad display is forbidden; it is
+   police-with-warrant only, server-side and legally gated. The butcher uses the
+   death-certificate / passport *reference* (document key), not the keeper's national ID.
+   AL jurisdiction: default EXCLUDE until a legal basis says otherwise -- **confirm**.
 4. Cross-border (MK <-> AL) implications for contact PII -- **open**.
 5. Who owns the reveal-log retention and the breach assessment if a device is lost --
    **open** (ties to ADR-0072).
