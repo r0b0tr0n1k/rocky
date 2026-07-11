@@ -2,10 +2,10 @@
 
 | Key | Value |
 | --- | --- |
-| **Status** | Proposed |
+| **Status** | Accepted |
 | **Date** | 2026-07-09 |
 | **Author** | Architecture Review |
-| **Supersedes** | extends ADR-0034 (Client Surface Inventory), ADR-0039 (Navigation) |
+| **Supersedes** | 0034 (Client Surface Inventory), 0039 (Navigation) |
 | **Superseded** | — |
 
 ---

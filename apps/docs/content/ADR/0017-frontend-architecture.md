@@ -37,7 +37,7 @@ the tRPC type system — not a separate fantasy.
 
 A single `AdminShell` (`Sidebar` + `Command` palette + `Avatar` user menu + `Breadcrumb`) renders
 the domain as a surveilled, navigable space. Crucially, **navigation is permission-gated**: nav
-items are filtered by the session's permissions (from better-auth `customSession` enrichment). RBAC
+items are filtered by `useCan` / `Principal.hasPermission` (ADR-0042), while the session stays identity-only (ADR-0049 / ADR-0021 — the `customSession` RBAC re-coupling was rejected). RBAC
 is not a server-only secret — it becomes a *visible* structure. The user sees only the rooms they
 are permitted to enter. This is the dialectical identity of authorization and interface.
 

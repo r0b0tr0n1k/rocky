@@ -57,7 +57,7 @@ one thing unit tests cannot.
 Use `packages/testing` Scenario B: mock the repository (`mockRepoReturn` / `mockRepoThrow`), drive the
 service with `neverthrow` `Result`, and assert on `.isOk()` / `.value`. Example (illustrative —
 method names follow the `<domain>.service.ts` convention; lifecycle states per the domain's AGENTS.md
-contract, e.g. the EarTag order `DRAFT → SUBMITTED → CONFIRMED → SHIPPED → RECEIVED → COMPLETED`):
+contract, e.g. the EarTag order (8-state enum, ADR-0024): `DRAFT → PENDING → APPROVED → REJECTED → ORDERED → PARTIALLY_RECEIVED → RECEIVED → CANCELLED`):
 
 ```typescript
 // packages/domains/eartag/src/eartag-order.workflow.test.ts

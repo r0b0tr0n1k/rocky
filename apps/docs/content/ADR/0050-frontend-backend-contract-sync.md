@@ -2,7 +2,7 @@
 
 | Key | Value |
 | --- | --- |
-| **Status** | Proposed |
+| **Status** | Accepted |
 | **Date** | 2026-07-09 |
 | **Author** | Architecture Review |
 | **Supersedes** | — |

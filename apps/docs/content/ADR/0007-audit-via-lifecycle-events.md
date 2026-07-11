@@ -6,7 +6,7 @@
 | **Date** | 2026-07-05 |
 | **Author** | Architecture Review |
 | **Supersedes** | None |
-| **Superseded** | None |
+| **Superseded** | 0012 (for cross-process/business events; in-process telemetry emitter retained) |
 
 ---
 

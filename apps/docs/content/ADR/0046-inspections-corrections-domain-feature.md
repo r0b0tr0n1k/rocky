@@ -2,7 +2,7 @@
 
 | Key | Value |
 | --- | --- |
-| **Status** | Proposed |
+| **Status** | Accepted |
 | **Date** | 2026-07-09 |
 | **Author** | Rocky Architecture Board |
 | **Supersedes** | None |
