@@ -92,11 +92,13 @@ stateDiagram-v2
 
 ### Negative / Gaps
 
-- **Per-farm risk results not persisted** — only a count is stored; the legacy unique-key guarantee
-  (`GN_ANLS_RESULTS`) is absent. Tracked in ADR-0023.
+- **Per-farm risk results not persisted** — **Resolved (WO-021)**: `risk_analysis_results` table (with `risk_factors_snapshot` JSONB audit alibi for OCR 2017/625) now persists per-farm results + legacy unique-key guarantee.
 - **Weighted parameters are hardcoded** — `DEFAULT_WEIGHTS` is a constant, not the legacy configurable
   `GN_ANLS_PARAMS` table (deferred to ADR-0030).
 - **Birth-notification deadlines** (7/20 d, `workflow.md` Instance 8) — enacted (WO-022): `OVERDUE` status + daily `BirthDeadlineJob` + derived farm lock (ADR-0023).
+- **Vaccine stock reconciliation** (mass-balance, `deseases.md`) — enacted (WO-020): `VaccineReconciliationJob` (@Cron daily 03:00) → `HealthService.reconcileVaccineStock()` opens a-posteriori COMPLEX `error_corrections` cases for any batch where `quantity_received != quantity_remaining + administered` (ADR-0023 / ADR-0026).
+
+> **Health cluster status (2026-07-11): RESOLVED / ENFORCED.** WO-020 (stock reconciliation), WO-021 (per-farm risk results), WO-022 (birth-notification deadlines) are all Done. ADR-0028's health-surveillance obligations are now operational; only ADR-0030 configurability (weighted params) remains deferred.
 
 ## Implementation
 

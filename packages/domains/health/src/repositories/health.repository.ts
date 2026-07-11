@@ -242,4 +242,19 @@ export class HealthRepository extends BaseRepository {
       .limit(1);
     return row ?? null;
   }
+
+  async findDriftedVaccineBatches() {
+    const rows = await this.client
+      .select({
+        id: vaccineBatchesTable.id,
+        quantityReceived: vaccineBatchesTable.quantityReceived,
+        quantityRemaining: vaccineBatchesTable.quantityRemaining,
+        administered: sql<number>`(SELECT count(*) FROM ${vaccinationsTable} WHERE batch_id = ${vaccineBatchesTable.id})`,
+      })
+      .from(vaccineBatchesTable)
+      .where(
+        sql`${vaccineBatchesTable.quantityReceived} <> ${vaccineBatchesTable.quantityRemaining} + (SELECT count(*) FROM ${vaccinationsTable} WHERE batch_id = ${vaccineBatchesTable.id})`,
+      );
+    return rows;
+  }
 }

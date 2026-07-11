@@ -128,7 +128,7 @@ stays hardcoded but documented here.
 
 ## Related ADRs
 
-- ADR-0023: Business-Rule Traceability (root; carries the stock-reconciliation gap)
+- ADR-0023: Business-Rule Traceability (root; stock-reconciliation gap **resolved by WO-020** — a-posteriori COMPLEX `error_corrections` cases via `VaccineReconciliationJob` → `HealthService.reconcileVaccineStock()`)
 - ADR-0014: Cross-Domain Event Decoupling (health → inspection)
 - ADR-0012: Transactional Outbox (event durability)
 - ADR-0028: Risk Analysis & On-Spot Inspection (consumer of `notifiable_disease.detected`)

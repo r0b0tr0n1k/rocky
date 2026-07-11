@@ -113,7 +113,7 @@ Status legend: ✅ ADOPTED · 🟡 PARTIAL · ❌ MISSING · ⚠️ DEFERRED/CON
 | **Ear tag** | `fs.md`, `an_ea.md` | 8-digit numbering from `10000001`; check digit `[3,5,7,11,13,17,19]` (`check-digit.ts`); order lifecycle `EAR_TAG_ORDER_STATUS`; tag lifecycle `EAR_TAG_STATUS`; `ORDER_INTERVAL_DAYS=120`, `MAX_ORDERS_PER_YEAR=4`, 24h idempotency, supplier contingents, takeover file | ✅ + ⚠️ (takeover-file defect, ADR-0024) |
 | **Animal registration** | `fs2.md` | Ear tag must be NEW; registration date ≤ today; mother age ≥ 17 mo, calving gap ≥ 365 d; self-mother / parent-sex integrity | ✅ (🟡 365 d vs legacy 120 d calving gap) |
 | **Movement** | `fs2.md`, `workflow.md` | Stillborn ≤ 25 d; slaughter min age 25 d; ±2 d arrival correction; unregistered farm IDs `100000014`/`100000027`; pasture home-farm only; 4-leg market; import/export | ✅ |
-| **Health / diseases** | `deseases.md` | Notifiable → inspection flag (outbox); batch expiry; `MIN_VACCINATION_AGE_DAYS=30`; stock decrement; vet-binding; alive checks; vaccine↔disease mapping | ✅ + ❌ (stock reconciliation) |
+| **Health / diseases** | `deseases.md` | Notifiable → inspection flag (outbox); batch expiry; `MIN_VACCINATION_AGE_DAYS=30`; stock decrement; vet-binding; alive checks; vaccine↔disease mapping | ✅ (stock reconciliation enacted WO-020) |
 | **Farm / Holder (HK)** | `hk.md`, `fs2.md` | Address registry; `SUBJECT_ROLE` (owner/keeper/vet/…); geocoords; data-source ownership; soft-delete | ✅ + 🟡 (VI role missing, `FIELD_CHANGED`→VD lock partial) |
 | **Inspection / risk** | `an_ea.md`, `workflow.md` | 10% annual selection (`@Cron`); weighted scoring `DEFAULT_WEIGHTS` (0.3/0.3/0.2/0.2); on-spot lifecycle; flagFarmForInspection | ✅ + 🟡 (per-farm results not persisted) |
 | **Passport / archive** | `workflow.md` | Passport issuance/seizure/reprint; 3-tier archive (CPC/VS/VI); 3-year retention cron | ✅ |
@@ -137,8 +137,8 @@ Status legend: ✅ ADOPTED · 🟡 PARTIAL · ❌ MISSING · ⚠️ DEFERRED/CON
 | AMR tracking, 10 km outbreak buffer | `future.md` | Not in current scope |
 | Genetic lineage / performance profiling | `future.md` | Only mother/father IDs modeled |
 | Blockchain provenance | `future.md` | Not in current scope |
-| Per-farm risk-analysis results table | `an_ea.md` (`GN_ANLS_RESULTS`) | Only the selected-farm count is persisted today |
-| Birth-notification deadline enforcement (7/20 d) | `workflow.md` Instance 8 | Status enum + `calculateTaggingDeadline()` exist; no service/cron yet |
+| Per-farm risk-analysis results table | `an_ea.md` (`GN_ANLS_RESULTS`) | **Enacted (WO-021)** — `risk_analysis_results` table (with `risk_factors_snapshot` JSONB) persists per-farm results + legacy unique-key guarantee |
+| Birth-notification deadline enforcement (7/20 d) | `workflow.md` Instance 8 | **Enacted (WO-022)** — `OVERDUE` status + `BirthDeadlineJob` + derived farm lock |
 
 ## Consequences
 

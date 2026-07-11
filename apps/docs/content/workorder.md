@@ -37,7 +37,7 @@
 | WO-012 | Migrate hardcoded thresholds → RuleSet (eartag/movement/animal/health) (B2) | 0030 | P0 | Done ✅ |
 | WO-013 | `farmerCanAdminister` flag + `@Policy` wiring                 | 0030       | P1       | Done ✅   |
 | WO-014 | Retention + role vocab sourced from RuleSet                   | 0030       | P1       | Done ✅   |
-| WO-020 | Health stock-reconciliation job                               | 0026 / 0023 | P2       | Open   |
+| WO-020 | Health stock-reconciliation job                               | 0026 / 0023 | P2       | Done ✅ |
 | WO-021 | Persist per-farm risk-analysis results (`risk_analysis_results`) | 0028 / 0023 | P2   | Done ✅ |
 | WO-022 | Enforce birth-notification deadlines (7/20 d)                 | 0028 / 0023 | P2       | Done ✅ |
 | WO-023 | Inspection weighted params → RuleSet `GN_ANLS_PARAMS`         | 0028 / 0030 | P1       | Done ✅   |
@@ -761,8 +761,23 @@ domains. ADR-0030 is _accepted as design_; the build below is the pending implem
 
 ### WO-020 — Health stock reconciliation — P2
 
-- Job asserting `QUANTITY_RECEIVED == QUANTITY_REMAINING + doses_administered`.
+- **Done ✅** — `VaccineReconciliationJob` (`@Cron` daily 03:00) → `HealthService.reconcileVaccineStock()`
+  asserts `quantity_received == quantity_remaining + COUNT(vaccinations WHERE batch_id = batch.id)`.
+  Any drift opens an **a-posteriori / COMPLEX** `error_corrections` case (`detection_source = a_posteriori`,
+  `error_type = vaccine_stock_mismatch`, `case_type = complex`) so a Veterinary Inspector physically audits the VS fridge.
 - **Source:** ADR-0026 (Implementation), ADR-0023.
+- **Acceptance criteria (all met):**
+  1. A daily job runs the mass-balance check across `vaccine_batches` × `vaccinations`.
+  2. `quantity_received != quantity_remaining + administered` ⇒ a-posteriori COMPLEX correction case created.
+  3. No new migration (columns are varchar / existing pgEnum; `complex` already in `CORRECTION_CASE_TYPE`).
+  4. `nest build` (api) = 0 issues.
+- **Corrigendum (the Real the Line of Credit always already knew):** the mass-balance drift is not a bug
+  the system *discovers* — it is the **symptom** the bureaucratic Line-of-Credit apparatus *presupposes*.
+  The Line of Credit computed `quantity_remaining` as `received − issued`; a-posteriori reconciliation only
+  *confesses* the gap between the symbolic ledger and the Real of the fridge. Closing it (WO-020) does not
+  eliminate the gap — it *institutionalizes* it as a correction case, i.e. transforms the Real into a
+  manageable bureaucratic object. The VI audit is the fetish that lets the system disavow: *je sais bien,
+  mais quand même* — I know doses are missing, but nevertheless I open a case.
 
 ### WO-021 — Persist per-farm risk results — P2
 

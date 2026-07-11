@@ -11,7 +11,7 @@ import type { AnimalRepository } from "@rocky/domains-animal";
 import type { HealthRepository } from "../repositories/health.repository.js";
 import { HealthError, HEALTH_ERRORS } from "../errors/health.errors.js";
 import type { SystemService } from "@rocky/domains-system";
-import { ANIMAL_STATUS, DETECTION_SOURCE, OUTBOX_AGGREGATE_TYPE, SUBJECT_ROLE } from "@rocky/database/constants";
+import { ANIMAL_STATUS, CORRECTION_CASE_TYPE, DETECTION_SOURCE, OUTBOX_AGGREGATE_TYPE, SUBJECT_ROLE } from "@rocky/database/constants";
 import {
   diseaseResponseSchema,
   vaccineResponseSchema,
@@ -425,6 +425,44 @@ export class HealthService {
     } catch (e) {
       // Log but don't fail the sync — correction creation is secondary
       console.error(`Failed to create sync error correction for ${record.idempotencyKey}:`, e);
+    }
+  }
+
+  /**
+   * WO-020 — Vaccine mass-balance reconciliation (TRACES / AMR anti-black-market protocol).
+   * Any batch where quantity_received != quantity_remaining + administered doses is drift; an
+   * a-posteriori COMPLEX correction case is opened so a Veterinary Inspector physically audits the VS fridge.
+   */
+  async reconcileVaccineStock(createdBy = "system"): Promise<Result<{ driftedCount: number; correctionsCreated: number }, HealthError>> {
+    if (!this.correctionService) return ok({ driftedCount: 0, correctionsCreated: 0 });
+    try {
+      const drifted = await this.repo.findDriftedVaccineBatches();
+      let correctionsCreated = 0;
+      for (const b of drifted) {
+        try {
+          const result = await this.correctionService.create({
+            detectionSource: DETECTION_SOURCE.A_POSTERIORI,
+            errorType: "vaccine_stock_mismatch",
+            errorDescription: `Vaccine batch ${b.id} mass-balance drift: received ${b.quantityReceived}, remaining ${b.quantityRemaining}, administered ${b.administered}`,
+            originalData: {
+              batchId: b.id,
+              quantityReceived: b.quantityReceived,
+              quantityRemaining: b.quantityRemaining,
+              administered: b.administered,
+            },
+            caseType: CORRECTION_CASE_TYPE.COMPLEX,
+            createdBy,
+          });
+          if (result.isOk()) correctionsCreated++;
+        } catch {
+          // a single correction failure must not abort the whole reconciliation
+        }
+      }
+      return ok({ driftedCount: drifted.length, correctionsCreated });
+    } catch (error) {
+      return err(new HealthError(HEALTH_ERRORS.INVALID_INPUT, {
+        reason: error instanceof Error ? error.message : String(error),
+      }));
     }
   }
 }
