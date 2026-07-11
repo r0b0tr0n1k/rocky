@@ -1,9 +1,13 @@
 # ADR-0064: Disease-Zone Spatial Block (WO-119)
 
-- **Status:** Accepted
-- **Date:** 2026-07-11
-- **Deciders:** RobotFarm (Overseer + Health Bot + IoT Bot + Movement Bot + Validation Bot + API Bot)
-- **Ties to:** WO-119 · ADR-0053 (Geo/PostGIS) · ADR-0054 (Regulatory R1–R10, AHL 2016/429) · WO-115 (EUDR overlay) · WO-121 (CHED `requireDiseaseClear`)
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-11 |
+| **Author** | Architecture Review (regulatory strike, prompted by user directive) |
+| **Supersedes** | None |
+| **Superseded** | None |
+| **Related** | WO-119 · ADR-0053 (Geo/PostGIS) · ADR-0054 (Regulatory R1–R10, AHL 2016/429) · WO-115 (EUDR overlay) · WO-121 (CHED `requireDiseaseClear`) |
 
 ## Context
 

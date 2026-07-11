@@ -5,7 +5,7 @@
 
 | Key | Value |
 | --- | --- |
-| **Status** | Proposed — to be implemented (user directive A: write ADR, then implement) |
+| **Status** | Accepted |
 | **Date** | 2026-07-11 |
 | **Author** | Architecture Review (regulatory strike, prompted by user directive) |
 | **Source** | IMSOC Reg (EU) 2019/1715; TRACES NT; CHED-A (Common Health Entry Document — Animals); ADR-0054 R9; ADR-0061 (GDPR); ADR-0030 (RuleSet) |

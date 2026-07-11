@@ -5,7 +5,7 @@
 
 | Key | Value |
 | --- | --- |
-| **Status** | Proposed (reframed 2026-07-11; Phase 1 functional, Phase 2 compliance) |
+| **Status** | Proposed |
 | **Date** | 2026-07-11 |
 | **Author** | Architecture Review (regulatory strike, prompted by user directive) |
 | **Source** | GDPR 2016/679 Arts.4(5),5,17,25,32; Art.17(3)(b)/(c); Art.6(1)(c); Art.9(2)(i); EU 2019/6 (Vet Med/AMR) Art.108; AHL 2016/429; IMSOC 2019/1715; national animal-health / public-health acts (per-jurisdiction, TBD); ADR-0054 R7 / R10 |
@@ -175,6 +175,38 @@ animal-health act win over Art.17 without a code fork.
   `subject_pseudonym` + flags. The plaintext PII exists nowhere in the operational schema.
 - **RLS + permission defense in depth.** The vault is RLS-protected and system-only; `pii:read`
   permission plus farm/tenant scoping is required to even attempt decryption.
+
+### D4b — Drizzle `encryptedVarchar` (crypto-shredding at the ORM boundary) — PAUSED
+
+The envelope-encryption design above is realized as a custom Drizzle column type, so
+PII is encrypted **before** it reaches PostgreSQL — and therefore before the `audit_log`
+JSONB captures it (the log stores ciphertext, never plaintext PII — see D7 / the reveal-gate).
+The same `customType` wraps the **vault's `encrypted_blob`** column (D4); operational tables
+(`subjects`, `farms`) stay PII-free, holding only `subject_pseudonym` + flags.
+
+```typescript
+import { customType } from "drizzle-orm/pg-core";
+import { encrypt, decrypt } from "./crypto-service"; // AES-256-GCM + KMS-wrapped DEK
+
+export const encryptedVarchar = customType<{ data: string; driverData: string }>({
+  dataType() {
+    return "varchar"; // stored as standard varchar in Postgres
+  },
+  toDriver(value: string): string {
+    return encrypt(value); // encrypt BEFORE the DB / audit log
+  },
+  fromDriver(value: string): string {
+    return decrypt(value); // decrypt on read
+  },
+});
+
+// Applied to the vault blob (the subjects table itself stays PII-free per D4):
+encryptedBlob: encryptedVarchar("encrypted_blob", { length: 4096 }),
+```
+
+**Status: PAUSED.** Per the 2026-07-11 directive, DB encryption is deferred until
+key-custody (KMS / KEK) is settled by advisor input. The `PII_FIELD_REGISTRY` masking
++ reveal-gate (Phase 1) ships first; this type lands in Phase 2.
 
 ### D5 — Data minimization / default-NOT-shown (the best way is to not show it)
 
@@ -375,6 +407,25 @@ the rabbit hole for now.
 **Deferred (pending expert input):** encryption-at-rest, full erasure vault + crypto-shred + lifecycle
 holds + crons (D8/D9), and the `gdpr:*` / `pii:read` RBAC surface beyond what Phase 1 needs. The
 right-to-erasure is acknowledged as ideal but not prioritized.
+
+### Paused implementation checklist (the "minimal fixes now" — deferred per 2026-07-11 directive)
+
+GDPR/ISO/DB-encryption is **paused**. When unpaused, the first concrete slices are:
+
+1. **Redact PII from the JSONB audit log.** In `packages/domains/audit/src/services/audit.service.ts`,
+   before `computeChanges` writes the JSON, if `resource === 'subject'`, mask fields
+   (`personalId`, phone, email) as `{ old: '***', new: '***' }`. (Once D4b lands the log stores
+   ciphertext anyway; until then, redaction prevents plaintext PII in `audit_log`.)
+2. **Read-access logging for PII.** Extend the tRPC/service layer to emit `AUDIT_ACTION.READ`
+   when a `subject` row or a takeover file carrying farmer details is queried/downloaded — prove
+   *who* looks at people, not just animals (ISO 27001 internal-threat access control).
+3. **Anonymize, never hard-delete.** `anonymizeSubject(id)`: set `firstName='Anonymized'`,
+   `lastName='User'`, `personalId=hash(personalId)`, `email=null`, `phoneNumber=null`; KEEP the UUID
+   so `farm_subjects` / movements / treatments links survive intact.
+4. **PDA data minimization.** `syncDownload` must strip PII (`personalId`, email) from the payload —
+   the PDA needs only `short_name` + `farm_id`, not every keeper's JMBG/email in the district.
+
+All four are deferred; the Phase-1 reveal-gate + `PII_FIELD_REGISTRY` masking ships first.
 
 Owning Bot (Phase 2): a new `@rocky/domains-privacy` (or extend `@rocky/domains-system`); Validators for
 erasure-request + audit-entry Zod; API crons in `apps/api`; tRPC endpoints gated by `pii:read` / `gdpr:*`;

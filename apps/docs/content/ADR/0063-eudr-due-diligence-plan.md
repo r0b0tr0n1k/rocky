@@ -1,8 +1,13 @@
 # ADR-0063: EUDR 2023/1115 Due-Diligence (WO-115)
 
-- **Status:** Proposed — implemented in this change.
-- **Supersedes:** —
-- **Depends on:** ADR-0053 (geo / WO-110 PostGIS polygon), ADR-0054 (R1), ADR-0030 (RuleSet).
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-11 |
+| **Author** | Architecture Review (regulatory strike, prompted by user directive) |
+| **Supersedes** | None |
+| **Superseded** | None |
+| **Related** | ADR-0053 (geo / WO-110 PostGIS); ADR-0054 (R1); ADR-0030 (RuleSet); WO-115 (EUDR) |
 
 ## Context
 
@@ -49,6 +54,19 @@ Rocky has **no deforestation raster layer**. The "overlay" is therefore a *logic
 due-diligence: each pasture polygon must carry a declared `deforestation_free_since <= cutoff`.
 A real satellite/raster overlay (sharing the PostGIS `ST_Intersects` infra from WO-119 disease
 zones) can later replace the date check **without changing the gate**.
+
+## Consequences
+
+### Positive
+- EUDR due-diligence is a first-class guillotine (slaughter/export blocked on a deforestation breach), consistent with WO-113/115.
+- Pasture-overlay logic reuses the PostGIS `ST_Intersects` infra from WO-119; the gate is config (`eudr.enabled`), not a fork.
+
+### Negative / Cost
+- Requires `geofences.deforestation_free_since` populated; with no seeded raster, the check is logical (declared date), not a satellite overlay.
+- The export/slaughter path gains a synchronous due-diligence call (acceptable — not hot-path).
+
+### Neutral
+- Schema adds one nullable column; migration via `db-recreate.sh`. No new router permission.
 
 ## Open Questions
 
