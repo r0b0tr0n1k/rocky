@@ -13,7 +13,7 @@ import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 // RESPONSE SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const roleResponseSchema = rolesSelectSchema.omit({ createdBy: true, validTo: true })  .strip();
+export const roleResponseSchema = rolesSelectSchema.omit({ createdBy: true, validTo: true })  .strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type RoleResponse = z.infer<typeof roleResponseSchema>;
 
@@ -25,7 +25,7 @@ export const roleWithPermissionsResponseSchema = roleResponseSchema
   .extend({
     permissions: z.array(permissionResponseSchema),
   })
-  .strip();
+  .strip(); // WO-040: kept .strip() — input is {...fullRoleRow, permissions}; .strict() would reject omitted audit keys
 
 export type RoleWithPermissionsResponse = z.infer<typeof roleWithPermissionsResponseSchema>;
 

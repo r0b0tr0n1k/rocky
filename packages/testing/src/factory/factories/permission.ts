@@ -6,6 +6,7 @@
 
 import { faker } from "@faker-js/faker";
 import { permissionsSelectSchema } from "@rocky/database/zod";
+import { PERMISSION_SCOPE } from "@rocky/database/constants";
 import { SchemaDataFactory } from "../base.js";
 import type { InferSelectSchema } from "../type-helpers.js";
 
@@ -32,13 +33,13 @@ export class PermissionFactory extends SchemaDataFactory<PermissionRecord> {
         "archive",
       ]),
       description: faker.lorem.sentence(),
-      scope: "*",
+      scope: PERMISSION_SCOPE.ALL,
       createdAt: faker.date.recent({ days: 30 }),
     });
   }
 
   createGlobal(overrides?: Partial<PermissionRecord>): PermissionRecord {
-    return this.create({ scope: "*", ...overrides });
+    return this.create({ scope: PERMISSION_SCOPE.ALL, ...overrides });
   }
 
   createScoped(scope: string, overrides?: Partial<PermissionRecord>): PermissionRecord {

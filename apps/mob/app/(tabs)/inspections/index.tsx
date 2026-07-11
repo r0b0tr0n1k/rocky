@@ -1,6 +1,7 @@
 import { View, FlatList, TouchableOpacity } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Badge } from "@/components/ui/badge";
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 import { trpc } from "@/providers/trpc-provider";
 import { INSPECTION_STATUS } from "@rocky/validators/enums";
 import { useRouter } from "expo-router";
@@ -30,7 +31,14 @@ export default function InspectionsListScreen() {
             </Badge>
           </TouchableOpacity>
         )}
-        ListEmptyComponent={<Text className="text-muted-foreground text-center py-8">No inspections found</Text>}
+        ListEmptyComponent={
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>No inspections found</EmptyTitle>
+              <EmptyDescription>Schedule or sync inspections to see them here.</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        }
       />
     </View>
   );

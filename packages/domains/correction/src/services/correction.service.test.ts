@@ -11,7 +11,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { CorrectionService } from "./correction.service.js";
 import type { CorrectionRepository } from "../repositories/correction.repository.js";
-import { CORRECTION_STATUS } from "@rocky/database/constants";
+import { CORRECTION_STATUS, DETECTION_SOURCE } from "@rocky/database/constants";
 import { ErrorCorrectionFactory, mockRepoReturn } from "@rocky/testing";
 import type { ErrorCorrectionRecord } from "@rocky/testing";
 
@@ -65,7 +65,7 @@ describe("CorrectionService — create", () => {
   it("creates a pending correction", async () => {
     const { repo, seed } = makeRepo(new ErrorCorrectionFactory().createPending());
     const result = await new CorrectionService(repo).create({
-      detectionSource: "field",
+      detectionSource: DETECTION_SOURCE.FIELD,
       errorType: "duplicate_ear_tag",
       errorDescription: "Tag applied twice",
     });

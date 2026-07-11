@@ -26,7 +26,7 @@ export const farmResponseSchema = farmsSelectSchema
     verificationStatus: verificationStatusSchema,
     dataSource: dataSourceSchema,
   })
-  .strip();
+  .strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type FarmResponse = z.infer<typeof farmResponseSchema>;
 
@@ -50,7 +50,7 @@ export const addressResponseSchema = addressesSelectSchema
     geocodedAddress: z.string().nullable(),
     geocodedAt: z.coerce.date<string>().nullable(),
   })
-  .strict();
+  .strip(); // WO-040: kept .strip() - service passes full DB rows; .strict() would reject omitted audit/legacy keys
 
 export type AddressResponse = z.infer<typeof addressResponseSchema>;
 
@@ -140,7 +140,7 @@ export interface FarmBookResponse {
 
 export const farmBookResponseSchema = farmBooksSelectSchema
   .omit({ createdBy: true, updatedAt: true, validTo: true })
-  .extend({ status: farmBookStatusSchema }).strip() satisfies z.ZodType<FarmBookResponse>;
+  .extend({ status: farmBookStatusSchema }).strip() satisfies z.ZodType<FarmBookResponse>; // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 type _drift_farmBookResponse = NoDrift<z.infer<typeof farmBookResponseSchema>, FarmBookResponse>;
 
@@ -187,7 +187,7 @@ export interface VsContractResponse {
 
 export const vsContractResponseSchema = vsContractsSelectSchema
   .omit({ createdBy: true, updatedAt: true, validTo: true })
-  .extend({ status: vsContractStatusSchema }).strip() satisfies z.ZodType<VsContractResponse>;
+  .extend({ status: vsContractStatusSchema }).strip() satisfies z.ZodType<VsContractResponse>; // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 type _drift_vsContractResponse = NoDrift<z.infer<typeof vsContractResponseSchema>, VsContractResponse>;
 
@@ -238,7 +238,7 @@ export interface VsAssignmentResponse {
 }
 
 export const vsAssignmentResponseSchema = vsAssignmentsSelectSchema
-  .omit({ createdBy: true, updatedAt: true, validTo: true }).strip() satisfies z.ZodType<VsAssignmentResponse>;
+  .omit({ createdBy: true, updatedAt: true, validTo: true }).strip() satisfies z.ZodType<VsAssignmentResponse>; // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 type _drift_vsAssignmentResponse = NoDrift<z.infer<typeof vsAssignmentResponseSchema>, VsAssignmentResponse>;
 

@@ -1,132 +1,187 @@
-// biome-ignore assist/source/organizeImports: biome
 import { Button } from "@/components/ui/button";
+import { EnumSelect } from "@/components/ui/enum-select";
+import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
+import { onlineManager } from "@tanstack/react-query";
 import { trpc } from "@/providers/trpc-provider";
+import { useOfflineMutation } from "@/lib/offline/use-offline-mutation";
+import { useOffline } from "@/providers/offline-provider";
 import { useCan } from "@/providers/permissions-provider";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, View } from "react-native";
+import { notifyError, notifySuccess } from "@/lib/notify";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, type Resolver } from "react-hook-form";
+import { ActivityIndicator, ScrollView, View } from "react-native";
 import { BIRTH_TYPE, SEX } from "@rocky/validators/enums";
 import type { birthTypeType } from "@rocky/validators/enums";
-import { enumToOptions } from "@/lib/enum-options";
+import { createAnimalRequestSchema } from "@rocky/validators/api";
+import { z } from "zod";
 
-const BIRTH_TYPE_OPTIONS = enumToOptions(BIRTH_TYPE);
+// Zod 4: `createAnimalRequestSchema` is a ZodObject that has absorbed its
+// `.refine()` as a "check", and `.omit()` rejects objects containing checks.
+// Rebuild from `.shape` (reusing the exact field schemas — single source of
+// truth) so the top object has no checks, then omit the context/numeric
+// fields. Birth captures the calf ear tag, date, type and weight; sex is always
+// FEMALE and the farm is fixed at submit time. The canonical "birth date not in
+// the future" rule is re-applied to keep client/server parity.
+const birthFormSchema = z
+  .object(createAnimalRequestSchema.shape)
+  .omit({
+    currentFarmId: true,
+    stateCode: true,
+    status: true,
+    birthWeight: true,
+    sex: true,
+    breed: true,
+  })
+  .extend({
+    birthWeight: z
+      .string()
+      .optional()
+      .refine((v) => !v || /^\d+$/.test(v), "Birth weight must be a whole number"),
+  })
+  .refine(
+    (data) => {
+      if (data.birthDate) {
+        const d = new Date(data.birthDate);
+        if (d instanceof Date && d > new Date()) return false;
+      }
+      return true;
+    },
+    { message: "Birth date cannot be in the future" },
+  );
+
+type BirthForm = {
+  earTagNumber: string;
+  birthDate: string;
+  birthType: birthTypeType | undefined;
+  birthWeight: string;
+};
 
 export default function BirthNotificationScreen() {
   const router = useRouter();
-  const [earTagNumber, setEarTagNumber] = useState("");
-  const [birthDate, setBirthDate] = useState("");
-  const [birthType, setBirthType] = useState<birthTypeType | "">("");
-  const [birthWeight, setBirthWeight] = useState("");
-  const [motherTag, setMotherTag] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const utils = trpc.useUtils();
+  const { deviceId } = useOffline();
+  const enqueueBirth = useOfflineMutation("animal");
+  const canRegister = useCan("animal:register");
+
+  const {
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<BirthForm>({
+    resolver: zodResolver(birthFormSchema) as Resolver<BirthForm>,
+    mode: "onTouched",
+    defaultValues: {
+      earTagNumber: "",
+      birthDate: "",
+      birthType: undefined,
+      birthWeight: "",
+    },
+  });
 
   const createAnimal = trpc.animal.create.useMutation({
     onSuccess: () => {
+      notifySuccess("Birth notification submitted");
       utils.animal.list.invalidate();
       router.back();
     },
     onError: (error) => {
-      Alert.alert("Error", error.message);
+      notifyError(error);
     },
   });
 
-  const canRegister = useCan("animal:register");
-
-  const handleSubmit = async () => {
-    if (!earTagNumber || earTagNumber.length !== 8) {
-      Alert.alert("Error", "Ear tag number must be 8 characters");
+  const onSubmit = handleSubmit((values) => {
+    const payload = {
+      earTagNumber: values.earTagNumber.toUpperCase(),
+      // Births are always female calves.
+      sex: SEX.FEMALE,
+      birthDate: values.birthDate,
+      birthType: values.birthType,
+      birthWeight: values.birthWeight ? Number(values.birthWeight) : undefined,
+      // Preserves the original online behavior: a fixed placeholder farm + MK.
+      currentFarmId: "00000000-0000-0000-0000-000000000000",
+      stateCode: "MK",
+      isFirstTagging: true,
+    };
+    if (!onlineManager.isOnline()) {
+      // Offline: write-local-then-enqueue (WO-082). The Server re-validates
+      // @Policy + RLS on sync.
+      if (deviceId) void enqueueBirth(payload);
+      notifySuccess("Birth saved locally — will sync when online");
+      utils.animal.list.invalidate();
+      router.back();
       return;
     }
-    if (!birthDate) {
-      Alert.alert("Error", "Please enter birth date");
-      return;
-    }
+    createAnimal.mutate(payload);
+  });
 
-    setIsLoading(true);
-    try {
-      await createAnimal.mutateAsync({
-        earTagNumber: earTagNumber.toUpperCase(),
-        sex: SEX.FEMALE,
-        birthDate: birthDate,
-        birthType: birthType || undefined,
-        birthWeight: birthWeight ? parseInt(birthWeight, 10) : undefined,
-        currentFarmId: "00000000-0000-0000-0000-000000000000",
-        stateCode: "MK",
-        isFirstTagging: true,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const birthType = watch("birthType");
 
   return (
     <ScrollView className="flex-1 bg-background">
       <View className="p-4 gap-4">
         <Text className="text-foreground text-lg font-bold">Record New Birth</Text>
 
-        <View className="gap-2">
-          <Label nativeID="earTag">Calf Ear Tag Number</Label>
+        <FormField label="Calf Ear Tag Number" error={errors.earTagNumber?.message} nativeID="earTag">
           <Input
             placeholder="MK123456"
-            value={earTagNumber}
-            onChangeText={setEarTagNumber}
+            value={watch("earTagNumber")}
+            onChangeText={(t) => setValue("earTagNumber", t, { shouldValidate: true })}
             maxLength={8}
             autoCapitalize="characters"
+            accessibilityLabelledBy="earTag"
           />
-        </View>
+        </FormField>
 
-        <View className="gap-2">
-          <Label nativeID="birthDate">Birth Date (YYYY-MM-DD)</Label>
-          <Input placeholder="2026-01-15" value={birthDate} onChangeText={setBirthDate} />
-        </View>
-
-        <View className="gap-2">
-          <Label nativeID="motherTag">Mother Ear Tag (optional)</Label>
+        <FormField
+          label="Birth Date (YYYY-MM-DD)"
+          error={errors.birthDate?.message}
+          nativeID="birthDate"
+        >
           <Input
-            placeholder="MK654321"
-            value={motherTag}
-            onChangeText={setMotherTag}
-            maxLength={8}
-            autoCapitalize="characters"
+            placeholder="2026-01-15"
+            value={watch("birthDate")}
+            onChangeText={(t) => setValue("birthDate", t, { shouldValidate: true })}
+            accessibilityLabelledBy="birthDate"
           />
-        </View>
+        </FormField>
 
-        <View className="gap-2">
-          <Label nativeID="birthType">Birth Type (optional)</Label>
-          <Select
-            value={
-              birthType
-                ? BIRTH_TYPE_OPTIONS.find((o) => o.value === birthType)
-                : undefined
-            }
-            onValueChange={(opt) => setBirthType((opt?.value ?? "") as birthTypeType | "")}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select type..." />
-            </SelectTrigger>
-            <SelectContent>
-              {BIRTH_TYPE_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} label={opt.label} value={opt.value} />
-              ))}
-            </SelectContent>
-          </Select>
-        </View>
+        <FormField label="Birth Type (optional)" error={errors.birthType?.message} nativeID="birthType">
+          <EnumSelect
+            dict={BIRTH_TYPE}
+            value={birthType}
+            onValueChange={(v) => setValue("birthType", v, { shouldValidate: true })}
+            placeholder="Select type..."
+          />
+        </FormField>
 
-        <View className="gap-2">
-          <Label nativeID="birthWeight">Birth Weight (kg, optional)</Label>
-          <Input placeholder="e.g. 45" value={birthWeight} onChangeText={setBirthWeight} keyboardType="numeric" />
-        </View>
+        <FormField
+          label="Birth Weight (kg, optional)"
+          error={errors.birthWeight?.message}
+          nativeID="birthWeight"
+        >
+          <Input
+            placeholder="e.g. 45"
+            value={watch("birthWeight")}
+            onChangeText={(t) => setValue("birthWeight", t, { shouldValidate: true })}
+            keyboardType="numeric"
+            accessibilityLabelledBy="birthWeight"
+          />
+        </FormField>
 
         {!canRegister ? (
           <Text className="text-sm text-muted-foreground">You don't have permission to register animals.</Text>
+        ) : !onlineManager.isOnline() ? (
+          <Text className="text-sm text-muted-foreground">
+            Offline — the birth is saved locally and syncs when you reconnect.
+          </Text>
         ) : null}
-        <Button onPress={handleSubmit} disabled={isLoading || !canRegister} size="lg">
-          {isLoading ? <ActivityIndicator color="white" /> : <Text>Submit Birth Notification</Text>}
+
+        <Button onPress={onSubmit} disabled={isSubmitting || !canRegister} size="lg">
+          {isSubmitting ? <ActivityIndicator color="white" /> : <Text>Submit Birth Notification</Text>}
         </Button>
       </View>
     </ScrollView>

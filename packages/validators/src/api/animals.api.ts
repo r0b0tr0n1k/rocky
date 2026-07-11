@@ -33,7 +33,7 @@ export const animalResponseSchema = animalsSelectSchema
     status: animalStatusSchema,
     sex: sexSchema,
     birthType: birthTypeSchema.nullable(),
-  }).strip();
+  }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type AnimalResponse = z.infer<typeof animalResponseSchema>;
 
@@ -83,12 +83,24 @@ export type AnimalListResponse = z.infer<typeof animalListResponseSchema>;
 export type CreateAnimalRequest = z.infer<typeof createAnimalRequestSchema>;
 
 export const createAnimalRequestSchema = animalsInsertSchema
-  .omit({
-    id: true,
-    createdAt: true,
-    createdBy: true,
-    updatedAt: true,
-    validTo: true,
+  .pick({
+    stateCode: true,
+    earTagNumber: true,
+    birthDate: true,
+    sex: true,
+    breed: true,
+    birthType: true,
+    birthWeight: true,
+    motherId: true,
+    fatherId: true,
+    currentFarmId: true,
+    status: true,
+    isFirstTagging: true,
+    taggingDate: true,
+    imported: true,
+    importCountry: true,
+    importDate: true,
+    isActive: true,
   })
   .extend({
     earTagNumber: earTagSchema,

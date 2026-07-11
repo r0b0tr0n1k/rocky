@@ -7,7 +7,7 @@
  *
  * DO NOT EDIT MANUALLY. Run: node scripts/regenerate-enums.mjs
  *
- * Generated: 2026-07-08T04:33:46.196Z
+ * Generated: 2026-07-11T00:08:24.758Z
  */
 
 import { zEnum } from "../_enum-helper.js";
@@ -69,10 +69,12 @@ import { NOTIFICATION_TYPE_VALUES } from "@rocky/database/constants";
 import { ORDER_STATUS_VALUES } from "@rocky/database/constants";
 import { ORG_READ_ROLE_VALUES } from "@rocky/database/constants";
 import { ORG_TYPE_VALUES } from "@rocky/database/constants";
+import { OUTBOX_AGGREGATE_TYPE_VALUES } from "@rocky/database/constants";
 import { OUTBOX_EVENT_STATUS_VALUES } from "@rocky/database/constants";
 import { PARENT_TYPE_VALUES } from "@rocky/database/constants";
 import { PASSPORT_STATUS_VALUES } from "@rocky/database/constants";
 import { PASTURE_TYPE_VALUES } from "@rocky/database/constants";
+import { PERMISSION_SCOPE_VALUES } from "@rocky/database/constants";
 import { PROCESSING_STAGE_VALUES } from "@rocky/database/constants";
 import { READING_TYPE_VALUES } from "@rocky/database/constants";
 import { REPRINT_REASON_VALUES } from "@rocky/database/constants";
@@ -89,6 +91,7 @@ import { SORT_ORDER_VALUES } from "@rocky/database/constants";
 import { STATE_CODE_VALUES } from "@rocky/database/constants";
 import { SUBJECT_ROLE_VALUES } from "@rocky/database/constants";
 import { SYNC_ERROR_TYPE_VALUES } from "@rocky/database/constants";
+import { SYNC_RECORD_TYPE_VALUES } from "@rocky/database/constants";
 import { SYNC_STATUS_VALUES } from "@rocky/database/constants";
 import { TAG_CATEGORY_VALUES } from "@rocky/database/constants";
 import { TAKEOVER_STATUS_VALUES } from "@rocky/database/constants";
@@ -103,7 +106,7 @@ import { VS_CONTRACT_STATUS_VALUES } from "@rocky/database/constants";
 import { WEIGHING_TYPE_VALUES } from "@rocky/database/constants";
 import { WRITE_ROLE_VALUES } from "@rocky/database/constants";
 
-// 88 enum schemas
+// 91 enum schemas
 
 export const adminRolesSchema = zEnum(ADMIN_ROLE_VALUES);
 export type adminRolesType = z.infer<typeof adminRolesSchema>;
@@ -325,6 +328,10 @@ export const orgTypeSchema = zEnum(ORG_TYPE_VALUES);
 export type orgTypeType = z.infer<typeof orgTypeSchema>;
 const _satisfies_orgTypeSchema: z.ZodType<orgTypeType> = orgTypeSchema;
 type _nodrift_orgTypeSchema = NoDrift<z.infer<typeof orgTypeSchema>, orgTypeType>;
+export const outboxAggregateTypeSchema = zEnum(OUTBOX_AGGREGATE_TYPE_VALUES);
+export type outboxAggregateTypeType = z.infer<typeof outboxAggregateTypeSchema>;
+const _satisfies_outboxAggregateTypeSchema: z.ZodType<outboxAggregateTypeType> = outboxAggregateTypeSchema;
+type _nodrift_outboxAggregateTypeSchema = NoDrift<z.infer<typeof outboxAggregateTypeSchema>, outboxAggregateTypeType>;
 export const outboxEventStatusSchema = zEnum(OUTBOX_EVENT_STATUS_VALUES);
 export type outboxEventStatusType = z.infer<typeof outboxEventStatusSchema>;
 const _satisfies_outboxEventStatusSchema: z.ZodType<outboxEventStatusType> = outboxEventStatusSchema;
@@ -341,6 +348,10 @@ export const pastureTypeSchema = zEnum(PASTURE_TYPE_VALUES);
 export type pastureTypeType = z.infer<typeof pastureTypeSchema>;
 const _satisfies_pastureTypeSchema: z.ZodType<pastureTypeType> = pastureTypeSchema;
 type _nodrift_pastureTypeSchema = NoDrift<z.infer<typeof pastureTypeSchema>, pastureTypeType>;
+export const permissionScopeSchema = zEnum(PERMISSION_SCOPE_VALUES);
+export type permissionScopeType = z.infer<typeof permissionScopeSchema>;
+const _satisfies_permissionScopeSchema: z.ZodType<permissionScopeType> = permissionScopeSchema;
+type _nodrift_permissionScopeSchema = NoDrift<z.infer<typeof permissionScopeSchema>, permissionScopeType>;
 export const processingStageSchema = zEnum(PROCESSING_STAGE_VALUES);
 export type processingStageType = z.infer<typeof processingStageSchema>;
 const _satisfies_processingStageSchema: z.ZodType<processingStageType> = processingStageSchema;
@@ -405,6 +416,10 @@ export const syncErrorTypeSchema = zEnum(SYNC_ERROR_TYPE_VALUES);
 export type syncErrorTypeType = z.infer<typeof syncErrorTypeSchema>;
 const _satisfies_syncErrorTypeSchema: z.ZodType<syncErrorTypeType> = syncErrorTypeSchema;
 type _nodrift_syncErrorTypeSchema = NoDrift<z.infer<typeof syncErrorTypeSchema>, syncErrorTypeType>;
+export const syncRecordTypeSchema = zEnum(SYNC_RECORD_TYPE_VALUES);
+export type syncRecordTypeType = z.infer<typeof syncRecordTypeSchema>;
+const _satisfies_syncRecordTypeSchema: z.ZodType<syncRecordTypeType> = syncRecordTypeSchema;
+type _nodrift_syncRecordTypeSchema = NoDrift<z.infer<typeof syncRecordTypeSchema>, syncRecordTypeType>;
 export const syncStatusSchema = zEnum(SYNC_STATUS_VALUES);
 export type syncStatusType = z.infer<typeof syncStatusSchema>;
 const _satisfies_syncStatusSchema: z.ZodType<syncStatusType> = syncStatusSchema;
@@ -458,7 +473,7 @@ export type writeRolesType = z.infer<typeof writeRolesSchema>;
 const _satisfies_writeRolesSchema: z.ZodType<writeRolesType> = writeRolesSchema;
 type _nodrift_writeRolesSchema = NoDrift<z.infer<typeof writeRolesSchema>, writeRolesType>;
 
-// ⚔️ Activate ALL 88 guillotine proofs
+// ⚔️ Activate ALL 91 guillotine proofs
 export type _Activate = ActivateGuillotines<[
   _nodrift_adminRolesSchema,
   _nodrift_administrationRouteSchema,
@@ -515,10 +530,12 @@ export type _Activate = ActivateGuillotines<[
   _nodrift_orderStatusSchema,
   _nodrift_orgReadRolesSchema,
   _nodrift_orgTypeSchema,
+  _nodrift_outboxAggregateTypeSchema,
   _nodrift_outboxEventStatusSchema,
   _nodrift_parentTypeSchema,
   _nodrift_passportStatusSchema,
   _nodrift_pastureTypeSchema,
+  _nodrift_permissionScopeSchema,
   _nodrift_processingStageSchema,
   _nodrift_readingTypeSchema,
   _nodrift_reprintReasonSchema,
@@ -535,6 +552,7 @@ export type _Activate = ActivateGuillotines<[
   _nodrift_stateCodeSchema,
   _nodrift_subjectRoleSchema,
   _nodrift_syncErrorTypeSchema,
+  _nodrift_syncRecordTypeSchema,
   _nodrift_syncStatusSchema,
   _nodrift_tagCategorySchema,
   _nodrift_takeoverStatusSchema,

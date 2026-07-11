@@ -94,7 +94,7 @@ export const correctionResponseSchema = errorCorrectionsSelectSchema
     resolvedAt: z.coerce.date<string>().nullable(),
     escalatedAt: z.coerce.date<string>().nullable(),
     assignedAt: z.coerce.date<string>().nullable(),
-  }).strip() satisfies z.ZodType<CorrectionResponse>;
+  }).strip() satisfies z.ZodType<CorrectionResponse>; // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export const correctionListResponseSchema = z.strictObject({
   data: z.array(correctionResponseSchema),

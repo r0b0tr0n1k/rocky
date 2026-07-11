@@ -27,24 +27,24 @@ export const inspectionResponseSchema = inspectionsSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
     status: inspectionStatusSchema,
-  }).strip();
+  }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type InspectionResponse = z.infer<typeof inspectionResponseSchema>;
 
 /** Paginated list of inspections */
 export const inspectionListResponseSchema = z
   .object({ data: z.array(inspectionResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
-  .strip();
+  .strict();
 export type InspectionListResponse = z.infer<typeof inspectionListResponseSchema>;
 
 /** Result of running a risk analysis */
 export const riskAnalysisRunResponseSchema = z
   .object({ analysisId: z.string(), selectedFarmCount: z.number(), totalFarmCount: z.number() })
-  .strip();
+  .strict();
 export type RiskAnalysisRunResponse = z.infer<typeof riskAnalysisRunResponseSchema>;
 
 /** Paginated list of risk analyses (faithful projection of the risk-analysis row) */
-export const riskAnalysisListResponseSchema = z.object({ data: z.array(riskAnalysesSelectSchema), total: z.number() }).strip();
+export const riskAnalysisListResponseSchema = z.object({ data: z.array(riskAnalysesSelectSchema), total: z.number() }).strict();
 export type RiskAnalysisListResponse = z.infer<typeof riskAnalysisListResponseSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════

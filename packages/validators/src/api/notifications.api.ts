@@ -138,7 +138,7 @@ export const notificationResponseSchema = notificationsSelectSchema
     status: notificationStatusSchema,
     source: eventSourceSchema,
   })
-  .strict() satisfies z.ZodType<NotificationResponse>;
+  .strip() satisfies z.ZodType<NotificationResponse>; // WO-040: kept .strip() - service passes full DB rows; .strict() would reject omitted audit/legacy keys
 
 // ═══════════════════════════════════════════════════════════════════════════
 // REQUEST SCHEMAS
@@ -175,6 +175,18 @@ export const notificationListRequestSchema = z.strictObject({
 export const markNotificationReadRequestSchema = z.strictObject({
   notificationIds: z.array(z.uuid()).min(1).max(100),
 }) satisfies z.ZodType<MarkNotificationReadRequest>;
+
+export interface RegisterDeviceInput {
+  deviceId: string;
+  expoPushToken: string;
+  platform: "ios" | "android";
+}
+
+export const registerDeviceSchema = z.strictObject({
+  deviceId: z.string().min(1).max(200),
+  expoPushToken: z.string().min(1).max(500),
+  platform: z.enum(["ios", "android"]),
+}) satisfies z.ZodType<RegisterDeviceInput>;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // DOMAIN LAYER SCHEMAS (consumed by @rocky/domains-notification)

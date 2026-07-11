@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 import { trpc } from "@/providers/trpc-provider";
 import { ANIMAL_STATUS } from "@rocky/validators/enums";
 import { useRouter } from "expo-router";
@@ -59,7 +60,12 @@ export default function AnimalsListScreen() {
           isLoading ? (
             <Text className="text-muted-foreground text-center py-8">Loading...</Text>
           ) : (
-            <Text className="text-muted-foreground text-center py-8">No animals found</Text>
+            <Empty>
+              <EmptyHeader>
+                <EmptyTitle>No animals found</EmptyTitle>
+                <EmptyDescription>Register a new animal to get started.</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           )
         }
       />

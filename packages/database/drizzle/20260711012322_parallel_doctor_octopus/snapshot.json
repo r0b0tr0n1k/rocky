@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "a65dcf68-d16a-4912-8171-4f49bbb2c0ae",
+  "id": "33a20a23-1a63-4e24-ac99-2193787ecf95",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -669,6 +669,17 @@
     },
     {
       "values": [
+        "animal",
+        "farm",
+        "movement",
+        "treatment"
+      ],
+      "name": "outbox_aggregate_type",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
         "pending",
         "processing",
         "completed",
@@ -707,6 +718,16 @@
         "VILLAGE"
       ],
       "name": "pasture_type",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "farm",
+        "org",
+        "*"
+      ],
+      "name": "permission_scope",
       "entityType": "enums",
       "schema": "public"
     },
@@ -882,6 +903,21 @@
         "UNKNOWN"
       ],
       "name": "sync_error_type",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "vaccination",
+        "treatment",
+        "labTest",
+        "animal",
+        "farm",
+        "movement",
+        "inspection",
+        "earTag"
+      ],
+      "name": "sync_record_type",
       "entityType": "enums",
       "schema": "public"
     },
@@ -1340,6 +1376,12 @@
       "schema": "public"
     },
     {
+      "isRlsEnabled": true,
+      "name": "device_tokens",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
       "isRlsEnabled": false,
       "name": "business_rules",
       "entityType": "tables",
@@ -1438,6 +1480,12 @@
     {
       "isRlsEnabled": true,
       "name": "users",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "sync_idempotency",
       "entityType": "tables",
       "schema": "public"
     },
@@ -11735,6 +11783,97 @@
       "name": "id",
       "entityType": "columns",
       "schema": "public",
+      "table": "device_tokens"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "device_tokens"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "device_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "device_tokens"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "expo_push_token",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "device_tokens"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'ios'",
+      "generated": null,
+      "identity": null,
+      "name": "platform",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "device_tokens"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "device_tokens"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "device_tokens"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
       "table": "business_rules"
     },
     {
@@ -14492,6 +14631,84 @@
       "entityType": "columns",
       "schema": "public",
       "table": "users"
+    },
+    {
+      "type": "varchar",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "idempotency_key",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "sync_idempotency"
+    },
+    {
+      "type": "varchar",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "entity_type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "sync_idempotency"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "entity_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "sync_idempotency"
+    },
+    {
+      "type": "varchar",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "created_by",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "sync_idempotency"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "payload",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "sync_idempotency"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "sync_idempotency"
     },
     {
       "nameExplicit": true,
@@ -17787,6 +18004,76 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_device_tokens_user",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "device_tokens"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "device_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_device_tokens_device",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "device_tokens"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "device_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "uniq_device_tokens_user_device",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "device_tokens"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "name",
           "isExpression": false,
           "asc": true,
@@ -19969,6 +20256,23 @@
     {
       "nameExplicit": false,
       "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "device_tokens_user_id_users_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "device_tokens"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "module_id"
       ],
       "schemaTo": "public",
@@ -20685,6 +20989,16 @@
         "id"
       ],
       "nameExplicit": false,
+      "name": "device_tokens_pkey",
+      "schema": "public",
+      "table": "device_tokens",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
       "name": "business_rules_pkey",
       "schema": "public",
       "table": "business_rules",
@@ -20848,6 +21162,16 @@
       "name": "users_pkey",
       "schema": "public",
       "table": "users",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "idempotency_key"
+      ],
+      "nameExplicit": false,
+      "name": "sync_idempotency_pkey",
+      "schema": "public",
+      "table": "sync_idempotency",
       "entityType": "pks"
     },
     {
@@ -21341,7 +21665,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n\t\t\t\tcurrent_setting('app.current_role', true) = ANY(($1, $2, $3))\n\t\t\t\tOR ((\n    current_setting('app.current_role', true) = ANY(($4, $5, $6))\n    OR (current_setting('app.current_role', true) = ANY(($7, $8)) AND \"animal_geofence_events\".\"farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n    OR (current_setting('app.current_role', true) = ANY(($9, $10, $11)) AND \"animal_geofence_events\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  ))\n\t\t\t)",
+      "using": "(\n\t\t\t\tcurrent_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n\t\t\t\tOR ((\n    current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id(\"animal_geofence_events\".\"farm_id\") = current_setting('app.current_org_id', true)::uuid)\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND \"animal_geofence_events\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  ))\n\t\t\t)",
       "withCheck": null,
       "name": "geofence_event_access_policy",
       "entityType": "policies",
@@ -21354,7 +21678,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n    current_setting('app.current_role', true) = ANY(($1, $2, $3))\n    OR (current_setting('app.current_role', true) = ANY(($4, $5)) AND \"animal_parents\".\"animal_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n    OR (current_setting('app.current_role', true) = ANY(($6, $7, $8)) AND \"animal_parents\".\"animal_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  )",
+      "using": "(\n    current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id(\"animal_parents\".\"animal_id\") = current_setting('app.current_org_id', true)::uuid)\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND \"animal_parents\".\"animal_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  )",
       "withCheck": null,
       "name": "animal_parent_access_policy",
       "entityType": "policies",
@@ -21367,8 +21691,8 @@
       "roles": [
         "public"
       ],
-      "using": "(\n    current_setting('app.current_role', true) = ANY(($1, $2, $3))\n    OR (current_setting('app.current_role', true) = ANY(($4, $5)) AND \"animals\".\"current_farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n    OR (current_setting('app.current_role', true) = ANY(($6, $7, $8)) AND \"animals\".\"current_farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  )",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3, $4))",
+      "using": "(\n    current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id(\"animals\".\"current_farm_id\") = current_setting('app.current_org_id', true)::uuid)\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND \"animals\".\"current_farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  )",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF', 'VETERINARIAN'])",
       "name": "animal_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21380,7 +21704,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR (current_setting('app.current_role', true) = ANY(($4, $5))\n            AND (\"archive_documents\".\"farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  )\n                 OR \"archive_documents\".\"farm_id\" IS NULL))\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN'])\n            AND (farm_org_id(\"archive_documents\".\"farm_id\") = current_setting('app.current_org_id', true)::uuid\n                 OR \"archive_documents\".\"farm_id\" IS NULL))\n      )",
       "withCheck": null,
       "name": "archive_document_access_policy",
       "entityType": "policies",
@@ -21393,8 +21717,8 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR (current_setting('app.current_role', true) = ANY(($4, $5))\n            AND (\"birth_notifications\".\"farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  )\n                 OR \"birth_notifications\".\"assigned_to\" = current_setting('app.current_user_id', true)::uuid))\n        OR (current_setting('app.current_role', true) = $6\n            AND \"birth_notifications\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n      )",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3, $4))",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN'])\n            AND (farm_org_id(\"birth_notifications\".\"farm_id\") = current_setting('app.current_org_id', true)::uuid\n                 OR \"birth_notifications\".\"assigned_to\" = current_setting('app.current_user_id', true)::uuid))\n        OR (current_setting('app.current_role', true) = $1\n            AND \"birth_notifications\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n      )",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF', 'VETERINARIAN'])",
       "name": "birth_notification_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21406,7 +21730,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR (current_setting('app.current_role', true) = ANY(($4, $5))\n            AND \"cattle_passports\".\"farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n        OR (current_setting('app.current_role', true) = ANY(($6, $7, $8))\n            AND \"cattle_passports\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN'])\n            AND farm_org_id(\"cattle_passports\".\"farm_id\") = current_setting('app.current_org_id', true)::uuid)\n        OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP'])\n            AND \"cattle_passports\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n      )",
       "withCheck": null,
       "name": "cattle_passport_access_policy",
       "entityType": "policies",
@@ -21419,8 +21743,8 @@
       "roles": [
         "public"
       ],
-      "using": "(\n    current_setting('app.current_role', true) = ANY(($1, $2, $3))\n    OR (current_setting('app.current_role', true) = ANY(($4, $5)) AND \"ear_tag_allocations\".\"farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n    OR (current_setting('app.current_role', true) = ANY(($6, $7, $8)) AND \"ear_tag_allocations\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  )",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
+      "using": "(\n    current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id(\"ear_tag_allocations\".\"farm_id\") = current_setting('app.current_org_id', true)::uuid)\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND \"ear_tag_allocations\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  )",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
       "name": "ear_tag_allocation_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21432,8 +21756,8 @@
       "roles": [
         "public"
       ],
-      "using": "(\n    current_setting('app.current_role', true) = ANY(($1, $2, $3))\n    OR \"ear_tag_orders\".\"organization_id\" = current_setting('app.current_org_id', true)::uuid\n  )",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
+      "using": "(\n    current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n    OR \"ear_tag_orders\".\"organization_id\" = current_setting('app.current_org_id', true)::uuid\n  )",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
       "name": "ear_tag_order_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21445,8 +21769,8 @@
       "roles": [
         "public"
       ],
-      "using": "(\n    current_setting('app.current_role', true) = ANY(($1, $2, $3))\n    OR (current_setting('app.current_role', true) = ANY(($4, $5)) AND \"ear_tag_replacements\".\"farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n    OR (current_setting('app.current_role', true) = ANY(($6, $7, $8)) AND \"ear_tag_replacements\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  )",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
+      "using": "(\n    current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id(\"ear_tag_replacements\".\"farm_id\") = current_setting('app.current_org_id', true)::uuid)\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND \"ear_tag_replacements\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  )",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
       "name": "ear_tag_replacement_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21458,8 +21782,8 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR \"ear_tag_takeovers\".\"supplier_organization_id\" = current_setting('app.current_org_id', true)::uuid\n      )",
-      "withCheck": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR \"ear_tag_takeovers\".\"supplier_organization_id\" = current_setting('app.current_org_id', true)::uuid\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR \"ear_tag_takeovers\".\"supplier_organization_id\" = current_setting('app.current_org_id', true)::uuid\n      )",
+      "withCheck": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR \"ear_tag_takeovers\".\"supplier_organization_id\" = current_setting('app.current_org_id', true)::uuid\n      )",
       "name": "ear_tag_takeover_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21471,8 +21795,8 @@
       "roles": [
         "public"
       ],
-      "using": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
+      "using": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
       "name": "ear_tag_type_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21484,8 +21808,8 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR \"ear_tags\".\"allocation_id\" IN (\n    SELECT eta.id FROM ear_tag_allocations eta\n    JOIN farm_subjects fs ON eta.farm_id = fs.farm_id\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  )\n      )",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR \"ear_tags\".\"allocation_id\" IN (\n    SELECT eta.id FROM ear_tag_allocations eta\n    JOIN farm_subjects fs ON eta.farm_id = fs.farm_id\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  )\n      )",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
       "name": "ear_tag_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21497,7 +21821,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR (current_setting('app.current_role', true) = ANY(($4, $5))\n            AND (\"error_corrections\".\"farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  )\n                 OR \"error_corrections\".\"farm_id\" IS NULL))\n        OR (current_setting('app.current_role', true) = ANY(($6, $7, $8))\n            AND \"error_corrections\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN'])\n            AND (farm_org_id(\"error_corrections\".\"farm_id\") = current_setting('app.current_org_id', true)::uuid\n                 OR \"error_corrections\".\"farm_id\" IS NULL))\n        OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP'])\n            AND \"error_corrections\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n      )",
       "withCheck": null,
       "name": "error_correction_access_policy",
       "entityType": "policies",
@@ -21510,7 +21834,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR (current_setting('app.current_role', true) = ANY(($4, $5))\n            AND \"form_reprints\".\"farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n        OR (current_setting('app.current_role', true) = ANY(($6, $7, $8))\n            AND \"form_reprints\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN'])\n            AND farm_org_id(\"form_reprints\".\"farm_id\") = current_setting('app.current_org_id', true)::uuid)\n        OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP'])\n            AND \"form_reprints\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n      )",
       "withCheck": null,
       "name": "form_reprint_access_policy",
       "entityType": "policies",
@@ -21523,8 +21847,8 @@
       "roles": [
         "public"
       ],
-      "using": "(\n\t\t\t\tcurrent_setting('app.current_role', true) = ANY(($1, $2, $3))\n\t\t\t\tOR ((\n    current_setting('app.current_role', true) = ANY(($4, $5, $6))\n    OR (current_setting('app.current_role', true) = ANY(($7, $8)) AND \"geofences\".\"farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n    OR (current_setting('app.current_role', true) = ANY(($9, $10, $11)) AND \"geofences\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  ))\n\t\t\t)",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
+      "using": "(\n\t\t\t\tcurrent_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n\t\t\t\tOR ((\n    current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id(\"geofences\".\"farm_id\") = current_setting('app.current_org_id', true)::uuid)\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND \"geofences\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  ))\n\t\t\t)",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
       "name": "geofence_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21536,7 +21860,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR (current_setting('app.current_role', true) = ANY(($4, $5))\n            AND (\"import_export_records\".\"from_farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  )\n                 OR \"import_export_records\".\"to_farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  )))\n        OR (current_setting('app.current_role', true) = ANY(($6, $7, $8))\n            AND (\"import_export_records\".\"from_farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  )\n                 OR \"import_export_records\".\"to_farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  )))\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN'])\n            AND (farm_org_id(\"import_export_records\".\"from_farm_id\") = current_setting('app.current_org_id', true)::uuid\n                 OR farm_org_id(\"import_export_records\".\"to_farm_id\") = current_setting('app.current_org_id', true)::uuid))\n        OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP'])\n            AND (\"import_export_records\".\"from_farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  )\n                 OR \"import_export_records\".\"to_farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  )))\n      )",
       "withCheck": null,
       "name": "import_export_access_policy",
       "entityType": "policies",
@@ -21549,7 +21873,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR (current_setting('app.current_role', true) = ANY(($4, $5))\n            AND \"inspections\".\"farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN'])\n            AND farm_org_id(\"inspections\".\"farm_id\") = current_setting('app.current_org_id', true)::uuid)\n      )",
       "withCheck": null,
       "name": "inspection_access_policy",
       "entityType": "policies",
@@ -21562,8 +21886,8 @@
       "roles": [
         "public"
       ],
-      "using": "(\n\t\t\t\tcurrent_setting('app.current_role', true) = ANY(($1, $2, $3))\n\t\t\t\tOR ((\n    current_setting('app.current_role', true) = ANY(($4, $5, $6))\n    OR (current_setting('app.current_role', true) = ANY(($7, $8)) AND \"iot_devices\".\"assigned_to_farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n    OR (current_setting('app.current_role', true) = ANY(($9, $10, $11)) AND \"iot_devices\".\"assigned_to_farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  ))\n\t\t\t)",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
+      "using": "(\n\t\t\t\tcurrent_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n\t\t\t\tOR ((\n    current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id(\"iot_devices\".\"assigned_to_farm_id\") = current_setting('app.current_org_id', true)::uuid)\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND \"iot_devices\".\"assigned_to_farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  ))\n\t\t\t)",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
       "name": "iot_device_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21575,7 +21899,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR (current_setting('app.current_role', true) = ANY(($4, $5))\n            AND (\"movements\".\"from_farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  )\n                 OR \"movements\".\"to_farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  )))\n        OR (current_setting('app.current_role', true) = ANY(($6, $7, $8))\n            AND (\"movements\".\"from_farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  )\n                 OR \"movements\".\"to_farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  )))\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN'])\n            AND (farm_org_id(\"movements\".\"from_farm_id\") = current_setting('app.current_org_id', true)::uuid\n                 OR farm_org_id(\"movements\".\"to_farm_id\") = current_setting('app.current_org_id', true)::uuid))\n        OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP'])\n            AND (\"movements\".\"from_farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  )\n                 OR \"movements\".\"to_farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  )))\n      )",
       "withCheck": null,
       "name": "movement_access_policy",
       "entityType": "policies",
@@ -21588,7 +21912,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR (current_setting('app.current_role', true) = $4\n            AND (\"pasture_declarations\".\"from_farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  )\n                 OR \"pasture_declarations\".\"to_farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  )))\n        OR (current_setting('app.current_role', true) = $5\n            AND (\"pasture_declarations\".\"from_farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  )\n                 OR \"pasture_declarations\".\"to_farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  )))\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR (current_setting('app.current_role', true) = $1\n            AND (farm_org_id(\"pasture_declarations\".\"from_farm_id\") = current_setting('app.current_org_id', true)::uuid\n                 OR farm_org_id(\"pasture_declarations\".\"to_farm_id\") = current_setting('app.current_org_id', true)::uuid))\n        OR (current_setting('app.current_role', true) = $2\n            AND (\"pasture_declarations\".\"from_farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  )\n                 OR \"pasture_declarations\".\"to_farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  )))\n      )",
       "withCheck": null,
       "name": "pasture_access_policy",
       "entityType": "policies",
@@ -21601,8 +21925,8 @@
       "roles": [
         "public"
       ],
-      "using": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
+      "using": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
       "name": "pda_device_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21614,7 +21938,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n\t\t\t\tcurrent_setting('app.current_role', true) = ANY(($1, $2, $3))\n\t\t\t\tOR ((\n    current_setting('app.current_role', true) = ANY(($4, $5, $6))\n    OR (current_setting('app.current_role', true) = ANY(($7, $8)) AND \"sensor_readings\".\"farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n    OR (current_setting('app.current_role', true) = ANY(($9, $10, $11)) AND \"sensor_readings\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  ))\n\t\t\t)",
+      "using": "(\n\t\t\t\tcurrent_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n\t\t\t\tOR ((\n    current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id(\"sensor_readings\".\"farm_id\") = current_setting('app.current_org_id', true)::uuid)\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND \"sensor_readings\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  ))\n\t\t\t)",
       "withCheck": null,
       "name": "sensor_reading_access_policy",
       "entityType": "policies",
@@ -21627,7 +21951,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR \"event_subscriptions\".\"created_by\" = current_setting('app.current_user_id', true)::uuid\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR \"event_subscriptions\".\"created_by\" = current_setting('app.current_user_id', true)::uuid\n      )",
       "withCheck": null,
       "name": "event_subscription_access_policy",
       "entityType": "policies",
@@ -21640,7 +21964,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR \"reminders\".\"user_id\" = current_setting('app.current_user_id', true)::uuid\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR \"reminders\".\"user_id\" = current_setting('app.current_user_id', true)::uuid\n      )",
       "withCheck": null,
       "name": "reminder_access_policy",
       "entityType": "policies",
@@ -21653,8 +21977,8 @@
       "roles": [
         "public"
       ],
-      "using": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
+      "using": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
       "name": "disease_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21666,8 +21990,8 @@
       "roles": [
         "public"
       ],
-      "using": "(\n    current_setting('app.current_role', true) = ANY(($1, $2, $3))\n    OR (current_setting('app.current_role', true) = ANY(($4, $5)) AND \"lab_tests\".\"farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n    OR (current_setting('app.current_role', true) = ANY(($6, $7, $8)) AND \"lab_tests\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  )",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3, $4))",
+      "using": "(\n    current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id(\"lab_tests\".\"farm_id\") = current_setting('app.current_org_id', true)::uuid)\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND \"lab_tests\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  )",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF', 'VETERINARIAN'])",
       "name": "lab_test_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21679,8 +22003,8 @@
       "roles": [
         "public"
       ],
-      "using": "(\n    current_setting('app.current_role', true) = ANY(($1, $2, $3))\n    OR (current_setting('app.current_role', true) = ANY(($4, $5)) AND \"treatments\".\"farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n    OR (current_setting('app.current_role', true) = ANY(($6, $7, $8)) AND \"treatments\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  )",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3, $4))",
+      "using": "(\n    current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id(\"treatments\".\"farm_id\") = current_setting('app.current_org_id', true)::uuid)\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND \"treatments\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  )",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF', 'VETERINARIAN'])",
       "name": "treatment_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21692,8 +22016,8 @@
       "roles": [
         "public"
       ],
-      "using": "(\n    current_setting('app.current_role', true) = ANY(($1, $2, $3))\n    OR (current_setting('app.current_role', true) = ANY(($4, $5)) AND \"vaccinations\".\"farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n    OR (current_setting('app.current_role', true) = ANY(($6, $7, $8)) AND \"vaccinations\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  )",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3, $4))",
+      "using": "(\n    current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id(\"vaccinations\".\"farm_id\") = current_setting('app.current_org_id', true)::uuid)\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND \"vaccinations\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  )",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF', 'VETERINARIAN'])",
       "name": "vaccination_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21705,8 +22029,8 @@
       "roles": [
         "public"
       ],
-      "using": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
+      "using": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
       "name": "vaccine_batch_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21718,8 +22042,8 @@
       "roles": [
         "public"
       ],
-      "using": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
+      "using": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
       "name": "vaccine_disease_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21731,8 +22055,8 @@
       "roles": [
         "public"
       ],
-      "using": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
+      "using": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
       "name": "vaccine_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21745,7 +22069,7 @@
         "public"
       ],
       "using": "true",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
       "name": "address_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21757,7 +22081,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR (current_setting('app.current_role', true) = ANY(($4, $5)) AND \"farm_books\".\"farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id(\"farm_books\".\"farm_id\") = current_setting('app.current_org_id', true)::uuid)\n      )",
       "withCheck": null,
       "name": "farm_book_access_policy",
       "entityType": "policies",
@@ -21770,7 +22094,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR (current_setting('app.current_role', true) = ANY(($4, $5)) AND \"farm_subjects\".\"farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n        OR \"farm_subjects\".\"subject_id\" = current_setting('app.current_user_id', true)::uuid\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id(\"farm_subjects\".\"farm_id\") = current_setting('app.current_org_id', true)::uuid)\n        OR \"farm_subjects\".\"subject_id\" = current_setting('app.current_user_id', true)::uuid\n      )",
       "withCheck": null,
       "name": "farm_subject_access_policy",
       "entityType": "policies",
@@ -21783,8 +22107,8 @@
       "roles": [
         "public"
       ],
-      "using": "(\n    current_setting('app.current_role', true) = ANY(($1, $2, $3))\n    OR (current_setting('app.current_role', true) = ANY(($4, $5)) AND \"farms\".\"id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n    OR (current_setting('app.current_role', true) = ANY(($6, $7, $8)) AND \"farms\".\"id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  )",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3, $4))",
+      "using": "(\n    current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id(\"farms\".\"id\") = current_setting('app.current_org_id', true)::uuid)\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND \"farms\".\"id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  )",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF', 'VETERINARIAN'])",
       "name": "farm_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21796,8 +22120,8 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3, $4))\n        OR \"subjects\".\"id\" IN (\n          SELECT fs.subject_id FROM farm_subjects fs\n          WHERE \"farms\".\"id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  )\n        )\n      )",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF', 'VETERINARIAN'])\n        OR \"subjects\".\"id\" IN (\n          SELECT fs.subject_id FROM farm_subjects fs\n          WHERE farm_org_id(fs.farm_id) = current_setting('app.current_org_id', true)::uuid\n        )\n      )",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
       "name": "subject_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21809,7 +22133,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR (current_setting('app.current_role', true) = $4 AND \"sync_errors\".\"farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR (current_setting('app.current_role', true) = $1 AND farm_org_id(\"sync_errors\".\"farm_id\") = current_setting('app.current_org_id', true)::uuid)\n      )",
       "withCheck": null,
       "name": "sync_error_access_policy",
       "entityType": "policies",
@@ -21822,8 +22146,8 @@
       "roles": [
         "public"
       ],
-      "using": "(\n    current_setting('app.current_role', true) = ANY(($1, $2, $3))\n    OR (current_setting('app.current_role', true) = ANY(($4, $5)) AND \"vs_assignments\".\"farm_id\" IN (\n    SELECT f.id FROM farms f\n    JOIN addresses a ON f.address_id = a.id\n    JOIN org_areas oa ON a.commune_id = oa.commune_id\n    WHERE oa.organization_id = current_setting('app.current_org_id', true)::uuid\n  ))\n    OR (current_setting('app.current_role', true) = ANY(($6, $7, $8)) AND \"vs_assignments\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  )",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
+      "using": "(\n    current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN']) AND farm_org_id(\"vs_assignments\".\"farm_id\") = current_setting('app.current_org_id', true)::uuid)\n    OR (current_setting('app.current_role', true) = ANY(ARRAY['FARMER', 'SLAUGHTERHOUSE_OP', 'MARKET_OP']) AND \"vs_assignments\".\"farm_id\" IN (\n    SELECT fs.farm_id FROM farm_subjects fs\n    WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid\n  ))\n  )",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
       "name": "vs_assignment_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21835,7 +22159,7 @@
       "roles": [
         "public"
       ],
-      "using": "(current_setting('app.current_role', true) = ANY(($1, $2, $3)))",
+      "using": "(current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF']))",
       "withCheck": null,
       "name": "vs_contract_access_policy",
       "entityType": "policies",
@@ -21848,7 +22172,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2))\n        OR \"audit_log\".\"user_id\" = current_setting('app.current_user_id', true)::uuid\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN'])\n        OR \"audit_log\".\"user_id\" = current_setting('app.current_user_id', true)::uuid\n      )",
       "withCheck": null,
       "name": "audit_log_access_policy",
       "entityType": "policies",
@@ -21861,8 +22185,21 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR \"notification_preferences\".\"user_id\" = current_setting('app.current_user_id', true)::uuid\n      )",
-      "withCheck": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR \"notification_preferences\".\"user_id\" = current_setting('app.current_user_id', true)::uuid\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR \"device_tokens\".\"user_id\" = current_setting('app.current_user_id', true)::uuid\n      )",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
+      "name": "device_tokens_access_policy",
+      "entityType": "policies",
+      "schema": "public",
+      "table": "device_tokens"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR \"notification_preferences\".\"user_id\" = current_setting('app.current_user_id', true)::uuid\n      )",
+      "withCheck": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR \"notification_preferences\".\"user_id\" = current_setting('app.current_user_id', true)::uuid\n      )",
       "name": "notification_preference_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21874,8 +22211,8 @@
       "roles": [
         "public"
       ],
-      "using": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
+      "using": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
       "name": "notification_template_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21887,8 +22224,8 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR \"notifications\".\"user_id\" = current_setting('app.current_user_id', true)::uuid\n      )",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2, $3))",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR \"notifications\".\"user_id\" = current_setting('app.current_user_id', true)::uuid\n      )",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])",
       "name": "notification_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21900,7 +22237,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2, $3))\n        OR \"org_areas\".\"organization_id\" = current_setting('app.current_org_id', true)::uuid\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])\n        OR \"org_areas\".\"organization_id\" = current_setting('app.current_org_id', true)::uuid\n      )",
       "withCheck": null,
       "name": "org_area_access_policy",
       "entityType": "policies",
@@ -21913,7 +22250,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2))\n        OR \"organizations\".\"id\" = current_setting('app.current_org_id', true)::uuid\n        OR \"organizations\".\"parent_id\" = current_setting('app.current_org_id', true)::uuid\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN'])\n        OR \"organizations\".\"id\" = current_setting('app.current_org_id', true)::uuid\n        OR \"organizations\".\"parent_id\" = current_setting('app.current_org_id', true)::uuid\n      )",
       "withCheck": null,
       "name": "org_access_policy",
       "entityType": "policies",
@@ -21926,8 +22263,8 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2))\n        OR \"user_roles\".\"user_id\" = current_setting('app.current_user_id', true)::uuid\n      )",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2))",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN'])\n        OR \"user_roles\".\"user_id\" = current_setting('app.current_user_id', true)::uuid\n      )",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN'])",
       "name": "user_role_access_policy",
       "entityType": "policies",
       "schema": "public",
@@ -21939,7 +22276,7 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2))\n        OR \"user_sessions\".\"user_id\" = current_setting('app.current_user_id', true)::uuid\n      )",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN'])\n        OR \"user_sessions\".\"user_id\" = current_setting('app.current_user_id', true)::uuid\n      )",
       "withCheck": null,
       "name": "session_access_policy",
       "entityType": "policies",
@@ -21952,8 +22289,8 @@
       "roles": [
         "public"
       ],
-      "using": "(\n        current_setting('app.current_role', true) = ANY(($1, $2))\n        OR (current_setting('app.current_role', true) = $3\n            AND \"users\".\"organization_id\" = current_setting('app.current_org_id', true)::uuid)\n        OR \"users\".\"id\" = current_setting('app.current_user_id', true)::uuid\n      )",
-      "withCheck": "current_setting('app.current_role', true) = ANY(($1, $2))",
+      "using": "(\n        current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN'])\n        OR (current_setting('app.current_role', true) = $1\n            AND \"users\".\"organization_id\" = current_setting('app.current_org_id', true)::uuid)\n        OR \"users\".\"id\" = current_setting('app.current_user_id', true)::uuid\n      )",
+      "withCheck": "current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN'])",
       "name": "user_access_policy",
       "entityType": "policies",
       "schema": "public",

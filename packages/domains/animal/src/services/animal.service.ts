@@ -4,7 +4,7 @@
  * Orchestrates: validate → delegate to repository → return Result.
  */
 
-import { ANIMAL_STATUS, STATE_CODE } from "@rocky/database/constants";
+import { ANIMAL_STATUS, OUTBOX_AGGREGATE_TYPE, STATE_CODE } from "@rocky/database/constants";
 import { fromAsyncThrowable, type Result, toAppError } from "@rocky/domains-shared";
 import type { OutboxEventPublisher } from "@rocky/execution";
 import type {
@@ -16,7 +16,7 @@ import type {
 } from "@rocky/validators/api";
 import { animalResponseSchema, animalSummarySchema } from "@rocky/validators/api";
 import { ANIMAL_ERRORS, AnimalError } from "../errors/animal.errors.js";
-import { SystemService } from "@rocky/domains-system";
+import type { SystemService } from "@rocky/domains-system";
 import type { AnimalRepository } from "../repositories/animal.repository.js";
 import { randomUUID } from "node:crypto";
 
@@ -170,7 +170,7 @@ export class AnimalService {
       if (this.outboxPublisher) {
         await this.outboxPublisher.publish({
           type: "animal_registered",
-          aggregateType: "animal",
+          aggregateType: OUTBOX_AGGREGATE_TYPE.ANIMAL,
           aggregateId: animal.id,
           payload: {
             animalId: animal.id,

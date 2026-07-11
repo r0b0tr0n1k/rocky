@@ -13,11 +13,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { onlineManager } from "@tanstack/react-query";
+import { focusManager, onlineManager } from "@tanstack/react-query";
+import { AppState } from "react-native";
 import NetInfo from "@react-native-community/netinfo";
 import { trpc } from "@/providers/trpc-provider";
 import type { SyncUploadItemType } from "@rocky/validators/api";
 import { getDeviceId } from "@/lib/offline/device-id";
+import { IS_WEB } from "@/lib/offline/db";
+import { registerBackgroundDrain, registerBackgroundSync, unregisterBackgroundDrain } from "@/lib/offline/background-sync";
 import {
   dismissQueueItem,
   listQueue,
@@ -37,6 +40,17 @@ if (!_netinfoWired) {
     return NetInfo.addEventListener((state) => {
       setOnline(!!state.isConnected && state.isInternetReachable !== false);
     });
+  });
+}
+
+// Wire focusManager to AppState once (module scope) — refetch stale queries when the
+// app returns to the foreground (offline-first UX, ADR-0041).
+let _focusWired = false;
+if (!_focusWired) {
+  _focusWired = true;
+  focusManager.setEventListener((setFocused) => {
+    const sub = AppState.addEventListener("change", (state) => setFocused(state === "active"));
+    return () => sub.remove();
   });
 }
 
@@ -66,10 +80,16 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
   const [busy, setBusy] = useState(false);
 
   const refresh = useCallback(() => {
+    if (IS_WEB) {
+      // Browser is a dev-only UI surface; offline cache is native-only (ADR-0036).
+      setItems([]);
+      return;
+    }
     setItems(listQueue());
   }, []);
 
   const download = useCallback(async () => {
+    if (IS_WEB) return;
     if (!onlineManager.isOnline()) return;
     setBusy(true);
     try {
@@ -87,6 +107,7 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
   }, [utils, refresh]);
 
   const flush = useCallback(async () => {
+    if (IS_WEB) return;
     if (!onlineManager.isOnline()) return;
     const q = listQueue("pending");
     if (q.length === 0) return;
@@ -140,6 +161,23 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
       active = false;
     };
   }, [download, flush, refresh]);
+
+  // WO-092: register the background fetch drain. The native task runs outside
+  // the React tree, so it invokes the latest drain via a ref. Registration is
+  // idempotent and skipped on web (expo-background-fetch has no web entry).
+  const drainRef = useRef<() => Promise<void>>(async () => {
+    await download();
+    await flush();
+  });
+  drainRef.current = async () => {
+    await download();
+    await flush();
+  };
+  useEffect(() => {
+    registerBackgroundDrain(() => drainRef.current());
+    void registerBackgroundSync();
+    return () => unregisterBackgroundDrain();
+  }, [download, flush]);
 
   const value: OfflineContextValue = {
     deviceId,

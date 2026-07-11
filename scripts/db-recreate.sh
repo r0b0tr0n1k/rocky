@@ -153,8 +153,23 @@ apply_migration() {
 	local fixed_sql
 	fixed_sql=$(find "$DB_PKG"/drizzle -maxdepth 2 -name migration.fixed.sql -print 2>/dev/null | tail -1)
 	[ -z "$fixed_sql" ] && fail "No migration.fixed.sql found in $DB_PKG/drizzle/*/"
+	# Prepend check_function_bodies=off: drizzle-kit emits SECURITY DEFINER
+	# functions (e.g. farm_org_id) whose bodies reference tables defined
+	# later in the file. With the default check_function_bodies=on the
+	# CREATE FUNCTION fails ("relation does not exist") and every policy
+	# calling it then fails too. Disabling the check lets the function
+	# compile; it is validated at first RLS call once the tables exist.
+	cat > /tmp/rocky_migrate.sql <<SQL
+SET check_function_bodies = off;
+SQL
+	cat "$fixed_sql" >> /tmp/rocky_migrate.sql
 	run psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
-		-f "$fixed_sql" 2>&1 | tail -3
+		-f /tmp/rocky_migrate.sql > /tmp/rocky_migrate.log 2>&1
+	tail -3 /tmp/rocky_migrate.log
+	if [ -n "$(grep -iE "ERROR" /tmp/rocky_migrate.log | grep -vi "already exists")" ]; then
+		echo -e "  ${RED}\u2717${NC} Migration apply reported errors:"
+		grep -iE "ERROR" /tmp/rocky_migrate.log | grep -vi "already exists" | head -10
+	fi
 	ok "Migration applied: $(basename "$(dirname "$fixed_sql")")"
 }
 

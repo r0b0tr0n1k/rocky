@@ -51,7 +51,11 @@ export function isRole(role: string): SQL {
 
 /** `current_role = ANY($roles)` - safe parameterized array check */
 export function isRoleIn(...roles: string[]): SQL {
-  return sql`${currentRole} = ANY(${roles})`;
+  // Inline the role list as a literal ARRAY (sql.raw) so drizzle-kit emits
+  // `ANY(ARRAY['SUPER_ADMIN', ...])` directly — no $N placeholders, no
+  // dependency on the flaky fix-rls post-processor (ADR-0043 / WO-091).
+  const list = sql.raw(roles.map((r) => `'${r}'`).join(", "));
+  return sql`${currentRole} = ANY(ARRAY[${list}])`;
 }
 
 // ── Data-Scoping Fragments ─────────────────────────────────────

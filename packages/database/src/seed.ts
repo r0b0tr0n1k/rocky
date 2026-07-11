@@ -35,6 +35,7 @@ import { ORG_TYPE } from "./constants/org-type.js";
 import { FARM_TYPE } from "./constants/farm-type.js";
 import { DATA_SOURCE } from "./constants/data-source.js";
 import { VERIFICATION_STATUS } from "./constants/verification-status.js";
+import { PERMISSION_SCOPE } from "./constants/permission-scope.js";
 
 // ── Permission Definitions ─────────────────────────────────────
 // Each entry: { resource, action, description, scope }
@@ -42,105 +43,105 @@ import { VERIFICATION_STATUS } from "./constants/verification-status.js";
 
 const PERMISSION_DEFS = [
   // System Management
-  { resource: "sm:users", action: "read", description: "View system users", scope: "*" },
-  { resource: "sm:users", action: "write", description: "Create/update/delete system users", scope: "*" },
-  { resource: "sm:roles", action: "read", description: "View roles and their permissions", scope: "*" },
-  { resource: "sm:roles", action: "write", description: "Create/update/delete roles", scope: "*" },
-  { resource: "sm:orgs", action: "read", description: "View organizations", scope: "*" },
-  { resource: "sm:orgs", action: "write", description: "Create/update/delete organizations", scope: "*" },
-  { resource: "sm:audit", action: "read", description: "View audit log", scope: "*" },
-  { resource: "sm:sysparams", action: "read", description: "View system parameters", scope: "*" },
-  { resource: "sm:sysparams", action: "write", description: "Modify system parameters", scope: "*" },
-  { resource: "sm:modules", action: "read", description: "View feature-flag modules", scope: "*" },
-  { resource: "sm:modules", action: "write", description: "Enable/disable feature-flag modules", scope: "*" },
+  { resource: "sm:users", action: "read", description: "View system users", scope: PERMISSION_SCOPE.ALL },
+  { resource: "sm:users", action: "write", description: "Create/update/delete system users", scope: PERMISSION_SCOPE.ALL },
+  { resource: "sm:roles", action: "read", description: "View roles and their permissions", scope: PERMISSION_SCOPE.ALL },
+  { resource: "sm:roles", action: "write", description: "Create/update/delete roles", scope: PERMISSION_SCOPE.ALL },
+  { resource: "sm:orgs", action: "read", description: "View organizations", scope: PERMISSION_SCOPE.ALL },
+  { resource: "sm:orgs", action: "write", description: "Create/update/delete organizations", scope: PERMISSION_SCOPE.ALL },
+  { resource: "sm:audit", action: "read", description: "View audit log", scope: PERMISSION_SCOPE.ALL },
+  { resource: "sm:sysparams", action: "read", description: "View system parameters", scope: PERMISSION_SCOPE.ALL },
+  { resource: "sm:sysparams", action: "write", description: "Modify system parameters", scope: PERMISSION_SCOPE.ALL },
+  { resource: "sm:modules", action: "read", description: "View feature-flag modules", scope: PERMISSION_SCOPE.ALL },
+  { resource: "sm:modules", action: "write", description: "Enable/disable feature-flag modules", scope: PERMISSION_SCOPE.ALL },
 
   // Holder/Keeper (HK) Module
-  { resource: "hk:farm", action: "read", description: "View farm/holding data", scope: "org" },
-  { resource: "hk:farm", action: "write", description: "Create/update farms", scope: "org" },
-  { resource: "hk:subject", action: "read", description: "View holder/keeper data", scope: "org" },
-  { resource: "hk:subject", action: "write", description: "Create/update holder/keeper records", scope: "org" },
-  { resource: "hk:address", action: "read", description: "View addresses", scope: "org" },
-  { resource: "hk:address", action: "write", description: "Create/update addresses", scope: "org" },
-  { resource: "hk:binding", action: "read", description: "View holder-farm bindings", scope: "org" },
-  { resource: "hk:binding", action: "write", description: "Manage holder-farm bindings", scope: "org" },
-  { resource: "hk:import", action: "admin", description: "Import HK data from flat files/PDA", scope: "*" },
+  { resource: "hk:farm", action: "read", description: "View farm/holding data", scope: PERMISSION_SCOPE.ORG },
+  { resource: "hk:farm", action: "write", description: "Create/update farms", scope: PERMISSION_SCOPE.ORG },
+  { resource: "hk:subject", action: "read", description: "View holder/keeper data", scope: PERMISSION_SCOPE.ORG },
+  { resource: "hk:subject", action: "write", description: "Create/update holder/keeper records", scope: PERMISSION_SCOPE.ORG },
+  { resource: "hk:address", action: "read", description: "View addresses", scope: PERMISSION_SCOPE.ORG },
+  { resource: "hk:address", action: "write", description: "Create/update addresses", scope: PERMISSION_SCOPE.ORG },
+  { resource: "hk:binding", action: "read", description: "View holder-farm bindings", scope: PERMISSION_SCOPE.ORG },
+  { resource: "hk:binding", action: "write", description: "Manage holder-farm bindings", scope: PERMISSION_SCOPE.ORG },
+  { resource: "hk:import", action: "admin", description: "Import HK data from flat files/PDA", scope: PERMISSION_SCOPE.ALL },
 
   // Animal Module
-  { resource: "animal", action: "read", description: "View animal records", scope: "farm" },
-  { resource: "animal", action: "register", description: "Register new animals", scope: "farm" },
-  { resource: "animal", action: "write", description: "Update animal data", scope: "farm" },
-  { resource: "animal", action: "death", description: "Record animal death/stillborn", scope: "farm" },
+  { resource: "animal", action: "read", description: "View animal records", scope: PERMISSION_SCOPE.FARM },
+  { resource: "animal", action: "register", description: "Register new animals", scope: PERMISSION_SCOPE.FARM },
+  { resource: "animal", action: "write", description: "Update animal data", scope: PERMISSION_SCOPE.FARM },
+  { resource: "animal", action: "death", description: "Record animal death/stillborn", scope: PERMISSION_SCOPE.FARM },
 
   // Movement Module
-  { resource: "movement", action: "read", description: "View movement records", scope: "farm" },
-  { resource: "movement", action: "write", description: "Record animal movements", scope: "farm" },
-  { resource: "movement", action: "import", description: "Import animals from other states", scope: "org" },
-  { resource: "movement", action: "export", description: "Export animals", scope: "org" },
-  { resource: "movement", action: "pasture", description: "Declare pasture movements", scope: "farm" },
+  { resource: "movement", action: "read", description: "View movement records", scope: PERMISSION_SCOPE.FARM },
+  { resource: "movement", action: "write", description: "Record animal movements", scope: PERMISSION_SCOPE.FARM },
+  { resource: "movement", action: "import", description: "Import animals from other states", scope: PERMISSION_SCOPE.ORG },
+  { resource: "movement", action: "export", description: "Export animals", scope: PERMISSION_SCOPE.ORG },
+  { resource: "movement", action: "pasture", description: "Declare pasture movements", scope: PERMISSION_SCOPE.FARM },
 
   // Ear Tag Module
-  { resource: "eartag", action: "read", description: "View ear tag data", scope: "org" },
-  { resource: "eartag", action: "generate", description: "Generate new ear tag numbers", scope: "*" },
-  { resource: "eartag", action: "order", description: "Place ear tag orders", scope: "farm" },
-  { resource: "eartag", action: "order:cancel", description: "Cancel own ear tag orders", scope: "farm" },
-  { resource: "eartag", action: "order:cancel:any", description: "Cancel any ear tag order", scope: "*" },
-  { resource: "eartag", action: "order:view_all", description: "View all orders system-wide", scope: "*" },
-  { resource: "eartag", action: "supply", description: "Manage supplier contingents", scope: "*" },
-  { resource: "eartag", action: "collect_orders", description: "Collect orders for printing", scope: "org" },
-  { resource: "eartag", action: "confirm_delivery", description: "Confirm ear tag delivery", scope: "org" },
-  { resource: "eartag", action: "allocate", description: "Allocate tags to vet stations", scope: "*" },
+  { resource: "eartag", action: "read", description: "View ear tag data", scope: PERMISSION_SCOPE.ORG },
+  { resource: "eartag", action: "generate", description: "Generate new ear tag numbers", scope: PERMISSION_SCOPE.ALL },
+  { resource: "eartag", action: "order", description: "Place ear tag orders", scope: PERMISSION_SCOPE.FARM },
+  { resource: "eartag", action: "order:cancel", description: "Cancel own ear tag orders", scope: PERMISSION_SCOPE.FARM },
+  { resource: "eartag", action: "order:cancel:any", description: "Cancel any ear tag order", scope: PERMISSION_SCOPE.ALL },
+  { resource: "eartag", action: "order:view_all", description: "View all orders system-wide", scope: PERMISSION_SCOPE.ALL },
+  { resource: "eartag", action: "supply", description: "Manage supplier contingents", scope: PERMISSION_SCOPE.ALL },
+  { resource: "eartag", action: "collect_orders", description: "Collect orders for printing", scope: PERMISSION_SCOPE.ORG },
+  { resource: "eartag", action: "confirm_delivery", description: "Confirm ear tag delivery", scope: PERMISSION_SCOPE.ORG },
+  { resource: "eartag", action: "allocate", description: "Allocate tags to vet stations", scope: PERMISSION_SCOPE.ALL },
 
   // Slaughter
-  { resource: "slaughter", action: "read", description: "View slaughter records", scope: "farm" },
-  { resource: "slaughter", action: "register", description: "Register slaughter", scope: "farm" },
+  { resource: "slaughter", action: "read", description: "View slaughter records", scope: PERMISSION_SCOPE.FARM },
+  { resource: "slaughter", action: "register", description: "Register slaughter", scope: PERMISSION_SCOPE.FARM },
 
   // Birth Notifications
-  { resource: "birth_notification", action: "read", description: "View birth notifications", scope: "farm" },
-  { resource: "birth_notification", action: "write", description: "Record birth notifications", scope: "farm" },
+  { resource: "birth_notification", action: "read", description: "View birth notifications", scope: PERMISSION_SCOPE.FARM },
+  { resource: "birth_notification", action: "write", description: "Record birth notifications", scope: PERMISSION_SCOPE.FARM },
 
   // Pasture
-  { resource: "pasture", action: "read", description: "View pasture declarations", scope: "farm" },
-  { resource: "pasture", action: "declare", description: "Declare pasture movements", scope: "farm" },
+  { resource: "pasture", action: "read", description: "View pasture declarations", scope: PERMISSION_SCOPE.FARM },
+  { resource: "pasture", action: "declare", description: "Declare pasture movements", scope: PERMISSION_SCOPE.FARM },
 
   // Analysis & Reports
-  { resource: "analysis", action: "read", description: "View risk analyses", scope: "*" },
-  { resource: "analysis", action: "run", description: "Execute risk analyses", scope: "*" },
-  { resource: "report", action: "read", description: "View system reports", scope: "org" },
-  { resource: "report", action: "generate", description: "Generate reports", scope: "org" },
+  { resource: "analysis", action: "read", description: "View risk analyses", scope: PERMISSION_SCOPE.ALL },
+  { resource: "analysis", action: "run", description: "Execute risk analyses", scope: PERMISSION_SCOPE.ALL },
+  { resource: "report", action: "read", description: "View system reports", scope: PERMISSION_SCOPE.ORG },
+  { resource: "report", action: "generate", description: "Generate reports", scope: PERMISSION_SCOPE.ORG },
 
   // PDA / Mobile
-  { resource: "pda", action: "sync", description: "Sync data with PDA subsystem", scope: "org" },
-  { resource: "pda", action: "import", description: "Import PDA field data", scope: "*" },
+  { resource: "pda", action: "sync", description: "Sync data with PDA subsystem", scope: PERMISSION_SCOPE.ORG },
+  { resource: "pda", action: "import", description: "Import PDA field data", scope: PERMISSION_SCOPE.ALL },
 
   // Device Registry
-  { resource: "device", action: "read", description: "View PDA device registry", scope: "org" },
-  { resource: "device", action: "write", description: "Register/update PDA devices", scope: "org" },
-  { resource: "device", action: "admin", description: "Administer PDA devices (block/unblock)", scope: "*" },
+  { resource: "device", action: "read", description: "View PDA device registry", scope: PERMISSION_SCOPE.ORG },
+  { resource: "device", action: "write", description: "Register/update PDA devices", scope: PERMISSION_SCOPE.ORG },
+  { resource: "device", action: "admin", description: "Administer PDA devices (block/unblock)", scope: PERMISSION_SCOPE.ALL },
 
   // Notifications
-  { resource: "notification", action: "read", description: "View notifications", scope: "org" },
-  { resource: "notification", action: "write", description: "Send/manage notifications", scope: "org" },
-  { resource: "notification", action: "admin", description: "Configure notification templates", scope: "*" },
+  { resource: "notification", action: "read", description: "View notifications", scope: PERMISSION_SCOPE.ORG },
+  { resource: "notification", action: "write", description: "Send/manage notifications", scope: PERMISSION_SCOPE.ORG },
+  { resource: "notification", action: "admin", description: "Configure notification templates", scope: PERMISSION_SCOPE.ALL },
 
   // Health Module
-  { resource: "health", action: "read", description: "View health records (diseases, vaccines, treatments, lab tests)", scope: "farm" },
-  { resource: "health", action: "write", description: "Record health events (vaccinations, treatments, lab tests)", scope: "farm" },
-  { resource: "health", action: "admin", description: "Manage disease/vaccine master data", scope: "*" },
+  { resource: "health", action: "read", description: "View health records (diseases, vaccines, treatments, lab tests)", scope: PERMISSION_SCOPE.FARM },
+  { resource: "health", action: "write", description: "Record health events (vaccinations, treatments, lab tests)", scope: PERMISSION_SCOPE.FARM },
+  { resource: "health", action: "admin", description: "Manage disease/vaccine master data", scope: PERMISSION_SCOPE.ALL },
 
   // Archive Module
-  { resource: "archive", action: "read", description: "View archived documents", scope: "org" },
-  { resource: "archive", action: "write", description: "Archive documents", scope: "org" },
-  { resource: "archive", action: "destroy", description: "Mark documents as destroyed", scope: "*" },
+  { resource: "archive", action: "read", description: "View archived documents", scope: PERMISSION_SCOPE.ORG },
+  { resource: "archive", action: "write", description: "Archive documents", scope: PERMISSION_SCOPE.ORG },
+  { resource: "archive", action: "destroy", description: "Mark documents as destroyed", scope: PERMISSION_SCOPE.ALL },
 
   // Correction Module
-  { resource: "correction", action: "read", description: "View correction cases", scope: "org" },
-  { resource: "correction", action: "write", description: "Create correction cases", scope: "farm" },
-  { resource: "correction", action: "resolve", description: "Review/resolve correction cases", scope: "org" },
+  { resource: "correction", action: "read", description: "View correction cases", scope: PERMISSION_SCOPE.ORG },
+  { resource: "correction", action: "write", description: "Create correction cases", scope: PERMISSION_SCOPE.FARM },
+  { resource: "correction", action: "resolve", description: "Review/resolve correction cases", scope: PERMISSION_SCOPE.ORG },
 
   // Passport Module
-  { resource: "passport", action: "read", description: "View cattle passports", scope: "org" },
-  { resource: "passport", action: "create", description: "Issue new passports", scope: "org" },
-  { resource: "passport", action: "admin", description: "Seize/reprint/cancel passports", scope: "*" },
+  { resource: "passport", action: "read", description: "View cattle passports", scope: PERMISSION_SCOPE.ORG },
+  { resource: "passport", action: "create", description: "Issue new passports", scope: PERMISSION_SCOPE.ORG },
+  { resource: "passport", action: "admin", description: "Seize/reprint/cancel passports", scope: PERMISSION_SCOPE.ALL },
 ] as const;
 
 // ── Role→Permission Mapping ────────────────────────────────────
@@ -429,7 +430,7 @@ async function seed() {
     minValue?: string;
     maxValue?: string;
   }> = [
-    { code: "DEFAULT_LANGUAGE", value: "MK", dataType: "STRING", group: "general", description: "Default UI language", isEditable: true },
+    { code: "DEFAULT_LANGUAGE", value: LANGUAGE.MK, dataType: "STRING", group: "general", description: "Default UI language", isEditable: true },
     { code: "UI_THEME", value: "system", dataType: "STRING", group: "general", description: "UI color theme", allowedValues: ["light", "dark", "system"], isEditable: true },
     { code: "DATE_FORMAT", value: "dd.MM.yyyy", dataType: "STRING", group: "general", description: "Default date format", isEditable: true },
     { code: "SESSION_TIMEOUT_MIN", value: "30", dataType: "INTEGER", group: "security", description: "Session idle timeout (minutes)", minValue: "5", maxValue: "240", isEditable: true },

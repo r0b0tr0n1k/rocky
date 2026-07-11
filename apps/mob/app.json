@@ -11,14 +11,20 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.rocky.mobile"
     },
     "android": {
+      "package": "com.rocky.mobile",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.WAKE_LOCK"
+      ]
     },
     "plugins": [
       "expo-router",
@@ -37,10 +43,19 @@
           "faceIDPermission": "Allow Rocky to access your Face ID biometric data."
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-background-fetch",
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "4139d469-5bd5-4dd9-bf5d-9a14de96da1f"
+      }
+    },
+    "owner": "gocenik"
   }
 }

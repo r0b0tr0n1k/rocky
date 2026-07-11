@@ -3,11 +3,14 @@
 // from here; syncDownload refreshes it on connect.
 
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
-import { getLocalDb } from "./db";
+import { getLocalDb, IS_WEB } from "./db";
 
 let _persister: ReturnType<typeof createSyncStoragePersister> | null = null;
 
+/** Builds a TanStack Query persister over the local SQLite DB (ADR-0036 d5).
+ *  Native-only: returns null on web so the app boots without offline persistence. */
 export function getQueryPersister() {
+  if (IS_WEB) return null;
   if (_persister) return _persister;
   const db = getLocalDb();
   db.execSync(

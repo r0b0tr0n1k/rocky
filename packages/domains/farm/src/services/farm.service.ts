@@ -7,6 +7,7 @@
 import type { AuditService } from "@rocky/domains-audit";
 import { fromAsyncThrowable, type Result, toAppError } from "@rocky/domains-shared";
 import type { OutboxEventPublisher } from "@rocky/execution";
+import { OUTBOX_AGGREGATE_TYPE } from "@rocky/database/constants";
 import type {
   AddressResponse,
   CreateFarmRequest,
@@ -77,7 +78,7 @@ export class FarmService {
       if (this.outboxPublisher && input.verificationStatus === "approved") {
         await this.outboxPublisher.publish({
           type: "approval_requested",
-          aggregateType: "farm",
+          aggregateType: OUTBOX_AGGREGATE_TYPE.FARM,
           aggregateId: farm.id,
           payload: {
             farmId: farm.id,

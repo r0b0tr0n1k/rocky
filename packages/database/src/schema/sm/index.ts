@@ -11,6 +11,7 @@ export {
 export { notificationPreferences } from "./notification-preferences.js";
 export { notificationTemplates } from "./notification-templates.js";
 export { notifications } from "./notifications.js";
+export { deviceTokens } from "./device-tokens.js";
 export { organizations, orgAreas } from "./organizations.js";
 export {
 	permissions,

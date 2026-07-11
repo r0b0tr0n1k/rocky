@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { View, ScrollView, Alert } from "react-native";
+import { onlineManager } from "@tanstack/react-query";
 import { Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/providers/trpc-provider";
+import { useOffline } from "@/providers/offline-provider";
+import { useOfflineMutation } from "@/lib/offline/use-offline-mutation";
+import { notifyError, notifySuccess } from "@/lib/notify";
 import { INSPECTION_STATUS } from "@rocky/validators/enums";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
@@ -16,13 +20,20 @@ export default function InspectionDetailScreen() {
   const { data: inspection, isLoading } = trpc.inspection.getById.useQuery({ id });
   const [inspectionDate, setInspectionDate] = useState("");
   const utils = trpc.useUtils();
+  const { deviceId } = useOffline();
+  const enqueueInspection = useOfflineMutation("inspection");
 
+  // `complete` carries only class-level `@Policy({ authenticated: true })` on
+  // the server — there is no `inspection:*` action literal in the Permission
+  // union, so there is nothing to gate against client-side. Every authenticated
+  // principal may complete; the offline outbox + server re-validation guard it.
   const completeInspection = trpc.inspection.complete.useMutation({
     onSuccess: () => {
+      notifySuccess("Inspection completed");
       utils.inspection.list.invalidate();
       router.back();
     },
-    onError: (e) => { Alert.alert("Error", e.message); },
+    onError: (error) => { notifyError(error); },
   });
 
   if (isLoading) {
@@ -65,7 +76,18 @@ export default function InspectionDetailScreen() {
             <Button
               onPress={() => {
                 if (!inspectionDate) { Alert.alert("Error", "Enter inspection date"); return; }
-                completeInspection.mutate({ id, inspectionDate: inspectionDate });
+                // Offline-first: write-local-then-enqueue (WO-082). The server
+                // re-validates @Policy + RLS and, on completion, archives the
+                // form (3-year retention, fire-and-forget — not reflected in the
+                // response, so no separate archived-out toast from the client).
+                if (!onlineManager.isOnline()) {
+                  if (deviceId) void enqueueInspection({ id, inspectionDate });
+                  notifySuccess("Inspection completed");
+                  utils.inspection.list.invalidate();
+                  router.back();
+                  return;
+                }
+                completeInspection.mutate({ id, inspectionDate });
               }}
               disabled={completeInspection.isPending || !inspectionDate}
             >

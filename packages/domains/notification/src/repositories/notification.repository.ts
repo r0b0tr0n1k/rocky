@@ -4,8 +4,8 @@
  * @description DB access layer for notifications, templates, and preferences.
  */
 
-import { eq, and, desc, asc, lte, sql, type SQL } from "drizzle-orm";
-import { notifications, notificationPreferences, notificationTemplates } from "@rocky/database";
+import { eq, and, desc, asc, inArray, lte, sql, type SQL } from "drizzle-orm";
+import { notifications, notificationPreferences, notificationTemplates, deviceTokens } from "@rocky/database";
 import { BaseRepository } from "@rocky/domains-shared";
 
 export class NotificationRepository extends BaseRepository {
@@ -113,5 +113,26 @@ export class NotificationRepository extends BaseRepository {
       .where(eq(notificationTemplates.code, code))
       .limit(1);
     return row ?? null;
+  }
+
+  /** Upsert a device's Expo push token (one row per user+device). */
+  async upsertDeviceToken(values: typeof deviceTokens.$inferInsert): Promise<void> {
+    await this.client
+      .insert(deviceTokens)
+      .values(values)
+      .onConflictDoUpdate({
+        target: [deviceTokens.userId, deviceTokens.deviceId],
+        set: {
+          expoPushToken: values.expoPushToken,
+          platform: values.platform,
+          updatedAt: new Date(),
+        },
+      });
+  }
+
+  /** Fetch Expo push tokens for the given users (for emission). */
+  async findDeviceTokensByUsers(userIds: string[]): Promise<(typeof deviceTokens.$inferSelect)[]> {
+    if (userIds.length === 0) return [];
+    return this.client.select().from(deviceTokens).where(inArray(deviceTokens.userId, userIds));
   }
 }

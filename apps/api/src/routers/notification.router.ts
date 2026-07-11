@@ -8,6 +8,8 @@ import {
   markAsReadSchema,
   notificationOutputSchema,
   type SendNotificationInput,
+  type RegisterDeviceInput,
+  registerDeviceSchema,
   sendNotificationSchema,
 } from "@rocky/validators/api/index.js";
 import { NOTIFICATION_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
@@ -49,6 +51,7 @@ export class NotificationRouter {
   })
   @Policy({ authenticated: true, roles: ["VD_ADMIN", "VD_STAFF"] })
   async send(@Input() input: SendNotificationInput, @Ctx() ctx: AppContext): Promise<NotificationOutput> {
+    const principalId = ctx.execution!.principal.id;
     const normalizedInput = {
       type: input.type || "EMAIL",
       category: input.category || "notification",
@@ -58,12 +61,23 @@ export class NotificationRouter {
       data: input.data,
     };
 
-    return unwrapResult(
+    const notification = unwrapResult(
       await this.notificationService.send({
-        userId: ctx.execution!.principal.id,
+        userId: principalId,
         ...normalizedInput,
       }),
     );
+
+    // Fire-and-forget push (best-effort; respects opt-outs server-side via the
+    // device_tokens table). Pull still works if delivery fails.
+    void this.notificationService.emitPush({
+      userIds: [principalId],
+      title: normalizedInput.subject,
+      body: normalizedInput.message,
+      data: (normalizedInput.data as Record<string, unknown> | undefined) ?? undefined,
+    });
+
+    return notification;
   }
 
   @Mutation({
@@ -80,6 +94,16 @@ export class NotificationRouter {
         userId: ctx.execution!.principal.id,
       }),
     );
+  }
+  @Mutation({ input: registerDeviceSchema, output: z.object({ ok: z.literal(true) }) })
+  async registerDevice(
+    @Input() input: RegisterDeviceInput,
+    @Ctx() ctx: AppContext,
+  ): Promise<{ ok: true }> {
+    unwrapResult(
+      await this.notificationService.registerDevice(ctx.execution!.principal.id, input),
+    );
+    return { ok: true };
   }
 }
 

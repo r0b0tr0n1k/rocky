@@ -9,6 +9,9 @@ import { notificationErr, NOTIFICATION_ERRORS } from "../errors/notification.err
 import type { NotificationRepository } from "../repositories/notification.repository.js";
 import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
 import type { notifications as notificationsTable } from "@rocky/database";
+import { deviceTokens as deviceTokensTable } from "@rocky/database";
+import { sendExpoPush } from "../clients/expo-push.client.js";
+import { NOTIFICATION_TYPE } from "@rocky/database/constants";
 import type { Notification } from "../types/notification.types.js";
 
 interface NotificationPreferences {
@@ -31,6 +34,7 @@ import {
   type MarkAsReadInput,
   type ListNotificationsInput,
   type CreateBatchNotificationsInput,
+  type RegisterDeviceInput,
 } from "@rocky/validators/api";
 
 export class NotificationService {
@@ -197,19 +201,55 @@ export class NotificationService {
     }, toAppError)();
   }
 
+  /** Register a device's Expo push token (WO-091). */
+  async registerDevice(userId: string, input: RegisterDeviceInput): Promise<Result<void, Error>> {
+    return fromAsyncThrowable(async () => {
+      await this.repo.upsertDeviceToken({
+        userId,
+        deviceId: input.deviceId,
+        expoPushToken: input.expoPushToken,
+        platform: input.platform,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as typeof deviceTokensTable.$inferInsert);
+    }, toAppError)();
+  }
+
+  /** Emit an Expo push to the given users (best-effort, WO-091). */
+  async emitPush(input: {
+    userIds: string[];
+    title?: string;
+    body?: string;
+    data?: Record<string, unknown>;
+  }): Promise<Result<void, Error>> {
+    return fromAsyncThrowable(async () => {
+      if (input.userIds.length === 0) return;
+      const tokens = await this.repo.findDeviceTokensByUsers(input.userIds);
+      const messages = tokens
+        .filter((t) => t.expoPushToken.startsWith("ExponentPushToken") || t.expoPushToken.startsWith("ExpoPushToken"))
+        .map((t) => ({
+          to: t.expoPushToken,
+          title: input.title,
+          body: input.body,
+          data: input.data,
+        }));
+      if (messages.length > 0) await sendExpoPush(messages);
+    }, toAppError)();
+  }
+
   // ── Private helpers ────────────────────────────────────────────
 
   private isChannelEnabled(type: string, prefs: NotificationPreferences): boolean {
     switch (type) {
-      case "EMAIL":
+      case NOTIFICATION_TYPE.EMAIL:
         return prefs.emailEnabled;
-      case "SMS":
+      case NOTIFICATION_TYPE.SMS:
         return prefs.smsEnabled;
-      case "PUSH":
+      case NOTIFICATION_TYPE.PUSH:
         return prefs.pushEnabled;
-      case "IN_APP":
+      case NOTIFICATION_TYPE.IN_APP:
         return prefs.inAppEnabled;
-      case "WEBHOOK":
+      case NOTIFICATION_TYPE.WEBHOOK:
         return true;
       default:
         return true;

@@ -7,7 +7,7 @@ import { FarmPicker } from "@/components/farms/farm-picker";
 import { useActiveFarm } from "@/providers/active-farm-provider";
 import { onlineManager } from "@tanstack/react-query";
 import { trpc } from "@/providers/trpc-provider";
-import { enqueueMutation } from "@/lib/offline/sync-queue";
+import { useOfflineMutation } from "@/lib/offline/use-offline-mutation";
 import { useOffline } from "@/providers/offline-provider";
 import { useCan } from "@/providers/permissions-provider";
 import { useRouter } from "expo-router";
@@ -60,6 +60,7 @@ export default function CreateAnimalScreen() {
   const { activeFarm, setActiveFarm } = useActiveFarm();
   const utils = trpc.useUtils();
   const { deviceId } = useOffline();
+  const enqueueAnimal = useOfflineMutation("animal");
   const canRegister = useCan("animal:register");
 
   const {
@@ -110,7 +111,7 @@ export default function CreateAnimalScreen() {
     if (!onlineManager.isOnline()) {
       // Offline: write-local-then-enqueue (WO-082). The outbox drains on
       // reconnect via OfflineProvider; the Server re-validates @Policy + RLS.
-      if (deviceId) enqueueMutation({ type: "animal", payload, deviceId });
+      if (deviceId) void enqueueAnimal(payload);
       utils.animal.list.invalidate();
       router.back();
       return;

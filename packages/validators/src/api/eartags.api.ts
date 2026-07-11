@@ -16,7 +16,7 @@ import {
   sortByEartagSchema,
   sortOrderSchema,
 } from "../enums/index.js";
-import type { orderStatusType } from "../enums/index.js";
+import type { contingentTypeType, orderStatusType } from "../enums/index.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RESPONSE SCHEMAS
@@ -29,7 +29,7 @@ export const earTagResponseSchema = earTagsSelectSchema
     manufactureDate: z.coerce.date<string>().nullable(),
     expiryDate: z.coerce.date<string>().nullable(),
     status: earTagStatusSchema,
-  }).strip();
+  }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type EarTagResponse = z.infer<typeof earTagResponseSchema>;
 
@@ -39,7 +39,7 @@ export const earTagOrderResponseSchema = earTagOrdersSelectSchema
     // Ear-tag procurement orders use the ear_tag_order_status pgEnum
     // (draft/pending/ordered/...), NOT the generic movement ORDER_STATUS_VALUES.
     status: earTagOrderStatusSchema,
-  }).strip();
+  }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type EarTagOrderResponse = z.infer<typeof earTagOrderResponseSchema>;
 type _drift_earTagOrderResponse = NoDrift<z.infer<typeof earTagOrderResponseSchema>, EarTagOrderResponse>;
@@ -59,7 +59,7 @@ export const earTagSummarySchema = z.object(
 
 export type EarTagSummary = z.infer<typeof earTagSummarySchema>;
 
-export const earTagTypeResponseSchema = earTagTypesSelectSchema.omit({ createdBy: true, validTo: true }).strip();
+export const earTagTypeResponseSchema = earTagTypesSelectSchema.omit({ createdBy: true, validTo: true }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type EarTagTypeResponse = z.infer<typeof earTagTypeResponseSchema>;
 
@@ -244,7 +244,7 @@ export type AssignSupplierContingentRequest = {
   tagRangeStart: string;
   tagRangeEnd: string;
   quantity: number;
-  contingentType: "supplier" | "vd" | "vs";
+  contingentType: contingentTypeType;
 };
 
 // ── B.2: Takeover File ─────────────────────────────────────────────

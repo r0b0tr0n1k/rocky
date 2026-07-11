@@ -14,7 +14,7 @@ import type { NoDrift, NoDriftSimple, ActivateGuillotines } from "../utils/type-
 // RESPONSE SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const subjectResponseSchema = subjectsSelectSchema.omit({ createdBy: true, validTo: true }).strip();
+export const subjectResponseSchema = subjectsSelectSchema.omit({ createdBy: true, validTo: true }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type SubjectResponse = z.infer<typeof subjectResponseSchema>;
 
@@ -32,7 +32,7 @@ export const subjectSummarySchema = z.object({
 export type SubjectSummary = z.infer<typeof subjectSummarySchema>;
 
 export const farmSubjectBindingResponseSchema = farmSubjectsSelectSchema
-  .omit({ createdBy: true, validTo: true }).strip();
+  .omit({ createdBy: true, validTo: true }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type FarmSubjectBindingResponse = z.infer<typeof farmSubjectBindingResponseSchema>;
 

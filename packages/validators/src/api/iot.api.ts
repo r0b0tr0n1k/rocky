@@ -42,7 +42,7 @@ export const iotDeviceResponseSchema = iotDevicesSelectSchema
   .extend({
     status: iotDeviceStatusSchema,
     transmissionType: transmissionTypeSchema.nullable(),
-  }).strip() satisfies z.ZodType<IotDeviceResponse>;
+  }).strip() satisfies z.ZodType<IotDeviceResponse>; // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export interface IotDeviceResponse {
   id: string;
@@ -118,7 +118,7 @@ export const geofenceResponseSchema = geofencesSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
     fenceType: fenceTypeSchema,
-  }).strip() satisfies z.ZodType<GeofenceResponse>;
+  }).strip() satisfies z.ZodType<GeofenceResponse>; // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export interface GeofenceResponse {
   id: string;
@@ -155,17 +155,17 @@ export interface GeofenceEventResponse {
 // ── Paginated list responses (Diamond Seal) ──
 export const iotDeviceListResponseSchema = z
   .object({ data: z.array(iotDeviceResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
-  .strip();
+  .strict();
 export type IotDeviceListResponse = z.infer<typeof iotDeviceListResponseSchema>;
 
 export const sensorReadingListResponseSchema = z
   .object({ data: z.array(sensorReadingResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
-  .strip();
+  .strict();
 export type SensorReadingListResponse = z.infer<typeof sensorReadingListResponseSchema>;
 
 export const geofenceEventListResponseSchema = z
   .object({ data: z.array(geofenceEventResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
-  .strip();
+  .strict();
 export type GeofenceEventListResponse = z.infer<typeof geofenceEventListResponseSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════

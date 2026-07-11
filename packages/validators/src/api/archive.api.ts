@@ -26,7 +26,7 @@ export const archiveDocumentResponseSchema = archiveDocumentsSelectSchema
     retentionExpiry: z.coerce.date<string>(),
     archivedAt: z.coerce.date<string>().nullable(),
     destroyedAt: z.coerce.date<string>().nullable(),
-  }).strip();
+  }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys (createdBy/validTo)
 
 export type ArchiveDocumentResponse = z.infer<typeof archiveDocumentResponseSchema>;
 
@@ -38,7 +38,7 @@ export const archiveDocumentListResponseSchema = z
     limit: z.number(),
     offset: z.number(),
   })
-  .strip();
+  .strict();
 
 export type ArchiveDocumentListResponse = z.infer<typeof archiveDocumentListResponseSchema>;
 

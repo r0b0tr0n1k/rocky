@@ -22,7 +22,7 @@ export const pdaDeviceResponseSchema = pdaDevicesSelectSchema
       farms: z.boolean().optional(),
       inspections: z.boolean().optional(),
     }).nullable().optional(),
-  }).strip();
+  }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type PdaDeviceResponse = z.infer<typeof pdaDeviceResponseSchema>;
 
@@ -43,7 +43,7 @@ export const pdaDeviceSummarySchema = z.object({
 export type PdaDeviceSummary = z.infer<typeof pdaDeviceSummarySchema>;
 
 /** Result of a failed-attempt registration (device may become blocked) */
-export const pdaDeviceBlockedResponseSchema = z.object({ blocked: z.boolean() }).strip();
+export const pdaDeviceBlockedResponseSchema = z.object({ blocked: z.boolean() }).strict();
 
 export type PdaDeviceBlockedResponse = z.infer<typeof pdaDeviceBlockedResponseSchema>;
 

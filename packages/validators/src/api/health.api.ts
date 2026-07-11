@@ -34,7 +34,7 @@ import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 
 /** Disease master record */
 export const diseaseResponseSchema = diseasesSelectSchema
-  .omit({ createdBy: true, validTo: true }).strip();
+  .omit({ createdBy: true, validTo: true }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type DiseaseResponse = z.infer<typeof diseaseResponseSchema>;
 
@@ -43,13 +43,13 @@ export const vaccineResponseSchema = vaccinesSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
     type: vaccineTypeSchema,
-  }).strip();
+  }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type VaccineResponse = z.infer<typeof vaccineResponseSchema>;
 
 /** Vaccine batch record */
 export const vaccineBatchResponseSchema = vaccineBatchesSelectSchema
-  .omit({ createdBy: true, validTo: true }).strip();
+  .omit({ createdBy: true, validTo: true }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type VaccineBatchResponse = z.infer<typeof vaccineBatchResponseSchema>;
 
@@ -59,7 +59,7 @@ export const vaccinationResponseSchema = vaccinationsSelectSchema
   .extend({
     route: administrationRouteSchema,
     adminDate: z.coerce.date<string>(),
-  }).strip();
+  }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type VaccinationResponse = z.infer<typeof vaccinationResponseSchema>;
 
@@ -68,7 +68,7 @@ export const treatmentResponseSchema = treatmentsSelectSchema
   .omit({ createdBy: true, validTo: true })
   .extend({
     diagnosisDate: z.coerce.date<string>(),
-  }).strip();
+  }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type TreatmentResponse = z.infer<typeof treatmentResponseSchema>;
 
@@ -80,51 +80,51 @@ export const labTestResponseSchema = labTestsSelectSchema
     result: testResultSchema,
     sampleDate: z.coerce.date<string>(),
     resultDate: z.coerce.date<string>(),
-  }).strip();
+  }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type LabTestResponse = z.infer<typeof labTestResponseSchema>;
 
 /** Vaccine-to-disease mapping record */
 export const vaccineDiseaseResponseSchema = vaccineDiseasesSelectSchema
-  .omit({ createdBy: true }).strip();
+  .omit({ createdBy: true }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type VaccineDiseaseResponse = z.infer<typeof vaccineDiseaseResponseSchema>;
 
 // ── Paginated list responses (Diamond Seal) ──
 export const diseaseListResponseSchema = z
   .object({ data: z.array(diseaseResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
-  .strip();
+  .strict();
 export type DiseaseListResponse = z.infer<typeof diseaseListResponseSchema>;
 
 export const vaccineListResponseSchema = z
   .object({ data: z.array(vaccineResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
-  .strip();
+  .strict();
 export type VaccineListResponse = z.infer<typeof vaccineListResponseSchema>;
 
 export const vaccineBatchListResponseSchema = z
   .object({ data: z.array(vaccineBatchResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
-  .strip();
+  .strict();
 export type VaccineBatchListResponse = z.infer<typeof vaccineBatchListResponseSchema>;
 
 export const vaccinationListResponseSchema = z
   .object({ data: z.array(vaccinationResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
-  .strip();
+  .strict();
 export type VaccinationListResponse = z.infer<typeof vaccinationListResponseSchema>;
 
 export const treatmentListResponseSchema = z
   .object({ data: z.array(treatmentResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
-  .strip();
+  .strict();
 export type TreatmentListResponse = z.infer<typeof treatmentListResponseSchema>;
 
 export const labTestListResponseSchema = z
   .object({ data: z.array(labTestResponseSchema), total: z.number(), limit: z.number(), offset: z.number() })
-  .strip();
+  .strict();
 export type LabTestListResponse = z.infer<typeof labTestListResponseSchema>;
 
 export const vaccineDiseaseListResponseSchema = z.array(vaccineDiseaseResponseSchema);
 export type VaccineDiseaseListResponse = z.infer<typeof vaccineDiseaseListResponseSchema>;
 
-export const vaccineDiseaseUnlinkResponseSchema = z.object({ deleted: z.boolean() }).strip();
+export const vaccineDiseaseUnlinkResponseSchema = z.object({ deleted: z.boolean() }).strict();
 export type VaccineDiseaseUnlinkResponse = z.infer<typeof vaccineDiseaseUnlinkResponseSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════

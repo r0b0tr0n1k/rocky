@@ -28,6 +28,7 @@ import type {
   SyncUploadResponse,
   SyncUploadResult,
 } from "@rocky/validators/api";
+import { SYNC_RECORD_TYPE, DETECTION_SOURCE } from "@rocky/database/constants";
 
 /** Post-filter any array of entities by updatedAt >= since (absent/null updatedAt dropped). */
 function filterByUpdatedAt<T>(arr: T[], since: Date): T[] {
@@ -211,25 +212,25 @@ export class SyncService {
     entityId: string | undefined,
   ): Promise<Result<{ id?: string }, Error>> {
     switch (record.type) {
-      case "vaccination":
+      case SYNC_RECORD_TYPE.VACCINATION:
         return this.healthService.recordVaccination(record.data as never);
-      case "treatment":
+      case SYNC_RECORD_TYPE.TREATMENT:
         return this.healthService.recordTreatment(record.data as never);
-      case "labTest":
+      case SYNC_RECORD_TYPE.LAB_TEST:
         return this.healthService.recordLabTest(record.data as never);
-      case "animal":
+      case SYNC_RECORD_TYPE.ANIMAL:
         return entityId
           ? this.animalService.update(entityId, record.data as never)
           : this.animalService.create(record.data as never);
-      case "farm":
+      case SYNC_RECORD_TYPE.FARM:
         return entityId
           ? this.farmService.update(entityId, record.data as never)
           : this.farmService.create(record.data as never);
-      case "movement":
+      case SYNC_RECORD_TYPE.MOVEMENT:
         return this.movementService.create(record.data as never);
-      case "inspection":
+      case SYNC_RECORD_TYPE.INSPECTION:
         return this.inspectionService.complete(record.data as never);
-      case "earTag":
+      case SYNC_RECORD_TYPE.EAR_TAG:
         return this.earTagService.createOrder(record.data as never);
       default: {
         // Unknown type — surface as a failed record rather than throwing.
@@ -246,31 +247,31 @@ export class SyncService {
   ): Promise<{ updatedAt?: Date | string | null } | null> {
     let res: Result<{ updatedAt?: Date | string | null }, Error> | null = null;
     switch (type) {
-      case "animal":
+      case SYNC_RECORD_TYPE.ANIMAL:
         res = await this.animalService.getById(id);
         break;
-      case "farm":
+      case SYNC_RECORD_TYPE.FARM:
         res = await this.farmService.getById(id);
         break;
-      case "movement":
+      case SYNC_RECORD_TYPE.MOVEMENT:
         res = await this.movementService.getById(id);
         break;
-      case "inspection":
+      case SYNC_RECORD_TYPE.INSPECTION:
         res = await this.inspectionService.getById(id);
         break;
-      case "earTag":
+      case SYNC_RECORD_TYPE.EAR_TAG:
         res = await this.earTagService.getById(id);
         break;
-      case "vaccination":
+      case SYNC_RECORD_TYPE.VACCINATION:
         // Health records DO have a getById (closes sync gap: the version/conflict
         // check for vaccination/treatment/labTest was previously skipped because
         // this branch fell through to `default: return null`).
         res = await this.healthService.getVaccination(id);
         break;
-      case "treatment":
+      case SYNC_RECORD_TYPE.TREATMENT:
         res = await this.healthService.getTreatment(id);
         break;
-      case "labTest":
+      case SYNC_RECORD_TYPE.LAB_TEST:
         res = await this.healthService.getLabTest(id);
         break;
       default:
@@ -289,7 +290,7 @@ export class SyncService {
     if (!this.correctionService) return;
     try {
       await this.correctionService.create({
-        detectionSource: "field",
+        detectionSource: DETECTION_SOURCE.FIELD,
         errorType: `sync_upload_${record.type}_failed`,
         errorDescription: `PDA sync failed: ${errorMessage}`,
         originalData: {

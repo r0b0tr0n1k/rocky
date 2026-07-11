@@ -18,11 +18,14 @@ import type {
   animals as animalsTable,
   movements as movementsTable,
 } from "@rocky/database";
-import { SystemService } from "@rocky/domains-system";
+import type { SystemService } from "@rocky/domains-system";
 import {
   ANIMAL_STATUS,
   FARM_TYPE,
+  IMPORT_EXPORT_STATUS,
+  IMPORT_TYPE,
   MOVEMENT_TYPE,
+  OUTBOX_AGGREGATE_TYPE,
   PASTURE_TYPE,
   STATE_CODE,
 } from "@rocky/database/constants";
@@ -545,11 +548,11 @@ export class MovementService {
       storageExpiry.setFullYear(storageExpiry.getFullYear() + 3);
 
       await this.repo.createImportExportRecord({
-        direction: "import",
+        direction: MOVEMENT_TYPE.IMPORT,
         animalId: input.animalId,
         fromFarmId: input.fromFarmId,
         toFarmId: input.toFarmId,
-        importType: "eu",
+        importType: IMPORT_TYPE.EU,
         countryOfOrigin: input.countryOfOrigin,
         foreignPassportNumber: input.foreignPassportNumber,
         foreignPassportStored: !!input.foreignPassportNumber,
@@ -557,7 +560,7 @@ export class MovementService {
           .toISOString()
           .split("T")[0]!,
         bipEntryDate: input.bipEntryDate,
-        status: "completed",
+        status: IMPORT_EXPORT_STATUS.COMPLETED,
         createdBy: input.createdBy,
       });
 
@@ -640,16 +643,16 @@ export class MovementService {
 
       // Create import_export_record for the new national animal
       await this.repo.createImportExportRecord({
-        direction: "import",
+        direction: MOVEMENT_TYPE.IMPORT,
         animalId: newAnimalId,
         fromFarmId: input.fromFarmId,
         toFarmId: input.toFarmId,
-        importType: "third_country",
+        importType: IMPORT_TYPE.THIRD_COUNTRY,
         countryOfOrigin: input.countryOfOrigin,
         retagged: true,
         newEarTagNumber: input.newEarTagNumber,
         bipEntryDate: input.bipEntryDate,
-        status: "completed",
+        status: IMPORT_EXPORT_STATUS.COMPLETED,
         createdBy: input.createdBy,
       });
 
@@ -703,14 +706,14 @@ export class MovementService {
 
       // Create import_export_record
       await this.repo.createImportExportRecord({
-        direction: "export",
+        direction: MOVEMENT_TYPE.EXPORT,
         animalId: input.animalId,
         fromFarmId: input.fromFarmId,
         toFarmId,
         countryOfOrigin: input.destinationCountry,
         destinationCountry: input.destinationCountry,
         bipExitDate: input.bipExitDate,
-        status: "completed",
+        status: IMPORT_EXPORT_STATUS.COMPLETED,
         createdBy: input.createdBy,
       });
 
@@ -808,7 +811,7 @@ export class MovementService {
       if (this.outboxPublisher) {
         await this.outboxPublisher.publish({
           type: EVENT_TYPE_IDS.MOVEMENT_RECORDED,
-          aggregateType: "movement",
+          aggregateType: OUTBOX_AGGREGATE_TYPE.MOVEMENT,
           aggregateId: leg1.id,
           payload: {
             animalId: input.animalId,

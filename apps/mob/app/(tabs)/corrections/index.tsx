@@ -2,6 +2,7 @@ import { View, FlatList, TouchableOpacity } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/providers/trpc-provider";
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 import { useRouter } from "expo-router";
 
 const STATUS_COLORS: Record<string, "default" | "secondary" | "destructive"> = {
@@ -37,7 +38,14 @@ export default function CorrectionsListScreen() {
             </Badge>
           </TouchableOpacity>
         )}
-        ListEmptyComponent={<Text className="text-muted-foreground text-center py-8">No corrections found</Text>}
+        ListEmptyComponent={
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>No corrections found</EmptyTitle>
+              <EmptyDescription>Flagged errors will appear here after sync.</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        }
       />
     </View>
   );

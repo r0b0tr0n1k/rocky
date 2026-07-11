@@ -8,7 +8,7 @@ import { ok, err, fromAsyncThrowable, toAppError, type Result } from "@rocky/dom
 import type { ArchiveRepository } from "../repositories/archive.repository.js";
 import { ArchiveError, ARCHIVE_ERRORS } from "../errors/archive.errors.js";
 import { ARCHIVE_DOCUMENT_TYPE, ARCHIVE_LOCATION } from "@rocky/database/constants";
-import { SystemService, type RuleSetRetention } from "@rocky/domains-system";
+import type { SystemService, RuleSetRetention } from "@rocky/domains-system";
 import {
   archiveDocumentResponseSchema,
   type ArchiveDocumentResponse,
@@ -168,7 +168,7 @@ export class ArchiveService {
     retentionExpiry.setFullYear(retentionExpiry.getFullYear() + years);
 
     const doc = await this.repo.create({
-      documentType: "OTHER",
+      documentType: ARCHIVE_DOCUMENT_TYPE.OTHER,
       documentRef: input.correctionId,
       archiveLocation: ARCHIVE_LOCATION.CPC,
       animalId: input.animalId ?? undefined,

@@ -21,7 +21,7 @@ export const organizationResponseSchema = organizationsSelectSchema
         zipCode: z.string(),
       })
       .nullable(),
-  }).strip();
+  }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type OrganizationResponse = z.infer<typeof organizationResponseSchema>;
 

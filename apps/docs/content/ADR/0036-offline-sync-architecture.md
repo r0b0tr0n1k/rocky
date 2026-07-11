@@ -255,7 +255,6 @@ The phone never sees the 57-table schema — only the castrated field set, the o
 - **ADR-0033** (client ADR standard — this is trunk `0036`).
 - **WO-081** (promote `sync` router) · **WO-082** (implement this architecture).
 
-
 ## Corrigendum — Castration is realized by RLS, not a profile engine (2026-07-10)
 
 The WO-081 "castrated client" (decision 2) promised a role-stratified mobile
@@ -268,6 +267,7 @@ ExecutionPipeline, so every SELECT is auto-scoped via `rlsForFarmColumn()` /
 in the sync service; adding one would be redundant and risk bypassing RLS.
 
 Two YAML promises are intentionally **not** implemented (and should not be):
+
 - **Column projection** — the wire contract (`@rocky/validators/api/sync.api.ts`)
   returns full Diamond-Seal entities; the offline cache requires full shapes to
   render forms. Column pruning is deferred.
@@ -279,3 +279,12 @@ Net: the gap "syncDownload returns the same set to everyone / no profile
 branching" is a **false contradiction** — RLS already performs the castration.
 The Imaginary (YAML profile engine) is sublated by the Real (RLS). No service
 code change required.
+
+## Companion documentation
+
+- **`apps/docs/content/offline-architecture.md`** — the practical companion to this
+  ADR: component map of `apps/mob/lib/offline/*` + `providers/offline-provider.tsx`,
+  the `OfflineProvider` mechanics, the Server-as-Master conflict model, idempotency,
+  and sequence/state diagrams of the WO-082 sync cycle.
+- **`apps/mob/AGENTS.md`** — Offline Subsystem Contract + WO-082 Acceptance
+  (Native Verification) — the mobile-side RobotFarm contract and runtime gate.

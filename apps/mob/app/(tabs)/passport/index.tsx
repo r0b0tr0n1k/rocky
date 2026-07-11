@@ -2,6 +2,7 @@ import { View, FlatList, TouchableOpacity } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/providers/trpc-provider";
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 import { PASSPORT_STATUS } from "@rocky/validators/enums";
 import { useRouter } from "expo-router";
 
@@ -28,7 +29,14 @@ export default function PassportListScreen() {
             </Badge>
           </TouchableOpacity>
         )}
-        ListEmptyComponent={<Text className="text-muted-foreground text-center py-8">No passports found</Text>}
+        ListEmptyComponent={
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>No passports found</EmptyTitle>
+              <EmptyDescription>Issued passports will appear here.</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        }
       />
     </View>
   );

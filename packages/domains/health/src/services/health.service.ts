@@ -10,8 +10,8 @@ import type { SubjectRepository } from "@rocky/domains-subject";
 import type { AnimalRepository } from "@rocky/domains-animal";
 import type { HealthRepository } from "../repositories/health.repository.js";
 import { HealthError, HEALTH_ERRORS } from "../errors/health.errors.js";
-import { SystemService } from "@rocky/domains-system";
-import { ANIMAL_STATUS, SUBJECT_ROLE } from "@rocky/database/constants";
+import type { SystemService } from "@rocky/domains-system";
+import { ANIMAL_STATUS, DETECTION_SOURCE, OUTBOX_AGGREGATE_TYPE, SUBJECT_ROLE } from "@rocky/database/constants";
 import {
   diseaseResponseSchema,
   vaccineResponseSchema,
@@ -279,7 +279,7 @@ export class HealthService {
     if (isNotifiable && this.outboxPublisher) {
       await this.outboxPublisher.publish({
         type: "notifiable_disease.detected",
-        aggregateType: "treatment",
+        aggregateType: OUTBOX_AGGREGATE_TYPE.TREATMENT,
         aggregateId: treatment.id,
         payload: {
           diseaseId: input.diseaseId,
@@ -411,7 +411,7 @@ export class HealthService {
 
     try {
       await this.correctionService.create({
-        detectionSource: "field",
+        detectionSource: DETECTION_SOURCE.FIELD,
         errorType: `sync_upload_${record.type}_failed`,
         errorDescription: `PDA sync failed: ${errorMessage}`,
         originalData: {

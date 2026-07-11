@@ -189,7 +189,7 @@ export const movementResponseSchema = movementsSelectSchema
     deathDate: z.coerce.date<string>().nullable(),
     deathCause: deathCauseSchema.nullable(),
     type: movementTypeSchema,
-  }).strip() satisfies z.ZodType<MovementResponse>;
+  }).strip() satisfies z.ZodType<MovementResponse>; // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export const movementSummarySchema = z.object(
   movementResponseSchema.pick({

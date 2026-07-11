@@ -6,6 +6,7 @@ import { PermissionsProvider } from '@/providers/permissions-provider';
 import { SessionProvider } from '@/providers/session-provider';
 import { ActiveFarmProvider } from '@/providers/active-farm-provider';
 import { OfflineProvider } from '@/providers/offline-provider';
+import { NotificationProvider } from '@/providers/notification-provider';
 import { getConfig } from '@/lib/config';
 import { ThemeProvider } from 'expo-router/react-navigation';
 import { PortalHost } from '@rn-primitives/portal';
@@ -47,6 +48,7 @@ export default function RootLayout() {
     <TRPCProvider apiUrl={config.apiUrl}>
       <OfflineProvider>
       <SessionProvider>
+        <NotificationProvider>
         <PermissionsProvider>
           <ActiveFarmProvider>
           <ThemeProvider value={NAV_THEME[theme ?? 'light']}>
@@ -59,6 +61,7 @@ export default function RootLayout() {
         </ThemeProvider>
           </ActiveFarmProvider>
         </PermissionsProvider>
+        </NotificationProvider>
       </SessionProvider>
       </OfflineProvider>
     </TRPCProvider>

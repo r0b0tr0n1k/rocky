@@ -13,6 +13,7 @@ import { farmResponseSchema } from "./farms.api.js";
 import { movementResponseSchema } from "./movements.api.js";
 import { inspectionResponseSchema } from "./inspection.api.js";
 import { earTagResponseSchema } from "./eartags.api.js";
+import { syncRecordTypeSchema } from "../enums/index.js";
 import {
   diseaseResponseSchema,
   vaccineResponseSchema,
@@ -46,7 +47,7 @@ export type SyncDownloadResponse = z.infer<typeof syncDownloadResponseSchema>;
 
 export const syncUploadItemSchema = z.strictObject({
   idempotencyKey: z.string().max(100),
-  type: z.enum(["vaccination", "treatment", "labTest", "animal", "farm", "movement", "inspection", "earTag"]),
+  type: syncRecordTypeSchema,
   data: z.record(z.string(), z.unknown()),
   baseUpdatedAt: z.coerce.date<string>().nullable().optional(),
 });

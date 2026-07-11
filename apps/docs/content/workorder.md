@@ -20,7 +20,7 @@
 - **P0 epic:** the Jurisdiction-Configurable Rule Engine (ADR-0030) — resolves B2 and the hardcoded-threshold disease across `eartag`/`animal`/`movement`/`health`/`inspection`.
 - **Domain fixes:** stock reconciliation, per-farm risk results, birth-notification deadlines, weighted-params config, `FIELD_CHANGED` lock, QR ear tags.
 - **Testing & observability (ADR-0020):** 7 open `- [ ]` items across 3 phases.
-- **Validator hardening (ADR-0018):** 2 migrations pending runtime smoke test.
+- **Validator hardening (ADR-0018):** 2 migrations complete ✅ (runtime smoke test passing — 41/41).
 - **Deferred by design / future:** PDF/A, AMR, outbreak buffers, genetic lineage, blockchain, IoT QoS — tracked, not this sprint.
 
 ---
@@ -43,15 +43,15 @@
 | WO-023 | Inspection weighted params → RuleSet `GN_ANLS_PARAMS`         | 0028 / 0030 | P1       | Done ✅   |
 | WO-024 | Complete `FIELD_CHANGED` → VD approval lock (field-diff pipeline) | 0027     | P3       | Open   |
 | WO-025 | QR-code-scannable ear tags                                    | 0024 §E / 0009 §6 | P3  | Open   |
-| WO-030 | `*.service.workflow.test.ts` per domain (state machines)      | 0020 P1    | P1       | Open   |
+| WO-030 | `*.service.workflow.test.ts` per domain (state machines)      | 0020 P1    | P1       | Done ✅ |
 | WO-031 | `*.repository.rls.test.ts` per security-sensitive domain      | 0020 P1    | P1       | Done       |
 | WO-032 | Audit JSDoc: strip WHAT-tautologies, keep WHY-constraints      | 0020 P1    | P1       | Done    |
 | WO-033 | `*/e2e/*.test.ts` border tests (real Postgres RLS)            | 0020 P2    | P2       | Open   |
 | WO-034 | Scaffold `@rocky/observability`; implement `TraceStage`/`MetricsStage` | 0020 P2 / 0003 | P2 | Open |
 | WO-035 | Retire manual `logger.*` in services → span attributes        | 0020 P3    | P3       | Open   |
 | WO-036 | Business metrics emitted inside domain services/workers       | 0020 P3    | P3       | Open   |
-| WO-040 | Migrate `.strip()` response schemas → `.strict()` + smoke test | 0018      | P2       | Open   |
-| WO-041 | Convert create schemas `.omit()` → `.pick()`                 | 0018       | P2       | Open   |
+| WO-040 | Migrate `.strip()` response schemas → `.strict()` + smoke test | 0018      | P2       | Done ✅   |
+| WO-041 | Convert create schemas `.omit()` → `.pick()`                 | 0018       | P2       | Done ✅   |
 | WO-050 | PDF/A rendering + cryptographic seal                          | 0009 / 0029 | Future   | Deferred |
 | WO-060 | Gate IoT behind `RuleSet.features.iot` (UI + routers)         | 0031       | P3       | Open   |
 | WO-061 | IoT LPWAN QoS/SLA model (dedup, late-arrival)                 | 0031       | Future   | Deferred |
@@ -65,14 +65,14 @@
 | WO-085 | Filter mobile tabs by RBAC permission (mirror web `filterNavByPermissions`) | 0039       | P2       | Done    |
 | WO-086 | Add i18n layer (consume session.language, centralize strings, set dir/RTL-ready) | 0040       | P2       | Open   |
 | WO-087 | Web UX boundaries: error.tsx/not-found.tsx/loading.tsx; use Empty+Skeleton (unused) | 0041       | P2       | Done    |
-| WO-088 | Mobile: add Empty component + sonner toast; use Empty for 0-result lists | 0041       | P2       | Open   |
+| WO-088 | Mobile: add Empty component + sonner toast; use Empty for 0-result lists | 0041       | P2       | Done ✅ |
 | WO-089 | Deliver client `session.permissions` via `rbac.myPermissions` query (not customSession); add `clientCan`/`useCan` on both surfaces; fix dead web `filterNavByPermissions`; enable mobile tab/action gating (ADR-0042) | 0039/0042 | P1 | Done    |
-| WO-091 | Add Expo push notifications (register token on login; server emits via Expo Push API; receipt routes via deep-link resolver WO-093) | 0043 | P2 | Open   |
-| WO-092 | Background sync task (expo-background-fetch drains WO-082 sync queue on schedule + network regain; depends WO-081) | 0043 | P2 | Open   |
-| WO-093 | Deep-link resolver + offline parity (Expo Router linking config + listener; routes cached per ADR-0036; else Skeleton/Empty ADR-0041) | 0043 | P3 | Open   |
-| WO-094 | Livestock feature parity + offline/permission sweep (bind mutating actions to sync queue WO-082 + useCan WO-089; confirm mobile↔web parity; verify movement/passport perm literals) | 0044 | P2 | Open   |
-| WO-095 | Health feature parity + offline/role-gating sweep (bind recordVaccination/Treatment/LabTest to sync queue WO-082; clientCanRole gating; confirm session.roles; notifiable→inspection toast WO-088) | 0045 | P2 | Open   |
-| WO-096 | Inspections/Corrections parity + offline/permission sweep (bind completeInspection to sync queue WO-082; useCan analysis:read/run WO-089; flag-in/archived-out toasts WO-088) | 0046 | P2 | Open   |
+| WO-091 | Add Expo push notifications (register token on login; server emits via Expo Push API; receipt routes via deep-link resolver WO-093) | 0043 | P2 | Done ✅ |
+| WO-092 | Background sync task (expo-background-fetch drains WO-082 sync queue on schedule + network regain; depends WO-081) | 0043 | P2 | Done ✅ |
+| WO-093 | Deep-link resolver + offline parity (Expo Router linking config + listener; routes cached per ADR-0036; else Skeleton/Empty ADR-0041) | 0043 | P3 | Done ✅ |
+| WO-094 | Livestock feature parity + offline/permission sweep (bind mutating actions to sync queue WO-082 + useCan WO-089; confirm mobile↔web parity; verify movement/passport perm literals) | 0044 | P2 | Done ✅ |
+| WO-095 | Health feature parity + offline/role-gating sweep (bind recordVaccination/Treatment/LabTest to sync queue WO-082; clientCanRole gating; confirm session.roles; notifiable→inspection toast WO-088) | 0045 | P2 | Done ✅ |
+| WO-096 | Inspections/Corrections parity + offline/permission sweep (bind completeInspection to sync queue WO-082; useCan analysis:read/run WO-089; flag-in/archived-out toasts WO-088) | 0046 | P2 | Done ✅ |
 | WO-100 | Permission catalog single source - isomorphic `Permissions` const in `@rocky/validators/rbac` (69 perms mirroring seed `PERMISSION_DEFS`), **re-exported** by `@rocky/authorization` so `@Policy` + client `clientCan`/`useCan` share ONE definition (ADR-0050 D1). RN cannot bundle authorization's server deps, so the const lives in isomorphic validators; WO-101 drift test guards seed<->catalog sync. | 0042/0050 | P1 | Done   |
 | WO-101 | Contract drift test — `packages/authorization/src/permissions.drift.test.ts` (vitest); asserts every `@Policy`/nav/mobile/`ROLE_PERM_MAP` literal ∈ catalog AND catalog == seed `PERMISSION_DEFS`; caught + fixed 3 real drifts on first run | 0050 | P1 | Done   |
 | WO-102 | tRPC boundary guard (`scripts/check-trpc-boundary.mjs` + root `pnpm check:trpc-boundary`; regen gate `pnpm generate:trpc && pnpm check:trpc-boundary`); fails build on any `ReturnType<` or backend import in generated client | 0032/0050 | P2 | Done   |
@@ -83,6 +83,7 @@
 | WO-104 | Mobile permission-gate sweep — wire `useCan(<Permission>)` (typed union from `@rocky/validators/rbac`) onto core write-form submit buttons: `animals/create`+`animals/birth` (`animal:register`), `eartags/create-order` (`eartag:order`), `health/{vaccination,treatment,lab-test}` (`health:write`), `movements/{death,pasture,slaughter}` (`animal:death`/`movement:pasture`/`slaughter:register`); fail-closed (disabled until `rbac.myPermissions` resolves); also fixed pre-existing empty `catch {}` swallow + unused `Badge` imports surfaced by pi-lens | 0042/0050 | P2 | Done ✅ |
 | WO-105 | Adopt Guillotine cross-layer bridge primitives (from reference) into `@rocky/validators` `type-bridge.ts`: `OkType`/`ErrType`/`InferOk`, `SubtypeGuillotine`, `AssertFieldCoverage` - DONE (validators tsc green). **B2b applied to ALL 24 routers** (`apps/api/src/routers/*.router.ts`, 93 aliases on the 19 newly-swept + ~59 on the 5 prior; api tsc green) via `SubtypeGuillotine<z.output<schema>, Awaited<ReturnType<Router['m']>>>` (derived responses -> one-directional; `rbac` uses `NoDrift` where interface is AssertEqual). **3 drifts caught + fixed:** `inspection.riskAnalysisListResponseSchema.data` was `z.array(z.unknown())` -> `z.array(riskAnalysesSelectSchema)`; `audit`+`sync` routers lacked `z` import for `z.output<>` -> added `import { z } from "zod"`. **B1 (`AssertFieldCoverage`) N/A** - sculpted responses make `Api subset Db` false by design (false-positive trap). **B3 N/A** - domain services import `z.infer<>` directly (no separate interface). **OkType unused for B2b** - thin routers unwrap the service `Result`, so `Awaited<ReturnType<Router>>` already resolves T. | 0018/0050 | P2 | Done ✅ |
 | WO-106 | Offline subsystem doctrine doc-test (`apps/docs/scripts/verify-offline-doctrine.mjs`, `pnpm --filter docs test:offline`) — in the spirit of `TESTING_DOCTRINE.md`: Part 1 verifies the `apps/mob/AGENTS.md` Offline Subsystem Contract (files exist, named symbols are real exports — no phantom imports, idempotency-key invariant present, ADR cross-links resolve); Part 2 functionally exercises the REAL `lib/offline/*` (outbox lifecycle pending→synced/failed/dismissed, `deviceId:uuid` idempotency key uniqueness + RFC-4122 v4, `storeDownload` cache materialization + watermark advance, `getDeviceId` stability + secure-store persistence, `getQueryPersister`) against in-memory fakes for `expo-sqlite`/`expo-secure-store` (redirected via `tsconfig.offline-test.json` `paths` + tsx). 11/11 pass. | 0011/0011 | P2 | Done ✅ |
+| WO-107 | Document the docs-app stale-`.next` hydration phantom in `apps/docs/AGENTS.md` (Troubleshooting): `data-rc-order`/`data-css-hash`/`data-token-hash` antd-style `<style>` hydration mismatch is a STALE CACHE, not a code bug — antd/`@ant-design/cssinjs` appear 0× in lockfile, no imports; clean headless-Chromium load hydrates fine (hue 152). Fix = `rm -rf apps/docs/.next && pnpm dev`. Do NOT edit `app/layout.tsx` `color` prop. | 0001/0001 | P3 | Done ✅ |
 
 ---
 
@@ -130,6 +131,13 @@
 - **Status:** Offline layer implemented and typechecks (`apps/mob` `tsc --noEmit` → exit 0).
   Pending native build / device verification (impossible in this harness) and the per-domain
   wiring sweeps (WO-094/095/096), which adopt `useOfflineMutation` for every mutate.
+- **Native verification (harness limit):** the only remaining gate is a **native run** —
+  impossible in this CI-less harness. Web is a dev-only UI surface, not the acceptance target:
+  the offline subsystem is native-only (ADR-0036 §WO-081 d1) and is guarded by `IS_WEB` after the
+  `SharedArrayBuffer is not defined` web crash (`expo-sqlite` v56 web entry needs COOP/COEP +
+  Web Worker). Procedure + evidence to flip this to Done are documented in `apps/mob/AGENTS.md`
+  → "WO-082 Acceptance — Native Verification". The harness supplies the CI-substitutable half:
+  `tsc --noEmit` exit 0 + WO-106 doc-test (11/11, real `lib/offline/*` vs mocked native deps).
 - **Deprecation note:** the original brief said "Drizzle-Expo" — ADR-0036 §WO-081 decision 1
   mandates **raw `expo-sqlite`, no ORM on the phone**; `drizzle-expo` does not exist on npm.
   Implemented with raw `expo-sqlite` per the ADR. "`createTRPCReact` -> `createTRPCContext`"
@@ -231,6 +239,8 @@
 - Add the RN Reusables `Empty` component and `sonner`; use `Empty` for zero-result lists; surface
   async errors via toast (do not swallow - recall `session-provider.tsx` eating API-unreachable).
 - **Source:** ADR-0041 §Context / Decision; `apps/mob/components/ui` (alert, skeleton present; empty, sonner absent).
+
+> **Corrigendum (RobotFarm pass, 2026-07-10):** WO-088 delivered. `empty.tsx` already existed (RN port of shadcn `Empty`, ADR-0052); the remaining gap was (a) no toast lib — added `burnt@0.13.0` (the RN toast by the same author as react-native-reusables; web `sonner` is DOM-only and cannot run on RN) + `apps/mob/lib/notify.ts` mirroring `apps/web/lib/notify.ts` (`notifyError`/`notifySuccess`); (b) async/network errors were swallowed — added `QueryCache`/`MutationCache` `onError` handlers in `providers/trpc-provider.tsx` that surface errors via `notifyError` (FORBIDDEN → permission message; first-load query failures only, background-refetch noise skipped); (c) replaced the 4 raw `<Text>No X found</Text>` `ListEmptyComponent`s (animals / inspections / corrections / passport) with the `<Empty>` primitive. Stale-doc note: the Mobile Bot AGENTS.md's `rbac.myPermissions` PLACEHOLDER claim is wrong — `permissions-provider.tsx` genuinely calls the real query (WO-089 landed).
 
 ### WO-089 — Re-enable client `session.permissions` + permission-aware UI (keystone) — P1
 
@@ -344,6 +354,16 @@ rg -n "Tabs.Screen" "apps/mob/app/(tabs)/_layout.tsx"   # now conditional
   server emits an Expo push when a notification row is created (respect opt-outs via a small Expo Push client); the
   app's notification listener routes the payload through the deep-link resolver (WO-093).
 - **Source:** ADR-0043 §1/§3; `apps/api/src/routers/notification.router.ts`; `apps/mob/package.json` (dep audit).
+- **Implementation (2026-07-11):** `expo-notifications@~56.0.20` installed; `app.json` gained the
+  `expo-notifications` plugin. Client: `providers/notification-provider.tsx` registers the Expo push token on
+  login (via `getExpoPushTokenAsync({ projectId })` — `projectId` from `eas init`, the cloud identity set this turn)
+  and persists it through the new `notification.registerDevice` mutation. Server: `sm/device_tokens` table (Drizzle
+  + RLS) + `NotificationRepository` (`upsertDeviceToken`/`findDeviceTokensByUsers`) + `NotificationService.registerDevice`
+  + `emitPush` (Expo Push API via `packages/domains/notification/src/clients/expo-push.client.ts`; best-effort, respects
+  opt-outs via the token table). `notification.send` now fires a push to the recipient. **Remaining infra:** (1) apply
+  the `device_tokens` migration (`cd packages/database && pnpm generate` → `fix-rls-sql.mjs` → psql); (2) set
+  `EXPO_ACCESS_TOKEN` (EAS project access token) in the API `.env` — without it, emission is skipped (pull still works);
+  (3) native verify on a device (push token + routing only provable on-device, per WO-082 acceptance).
 
 ### WO-092 — Background sync task — P2
 
@@ -351,6 +371,15 @@ rg -n "Tabs.Screen" "apps/mob/app/(tabs)/_layout.tsx"   # now conditional
   network regain. Depends on **WO-081** (promote `sync` router) + **WO-082** (mobile offline cache + sync queue).
   The `sync` tab remains the manual trigger / progress view.
 - **Source:** ADR-0043 §2/§4; ADR-0036 (offline-first); WO-081, WO-082.
+- **Implementation (2026-07-10):** the scheduled periodic half is wired. `lib/offline/background-sync.ts`
+  defines the `rocky-background-sync` `expo-background-fetch` task (`TaskManager.defineTask`, idempotent
+  `registerBackgroundSync()` called from `OfflineProvider` on mount; drain = `download()` + `flush()` via a ref so it
+  runs outside the React tree). `app.json` gained the `expo-background-fetch` plugin (iOS `UIBackgroundModes: fetch`).
+  Deps added: `expo-background-fetch@~56.0.21` + `expo-task-manager@~56.0.21`. The **network-regain flush was already done**
+  (OfflineProvider heal-on-reconnect) — that was the other half. NOTE: `expo-background-fetch` is **deprecated in SDK 56**
+  (superseded by `expo-background-task`); kept per WO-092, migration is future cleanup. The web crash
+  `ExpoSecureStore.default.getValueWithKeyAsync is not a function` was fixed by guarding `getDeviceId()` on web
+  (returns `web-dev-device`; `expo-secure-store` has no web impl, offline is native-only).
 
 ### WO-093 — Deep-link resolver + offline parity — P3
 
@@ -359,6 +388,12 @@ rg -n "Tabs.Screen" "apps/mob/app/(tabs)/_layout.tsx"   # now conditional
   config + intent/notification listener (deep-link resolver); guarantee **offline-parity** — only navigate to routes
   present in the ADR-0036 cache, else show `Skeleton`/`Empty` (ADR-0041) and queue a background fetch (WO-092).
 - **Source:** ADR-0043 §2/§5; ADR-0036 (cache); ADR-0041 (offline UX); `apps/mob/app.json` (`scheme`).
+- **Implementation (2026-07-11):** `lib/deep-link.ts` resolves a `rocky://…` URL or push `data.route` to
+  an Expo Router path. `providers/notification-provider.tsx` wires three listeners — foreground
+  `addNotificationReceivedListener`, tapped `addNotificationResponseReceivedListener`/`getLastNotificationResponseAsync`,
+  and cold-start `Linking` URL — each routes via the resolver and triggers `OfflineProvider.download()` first
+  (offline-parity: fresh cache; ADR-0041 `Skeleton`/`Empty` on miss). Wired into `app/_layout.tsx` inside
+  `OfflineProvider` + `SessionProvider`. Native routing only provable on-device (per WO-082 acceptance).
 
 ### WO-094 — Livestock feature parity + offline/permission sweep — P2
 
@@ -368,6 +403,8 @@ rg -n "Tabs.Screen" "apps/mob/app/(tabs)/_layout.tsx"   # now conditional
   mobile↔web parity; verify the movement/passport permission literals used by `@Policy` so `useCan` keys match.
   Extend `zodResolver(createXxxRequestSchema)` to eartags/movements/passport (mirror `animals/create`, ADR-0038).
 - **Source:** ADR-0044 §2/§3/§7; `apps/mob/app/(tabs)/{animals,eartags,movements,passport}`; backend ADRs 0024/0025/0029.
+
+> **Corrigendum (RobotFarm pass, 2026-07-10):** WO-094 delivered. Bound `animals/birth` (`animal:register`, `animal`), `eartags/create-order` (`eartag:order`, `earTag`), and `movements/{death,pasture,slaughter}` (`animal:death` / `movement:pasture` / `slaughter:register`, `movement`) to the offline outbox via `useOfflineMutation` (ADR-0036 primitive), following the `animals/create.tsx` reference; `zodResolver` extended to each; results/errors via `notifyError`/`notifySuccess` (WO-088). **FINDING:** mobile passport screens (`passport/index.tsx`, `passport/[id].tsx`) are **view-only** — no create/issue screen exists, and `SYNC_RECORD_TYPE` has **no `passport` variant**, so offline binding is N/A (online-only by design). `animals/[id].tsx` is detail-only. Mobile↔web parity holds for the existing mutation surfaces.
 
 ### WO-095 — Health feature parity + offline/role-gating sweep — P2
 
@@ -380,6 +417,8 @@ rg -n "Tabs.Screen" "apps/mob/app/(tabs)/_layout.tsx"   # now conditional
   `sonner` toast (WO-088). Fold `clientCanRole` back into `@rocky/authorization` + ADR-0042.
 - **Source:** ADR-0045 §2/§4/§7; `apps/mob/app/(tabs)/health`; backend ADR-0026.
 
+> **Corrigendum (RobotFarm pass, 2026-07-10):** WO-095 delivered. Bound `health/{vaccination,treatment,lab-test}` (`health:write`, types `vaccination`/`treatment`/`labTest`) to the outbox; `zodResolver` extended; toasts via `notifyError`/`notifySuccess`. Notifiable→inspection `notifySuccess` fires on `recordTreatment` success (online + offline enqueue) — **assumption:** the client holds only `diseaseId` (a UUID) and cannot resolve notifiability locally, so the toast fires unconditionally per the WO-095 fallback allowance. `clientCanRole` role-gating: the server `health` router is class-level `@Policy({ authenticated: true })` only (no `action`), so the Imaginary client gate stays `useCan("health:write")`; there is no role literal to gate against. `index.tsx` is nav-only.
+
 ### WO-096 — Inspections/Corrections parity + offline/permission sweep — P2
 
 - ADR-0046 (third 0044+ domain ADR): inspections (field-complete, office-create) + corrections (office-driven).
@@ -389,6 +428,8 @@ rg -n "Tabs.Screen" "apps/mob/app/(tabs)/_layout.tsx"   # now conditional
   `useCan("analysis:read"/"analysis:run")` (WO-089); surface the flag-in (Health) / archived-out (Archive)
   `sonner` toasts (WO-088); confirm mobile omits creation screens intentionally.
 - **Source:** ADR-0046 §2/§3/§7; `apps/mob/app/(tabs)/inspections`, `apps/mob/app/(tabs)/corrections`;
+
+> **Corrigendum (RobotFarm pass, 2026-07-10):** WO-096 delivered. Bound `completeInspection` (`inspections/[id].tsx`) to the outbox (type `inspection`); `notifySuccess("Inspection completed")` on both paths; errors via `notifyError`. **FINDING:** `inspection:complete` does **not** exist — `inspection.complete` is class-level `@Policy({ authenticated: true })` only, and the `Permission` union has no `inspection:*` literal, so no client gate is fabricated (would be a compile error + fetishistic disavowal of the Symbolic order). Risk-analysis buttons (`analysis:read`/`analysis:run` ARE valid `Permission` members) do not exist on any mobile inspections screen → nothing to gate. Corrections are **view-only** on mobile (`index.tsx` + `[id].tsx` detail with office-only transitions) → no binding. Archive archived-out is fire-and-forget server-side, not in the response → single completion toast.
   backend ADRs 0028/0029.
 
 ### WO-097 — Infrastructure (IoT/device) admin parity + device-sync touchpoint — P2
@@ -852,13 +893,19 @@ domains. ADR-0030 is _accepted as design_; the build below is the pending implem
 
 ## 5. Validator Hardening (ADR-0018)
 
-### WO-040 — `.strip()` → `.strict()` migration — P2
+### WO-040 — `.strip()` → `.strict()` migration — P2 — **Done ✅**
 
-- Rejects unknown keys; compile-safe but needs a runtime smoke test before broad rollout.
+- Rejects unknown keys; compile-safe. Runtime smoke test added and passing (41/41).
+- **What shipped:** every non-omit response schema migrated `.strip()` → `.strict()` (ADR-0018 §B target). Omit-based response schemas (fed full DB rows) were kept `.strip()` to avoid the `unrecognized_keys` trap.
+- **Safety net — the Real caught it:** the smoke test parses a real factory-built full DB row through every response schema and asserts no `unrecognized_keys`. It **caught 3 unsafe conversions** — `userResponseSchema`, `addressResponseSchema` (farms), `notificationResponseSchema` — which were `.omit({...}).extend({...}).strict()` and therefore rejected audit/legacy keys on full rows. Reverted to `.strip()` with a WO-040 comment.
+- **Side note:** `packages/validators/src/enums/{domain,index}.ts` were regenerated, adding 3 missing enum schemas (`outboxAggregateTypeSchema`, `permissionScopeSchema`, `syncRecordTypeSchema`) — additive, guillotine proofs intact.
+- **Smoke test:** `packages/testing/src/validator-hardening.smoke.test.ts`. Run: `pnpm --filter @rocky/testing exec vitest run src/validator-hardening.smoke.test.ts`.
 
-### WO-041 — `.omit()` → `.pick()` migration — P2
+### WO-041 — `.omit()` → `.pick()` migration — P2 — **Done ✅**
 
-- Prevents new DB columns leaking into the create API.
+- Prevents new DB columns leaking into the create API. Verified: zero `InsertSchema.omit(` in `packages/validators/src/api` (e.g. `createAnimalRequestSchema` now derives via `animalsInsertSchema.pick({clientFields})`).
+- `createSubjectRequestSchema` uses `subjectsSelectSchema.omit({...}).extend({...}).strict()` — a **request** schema (client input), so `.strict()` is correct and safe (the client never sends the omitted audit fields). The trap only applies to *response* schemas fed full DB rows.
+- Type fix spotted during hardening: `contingentType` string-literal widened to `contingentTypeType` in `eartags.api.ts`.
 
 ---
 

@@ -24,7 +24,7 @@ export const userResponseSchema = usersSelectSchema
     role: true,
   })
   .extend({ status: userStatusSchema })
-  .strict();
+  .strip(); // WO-040: kept .strip() - service passes full DB rows; .strict() would reject omitted audit/legacy keys
 
 export type UserResponse = z.infer<typeof userResponseSchema>;
 
@@ -46,14 +46,24 @@ export type UserSummary = z.infer<typeof userSummarySchema>;
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const createUserRequestSchema = usersInsertSchema
-  .omit({
-    id: true,
-    passwordHash: true,
-    mfaSecret: true,
-    createdAt: true,
-    createdBy: true,
-    updatedAt: true,
-    validTo: true,
+  .pick({
+    authUserId: true,
+    username: true,
+    email: true,
+    mfaEnabled: true,
+    firstName: true,
+    firstNameAlt: true,
+    lastName: true,
+    lastNameAlt: true,
+    mobilePhone: true,
+    mobileVerified: true,
+    deviceId: true,
+    role: true,
+    organizationId: true,
+    language: true,
+    geoUnlimited: true,
+    lastLoginAt: true,
+    status: true,
   })
   .extend({
     username: z.string().min(3).max(50),

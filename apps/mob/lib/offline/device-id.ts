@@ -9,7 +9,15 @@ const DEVICE_ID_KEY = "rocky_device_id";
 
 let cached: string | null = null;
 
+/** Stable per-install device id (ADR-0036 WO-081 d7). Web-safe: `expo-secure-store`
+ *  has no web implementation and the offline outbox is native-only, so on web we
+ *  return a placeholder instead of touching the native module. The outbox itself
+ *  is gated by `useOfflineMutation` / `IS_WEB` elsewhere. */
 export async function getDeviceId(): Promise<string> {
+  // Web is a dev-only UI surface (ADR-0036); expo-secure-store is unavailable
+  // there, so skip it and return a stable placeholder. Self-contained web check
+  // (no `db` import) keeps the offline doc-test's module graph clean.
+  if (typeof document !== "undefined") return "web-dev-device";
   if (cached) return cached;
   let id = await SecureStore.getItemAsync(DEVICE_ID_KEY);
   if (!id) {

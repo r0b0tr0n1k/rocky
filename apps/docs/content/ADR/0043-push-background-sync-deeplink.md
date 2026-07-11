@@ -1,6 +1,6 @@
 ---
 title: ADR-0043 — Push Notifications, Background Sync & Deep-link (Mobile)
-status: proposed
+status: accepted
 date: 2026-07-09
 deciders: [Rocky Architecture Board]
 tags: [frontend, mobile, notifications, sync, deeplink, background, adr-standard, client-surface]
@@ -148,7 +148,7 @@ rg -n "expo-notifications|getExpoPushTokenAsync" apps/mob
 # Background fetch task registered:
 rg -n "expo-background-fetch|registerTaskAsync" apps/mob
 # Deep-link resolver maps URLs/push data to routes:
-rg -n "linking|addNotificationReceivedListener|getInitialNotificationResponseAsync" apps/mob
+rg -n "linking|addNotificationReceivedListener|getLastNotificationResponseAsync|registerDevice|expo-notifications" apps/mob
 # Server still emits notifications (unchanged contract):
 rg -n "unreadCount|markAsRead|send" apps/api/src/routers/notification.router.ts
 ```
@@ -165,3 +165,62 @@ rg -n "unreadCount|markAsRead|send" apps/api/src/routers/notification.router.ts
 - **WO-091** (push), **WO-092** (background sync), **WO-093** (deep-link resolver) — this ADR's keystones.
 
 - **ADR-0032** (tRPC `AppRouter` / `superjson` — push notifications and background sync emit through the same `AppRouter` the client consumes; `TRPCError` surfaces as a toast per ADR-0041).
+
+## 10. Implementation Status (2026-07-11)
+
+All three keystones (WO-091/092/093) are **built and typecheck-clean**; the epic is code-complete. Native behavior
+(push receipt, deep-link routing, background fetch) is only provable on a device and is folded into the WO-082
+device-acceptance gate.
+
+### 10.1 Cloud identity — special command only
+
+- `eas init` created the EAS project **`@gocenik/rocky`**; `projectId` is written to `apps/mob/app.json`
+  (`expo.extra.eas.projectId`). The project identity exists **only** so `expo-notifications` can mint a device token
+  and so push can be delivered — it is **not** a license to build in the cloud.
+- Cloud builds are gated behind explicit scripts (`build:cloud:android|ios|preview`, `submit:production`) — see
+  `apps/mob/AGENTS.md` §Cloud policy. Normal dev stays local (`./gradlew assembleRelease`, `eas build --local`,
+  `expo start`).
+- Server push emission requires `EXPO_ACCESS_TOKEN` (EAS project access token) in the API `.env`;
+  `sendExpoPush` skips silently when it is absent (local dev without a token is fine — pull still works).
+
+### 10.2 Server — the missing mobile half of the notification domain (WO-091)
+
+- New table **`sm/device_tokens`** (`packages/database/src/schema/sm/device-tokens.ts`): `id`, `userId` FK→`users`,
+  `deviceId`, `expoPushToken`, `platform`, `createdAt`, `updatedAt`; `uniqueIndex(userId, deviceId)`; RLS policy
+  mirrors `notifications.ts`.
+- **`NotificationRepository`** (`packages/domains/notification/src/repositories/notification.repository.ts`):
+  `upsertDeviceToken` (on-conflict per user+device) + `findDeviceTokensByUsers`.
+- **`NotificationService`** (`packages/domains/notification/src/services/notification.service.ts`):
+  `registerDevice(userId, input)` + `emitPush(input)` (Expo Push API via
+  `packages/domains/notification/src/clients/expo-push.client.ts`; best-effort, respects opt-outs via the token
+  table).
+- **`notification.router.ts`**: new `registerDevice` mutation; `send` now fires a push to the recipient
+  (fire-and-forget, never breaks `send`).
+
+### 10.3 Client — token registration + deep-link resolver + offline parity (WO-091 + WO-093)
+
+- **`apps/mob/lib/deep-link.ts`**: `resolveRoute(url | data)` maps a `rocky://…` URL or push `data.route` to an
+  Expo Router path; `navigateToRoute` pushes it.
+- **`apps/mob/providers/notification-provider.tsx`**:
+  - `Notifications.setNotificationHandler` (alert/banner/list/badge per the SDK 56 `NotificationBehavior` shape).
+  - On login: `getExpoPushTokenAsync({ projectId })` (skipped under `IS_WEB`) →
+    `trpc.notification.registerDevice.useMutation()`.
+  - **Three** listeners: foreground `addNotificationReceivedListener`; tapped
+    `addNotificationResponseReceivedListener` + `getLastNotificationResponseAsync` (cold-start); and the `Linking`
+    URL. Each routes via the resolver **after** `OfflineProvider.download()` — offline-parity: fresh cache;
+    ADR-0041 `Skeleton`/`Empty` on miss.
+  - Wired in `apps/mob/app/_layout.tsx` inside `OfflineProvider` + `SessionProvider`; `app.json` gained the
+    `expo-notifications` plugin.
+
+### 10.4 Gates — passed
+
+- `apps/api` `tsc --noEmit` → **0**; `apps/mob` `tsc --noEmit` → **0**; offline doc-test → **11/11**.
+- `pnpm generate:trpc` → 24 routers / 156 procedures (the `notification` router is restored to the client
+  `AppRouter`).
+
+### 10.5 Remaining — infra, not code
+
+1. **Apply the `device_tokens` migration:** `cd packages/database && pnpm generate` →
+   `node ../../scripts/fix-rls-sql.mjs` → `psql … -f drizzle/…/migration.fixed.sql`.
+2. **Set `EXPO_ACCESS_TOKEN`** (EAS project access token) in the API `.env`.
+3. **Native verify** on a device (push token + routing + background fetch — WO-082 acceptance).
