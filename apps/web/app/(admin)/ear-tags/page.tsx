@@ -7,19 +7,23 @@ import {
   createOrderRequestSchema,
   orderStatusTransitionSchema,
   type AnimalSummary,
+  type EarTagOrderResponse,
   type EarTagResponse,
   type EarTagTypeResponse,
 } from "@rocky/validators/api";
-import { ORDER_STATUS } from "@rocky/validators/enums";
+import { EAR_TAG_ORDER_STATUS, ORDER_STATUS } from "@rocky/validators/enums";
 import { ComboboxField, NumberField, SelectField, TextareaField, TextField } from "#components/shared/form-fields";
 import { ActionDialog } from "#components/shared/action-dialog";
 import { DataTable } from "#components/shared/data-table";
 import { PageHeader } from "#components/shared/page-header";
 import { earTagColumns, earTagTypeColumns } from "#components/ear-tags/columns";
+import { earTagOrderColumns } from "#components/ear-tags/order-columns";
+import { Stepper } from "#components/shared/stepper";
 import { enumToOptions } from "#lib/options";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "#lib/trpc";
 import { useCan } from "#lib/permissions";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@rocky/ui/components/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@rocky/ui/components/tabs";
 
 const PAGE_SIZE = 20;
@@ -62,6 +66,15 @@ export default function EarTagsPage() {
   const transition = useMutation(trpc.earTag.transitionStatus.mutationOptions({ onSuccess: () => invalidate(trpc.earTag.listOrders.queryKey()) }));
   const cancelOrder = useMutation(trpc.earTag.cancelOrder.mutationOptions({ onSuccess: () => invalidate(trpc.earTag.listOrders.queryKey()) }));
 
+  const [orderLifecycle, setOrderLifecycle] = React.useState<EarTagOrderResponse | null>(null);
+  const ORDER_STEP_ORDER = Object.values(EAR_TAG_ORDER_STATUS);
+  function orderStep(s: string, current: string): "done" | "current" | "upcoming" {
+    const cur = ORDER_STEP_ORDER.indexOf(current);
+    const i = ORDER_STEP_ORDER.indexOf(s);
+    if (s === current) return "current";
+    return i < cur ? "done" : "upcoming";
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Ear tags" description="Ear tag inventory, orders, and tag types." />
@@ -85,8 +98,8 @@ export default function EarTagsPage() {
 
         <TabsContent value="orders">
           <DataTable
-            columns={earTagColumns({ animalLabel, typeLabel })}
-            data={(ordersQ.data?.data ?? []) as EarTagResponse[]}
+            columns={earTagOrderColumns({ onViewLifecycle: setOrderLifecycle })}
+            data={(ordersQ.data?.data ?? []) as EarTagOrderResponse[]}
             total={ordersQ.data?.total ?? 0}
             isLoading={ordersQ.isLoading}
             page={0}
@@ -154,6 +167,29 @@ export default function EarTagsPage() {
           />
         </TabsContent>
       </Tabs>
+
+      <Dialog
+        open={orderLifecycle !== null}
+        onOpenChange={(open) => {
+          if (!open) setOrderLifecycle(null);
+        }}
+      >
+        {orderLifecycle ? (
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Order lifecycle</DialogTitle>
+              <DialogDescription>Supplier: {orderLifecycle.supplierName ?? "—"}</DialogDescription>
+            </DialogHeader>
+            <Stepper
+              steps={ORDER_STEP_ORDER.map((s) => ({
+                label: s,
+                status: orderStep(s, orderLifecycle.status),
+              }))}
+              orientation="horizontal"
+            />
+          </DialogContent>
+        ) : null}
+      </Dialog>
     </div>
   );
 }
