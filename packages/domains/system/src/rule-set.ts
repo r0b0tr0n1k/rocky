@@ -16,6 +16,10 @@ export interface RuleSetThresholds {
   arrivalCorrectionDays: number;
   minMotherAgeMonths: number;
   calvingPeriodDays: number;
+  /** Birth-tagging deadline in days (WO-022 / R8). EU floor 20; jurisdiction may be stricter. */
+  taggingDays: number;
+  /** Birth-notification deadline in days (WO-022 / R8). EU floor 7; jurisdiction may be stricter. */
+  notificationDays: number;
 }
 
 export interface RuleSetRetention {
@@ -65,6 +69,8 @@ export interface RuleSet {
   weights: RuleSetWeights;
   /** Transport-welfare maxima (WO-114, EC 1/2005 Ch.V). Day-granular; hour-precise needs timestamps. */
   welfare: RuleSetWelfare;
+  /** Whether this jurisdiction aligns with EU cattle I&R mandates (R8). When true, birth deadlines may not be loosened below the EU floor. */
+  euAligned: boolean;
 }
 
 /** WO-114 default transport-welfare maxima (EC 1/2005 Ch.V, day-granular).
@@ -75,6 +81,15 @@ export const WELFARE_DEFAULTS = {
   maxSingleLegDays: 1,
   multiDayMaxDays: 2,
   restStopAfterDays: 1,
+} as const;
+
+/** WO-120 — EU sovereignty floors for bovine birth I&R (R8). Absolute MAXIMUMS:
+ *  a RuleSet may be stricter (<=) but NEVER looser. Delegated Reg (EU) 2019/2035
+ *  Art. 42 (tag <= 20 days of birth) + Implementing Reg (EU) 2021/520 Art. 14
+ *  (notify births/deaths/movements <= 7 days). Named const — not inline. */
+export const EU_BIRTH_DEADLINES = {
+  taggingMaxDays: 20,
+  notificationMaxDays: 7,
 } as const;
 
 /** Minimal shape of a `system_parameters` row needed to build a RuleSet. */
@@ -126,7 +141,7 @@ export function buildRuleSet(
     return Number.isNaN(n) ? fallback : n;
   };
 
-  return {
+  const ruleSet: RuleSet = {
     jurisdiction,
     farmerCanAdminister: byCode.get("FARMER_CAN_ADMINISTER")?.value !== "false",
     retention: {
@@ -146,6 +161,8 @@ export function buildRuleSet(
       arrivalCorrectionDays: num("ARRIVAL_CORRECTION_DAYS"),
       minMotherAgeMonths: num("MIN_MOTHER_AGE_MONTHS"),
       calvingPeriodDays: num("CALVING_PERIOD_DAYS"),
+      taggingDays: wParam("BIRTH_TAGGING_DAYS", EU_BIRTH_DEADLINES.taggingMaxDays),
+      notificationDays: wParam("BIRTH_NOTIFICATION_DAYS", EU_BIRTH_DEADLINES.notificationMaxDays),
     },
     weights: {
       selectionPercentage: num("SELECTION_PERCENTAGE"),
@@ -160,5 +177,29 @@ export function buildRuleSet(
       multiDayMaxDays: wParam("WELFARE_MULTI_DAY_MAX_DAYS", WELFARE_DEFAULTS.multiDayMaxDays),
       restStopAfterDays: wParam("WELFARE_REST_STOP_AFTER_DAYS", WELFARE_DEFAULTS.restStopAfterDays),
     },
+    euAligned: byCode.get("EU_ALIGNED")?.value !== "false",
   };
+  validateSovereignLimits(ruleSet);
+  return ruleSet;
+}
+
+
+/**
+ * WO-120 — Sovereign RuleSet guard (R8). When a jurisdiction aligns with EU cattle
+ * I&R mandates, birth-tagging / birth-notification deadlines may be STRICTER than the
+ * EU floor but NEVER looser. A config that loosens them is a sovereignty violation and
+ * is rejected at RuleSet build time (the Elixir SovereignRuleValidator, translated to TS).
+ */
+export function validateSovereignLimits(ruleSet: RuleSet): void {
+  if (!ruleSet.euAligned) return;
+  if (ruleSet.thresholds.taggingDays > EU_BIRTH_DEADLINES.taggingMaxDays) {
+    throw new Error(
+      `Sovereign limit violated: taggingDays ${ruleSet.thresholds.taggingDays} > EU floor ${EU_BIRTH_DEADLINES.taggingMaxDays} (Delegated Reg (EU) 2019/2035 Art. 42)`,
+    );
+  }
+  if (ruleSet.thresholds.notificationDays > EU_BIRTH_DEADLINES.notificationMaxDays) {
+    throw new Error(
+      `Sovereign limit violated: notificationDays ${ruleSet.thresholds.notificationDays} > EU floor ${EU_BIRTH_DEADLINES.notificationMaxDays} (Implementing Reg (EU) 2021/520 Art. 14)`,
+    );
+  }
 }

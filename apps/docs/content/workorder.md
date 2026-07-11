@@ -1296,6 +1296,6 @@ audited contractor (conflict of interest) — rejected.
 | WO-117 | GDPR pseudonymization on subject exit (keep `subject_id`, scrub PII)  | 0054 / 0030   | P2       | Draft  |
 | WO-118 | ISO 11784/11785 15-digit tag format + jurisdiction prefix (840=US)    | 0054 / 0030   | P2       | Draft  |
 | WO-119 | Disease-zone spatial block (3 km / 10 km) via `geofences.polygon` + RuleSet radii | 0054 / 0053 | P2 | Draft |
-| WO-120 | Bovine I&R 7/20 as **non-overridable EU floor** (R8): harden WO-022 deadlines; clamp RuleSet `TAGGING_DAYS` >= EU min | 0054 / 0028 | P2 | Draft |
+| WO-120 | Bovine I&R 7/20 as **non-overridable EU floor** (R8): harden WO-022 deadlines; clamp RuleSet `TAGGING_DAYS` >= EU min | 0054 / 0028 | P2 | Done ✅ |
 | WO-121 | IMSOC / CHED export compliance (R9): export movements emit CHED-compliant JSON/XML (TRACES NT) | 0054 / 0054 | P2 | Draft |
 | WO-122 | GDPR public-health exception (R10): Art.6(1)(c)+9(2)(i) defeat erasure; protect audit_log | 0054 / 0054 | P2 | Draft |
