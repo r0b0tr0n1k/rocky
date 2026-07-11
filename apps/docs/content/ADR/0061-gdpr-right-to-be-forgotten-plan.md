@@ -271,6 +271,45 @@ rg -n "pseudonym_vault|gdpr_audit_log|gdpr_erasure_request" packages/database/sr
 4. Hardcoding retention periods — a national act must be able to override without a code change.
 5. Showing PII by default and masking on demand — inverts Art.25; mask by default, reveal on need.
 
+## Addendum (2026-07-11): Lifecycle-gated erasure — the dog-owner thought experiment
+
+A review of this ADR surfaced a refinement that changes the *shape* of the erasure
+procedure (D8) and the precedence matrix (D3). The trigger: **"If I am a dog owner, do
+I have the right to be forgotten? I don't think I have it 'right' until my dog is alive."**
+
+### The Real that ruptures the fantasy
+
+The ideological fantasy is: *"I am a data subject; I request erasure; you erase me now."*
+GDPR Art.17(3)(c) defeats erasure for *"public-health protection."* An animal-health /
+traceability record is kept for the **life of the animal + N years** (AHL 2016/429, national
+I&R, EU 2019/6 Art.108 for vet/AMR). Therefore:
+
+- **While the animal is ALIVE**, the keeper's PII is inextricably bound to a *living*
+  epidemiological subject. Erasing the owner would sever the traceability chain that
+  protects public health (disease outbreak, food safety). Erasure is **defeated**. The
+  animal's body is the Real that anchors the record — you cannot forget the keeper of a
+  cow that is still breathing.
+- **When the animal DIES**, the record must persist for the retention floor (e.g. 3-10 y
+  per AHL / national act). During that window erasure is **still defeated**.
+- **Only after (animal dead AND retention window elapsed)** may the keeper's PII be
+  crypto-shredded / pseudonymized. The animal facts (`subject_id`, birth/death, movements,
+  passport) remain for epidemiology; the *person* is gone.
+
+### Consequence for the design
+
+`legal_hold` (D3/D8) must be **DERIVED, not merely manually set**: a subject carries an
+implicit legal hold while **any linked animal is alive OR within its retention window**.
+The erasure procedure must cascade-check linked animals' life-status + retention before
+crypto-shredding — a manually-flipped `legal_hold` flag is necessary but NOT sufficient.
+This is the dialectical resolution of Art.17 vs Art.17(3): the person is erased, but only
+after the animal (and the law's memory of it) has passed. The "trickiest to implement"
+erasure is therefore a **deferred, lifecycle-gated** erasure, not an on-request one.
+
+### Status
+Refinement accepted into the plan; not yet implemented (the plan remains deferred code).
+It tightens D3 (precedence) and D8 (erasure steps 1 + 3) and implies a `linkedAnimalHold`
+derivation in the erasure service.
+
 ## Related ADRs
 
 - **ADR-0054** — regulatory framework; strike 7 + R7/R10 are the parent of this plan.

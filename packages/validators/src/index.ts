@@ -6,4 +6,5 @@ export * from "./errors/index.js";
 export * from "./events/index.js";
 export * from "./utils/check-digit.js";
 export * from "./utils/type-bridge.js";
+export * from "./pii/index.js";
 
