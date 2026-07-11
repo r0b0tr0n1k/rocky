@@ -74,7 +74,7 @@ All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 66
 | ADR-0060 | Web UI Component & Feedback Map |
 
 
-### Regulatory, Geo & Recent Architecture (0053-0072)
+### Regulatory, Geo & Recent Architecture (0053-0073)
 
 | ADR | Title |
 | --- | --- |
@@ -98,6 +98,7 @@ All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 66
 | ADR-0070 | Records of Processing Activities - Derived, Not Stored (A.1.2.9 / GDPR Art 30) |
 | ADR-0071 | Cryptography-at-Rest via Off-Server Envelope Encryption (A.8.24 / GDPR Art 32) |
 | ADR-0072 | Personal Data Breach Notification Workflow (A.3.11/.12 / GDPR Art 33-34) |
+| ADR-0073 | Mobile Edge Compliance -- PII at the Edge (A.1.2.x / A.8.24 / ADR-0061 D5) |
 
 
 > Generated from `apps/docs/content/ADR/*.md` first-heading titles. Regenerate after adding an ADR.

@@ -47,7 +47,7 @@ run; build the governance we have deferred; certify only after expert review.**
    `PII_FIELD_REGISTRY`, mask/reveal-gate, tamper-evident log, Result sovereignty, Diamond
    Seal. These already satisfy A.5.9/.12/.13, A.5.15-.18, A.5.28, A.8.2-.5/.11/.15/.16,
    A.3.5/.6/.8/.9/.14/.23-.26, A.3.27-.30. Lowest cost, highest visible gain.
-2. **Phase 2 — The governance layer (the real work).** G1-G10 from the gap register -- decomposed into ADRs 0068 (lawful basis), 0069 (DPIA), 0070 (RoPA, derived), 0071 (cryptography-at-rest), 0072 (breach notification):
+2. **Phase 2 — The governance layer (the real work).** G1-G10 from the gap register -- decomposed into ADRs 0068 (lawful basis), 0069 (DPIA), 0070 (RoPA, derived), 0071 (cryptography-at-rest), 0072 (breach notification); 0073 (mobile edge compliance):
    policies + leadership sign-off; lawful-basis + processor DPAs; DPIA template wired to
    high-risk ops (health/risk); explicit RoPA from the registry + audit log; resolve crypto-at-rest
    (off-server KEK, envelope encryption); breach-notification workflow; enforced retention/erasure
