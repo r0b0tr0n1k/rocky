@@ -22,7 +22,7 @@
     "check:trpc-boundary": "node scripts/check-trpc-boundary.mjs",
     "check:adrs": "node scripts/check-adrs.mjs",
     "check:md-links": "node scripts/check-md-links.mjs",
-    "ci:checks": "pnpm generate:trpc && pnpm check:trpc-boundary && pnpm test"
+    "ci:checks": "pnpm generate:trpc && pnpm check:trpc-boundary && pnpm check:adrs && pnpm check:md-links && "
   },
   "devDependencies": {
     "@rocky/typescript-config": "workspace:*",

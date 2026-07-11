@@ -188,8 +188,8 @@ Anticipated client ADRs, to be authored following this standard (see table below
 
 ## Implementation
 
-- **Proposing:** copy an existing ADR (e.g. `0032` or `0017`) as a template, assign the next number, set
-  `Status: Proposed`, fill Context → Decision.
+- **Proposing:** start from the canonical blank — `cp apps/docs/content/ADR/ADR-TEMPLATE.md apps/docs/content/ADR/<nnnn>-<kebab>.md` (assign the next number), set
+  `Status: Proposed`, fill Context → Decision, then run `pnpm check:adrs` (must pass — ADR-0033 canon).
 - **Accepting:** set `Status: Accepted`, add Date + Author, update the WORKORDER roadmap item to the
   new ADR number.
 - **Location:** always `apps/docs/content/ADR/<nnnn>-<kebab>.md`; the ADR subfolder is auto-ordered by
