@@ -41,6 +41,46 @@ export function serializeToYaml(data: Record<string, unknown>): Result<string, D
 /**
  * Validate output format is supported.
  */
+export function serializeToXml(data: Record<string, unknown>): Result<string, DocumentError> {
+  try {
+    return ok(valueToXml(data, null));
+  } catch (cause) {
+    return err(
+      documentErr(DOCUMENT_ERRORS.SERIALIZATION_FAILED, {
+        message: cause instanceof Error ? cause.message : "Unknown XML serialization error",
+      }),
+    );
+  }
+}
+
+function valueToXml(value: unknown, key: string | null): string {
+  if (value === null || value === undefined) {
+    return key ? `  <${key} xsi:nil="true"/>\n` : "";
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => valueToXml(item, key ?? "item")).join("");
+  }
+  if (value instanceof Date) {
+    return key ? `  <${key}>${value.toISOString()}</${key}>\n` : value.toISOString();
+  }
+  if (typeof value === "object") {
+    const inner = Object.entries(value as Record<string, unknown>)
+      .map(([k, v]) => valueToXml(v, k))
+      .join("");
+    return key ? `  <${key}>\n${inner}  </${key}>\n` : inner;
+  }
+  const text = String(value);
+  return key ? `  <${key}>${escapeXml(text)}</${key}>\n` : escapeXml(text);
+}
+
+function escapeXml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;");
+}
+
 export function isFormatSupported(format: string): format is DocumentFormat {
   return ["yaml", "xml"].includes(format);
 }

@@ -3,6 +3,7 @@ export * from "./audit.api.js";
 export * from "./archive.api.js";
 export * from "./correction.api.js";
 export * from "./document.api.js";
+export * from "./ched.api.js";
 export * from "./eartags.api.js";
 export * from "./farms.api.js";
 export * from "./health.api.js";

@@ -4,6 +4,7 @@
 // Supports all registered document types (inspection-form, passport, movement, etc.)
 
 import { Inject, Injectable } from "@nestjs/common";
+import { ExecutionEventEmitter } from "@rocky/execution/index.js";
 import { Policy, RegisterPolicy } from "@rocky/authorization/index.js";
 import type { DocumentGenerateInput } from "@rocky/pdf/index.js";
 import { DocumentService } from "@rocky/pdf/index.js";
@@ -28,7 +29,10 @@ const listTypesSchema = z.array(z.string());
 @Policy({ authenticated: true })
 @Injectable()
 export class DocumentRouter {
-  constructor(@Inject(DocumentService) private readonly documentService: DocumentService) { }
+  constructor(
+    @Inject(DocumentService) private readonly documentService: DocumentService,
+    @Inject(ExecutionEventEmitter) private readonly eventEmitter: ExecutionEventEmitter,
+  ) { }
 
   /**
    * Generate a document of the specified type.
@@ -38,7 +42,17 @@ export class DocumentRouter {
    */
   @Mutation({ input: documentGenerateRequestSchema, output: documentResponseSchema })
   async generate(@Input() input: DocumentGenerateInput) {
-    return unwrap(await this.documentService.generate(input));
+    const result = await this.documentService.generate(input);
+    if (result.isOk()) {
+      this.eventEmitter.emit({
+        type: "document:generated",
+        documentType: result.value.documentType,
+        refId: input.refId,
+        format: result.value.format,
+        timestamp: new Date(),
+      });
+    }
+    return unwrap(result);
   }
 
   /**

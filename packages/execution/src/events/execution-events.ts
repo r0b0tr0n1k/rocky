@@ -26,4 +26,17 @@ export interface ExecutionFailed {
   timestamp: Date;
 }
 
-export type ExecutionEvent = ExecutionStarted | ExecutionCompleted | ExecutionFailed;
+/**
+ * Emitted whenever a document is generated (inspection-form, passport, movement,
+ * ched-a, ...). Provides the audit trail for regulated outputs such as the CHED-A
+ * (WO-121) — a lawful, logged PII disclosure per ADR-0061.
+ */
+export interface DocumentGenerated {
+  type: "document:generated";
+  documentType: string;
+  refId: string;
+  format: string;
+  timestamp: Date;
+}
+
+export type ExecutionEvent = ExecutionStarted | ExecutionCompleted | ExecutionFailed | DocumentGenerated;

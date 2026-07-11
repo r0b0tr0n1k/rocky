@@ -57,6 +57,25 @@ export interface RuleSetFsma {
   responseSlaHours: number;
 }
 
+export interface RuleSetImsoc {
+  /** Whether CHED-A generation is enabled for this jurisdiction (WO-121 / R9 IMSOC 2019/1715). */
+  enabled: boolean;
+  /** TRACES NT import format for the CHED document. Default xml. */
+  chedFormat: string;
+  /** CHED schema version served to TRACES NT. */
+  schemaVersion: string;
+  /** Default EU Border Control Post the consignment enters (TRACES NT). */
+  destinationBcp: string;
+  /** Block CHED if the animal has an active treatment withdrawal period (ties WO-113). */
+  requireWithdrawalClear: boolean;
+  /** Block CHED if the animal has no passport. */
+  requirePassport: boolean;
+  /** Block CHED if required vaccinations are missing. */
+  requireVaccinations: boolean;
+  /** Block CHED if the animal / source holding is under an active disease hold (ties WO-119). */
+  requireDiseaseClear: boolean;
+}
+
 export interface RuleSetTag {
   /** Ear-tag format for the jurisdiction (WO-118, R2): ISO_11784_15 (15-digit ISO 11784/11785) or MK_8 (8-digit MK national). */
   format: string;
@@ -96,6 +115,8 @@ export interface RuleSet {
   traceability: RuleSetTraceability;
   /** FSMA 204 KDE export config (WO-116, R3). */
   fsma: RuleSetFsma;
+  /** IMSOC / CHED-A config (WO-121, R9). */
+  imsoc: RuleSetImsoc;
   /** Whether this jurisdiction aligns with EU cattle I&R mandates (R8). When true, birth deadlines may not be loosened below the EU floor. */
   euAligned: boolean;
 }
@@ -219,6 +240,16 @@ export function buildRuleSet(
     fsma: {
       cteExportFormat: byCode.get("FSMA_CTE_EXPORT_FORMAT")?.value ?? "json",
       responseSlaHours: wParam("FSMA_RESPONSE_SLA_HOURS", 24),
+    },
+    imsoc: {
+      enabled: byCode.get("IMSOC_ENABLED")?.value !== "false",
+      chedFormat: byCode.get("IMSOC_CHED_FORMAT")?.value ?? "xml",
+      schemaVersion: byCode.get("IMSOC_SCHEMA_VERSION")?.value ?? "1.0",
+      destinationBcp: byCode.get("IMSOC_DESTINATION_BCP")?.value ?? "",
+      requireWithdrawalClear: byCode.get("IMSOC_REQUIRE_WITHDRAWAL_CLEAR")?.value !== "false",
+      requirePassport: byCode.get("IMSOC_REQUIRE_PASSPORT")?.value !== "false",
+      requireVaccinations: byCode.get("IMSOC_REQUIRE_VACCINATIONS")?.value !== "false",
+      requireDiseaseClear: byCode.get("IMSOC_REQUIRE_DISEASE_CLEAR")?.value !== "false",
     },
   };
   validateSovereignLimits(ruleSet);

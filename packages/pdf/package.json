@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",
-    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit"
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit",
+    "test": "vitest run"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -30,6 +31,7 @@
     "@rocky/domains-movement": "workspace:*",
     "@rocky/domains-passport": "workspace:*",
     "@rocky/domains-shared": "workspace:*",
+    "@rocky/domains-system": "workspace:*",
     "@rocky/domains-farm": "workspace:*",
     "@rocky/domains-health": "workspace:*",
     "@rocky/database": "workspace:*",
@@ -39,6 +41,8 @@
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vite-tsconfig-paths": "catalog:",
+    "vitest": "catalog:"
   }
 }

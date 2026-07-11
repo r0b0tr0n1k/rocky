@@ -4,7 +4,7 @@
  * @description DB access layer for health domain (diseases, vaccines, batches, vaccinations, treatments, lab tests, vaccine-disease links).
  */
 
-import { eq, and, ilike, desc, asc, sql, type SQL } from "drizzle-orm";
+import { eq, and, ilike, desc, asc, gt, isNotNull, sql, type SQL } from "drizzle-orm";
 import {
   diseases as diseasesTable,
   vaccines as vaccinesTable,
@@ -164,6 +164,28 @@ export class HealthRepository extends BaseRepository {
   async findTreatmentById(id: string) {
     const [row] = await this.client.select().from(treatmentsTable).where(eq(treatmentsTable.id, id)).limit(1);
     return row ?? null;
+  }
+
+  /**
+   * WO-121 / WO-113 — treatments whose withdrawal period has NOT yet elapsed.
+   * The same predicate MovementService enforces at creation: diagnosis_date + withdrawal_period > now.
+   * Shared so the CHED guillotine and the movement-create block cannot drift (NoDrift).
+   */
+  async findActiveWithdrawalTreatments(animalId: string, now: Date) {
+    const rows = await this.client
+      .select()
+      .from(treatmentsTable)
+      .where(
+        and(
+          eq(treatmentsTable.animalId, animalId),
+          isNotNull(treatmentsTable.withdrawalPeriod),
+          gt(
+            sql<Date>`${treatmentsTable.diagnosisDate} + ${treatmentsTable.withdrawalPeriod} * interval '1 day'`,
+            now,
+          ),
+        ),
+      );
+    return rows;
   }
 
   async listTreatments(opts: { animalId?: string; farmId?: string; diseaseId?: string; vetId?: string; limit: number; offset: number }) {

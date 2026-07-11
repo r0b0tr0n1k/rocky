@@ -15,8 +15,8 @@
 import { Injectable } from "@nestjs/common";
 import { err, ok, type Result } from "neverthrow";
 import { DocumentRegistry } from "../engine/document-registry.js";
-import { type DocumentFormat, isFormatSupported, serializeToYaml } from "../engine/yaml-serializer.js";
-import { DOCUMENT_ERRORS, documentErr, type DocumentError } from "../errors/document.errors.js";
+import { type DocumentFormat, isFormatSupported, serializeToYaml, serializeToXml } from "../engine/yaml-serializer.js";
+import { DOCUMENT_ERRORS, documentErr, DocumentError } from "../errors/document.errors.js";
 
 export interface DocumentGenerateInput {
   type: string;
@@ -72,6 +72,9 @@ export class DocumentService {
     try {
       model = await template.mapToModel(dataResult.value);
     } catch (mapError) {
+      // Preserve a domain DocumentError (e.g. CHED_PRECONDITION_FAILED) instead of
+      // collapsing it into VALIDATION_FAILED.
+      if (mapError instanceof DocumentError) return err(mapError);
       return err(
         documentErr(DOCUMENT_ERRORS.VALIDATION_FAILED, {
           message: mapError instanceof Error ? mapError.message : "Unknown error in mapToModel",
@@ -80,8 +83,8 @@ export class DocumentService {
       );
     }
 
-    // 5. Serialize to YAML
-    const serialized = serializeToYaml(model);
+    // 5. Serialize to the requested format (YAML default; XML for TRACES NT CHED import)
+    const serialized = format === "xml" ? serializeToXml(model) : serializeToYaml(model);
     if (serialized.isErr()) {
       return err(serialized.error);
     }

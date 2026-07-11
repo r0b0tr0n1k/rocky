@@ -458,9 +458,15 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     },
     {
       provide: ChedTemplate,
-      useFactory: (movementRepo: MovementRepository, animalRepo: AnimalRepository) =>
-        new ChedTemplate(movementRepo, animalRepo),
-      inject: [MovementRepository, AnimalRepository],
+      useFactory: (
+        movementRepo: MovementRepository,
+        animalRepo: AnimalRepository,
+        farmRepo: FarmRepository,
+        healthRepo: HealthRepository,
+        passportRepo: PassportRepository,
+        system: SystemService,
+      ) => new ChedTemplate(movementRepo, animalRepo, farmRepo, healthRepo, passportRepo, system),
+      inject: [MovementRepository, AnimalRepository, FarmRepository, HealthRepository, PassportRepository, SystemService],
     },
 
     {
@@ -527,6 +533,8 @@ export class AppModule implements OnModuleInit {
     private readonly passportTemplate: PassportTemplate,
     @Inject(MovementTemplate)
     private readonly movementTemplate: MovementTemplate,
+    @Inject(ChedTemplate)
+    private readonly chedTemplate: ChedTemplate,
   ) {}
 
   onModuleInit() {
@@ -534,5 +542,6 @@ export class AppModule implements OnModuleInit {
     registry.register(this.inspectionFormTemplate);
     registry.register(this.passportTemplate);
     registry.register(this.movementTemplate);
+    registry.register(this.chedTemplate);
   }
 }
