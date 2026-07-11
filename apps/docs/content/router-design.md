@@ -24,6 +24,23 @@ The Router **does not think, decide, or contain business logic.** Every deviatio
 ---
 
 ## Canonical Blueprint
+```mermaid
+flowchart TB
+  CL["👤 Client<br/>(web / mobile)"] --> TR["🌐 tRPC Transport<br/>(superjson)"]
+  TR --> RT["⚙️ Router<br/>(@Router · @Query · @Mutation)"]
+  RT --> POL["🔐 @Policy + @RegisterPolicy<br/>→ PolicyEngine"]
+  RT --> SVC["⚙️ Domain Service<br/>returns Result&lt;T, E&gt;"]
+  SVC --> REPO["🗄️ Repository<br/>(Drizzle)"]
+  REPO --> DB[("💾 PostgreSQL<br/>+ RLS")]
+  POL --> DB
+  classDef cli fill:#98FB98,stroke:#333,stroke-width:2px,color:black
+  classDef svc fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+  classDef sec fill:#FFD700,stroke:#333,stroke-width:2px,color:black
+  class CL,TR cli
+  class RT,SVC,REPO svc
+  class POL,DB sec
+```
+
 
 Every router file MUST look like this. Deviations require a written exception.
 

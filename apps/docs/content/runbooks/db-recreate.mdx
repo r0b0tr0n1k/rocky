@@ -8,6 +8,19 @@ sidebarTitle: DB Recreate
 Stand up the dev DB from scratch: `./scripts/db-recreate.sh` (wipes + Drizzle push + `fix-rls-sql.mjs` + seed). Target: `192.168.1.109:5432/tbot`.
 
 ## Procedure
+```mermaid
+flowchart TD
+  DROP["🗑️ Drop DB<br/>(./scripts/db-recreate.sh)"] --> GEN["📝 drizzle-kit generate"]
+  GEN --> FIX["🩹 node fix-rls-sql.mjs<br/>(resolve $N placeholders)"]
+  FIX --> APPLY["⚙️ psql apply<br/>SET check_function_bodies = off;"]
+  APPLY --> SEED["🌱 pnpm seed<br/>(idempotent)"]
+  SEED --> VER["✅ 73 tables · 91 enums · RLS live"]
+  classDef step fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+  classDef ok fill:#98FB98,stroke:#333,stroke-width:2px,color:black
+  class DROP,GEN,FIX,APPLY,SEED step
+  class VER ok
+```
+
 1. `cd packages/database && pnpm generate` — emit migration SQL.
 2. `node ../../scripts/fix-rls-sql.mjs` — rewrite RLS `$N` placeholders + `${...}` templates to literals.
 3. The script prepends `SET check_function_bodies = off;` before applying (so `farm_org_id` compiles before `farms` exists).

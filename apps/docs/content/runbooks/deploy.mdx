@@ -13,6 +13,19 @@ Mobile builds ship via Expo Application Services. Cloud is **special-command onl
 - Server push (Expo notifications) needs `EXPO_ACCESS_TOKEN` in `apps/api/.env`; `sendExpoPush` silently skips if absent.
 
 ## Steps (skeleton — expand me)
+```mermaid
+flowchart TD
+  B["🛠️ Build apps/api + apps/mob"] --> S["🔑 Set EAS secrets<br/>(EXPO_ACCESS_TOKEN, env)"]
+  S --> SUB["📦 eas build<br/>(--platform all)"]
+  SUB --> STORE["🏪 Submit<br/>(TestFlight / Play)"]
+  STORE --> VER["🔍 Verify OTA<br/>(eas update:insights)"]
+  VER --> DONE([✅ Live])
+  classDef step fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+  classDef done fill:#98FB98,stroke:#333,stroke-width:2px,color:black
+  class B,S,SUB,STORE,VER step
+  class DONE done
+```
+
 1. `pnpm --filter mob build:cloud:preview` (internal preview).
 2. `pnpm --filter mob submit:*` (TestFlight / Play Store).
 3. For the API: standard Node deploy of `apps/api`.

@@ -8,6 +8,25 @@ sidebarTitle: Run Guardians
 The docs + code have automated guardians wired into `pnpm ci:checks`. Run them locally before pushing.
 
 ## The chain
+```mermaid
+flowchart TD
+  START([🚀 ci:checks]) --> A{"check:adrs<br/>52 ADRs"}
+  A -- pass --> B{"check:md-links<br/>0 broken"}
+  A -- fail --> X1["❌ fix ADR header/status"]
+  B -- pass --> C{"check:agents<br/>bot contracts"}
+  B -- fail --> X2["❌ fix link / _meta"]
+  C -- pass --> D{"pnpm test<br/>unit + vitest"}
+  C -- fail --> X3["❌ add missing bot AGENTS.md"]
+  D -- pass --> OK([✅ green])
+  D -- fail --> X4["❌ fix test"]
+  classDef ok fill:#98FB98,stroke:#333,stroke-width:2px,color:black
+  classDef bad fill:#FFB6C1,stroke:#DC143C,stroke-width:2px,color:black
+  classDef gate fill:#FFD700,stroke:#333,stroke-width:2px,color:black
+  class START,OK ok
+  class X1,X2,X3,X4 bad
+  class A,B,C,D gate
+```
+
 ```bash
 pnpm ci:checks
 ```

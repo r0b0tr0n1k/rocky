@@ -223,6 +223,23 @@ Instead of `INVALID_TICKET_STATUS`, `INVALID_RIDE_STATUS`, `INVALID_PAYOUT_STATU
 ---
 
 ## 7. The Architectural Split — Church and State
+```mermaid
+sequenceDiagram
+  participant S as ⚙️ Domain Service
+  participant R as 🌐 tRPC Router
+  participant U as 🧰 ResultUnwrapper
+  participant C as 👤 Client
+  S->>R: returns Result (T, E) · ok / err
+  R->>U: unwrapResult(result)
+  alt isOk()
+    U-->>R: value T
+    R-->>C: 200 + data
+  else isErr()
+    U->>R: throw TRPCError (mapped from E)
+    R-->>C: TRPCError (code + message)
+  end
+```
+
 
 Domain error files currently contain an **ideological contradiction**: they mix the **Domain Truth** (error code strings) with the **API Translation** (TRPC error maps).
 

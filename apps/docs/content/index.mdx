@@ -3,6 +3,24 @@ sidebarTitle: Home
 ---
 
 # Rocky Documentation
+```mermaid
+flowchart TB
+  PDA["📱 Field PDA<br/>(Expo + offline SQLite)"] --> SQ["📨 Sync Queue<br/>(idempotency + outbox)"]
+  SQ --> API["🌐 API<br/>(NestJS + tRPC)"]
+  API --> POL["🔐 Policy Engine<br/>(@Policy + RLS)"]
+  API --> DOM["⚙️ Domain Services<br/>(health · animal · inspection · correction)"]
+  DOM --> DB["💾 PostgreSQL<br/>+ Row-Level Security"]
+  API --> PUSH["📢 Push<br/>(EAS notifications)"]
+  PUSH --> PDA
+  DOM --> DOC["📚 Docs<br/>(Nextra + ADRs)"]
+  classDef edge fill:#98FB98,stroke:#333,stroke-width:2px,color:black
+  classDef svc fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+  classDef data fill:#FFD700,stroke:#333,stroke-width:2px,color:black
+  class PDA,SQ,PUSH edge
+  class API,POL,DOM svc
+  class DB,DOC data
+```
+
 
 Welcome to the **Rocky** documentation site. This site is built with
 [Nextra](https://nextra.site) and the Nextra Docs Theme, served from

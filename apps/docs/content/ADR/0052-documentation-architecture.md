@@ -26,6 +26,37 @@ genre separation** for the everyday work — zero `how-to`, `reference`, or
 the Real, while the fascinating object (the ADR) is lavished upon.
 
 ## Decision
+```mermaid
+flowchart LR
+  subgraph LRN[📘 Learn]
+    TUT["Tutorials<br/>(guided lessons)"]
+  end
+  subgraph ARC[🏛️ Architecture]
+    ADR["ADRs<br/>(decisions)"]
+    EXP["Explanation<br/>(concepts)"]
+  end
+  subgraph OPS[🛠️ Build & Operate]
+    HOW["How-To<br/>(task recipes)"]
+    REF["Reference<br/>(catalogs)"]
+    RUN["Runbooks<br/>(ops procedures)"]
+  end
+  subgraph PRJ[📂 Project]
+    FLAT["Flat Prose<br/>(workorder, doctrine)"]
+  end
+  TUT --> HOW
+  ADR --> EXP
+  EXP -.-> HOW
+  HOW --> RUN
+  classDef learn fill:#98FB98,stroke:#333,stroke-width:2px,color:black
+  classDef arch fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+  classDef ops fill:#FFD700,stroke:#333,stroke-width:2px,color:black
+  classDef proj fill:#FFB6C1,stroke:#DC143C,stroke-width:2px,color:black
+  class TUT learn
+  class ADR,EXP arch
+  class HOW,REF,RUN ops
+  class FLAT proj
+```
+
 
 Adopt the **Diátaxis** documentation taxonomy as the spine of `apps/docs/content/`,
 with **ADR as a 5th "Decisions" section** (already existing). The four quadrants
