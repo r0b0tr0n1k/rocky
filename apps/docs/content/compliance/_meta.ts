@@ -9,6 +9,7 @@ export default {
   "rocky-breach-notification-procedure": { title: "Breach Notification Procedure" },
   "rocky-processor-register": { title: "Processor / Sub-processor Register" },
   "rocky-dsr-procedure": { title: "Data Subject Rights (DSR) Procedure" },
+  "rocky-toms": { title: "Technical & Organizational Measures (TOMs)" },
   "MACEDONIAN_LPDP_GDPR_ISO27701_COMPLIANCE_GUIDE": { title: "LPDP+GDPR+ISO27701 Compliance Guide (MK)" },
   "MACEDONIAN_LPDP_GDPR_ISO27701_CONTROLS_MATRIX": { title: "LPDP+GDPR+ISO27701 Controls Matrix (MK)" },
   "MACEDONIAN_LPDP_GDPR_ISO27701_EXECUTIVE_SUMMARY": { title: "LPDP+GDPR+ISO27701 Exec Summary (MK)" },
