@@ -1,42 +1,320 @@
----
-title: API Reference
-sidebarTitle: API Reference
----
-
 # API Reference
 
-The Rocky API surface is a **tRPC** layer generated from NestJS routers
-(`@Router` / `@Query` / `@Mutation`) by `nestjs-trpc generate` into
-`packages/trpc/src/generated/server.ts`. As of the current generation it exposes
-**24 routers / 156 procedures**. The NoDrift ideology holds at the boundary:
-the client `AppRouter` type *is* the contract, so drift is impossible by construction
-— enforced by `check:trpc-boundary` in `ci:checks`.
+> ⚠️ **AUTO-GENERATED** from `apps/api/src/routers/*.router.ts` via `pnpm gen:api-reference`. Do not edit by hand — re-run the generator when routers change.
+
+The Rocky API is a **tRPC** layer generated from NestJS routers (`@Router` / `@Query` / `@Mutation`) by `nestjs-trpc generate` into `packages/trpc/src/generated/server.ts`. It currently exposes **24 routers / 157 procedures**. The NoDrift ideology holds at the boundary: the client `AppRouter` type *is* the contract, so drift is impossible by construction (enforced by `check:trpc-boundary` in `ci:checks`).
 
 ## Where the surface lives
 
-- **`packages/trpc/src/generated/server.ts`** — the generated `AppRouter`
-  type. Web (`apps/web`) and mobile (`apps/mob`) consume it for end-to-end
-  type safety. Regenerate with `pnpm generate:trpc`.
-- **`@rocky/validators`** — every procedure's input/output Zod schema
-  (the "Diamond Seal" API contracts). Drift between a schema and its Dumb
-  Zod source is caught by the NoDrift guillotine.
-- **Domain services** — the business logic behind each procedure (see the
-  per-domain ADRs, e.g. ADR-0026 health, ADR-0024 ear-tag).
+- **`packages/trpc/src/generated/server.ts`** — the generated `AppRouter` type. Web and mobile consume it for end-to-end type safety. Regenerate with `pnpm generate:trpc`.
+- **`@rocky/validators`** — every procedure’s input/output Zod schema (the "Diamond Seal" API contracts). Drift is caught by the NoDrift guillotine.
+- **Domain services** — the business logic behind each procedure (see per-domain ADRs).
 
-## TSDoc (deferred)
+## Why not Nextra’s `TSDoc`?
 
-Nextra's `<TSDoc>` component turns TypeScript types into property /
-parameter / return tables. It is **not yet wired** in this docs app: it
-requires the docs build to resolve `@rocky/*` workspace imports *and* a
-Turbopack-compatible `tsdoc` loader. Nextra 4.6.1 + Next 16 / Turbopack
-currently fails to resolve the `next-mdx-import-source-file` virtual module
-that `<TSDoc>` pulls in at build time. See ADR-0052 (Documentation
-Architecture) for the tracked follow-up. Until then, treat
-`packages/trpc/src/generated/server.ts` + the validators as the
-authoritative, machine-checked reference.
+Nextra’s `<TSDoc>` component turns TS types into property / parameter / return tables. It is **intentionally not used here**: under Next 16 + Turbopack it fails to resolve the `next-mdx-import-source-file` virtual module that `<TSDoc>` pulls in at build time (the same rot that broke `pnpm build`). Instead this page is generated **deterministically** from the router source — no Turbopack virtual modules, no dependence on Nextra’s broken component. Tracked in **ADR-0052**.
 
-## What belongs here (when wired)
+## Routers
 
-- `AppRouter` — the full tRPC surface (procedures + routers).
-- `@rocky/validators` API Zod schemas.
-- Domain service method signatures.
+- [animal](#animal) — 5 procedures
+- [archive](#archive) — 7 procedures
+- [audit](#audit) — 1 procedure
+- [correction](#correction) — 7 procedures
+- [device](#device) — 8 procedures
+- [document](#document) — 2 procedures
+- [earTag](#eartag) — 17 procedures
+- [farm](#farm) — 4 procedures
+- [farmBook](#farmbook) — 4 procedures
+- [health](#health) — 20 procedures
+- [inspection](#inspection) — 8 procedures
+- [iot](#iot) — 11 procedures
+- [modules](#modules) — 2 procedures
+- [movement](#movement) — 15 procedures
+- [notification](#notification) — 4 procedures
+- [organization](#organization) — 4 procedures
+- [passport](#passport) — 7 procedures
+- [rbac](#rbac) — 6 procedures
+- [subject](#subject) — 6 procedures
+- [sync](#sync) — 2 procedures
+- [systemParameters](#systemparameters) — 2 procedures
+- [user](#user) — 4 procedures
+- [vsAssignment](#vsassignment) — 6 procedures
+- [vsContract](#vscontract) — 5 procedures
+
+## animal
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `getById` | Query | `idParam` | `animalResponseSchema` |
+| `findByTag` | Query | `findAnimalByTagRequestSchema` | `animalResponseSchema` |
+| `list` | Query | `animalListRequestSchema` | `animalListResponseSchema` |
+| `create` | Mutation | `createAnimalRequestSchema` | `animalResponseSchema` |
+| `update` | Mutation | `updateAnimalRequestSchema` | `animalResponseSchema` |
+
+## archive
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `getById` | Query | `idParam` | `archiveDocumentResponseSchema` |
+| `list` | Query | `archiveDocumentListRequestSchema` | `archiveDocumentListResponseSchema` |
+| `create` | Mutation | `createArchiveDocumentRequestSchema` | `archiveDocumentResponseSchema` |
+| `listExpired` | Query | `z.strictObject({ limit: z.int().min(1).max(1000).default(100) })` | `archiveExpiredListResponseSchema` |
+| `markArchived` | Mutation | `idParam` | `archiveDocumentResponseSchema` |
+| `markDestroyed` | Mutation | `idParam` | `archiveDocumentResponseSchema` |
+| `archiveInspectionForm` | Mutation | `archiveInspectionFormRequestSchema` | `archiveDocumentResponseSchema` |
+
+## audit
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `unknown` | Query | `auditListRequestSchema` | `auditListResponseSchema` |
+
+## correction
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `getById` | Query | `idParam` | `correctionResponseSchema` |
+| `list` | Query | `correctionListRequestSchema` | `correctionListResponseSchema` |
+| `create` | Mutation | `createCorrectionRequestSchema` | `correctionResponseSchema` |
+| `review` | Mutation | `reviewCorrectionRequestSchema` | `correctionResponseSchema` |
+| `resolve` | Mutation | `resolveCorrectionRequestSchema` | `correctionResponseSchema` |
+| `escalate` | Mutation | `escalateCorrectionRequestSchema` | `correctionResponseSchema` |
+| `reject` | Mutation | `idParam` | `correctionResponseSchema` |
+
+## device
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `getById` | Query | `idParam` | `pdaDeviceResponseSchema` |
+| `list` | Query | `pdaDeviceListRequestSchema` | `pdaDeviceListResponseSchema` |
+| `create` | Mutation | `createPdaDeviceRequestSchema` | `pdaDeviceResponseSchema` |
+| `update` | Mutation | `idParam.partial().extend(updatePdaDeviceRequestSchema.shape)` | `pdaDeviceResponseSchema` |
+| `assignUser` | Mutation | `assignDeviceUserRequestSchema` | `pdaDeviceResponseSchema` |
+| `recordSync` | Mutation | `recordSyncRequestSchema` | `pdaDeviceResponseSchema` |
+| `registerFailedAttempt` | Mutation | `idParam` | `pdaDeviceBlockedResponseSchema` |
+| `unblock` | Mutation | `idParam` | `pdaDeviceResponseSchema` |
+
+## document
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `generate` | Mutation | `documentGenerateRequestSchema` | `documentResponseSchema` |
+| `listTypes` | Query | `z.object({}).optional()` | `listTypesSchema` |
+
+## earTag
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `getById` | Query | `idParam` | `earTagResponseSchema` |
+| `list` | Query | `earTagListRequestSchema` | `earTagListResponseSchema` |
+| `findByNumber` | Query | `z.object({ stateCode: z.string().length(3), tagNumber: z.string() })` | `earTagResponseSchema` |
+| `getType` | Query | `idParam` | `earTagTypeResponseSchema` |
+| `listTypes` | Query | `z.looseObject({})` | `earTagTypeListSchema` |
+| `getOrderById` | Query | `idParam` | `earTagOrderResponseSchema` |
+| `listOrders` | Query | `orderListRequestSchema` | `earTagOrderListResponseSchema` |
+| `generateTagNumbers` | Query | `generateTagNumbersRequestSchema` | `generateTagNumbersResponseSchema` |
+| `transitionStatus` | Mutation | `orderStatusTransitionSchema` | `earTagOrderResponseSchema` |
+| `collectOrderTags` | Mutation | `collectOrderTagsRequestSchema` | `earTagOrderResponseSchema` |
+| `unknown` | Mutation | `createDuplicateOrderRequestSchema` | `earTagOrderResponseSchema` |
+| `unknown` | Mutation | `createOrderRequestSchema` | `earTagOrderResponseSchema` |
+| `cancelOrder` | Mutation | `cancelOrderRequestSchema` | `earTagOrderResponseSchema` |
+| `cancelOrderItem` | Mutation | `cancelOrderItemRequestSchema` | `earTagOrderResponseSchema` |
+| `appendToOrder` | Mutation | `appendToOrderRequestSchema` | `earTagOrderResponseSchema` |
+| `unknown` | Mutation | `assignSupplierContingentRequestSchema` | `earTagResponseSchema` |
+| `getTakeoverFile` | Query | `getTakeoverFileRequestSchema` | `takeoverFileResponseSchema` |
+
+## farm
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `getById` | Query | `idParam` | `farmResponseSchema` |
+| `list` | Query | `farmListRequestSchema` | `farmListResponseSchema` |
+| `create` | Mutation | `createFarmRequestSchema` | `farmResponseSchema` |
+| `update` | Mutation | `z.object({ id: z.uuid() }).extend(updateFarmRequestSchema.shape)` | `farmResponseSchema` |
+
+## farmBook
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `getById` | Query | `idParam` | `farmBookResponseSchema` |
+| `getByFarmId` | Query | `farmIdParam` | `farmBookArraySchema` |
+| `create` | Mutation | `createFarmBookRequestSchema` | `farmBookResponseSchema` |
+| `updateStatus` | Mutation | `z.strictObject({ id: z.uuid(), data: updateFarmBookStatusRequestSchema })` | `farmBookResponseSchema` |
+
+## health
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `getDisease` | Query | `idParam` | `diseaseResponseSchema` |
+| `listDiseases` | Query | `diseaseListRequestSchema` | `diseaseListResponseSchema` |
+| `createDisease` | Mutation | `createDiseaseRequestSchema` | `diseaseResponseSchema` |
+| `getVaccine` | Query | `idParam` | `vaccineResponseSchema` |
+| `listVaccines` | Query | `vaccineListRequestSchema` | `vaccineListResponseSchema` |
+| `createVaccine` | Mutation | `createVaccineRequestSchema` | `vaccineResponseSchema` |
+| `createVaccineBatch` | Mutation | `createVaccineBatchRequestSchema` | `vaccineBatchResponseSchema` |
+| `getVaccination` | Query | `idParam` | `vaccinationResponseSchema` |
+| `listVaccinations` | Query | `vaccinationListRequestSchema` | `vaccinationListResponseSchema` |
+| `recordVaccination` | Mutation | `recordVaccinationRequestSchema` | `vaccinationResponseSchema` |
+| `getTreatment` | Query | `idParam` | `treatmentResponseSchema` |
+| `listTreatments` | Query | `treatmentListRequestSchema` | `treatmentListResponseSchema` |
+| `recordTreatment` | Mutation | `recordTreatmentRequestSchema` | `treatmentResponseSchema` |
+| `listBatches` | Query | `z.strictObject({ vaccineId: z.uuid().optional(), limit: z.int().min(1).max(100).default(20), offset: z.int().min(0).default(0), })` | `vaccineBatchListResponseSchema` |
+| `getLabTest` | Query | `idParam` | `labTestResponseSchema` |
+| `listLabTests` | Query | `labTestListRequestSchema` | `labTestListResponseSchema` |
+| `recordLabTest` | Mutation | `recordLabTestRequestSchema` | `labTestResponseSchema` |
+| `getVaccineDiseases` | Query | `z.strictObject({ vaccineId: z.uuid() })` | `vaccineDiseaseListResponseSchema` |
+| `linkVaccineDisease` | Mutation | `linkVaccineDiseaseRequestSchema` | `vaccineDiseaseResponseSchema` |
+| `unlinkVaccineDisease` | Mutation | `unlinkVaccineDiseaseRequestSchema` | `vaccineDiseaseUnlinkResponseSchema` |
+
+## inspection
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `getById` | Query | `idParam` | `inspectionResponseSchema` |
+| `list` | Query | `inspectionListRequestSchema` | `inspectionListResponseSchema` |
+| `create` | Mutation | `createInspectionRequestSchema` | `inspectionResponseSchema` |
+| `schedule` | Mutation | `scheduleInspectionRequestSchema` | `inspectionResponseSchema` |
+| `complete` | Mutation | `completeInspectionRequestSchema` | `inspectionResponseSchema` |
+| `printForm` | Mutation | `printInspectionFormRequestSchema` | `printFormSchema` |
+| `unknown` | Query | `z.object({ year: z.int().optional(), status: z.string().optional(), limit: z.int().min(1).max(100).default(20), offset: z.int().min(0).default(0), })` | `riskAnalysisListResponseSchema` |
+| `unknown` | Mutation | `z.object({ year: z.int(), quarter: z.string().optional(), selectionPercentage: z.int().min(1).max(100).optional(), })` | `riskAnalysisRunResponseSchema` |
+
+## iot
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `registerDevice` | Mutation | `registerDeviceRequestSchema` | `iotDeviceResponseSchema` |
+| `listDevices` | Query | `listDevicesRequestSchema` | `iotDeviceListResponseSchema` |
+| `getDevice` | Query | `z.object({ id: z.uuid() })` | `iotDeviceResponseSchema` |
+| `ingestReading` | Mutation | `ingestReadingRequestSchema` | `sensorReadingResponseSchema` |
+| `ingestReadings` | Mutation | `z.object({ readings: z.array(ingestReadingRequestSchema) })` | `sensorReadingArraySchema` |
+| `listReadings` | Query | `listReadingsRequestSchema` | `sensorReadingListResponseSchema` |
+| `createGeofence` | Mutation | `createGeofenceRequestSchema` | `geofenceResponseSchema` |
+| `listGeofences` | Query | `z.object({ farmId: z.uuid() })` | `geofenceArraySchema` |
+| `deleteGeofence` | Mutation | `z.object({ id: z.uuid() })` | `deleteGeofenceSchema` |
+| `logGeofenceEvent` | Mutation | `logGeofenceEventRequestSchema` | `geofenceEventResponseSchema` |
+| `listGeofenceEvents` | Query | `z.object({ animalId: z.uuid().optional(), geofenceId: z.uuid().optional(), farmId: z.uuid().optional(), limit: z.int().min(1).max(1000).default(50), offset: z.int().min(0).default(0), })` | `geofenceEventListResponseSchema` |
+
+## modules
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `unknown` | Query | `moduleListRequestSchema` | `moduleListResponseSchema` |
+| `unknown` | Mutation | `z.strictObject({ id: z.uuid(), data: updateModuleSchema })` | `moduleResponseSchema` |
+
+## movement
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `getById` | Query | `idParam` | `movementResponseSchema` |
+| `getLineage` | Query | `lineageRequestSchema` | `lineageGraphSchema` |
+| `list` | Query | `movementListRequestSchema` | `movementListResponseSchema` |
+| `create` | Mutation | `createMovementRequestSchema` | `movementResponseSchema` |
+| `recordDeath` | Mutation | `recordDeathRequestSchema` | `movementResponseSchema` |
+| `declarePasture` | Mutation | `declarePastureRequestSchema` | `z.array(movementResponseSchema)` |
+| `declareAlpine` | Mutation | `declareAlpineRequestSchema` | `movementArraySchema` |
+| `returnFromAlpine` | Mutation | `returnFromAlpineRequestSchema` | `movementResponseSchema` |
+| `recordSlaughter` | Mutation | `recordSlaughterRequestSchema` | `movementResponseSchema` |
+| `importEU` | Mutation | `importEURequestSchema` | `movementResponseSchema` |
+| `importThirdCountry` | Mutation | `importThirdCountryRequestSchema` | `movementResponseSchema` |
+| `exportAnimal` | Mutation | `exportAnimalRequestSchema` | `movementResponseSchema` |
+| `recordMarketTransaction` | Mutation | `recordMarketTransactionRequestSchema` | `movementArraySchema` |
+| `recordMarketUnsold` | Mutation | `recordMarketUnsoldRequestSchema` | `movementResponseSchema` |
+| `recordMarketSlaughter` | Mutation | `recordMarketSlaughterRequestSchema` | `movementResponseSchema` |
+
+## notification
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `unreadCount` | Query | `-` | `unreadCountSchema` |
+| `unknown` | Mutation | `sendNotificationSchema.omit({ userId: true })` | `notificationOutputSchema` |
+| `markAsRead` | Mutation | `markAsReadSchema.omit({ userId: true })` | `notificationOutputSchema` |
+| `registerDevice` | Mutation | `registerDeviceSchema` | `z.object({ ok: z.literal(true) })` |
+
+## organization
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `getById` | Query | `idParam` | `organizationResponseSchema` |
+| `list` | Query | `-` | `organizationArraySchema` |
+| `listByType` | Query | `orgTypeParam` | `organizationArraySchema` |
+| `create` | Mutation | `createOrganizationRequestSchema` | `organizationResponseSchema` |
+
+## passport
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `getById` | Query | `idParam` | `passportResponseSchema` |
+| `list` | Query | `passportListRequestSchema` | `passportListResponseSchema` |
+| `issueForAnimal` | Mutation | `issuePassportRequestSchema` | `passportResponseSchema` |
+| `shipToVs` | Mutation | `idParam` | `passportResponseSchema` |
+| `deliverToKeeper` | Mutation | `idParam` | `passportResponseSchema` |
+| `seize` | Mutation | `seizePassportRequestSchema` | `passportResponseSchema` |
+| `reprint` | Mutation | `reprintPassportRequestSchema` | `passportResponseSchema` |
+
+## rbac
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `listRoles` | Query | `-` | `roleListSchema` |
+| `getRole` | Query | `roleIdParam` | `roleWithPermissionsResponseSchema` |
+| `listPermissions` | Query | `-` | `permissionListSchema` |
+| `assignRole` | Mutation | `assignRoleToUserRequestSchema` | `assignedResultSchema` |
+| `revokeRole` | Mutation | `revokeRoleFromUserRequestSchema` | `revokedResultSchema` |
+| `unknown` | Query | `-` | `myPermissionsOutputSchema` |
+
+## subject
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `getById` | Query | `idParam` | `subjectResponseSchema` |
+| `search` | Query | `searchParam` | `searchSchema` |
+| `create` | Mutation | `createSubjectRequestSchema` | `subjectResponseSchema` |
+| `update` | Mutation | `z.strictObject({ id: z.uuid(), data: updateSubjectRequestSchema })` | `subjectResponseSchema` |
+| `bindToFarm` | Mutation | `bindSubjectToFarmRequestSchema` | `farmSubjectBindingResponseSchema` |
+| `unbindFromFarm` | Mutation | `unbindSubjectFromFarmRequestSchema` | `unbindFromFarmSchema` |
+
+## sync
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `syncDownload` | Query | `syncDownloadRequestSchema` | `syncDownloadResponseSchema` |
+| `syncUpload` | Mutation | `syncUploadRequestSchema` | `syncUploadResponseSchema` |
+
+## systemParameters
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `unknown` | Query | `systemParameterListRequestSchema` | `systemParameterListResponseSchema` |
+| `unknown` | Mutation | `z.strictObject({ code: z.string(), data: updateSystemParameterSchema })` | `systemParameterResponseSchema` |
+
+## user
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `getById` | Query | `idParam` | `userResponseSchema` |
+| `list` | Query | `userListRequestSchema` | `userArraySchema` |
+| `create` | Mutation | `createUserRequestSchema` | `userResponseSchema` |
+| `update` | Mutation | `idParam.extend(updateUserRequestSchema.shape)` | `userResponseSchema` |
+
+## vsAssignment
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `getById` | Query | `idParam` | `vsAssignmentResponseSchema` |
+| `getByFarm` | Query | `farmIdParam` | `vsAssignmentArraySchema` |
+| `getActiveByFarm` | Query | `farmIdParam` | `vsAssignmentArraySchema` |
+| `getByContract` | Query | `contractIdParam` | `vsAssignmentArraySchema` |
+| `assign` | Mutation | `createVsAssignmentRequestSchema` | `vsAssignmentResponseSchema` |
+| `unassign` | Mutation | `z.strictObject({ id: z.uuid(), data: updateVsAssignmentRequestSchema })` | `vsAssignmentResponseSchema` |
+
+## vsContract
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `getById` | Query | `idParam` | `vsContractResponseSchema` |
+| `getBySubject` | Query | `subjectParam` | `vsContractArraySchema` |
+| `getByRegion` | Query | `regionParam` | `vsContractArraySchema` |
+| `create` | Mutation | `createVsContractRequestSchema` | `vsContractResponseSchema` |
+| `updateStatus` | Mutation | `z.strictObject({ id: z.uuid(), data: updateVsContractStatusRequestSchema })` | `vsContractResponseSchema` |
+
