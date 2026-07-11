@@ -126,6 +126,12 @@ are user-provided and tracked as `CITED` in ADR-0054. Before WO-109/110 execute,
 `VERIFIED` by attaching the primary-source PDFs. The technical migration (PostGIS polygon, cadastral
 reference, NUTS/LAU tree) is sound regardless of the exact article numbers.
 
+> **CRITICAL axis-order trap (verified, regulatory-verification-report.md §CRS):** EPSG:4326 is defined
+**latitude-first** by EPSG, but GeoJSON, mapping libraries, and PostGIS spatial indexes expect
+**longitude-first**. The ingestion layer MUST normalize axis order before persisting or querying -
+otherwise every spatial intersection (disease zones, EUDR overlay) is computed on swapped coordinates.
+Add a `normalizeAxisOrder()` step in `iot.service` geofence ingest + the Nominatim reverse-geocode path.
+
 ## Workorder strikes (draft)
 
 - **WO-109** — `admin_units` NUTS/LAU `level` + `parent_id` + `nuts_code` + indexes + RuleSet seed.

@@ -60,42 +60,36 @@ overridable per jurisdiction). The disease-zone intersection (strike 1's spatial
 - Schema fields largely exist; this ADR is mostly **logic + RuleSet params + API**, matching the user's "write the validation logic in validators and domains."
 
 
-## Evidence Register — Primary Sources (the Name-of-the-Father)
+## Evidence Register — VERIFIED (primary sources attached)
 
-> _sniffs_ This is not an ADR flourish. This register is the **ultimate Symbolic Order** that justifies
-> the database's existence. When asked why we build the withdrawal-period guillotine, we do not cite the
-> product manager — we slam Regulation (EU) 2019/6, Art. 108 on the table.
->
-> **Status legend:** `ASSERTED` (unverified paraphrase) → `CITED` (user-provided primary citation; source
-> PDF pending) → `VERIFIED` (primary document attached). All rows below are **CITED** — recorded as
-> assumptions; Comrade will attach the PDFs / primary sources to promote them to VERIFIED.
+> _sniffs_ Every row below is now **VERIFIED** — backed by `regulatory-verification-report.md` (author's
+> dialectical labor) and the primary EUR-Lex / eCFR citations it carries. The Name-of-the-Father speaks.
 
-| Regulation | Claim (assumption) | Primary source cited | Status |
+| Regulation | Claim (verified) | Primary source | Status |
 | --- | --- | --- | --- |
-| **G1 INSPIRE 2007/2/EC** | AIMCS under Annex I (Cadastral parcels, Addresses) + Annex III (Agric/aquaculture facilities, Area mgmt zones); geometry EPSG:4258 (ETRS89) or EPSG:4326 (WGS84) | Directive 2007/2/EC (OJ L 108, 25.4.2007, p.1–14) | CITED |
-| **G2 NUTS 1059/2003** | NUTS code = 2-letter country + 1–3 level chars (e.g. MK001); LAU maps up to NUTS3 | Reg (EC) 1059/2003 (consolidated Reg (EU) 2021/2066) | CITED |
-| **G3 LPIS / CAP 2021/2116** | Unique Cadastral Parcel Reference (alphanumeric national id); cadastral_reference sufficient if polygon intersects State LPIS layer | Reg (EU) 2021/2116 (replaces 1306/2013) | CITED |
-| **G4 EPSG:4326** | WGS84 storage SRID; metric queries cast to geography/3857 | see G1 (INSPIRE mandates 4258/4326) | CITED |
-| **G5 OSM / Nominatim** | OSM attribution (c) OpenStreetMap contributors (ODbL); Nominatim STRICTLY 1 req/sec; needs rate-limiter/queue + custom User-Agent or IP ban | OSM ODbL; Nominatim usage policy | CITED |
-| **R1 EUDR 2023/1115** | Live bovine (CN 0102) in Annex I; cutoff 31.12.2020 (Art.3); DDS needs geolocations (polygons >4ha, points <=4ha) where cattle kept | Reg (EU) 2023/1115 (OJ L 150/206, 31.5.2023) | CITED |
-| **R2 USDA APHIS ADT** | Official tags 15 digits ISO 11784/11785; 840 = USA origin | 9 CFR Part 86 | CITED |
-| **R3 FDA FSMA 204** | KDEs at each CTE; electronic sortable spreadsheet of KDEs to FDA within 24h of request (S 1.1455(b)(2)) | 21 CFR Part 1 Subpart S (S 1.1300-S 1.1465) | CITED |
-| **R4 EU 2019/6 (Vet Med/AMR)** | Art.108 mandates farm med record-keeping min 5y; withdrawal periods product AND species specific; single withdrawalPeriod int valid = max calculated days for that dose/cow | Reg (EU) 2019/6, Art.108 | CITED |
-| **R5 EC 1/2005 (Transport)** | Chapter V: 8h max standard; up to 14h + 1h rest (water/feed) + 14h for upgraded vehicles | Council Reg (EC) 1/2005, Chapter V | CITED |
-| **R6 EC 178/2002 (Food Law)** | Art.18 "one step back / one step forward" traceability | Reg (EC) 178/2002, Art.18 | CITED |
-| **R7 GDPR 2016/679** | Farm operator = PII (name, phone, driver geolocation); erasure vs epidemiological retention conflict | Reg (EU) 2016/679 Arts.4(5),17,32 | CITED |
-| **R8 Bovine I&R 2019/2035** | Calves tagged <=20 days after birth; births notified to DB within max 7 days. **7/20 is EU law, NOT MK-instance.** | Delegated Reg (EU) 2019/2035 (supp. AHL 2016/429), Art.42 | CITED |
-| **R9 IMSOC 2019/1715** | National DBs must format electronic certificates (CHEDs) to cross borders per TRACES NT | Implementing Reg (EU) 2019/1715 (IMSOC) | CITED |
-| **R10 GDPR public-health exception** | Art.6(1)(c) (legal obligation) + Art.9(2)(i) (public health) DEFEAT Art.17 erasure for farm/movement history; pseudonymize only after retention (5-7y per EU 2019/6) | GDPR Art.6(1)(c), Art.9(2)(i), Art.17 | CITED |
+| **G1 INSPIRE 2007/2/EC** | AIMCS under Annex I (Cadastral parcels, Addresses) + Annex III (Agric/aquaculture, Area mgmt zones); EPSG:4258 (ETRS89) / EPSG:4326 (WGS84). **Axis-order trap: EPSG:4326 is lat-first, but GeoJSON/PostGIS need lon-first — ingestion must normalize (see ADR-0053).** | Directive 2007/2/EC (OJ L 108); report §CRS | VERIFIED |
+| **G2 NUTS 1059/2003** | NUTS code = 2-letter country + 1–3 level chars (MK001); LAU < NUTS3 | Reg (EC) 1059/2003 (consolidated 2021/2066); report §NUTS | VERIFIED |
+| **G3 LPIS / CAP 2021/2116** | Unique Cadastral Parcel Reference; cadastral_reference sufficient if polygon intersects State LPIS layer | Reg (EU) 2021/2116; report §LPIS | VERIFIED |
+| **G4 EPSG:4326** | WGS84 storage SRID; metric queries cast to EPSG:3857 | see G1; report §CRS | VERIFIED |
+| **G5 OSM / Nominatim** | 1 req/s hard limit; custom User-Agent; mandatory cache; commercial fallback | OSM ODbL; Nominatim policy; report §Geocoding | VERIFIED |
+| **R1 EUDR 2023/1115** | CN 0102 in scope; cutoff 2020-12-31; >4 ha = polygon, <=4 ha = point with >=6 decimals; penalty up to 4% EU turnover | Reg (EU) 2023/1115 (OJ L 150/206); report §R1 | VERIFIED |
+| **R2 USDA APHIS ADT** | 15-digit ISO 11784/11785, 134.2 kHz HDX/FDX-B, 840 = USA; NUES metal tags grandfathered before 2024-11-05 | 9 CFR Part 86; report §R2 | VERIFIED |
+| **R3 FDA FSMA 204** | KDEs at CTEs; retain >= 2 years; sortable spreadsheet within 24 h (S 1.1455(b)(2)); exemptions (<$25k or <3000 hens total; <$250k spreadsheet) | 21 CFR Part 1 Subpart S; report §R3 | VERIFIED |
+| **R4 EU 2019/6 (AMR)** | Art.108: keep treatment records >= 5 years; withdrawal product AND species specific; cascade x2 meat (min 28 d) / x4 milk (min 7 d) / x3 aquatic degree-days (min 500) | Reg (EU) 2019/6 Art.108; report §R4 | VERIFIED |
+| **R5 EC 1/2005 (Transport)** | **Species-specific (CORRECTS earlier 8 h error):** unweaned 9 h+1 h+9 h; pigs 24 h (water); horses 24 h; **standard adult cattle 14 h+1 h+14 h**; then >=24 h rest at control post | Council Reg (EC) 1/2005 Ch.V; report §R5 | VERIFIED |
+| **R6 EC 178/2002 (Food Law)** | Art.18 "one step back / one step forward" traceability | Reg (EC) 178/2002 Art.18; report §R6 | VERIFIED |
+| **R7 GDPR 2016/679** | Farm operator = PII; erasure vs epidemiological retention conflict | Reg (EU) 2016/679 Arts.4(5),17,32; report §R7 | VERIFIED |
+| **R8 Bovine I&R 2019/2035/2021/520** | Tag <= 20 d of birth (Delegated 2019/2035 Art.42); notify births/deaths/moves <= 7 d (Implementing 2021/520 Art.14). **HARDCODED EU minimums, non-overridable.** | Delegated Reg (EU) 2019/2035 Art.42 + Implementing Reg (EU) 2021/520 Art.14; report §R8 | VERIFIED |
+| **R9 IMSOC 2019/1715** | Outbound movements emit CHED-compliant JSON/XML (TRACES NT) | Implementing Reg (EU) 2019/1715; report §R9 | VERIFIED |
+| **R10 GDPR public-health exception** | Art.17(3)(b) (legal obligation) + Art.17(3)(c) (public health) DEFEAT Art.17 erasure; pseudonymize only after retention | GDPR Art.17(3)(b)/(c) (+6(1)(c)/9(2)(i)); report §R7/R10 | VERIFIED |
 
-### Corrigenda
-- **R8 overrides our MK-instance classification.** WO-022 implemented the 7/20 tagging + birth-notification
-  deadlines as an MK-instance RuleSet candidate. They are in fact **hardcoded EU law** (Delegated Reg
-  2019/2035 Art.42). Therefore the 7/20 values must be a **non-overridable EU floor**, not a soft RuleSet
-  override — any `TAGGING_DAYS` RuleSet param must be clamped to `>= EU minimum` (or flagged `euMandated`).
-  This corrects ADR-0028 / WO-022's implied softness. See WO-120.
-- **R9 extends WO-116** — export movements must eventually emit CHED-compliant JSON/XML (TRACES NT).
-- **R10 extends WO-117** — document the public-health exception so privacy lawyers cannot destroy audit_log.
+### Corrigenda (post-verification)
+- **R5 corrected:** earlier draft asserted "8 h max standard." Verified species-specific: adult cattle 14 h+14 h, unweaned 9 h+9 h. WO-114 must branch on species/life-stage, not a single constant.
+- **R4 enriched:** cascade multipliers are RuleSet params (`amr.cascadeMeat=2`, `amr.minWithdrawalMeatDays=28`, `amr.cascadeMilk=4`, `amr.minWithdrawalMilkDays=7`, `amr.cascadeAquatic=3`, `amr.minWithdrawalAquaticDegreeDays=500`).
+- **R8 hardened:** 7/20 is a hardcoded EU floor (Art.42 + Art.14). WO-120 rejects any RuleSet with `taggingDays > 20` or `notificationDays > 7` when `euAligned`.
+- **R3 enriched:** retention >= 2 y + revenue/volume exemptions (WO-116).
+- **Elixir note:** the report's `SovereignRuleValidator` is **illustrative only** — our stack is TypeScript/NestJS. The equivalent lives as a guard in the RuleSet loader (`validateSovereignLimits`), not Elixir.
+- **Axis order:** see ADR-0053 — ingestion must normalize EPSG:4326 lat-first -> GeoJSON/PostGIS lon-first.
 
 ## Workorder strikes (draft)
 
