@@ -22,6 +22,17 @@ field roles are `FARMER`, `VETERINARIAN`, `TECHNICIAN`, `VI` (inspector), and
 they are the aggregators. `SLAUGHTERHOUSE_OP` / `MARKET_OP` are `FARM_READ_ROLE`
 (own-site scoped) but still handle third-party animals + certificates.
 
+**Inspectors (verified from code).** There is **no distinct inspector login role**.
+`USER_ROLE` (packages/database/src/constants/user-role.ts) lists SUPER_ADMIN,
+VD_ADMIN, VD_STAFF, VETERINARIAN, TECHNICIAN, SLAUGHTERHOUSE_OP, MARKET_OP, FARMER --
+no INSPECTOR. The inspection domain records an `inspectorId` (the performing user's
+UUID) and the router gates on `authenticated` + `analysis:read` / `analysis:run`
+(ADR-0054), not an inspector role. `SUBJECT_ROLE.VI` exists but is a *registry label*
+for a person, not a PDA login. Conclusion: on the mobile app an inspector **is** a
+veterinarian (official veterinary control); a non-vet inspector uses the web admin,
+not the PDA. The mobile field-role surface therefore collapses to **FARMER +
+VETERINARIAN (+ TECHNICIAN)**.
+
 A field role **needs** keeper contact to do its lawful job: a vet calling a keeper
 about a notifiable disease, an inspector contacting a holder for an official control.
 Hiding the number behind VoIP so the vet cannot see it is *not* what GDPR intends
@@ -55,7 +66,7 @@ EdgeDataPolicy = {
   exclude:       string[];                // PII classes never sent to this role's device
 }
 
-vet / technician / VI = {
+vet / technician (inspectors ARE vets on mobile) = {
   syncScope: "purpose-farm", piiResidency: "contact-only",
   ttlMs: 24h, revealLog: true, deviceAuth: "required",
   exclude: ["nationalId", "otherFarms", "bulk"]
@@ -84,6 +95,13 @@ manifest uses the death-certificate / passport *reference* (a document key), whi
 is distinct from the keeper's national ID. (AL jurisdiction: to be confirmed; the
 default remains EXCLUDE until a legal basis says otherwise.)
 
+The only natural person who *might* carry a mandated ID is the **farmer**, and only
+where a law/jurisdiction requires it (e.g. subsidy / registration). Even then it is
+**hidden by default** -- stored server-side if mandated, never rendered on a device
+in the normal flow, shown only under a specific legal basis + logged. There is no
+reason to *display* a national ID in the app that would warrant it appearing in the
+DPIA as a shown field. So in practice: nationalId is never on a device.
+
 ### What is IN the field-role offline bundle (per visit / per site)
 - Animal / health / movement operational data for the synced farm or site.
 - Keeper **name + phone + email** for that farm (necessary contact; click-to-dial
@@ -91,6 +109,11 @@ default remains EXCLUDE until a legal basis says otherwise.)
 - Farm location for the visit.
 - Butcher: the arrival **manifest** (animals + death-certificate / passport
   *reference*) for animals reaching their plant; scan ear tags to match.
+The butcher is typically an *employee of a legal entity* (the slaughterhouse
+company); the manifest is company-scoped. A company is not a natural-person data
+subject under GDPR Art 4(1), so the butcher's PII sensitivity is low (company data +
+their own employee record). Contact-only keeper PII applies only if the butcher must
+call a keeper.
 
 ### What is NOT in it
 - `personalId` / national ID (almost never needed to place a call).
