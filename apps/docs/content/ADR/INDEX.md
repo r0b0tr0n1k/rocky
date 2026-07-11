@@ -1,6 +1,6 @@
 # ADR Index
 
-All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 66 records total.
+All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 75 records total.
 
 ### Core Backend / Architecture (0001-0032)
 
@@ -74,7 +74,7 @@ All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 66
 | ADR-0060 | Web UI Component & Feedback Map |
 
 
-### Regulatory, Geo & Recent Architecture (0053-0074)
+### Regulatory, Geo & Recent Architecture (0053-0075)
 
 | ADR | Title |
 | --- | --- |
@@ -100,6 +100,7 @@ All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 66
 | ADR-0072 | Personal Data Breach Notification Workflow (A.3.11/.12 / GDPR Art 33-34) |
 | ADR-0073 | Mobile Edge Compliance -- PII at the Edge (A.1.2.x / A.8.24 / ADR-0061 D5) |
 | ADR-0074 | Field-Role Edge Protocol -- Contact-Only PII, Purpose-Scoped Sync, TTL & Reveal Audit |
+| ADR-0075 | Processor & Subprocessor Management (GDPR Art 28(4) / MK LPDP Art 28 / ISO 27701 B.5.2.1 + B.2.2.1) |
 
 
 > Generated from `apps/docs/content/ADR/*.md` first-heading titles. Regenerate after adding an ADR.
