@@ -1,0 +1,200 @@
+# ISO 27701:2025 & ISO 27001:2022 — Compliance Gap Analysis (Rocky)
+
+> _sniffs_ The cow is already tagged, chipped, and access-controlled. What the auditor wants
+> next is the **paper** that says we meant to. Rocky built the enforcement before the policy.
+> This document holds the code against the standard and names what is missing.
+
+**Status:** Homework / engineering reference — **not legal advice.** Sourced from the machine-readable
+standards dropped into `graphgrc-main/` (`iso27701_2025.json`, `iso27001.json`). The per-control
+`gdprMapping` fields inside those files are machine-derived and **not yet expert-reviewed**; treat them
+as leads, not authority.
+
+---
+
+## 1. Source & Structure
+
+| Standard | File | Shape | Controls |
+| --- | --- | --- | --- |
+| **ISO/IEC 27001:2022** (ISMS base) | `iso27001.json` | Annex A in 4 blocks | **93** (A.5 Org 37, A.6 People 8, A.7 Physical 14, A.8 Tech 34) |
+| **ISO/IEC 27701:2025** (PIMS extension) | `iso27701_2025.json` | Tables A.1–A.3 (normative) + B.1 (guidance) | **115** (A.1 controllers 31, A.2 processors 7, A.3 both 27, B.1 guidance 50) |
+
+Bonus: every ISO 27701:2025 control carries an inline `gdprMapping` (e.g. `A.1.2.2 -> (5)(1)(b), (32)(4)`).
+That is the ISO 27701 <-> GDPR cross-walk we earlier **deferred** in `VALIDATED_CROSSWALK` (the
+`iso27701?` field was left `undefined` pending review). This file is the source to populate it from —
+once counsel confirms the mappings.
+
+---
+
+## 2. Methodology & Legend
+
+Each control below is mapped to Rocky's *actual* capability (from the codebase + AGENTS.md + the
+ADR corpus). Status:
+
+- **MET** — enforced by running code today.
+- **PARTIAL** — partially present; needs wrapping/formalisation.
+- **GAP** — absent; governance/paperwork layer, not code.
+
+Owning Bot per RobotFarm (root AGENTS.md).
+
+---
+
+## 3. Executive Verdict
+
+Rocky is **technically ahead** on the controls code can enforce: row-level security, role-based
+access, an explicit PII inventory, mask-by-default with a reveal-gate, tamper-evident logging,
+and typed error sovereignty. It is **behind** on the management-system layer that certification
+requires: documented policies, lawful basis, consent, DPIA, RoPA, DPO, awareness training,
+supplier agreements, cryptography-at-rest, a breach-notification workflow, and enforced retention/erasure.
+
+We are the dialectical inverse of the typical failing organisation (paperwork without enforcement).
+Our enforcement lacks the Imaginary commitment (the documented ISMS) and the certified Real (the audit).
+
+---
+
+## 4. ISO/IEC 27001:2022 — Annex A Mapping
+
+### A.5 Organisational Controls (37)
+| Clause | Requirement | Rocky | Status |
+| --- | --- | --- | --- |
+| A.5.1 | Policies for information security | No documented ISMS policy set | **GAP** |
+| A.5.2 / A.5.3 | Roles & segregation of duties | RBAC + Principal + Policy engine exist technically; no documented InfoSec org | **PARTIAL** |
+| A.5.4 | Management responsibilities | No top-management ISMS commitment statement | **GAP** |
+| A.5.9 / A.5.12 / A.5.13 | Inventory / classification / labelling | `PII_FIELD_REGISTRY` is an explicit PII inventory + category (`direct/indirect/derived`) | **MET** (rare) |
+| A.5.15 / A.5.16 / A.5.17 / A.5.18 | Access control / identity / auth info / access rights | RLS via pgPolicy + Better Auth + RBAC | **MET** |
+| A.5.19 / A.5.20 / A.5.21 / A.5.22 / A.5.23 | Supplier relationships / cloud | Better Auth is a SaaS vendor; no formal security assessment or agreement | **PARTIAL** |
+| A.5.24 / A.5.25 / A.5.26 / A.5.27 | Incident planning / assessment / response / learning | Audit via lifecycle events (ADR-0007); no formal breach-to-authority workflow | **PARTIAL** |
+| A.5.28 | Collection of evidence | Tamper-evident access log (ADR-0061 reveal-gate) | **MET** |
+| A.5.31 | Legal, statutory, regulatory | Regulatory framework (ADR-0054) + RuleSet (ADR-0030); not a maintained obligation register | **PARTIAL** |
+| A.5.33 / A.5.34 | Protection of records / Privacy & PII | Registry + masking + audit log; no approved PII-protection *policy* | **PARTIAL** |
+| A.5.35 | Independent review | None | **GAP** |
+| A.5.37 | Documented operating procedures | AGENTS.md + Diamond Seal doctrine; not packaged as ISMS procedures | **PARTIAL** |
+
+### A.6 People Controls (8)
+| Clause | Requirement | Rocky | Status |
+| --- | --- | --- | --- |
+| A.6.1 | Screening | HR layer absent | **GAP** |
+| A.6.3 | Awareness, education, training | None for PII | **GAP** |
+| A.6.6 | NDAs / confidentiality | None | **GAP** |
+| A.6.2 / A.6.4 / A.6.5 / A.6.7 / A.6.8 | Terms / discipline / post-employment / remote / event reporting | Partial via Better Auth session/event logging | **PARTIAL** |
+
+### A.7 Physical Controls (14)
+All physical perimeters, entry, offices, monitoring, equipment, secure disposal — **GAP** (org-level;
+required for certification, not expressible in application code).
+
+### A.8 Technological Controls (34)
+| Clause | Requirement | Rocky | Status |
+| --- | --- | --- | --- |
+| A.8.2 / A.8.3 / A.8.4 / A.8.5 | Privileged access / access restriction / source-code access / secure auth | RLS + RBAC + Better Auth | **MET** |
+| A.8.11 | Data masking | Mask-by-default + reveal-gate (ADR-0061 D5) | **MET** |
+| A.8.15 / A.8.16 | Logging / monitoring | Audit lifecycle events + Result error sovereignty (ADR-0066) | **MET** |
+| A.8.24 | Use of cryptography | Crypto-at-rest **paused** (key custody unsettled) | **GAP** (deferred by decision) |
+| A.8.25 / A.8.26 / A.8.27 / A.8.28 | Secure SDLC / app-sec requirements / architecture / coding | Diamond Seal (NoDrift) + AGENTS code doctrine | **PARTIAL** |
+| A.8.10 | Information deletion | Retention in RuleSet D10 planned, not enforced | **PARTIAL** |
+| A.8.13 | Backup | DB recreate scripts; not formalised as ISMS control | **PARTIAL** |
+
+---
+
+## 5. ISO/IEC 27701:2025 — PIMS Mapping (the GDPR-adjacent layer)
+
+### Table A.1 — Controls for PII **controllers** (31)
+| Ref | Requirement | Rocky | Status |
+| --- | --- | --- | --- |
+| A.1.2.2 | Identify & document purpose | Reveal-gate captures `purpose`; no documented purpose register | **PARTIAL** |
+| A.1.2.3 | Identify lawful basis | None recorded per processing | **GAP** |
+| A.1.2.4 / .5 / .6 | Consent (when/how/obtain/record) | No consent management | **GAP** |
+| A.1.2.5 | Privacy impact assessment | Maps to GDPR Art.35 (crosswalk); not implemented | **GAP** |
+| A.1.2.7 | Contracts with PII processors | Better Auth SaaS; no DPA | **GAP** |
+| A.1.2.9 | Records related to processing | Audit log exists; explicit RoPA register not formalised | **PARTIAL** |
+| A.1.3.3 / .4 | Determine & provide info to principals | Registry + docs; no subject-facing notice workflow | **PARTIAL** |
+| A.1.3.5 / .6 | Modify/withdraw consent; object | None | **GAP** |
+| A.1.3.7 | Access, correction or erasure | Erasure **deferred** (ADR-0061, Phase 2); access via registry partial | **PARTIAL** |
+| A.1.3.11 | Automated decision-making | Health/risk AI not yet; no Article-22 workflow | **GAP** |
+| A.1.4.2 / .3 / .4 / .5 | Limit collection / processing / accuracy / minimisation | Masking enforces minimisation; accuracy not guaranteed | **PARTIAL** |
+| A.1.4.6 | De-identification & deletion at end of processing | Erasure deferred | **GAP** |
+| A.1.4.8 / .9 | Retention / disposal | RuleSet D10 retention planned; not enforced/disposal workflow | **PARTIAL** |
+| A.1.5.2 / .3 / .4 / .5 | Transfer basis / countries / transfer & disclosure records | Domestic (MK/AL) data; crosswalk maps Art.44; no transfer mechanism | **GAP** |
+
+### Table A.2 — Controls for PII **processors** (7)
+Customer agreement, org purposes, marketing use, infringing instruction, customer obligations, records,
+comply with principal obligations — **GAP** (Rocky is a *controller*; processor agreements with
+Better Auth et al. not formalised).
+
+### Table A.3 — Controls for controllers **and** processors (27)
+| Ref | Requirement | Rocky | Status |
+| --- | --- | --- | --- |
+| A.3.5 / .6 | Classification / labelling of information | `PII_FIELD_REGISTRY` categories | **MET** |
+| A.3.8 / .9 | Identity management / access rights | RLS + RBAC | **MET** |
+| A.3.10 | Info-sec within supplier agreements | Partial (Better Auth) | **PARTIAL** |
+| A.3.11 / .12 | Incident planning / response | Audit events; no formal breach workflow | **PARTIAL** |
+| A.3.13 | Legal/statutory/regulatory | ADR-0054 framework | **PARTIAL** |
+| A.3.14 | Protection of records | Tamper-evident log | **MET** |
+| A.3.15 | Independent review | None | **GAP** |
+| A.3.16 | Compliance with policies | AGENTS doctrine | **PARTIAL** |
+| A.3.17 | Awareness, education, training | None | **GAP** |
+| A.3.18 | NDAs / confidentiality | None | **GAP** |
+| A.3.19 / .20 / .21 / .22 | Clear desk / media / disposal / endpoints | Org-layer | **GAP** |
+| A.3.23 / .24 / .25 / .26 | Auth / backup / logging / cryptography | RLS+RBAC / scripts / audit / **crypto GAP** | **PARTIAL** |
+| A.3.27 / .28 / .29 / .30 | SDLC / app-sec / architecture / outsourcing | Diamond Seal | **PARTIAL** |
+
+> **B.1 (Implementation Guidance, 50 controls)** is non-normative guidance mirroring A.1–A.3.
+> Use it when closing the GAPs above; it is not separately scored.
+
+---
+
+## 6. Consolidated GAP Register (actionable)
+
+| # | Control(s) | Gap | Recommended action | Owning Bot | Phase |
+| --- | --- | --- | --- | --- | --- |
+| G1 | A.5.1 / A.5.4 / A.5.34 | No ISMS policy / leadership commitment / PII-protection policy | Author `ism-policy.md` + top-management sign-off | Docs Bot | 2 |
+| G2 | A.1.2.3 / A.1.2.7 / A.2.* | No lawful basis register, processor DPAs | Legal register + Better Auth DPA | Auth/Legal | 2 |
+| G3 | A.1.2.5 / A.1.3.11 | No DPIA / automated-decision workflow | DPIA template wired to high-risk ops (health/risk) | Health/Inspection Bot | 2 |
+| G4 | A.1.3.7 / A.1.4.6 / A.1.4.8 | Erasure + retention not enforced | Implement ADR-0061 Phase 2 (crypto-shred + retention cron) | Validators/DB Bot | 2 |
+| G5 | A.8.24 / A.3.26 | Crypto-at-rest unsettled | Resolve key custody (off-server KEK); envelope encryption | DB/Execution Bot | 2 |
+| G6 | A.1.2.9 / A.5.33 | No explicit RoPA register | Derive RoPA from `PII_FIELD_REGISTRY` + audit log | Validators Bot | 2 |
+| G7 | A.5.19–.23 / A.3.10 | No supplier security assessment | Vendor register + Better Auth assessment | Auth Bot | 2 |
+| G8 | A.5.35 / A.3.15 | No independent review | Schedule periodic ISMS audit | Docs Bot | 3 |
+| G9 | A.6.1 / A.6.3 / A.6.6 / A.3.17 | No screening / training / NDAs | Awareness programme + NDAs | HR/Org | 2 |
+| G10 | A.5.24–.27 / A.3.11–.12 | No formal breach workflow | Breach-notification workflow (authority + principals) | Inspection/System Bot | 2 |
+| G11 | A.7.* | Physical controls absent | Facility/securty policy (cert scope) | Org | 3 |
+| G12 | A.1.5.* | International-transfer mechanism | If cross-border, add Art.44 safeguards | Legal | 3 |
+
+---
+
+## 7. Phased Roadmap
+
+- **Phase 1 — Harvest the code we already have (weeks, not months).** Document the ISMS *around*
+  the enforcement that exists: RLS, RBAC, `PII_FIELD_REGISTRY`, mask/reveal-gate, tamper-evident
+  log, Result sovereignty, Diamond Seal. These already satisfy A.5.9/.12/.13, A.5.15–.18, A.5.28,
+  A.8.2–.5/.11/.15/.16, A.3.5/.6/.8/.9/.14/.23–.26, A.3.27–.30. Write the procedures that
+  *describe* this reality. Lowest cost, highest visible gain.
+- **Phase 2 — The governance layer (the real work).** G1–G10: policies, lawful basis, DPIA,
+  RoPA, DPO, training, supplier agreements, crypto-at-rest, breach workflow, enforced retention/erasure.
+  This is where ADR-0061 Phase 2, ADR-0066, and the `VALIDATED_CROSSWALK` compliance module
+  earn their keep.
+- **Phase 3 — Certification.** G8/G11/G12: independent audit, physical controls, transfer
+  safeguards. Engage counsel competent in both technology and data-protection law to confirm the
+  machine-derived `gdprMapping` leads before any claim of conformity.
+
+---
+
+## 8. Tie to the ADR Corpus & Compliance Module
+
+- **ADR-0061** (GDPR erasure/retention) — closes G4; its Phase 2 is the PIMS A.1.3.7 / A.1.4.6 / A.1.4.8 work.
+- **ADR-0066** (Error Sovereignty / Result) — backs A.8.15 / A.8.16 logging + A.5.28 evidence.
+- **ADR-0030** (RuleSet) — retention params (D10) are the hook for A.1.4.8 enforcement.
+- **ADR-0054** (Regulatory Compliance Framework) — the A.5.31 / A.3.13 legal-requirement spine.
+- **`packages/validators/src/compliance/gdpr-articles.ts`** — `VALIDATED_CROSSWALK` already maps the 15
+  validated GDPR <-> MK LPDP <-> AL Law 124 equivalences. The per-control `gdprMapping` inside
+  `iso27701_2025.json` is the richer source to populate the deferred `iso27701?` field — **once
+  reviewed by counsel**. That single edit would give every PIMS control its GDPR article anchor.
+
+---
+
+## 9. Homework Disclaimer
+
+This is engineering self-education, not legal advice. The standards were read from `graphgrc-main/`
+JSON exports of uncertain provenance (the generator there will not even build on this machine, and its
+local `scf*.json` / `gdpr.json` are orphaned by its own code). The `gdprMapping` and
+`legal_framework_mappings` fields are machine-derived and only partially validated upstream. Before any
+conformity claim, a lawyer who speaks both technology and data-protection law must review the mappings.
+Until then: we have done the homework; we have not hired the examiner.

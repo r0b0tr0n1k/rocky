@@ -1,0 +1,3 @@
+export default {
+  "iso27701-2025-gap-analysis": { title: "ISO 27701:2025 / 27001:2022 Gap Analysis" },
+} as const;
