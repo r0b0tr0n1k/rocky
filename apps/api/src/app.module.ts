@@ -58,6 +58,7 @@ import {
   PassportTemplate,
   MovementTemplate,
   ChedTemplate,
+  EudrTemplate,
 } from "@rocky/pdf/index.js";
 import { ClsModule } from "nestjs-cls";
 import { AuthCoreModule } from "./auth/auth-core.module.js";
@@ -271,6 +272,7 @@ import { TrpcModule } from "./trpc/trpc.module.js";
         movRepo: MovementRepository,
         animalRepo: AnimalRepository,
         system: SystemService,
+        iotRepo: IotRepository,
         passportService?: PassportService,
         outboxPublisher?: import("@rocky/execution").OutboxEventPublisher,
       ) =>
@@ -278,6 +280,7 @@ import { TrpcModule } from "./trpc/trpc.module.js";
           movRepo,
           animalRepo,
           system,
+          iotRepo,
           passportService,
           outboxPublisher,
         ),
@@ -285,6 +288,7 @@ import { TrpcModule } from "./trpc/trpc.module.js";
         MovementRepository,
         AnimalRepository,
         SystemService,
+        IotRepository,
         { token: PassportService, optional: true },
         {
           token: OutboxEventPublisher,
@@ -468,6 +472,17 @@ import { TrpcModule } from "./trpc/trpc.module.js";
       ) => new ChedTemplate(movementRepo, animalRepo, farmRepo, healthRepo, passportRepo, system),
       inject: [MovementRepository, AnimalRepository, FarmRepository, HealthRepository, PassportRepository, SystemService],
     },
+    {
+      provide: EudrTemplate,
+      useFactory: (
+        movementRepo: MovementRepository,
+        iotRepo: IotRepository,
+        animalRepo: AnimalRepository,
+        farmRepo: FarmRepository,
+        system: SystemService,
+      ) => new EudrTemplate(movementRepo, iotRepo, animalRepo, farmRepo, system),
+      inject: [MovementRepository, IotRepository, AnimalRepository, FarmRepository, SystemService],
+    },
 
     {
       provide: SyncRepository,
@@ -535,6 +550,8 @@ export class AppModule implements OnModuleInit {
     private readonly movementTemplate: MovementTemplate,
     @Inject(ChedTemplate)
     private readonly chedTemplate: ChedTemplate,
+    @Inject(EudrTemplate)
+    private readonly eudrTemplate: EudrTemplate,
   ) {}
 
   onModuleInit() {
@@ -543,5 +560,6 @@ export class AppModule implements OnModuleInit {
     registry.register(this.passportTemplate);
     registry.register(this.movementTemplate);
     registry.register(this.chedTemplate);
+    registry.register(this.eudrTemplate);
   }
 }

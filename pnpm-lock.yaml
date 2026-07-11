@@ -1321,6 +1321,9 @@ importers:
       '@rocky/domains-animal':
         specifier: workspace:*
         version: link:../animal
+      '@rocky/domains-iot':
+        specifier: workspace:*
+        version: link:../iot
       '@rocky/domains-notification':
         specifier: workspace:*
         version: link:../notification
@@ -1740,6 +1743,9 @@ importers:
       '@rocky/domains-inspection':
         specifier: workspace:*
         version: link:../domains/inspection
+      '@rocky/domains-iot':
+        specifier: workspace:*
+        version: link:../domains/iot
       '@rocky/domains-movement':
         specifier: workspace:*
         version: link:../domains/movement

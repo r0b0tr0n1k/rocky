@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "443a967f-ad8f-4b4b-88b8-2bcdf4793d04",
+  "id": "0101fddf-378c-483c-a11c-d6b72083527b",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -5250,6 +5250,19 @@
       "generated": null,
       "identity": null,
       "name": "cadastral_reference",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "geofences"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "deforestation_free_since",
       "entityType": "columns",
       "schema": "public",
       "table": "geofences"

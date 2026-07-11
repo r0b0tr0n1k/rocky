@@ -109,6 +109,14 @@ export class MovementRepository extends BaseRepository {
     return row ?? null;
   }
 
+  /** WO-115 (EUDR): all pasture declarations an animal grazed (active + historical). */
+  async findPastureDeclarationsByAnimalId(animalId: string) {
+    return this.client
+      .select()
+      .from(pastureDeclarationsTable)
+      .where(sql`${animalId} = ANY(${pastureDeclarationsTable.animalIds})`);
+  }
+
   async insertPastureDeclaration(data: typeof pastureDeclarationsTable.$inferInsert) {
     const [row] = await this.client.insert(pastureDeclarationsTable).values(data).returning();
     return row ?? null;

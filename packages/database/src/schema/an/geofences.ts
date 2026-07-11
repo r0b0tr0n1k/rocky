@@ -7,7 +7,7 @@
 // which were already written but had no production table to attach to.
 
 import type { GeofenceGeometry } from "../../geometry/coordinate-schema.js";
-import { boolean, index, jsonb, pgPolicy, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, date, index, jsonb, pgPolicy, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { fenceTypePgEnum } from "../../schemas/enums/fence-type.js";
 import { polygonGeometry } from "../../geometry/postgis.js";
@@ -36,6 +36,10 @@ export const geofences = pgTable(
 
 		// Legal cadastral parcel reference (WO-110) — truth reported to TRACES/LPIS
 		cadastralReference: varchar("cadastral_reference", { length: 100 }),
+
+		// EUDR 2023/1115 deforestation-free attestation (WO-115, R1). The polygon the
+		// EUDR overlay checks must carry a declared deforestation-free date <= cutoff.
+		deforestationFreeSince: date("deforestation_free_since"),
 
 		// Type
 		fenceType: fenceTypePgEnum("fence_type").notNull(),

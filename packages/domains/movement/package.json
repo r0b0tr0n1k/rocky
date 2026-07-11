@@ -28,6 +28,7 @@
     "@rocky/database": "workspace:*",
     "@rocky/domains-system": "workspace:*",
     "@rocky/domains-animal": "workspace:*",
+    "@rocky/domains-iot": "workspace:*",
     "@rocky/domains-passport": "workspace:*",
     "@rocky/domains-shared": "workspace:*",
     "@rocky/trpc": "workspace:*",

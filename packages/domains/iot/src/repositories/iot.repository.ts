@@ -1,6 +1,6 @@
 import { iotDevices, sensorReadings, geofences, animalGeofenceEvents } from "@rocky/database";
 import { BaseRepository } from "@rocky/domains-shared";
-import { and, asc, desc, eq, gte, lte, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte, sql, type SQL } from "drizzle-orm";
 
 export class IotRepository extends BaseRepository {
   // ── IoT Devices ──
@@ -115,6 +115,14 @@ export class IotRepository extends BaseRepository {
 
   async deleteGeofence(id: string) {
     await this.client.delete(geofences).where(eq(geofences.id, id));
+  }
+
+  /** WO-115 (EUDR): geofences linked to the given pasture declarations, optionally filtered to a fence type. */
+  async findByPastureIds(pastureIds: string[], fenceType?: string) {
+    if (pastureIds.length === 0) return [];
+    const conditions: SQL[] = [inArray(geofences.pastureId, pastureIds)];
+    if (fenceType) conditions.push(eq(geofences.fenceType, fenceType));
+    return this.client.select().from(geofences).where(and(...conditions));
   }
 
   // ── Geofence Events ──

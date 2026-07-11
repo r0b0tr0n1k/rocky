@@ -34,6 +34,8 @@
     "@rocky/domains-system": "workspace:*",
     "@rocky/domains-farm": "workspace:*",
     "@rocky/domains-health": "workspace:*",
+    "@rocky/domains-iot": "workspace:*",
+    "@rocky/domains-movement": "workspace:*",
     "@rocky/database": "workspace:*",
     "drizzle-orm": "catalog:",
     "js-yaml": "^4.1.0",

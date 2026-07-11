@@ -28,6 +28,10 @@ import {
   type LineageGraph,
   lineageGraphSchema,
   lineageRequestSchema,
+  eudrDueDiligenceRequestSchema,
+  type EudrDueDiligenceRequest,
+  eudrDueDiligenceResponseSchema,
+  type EudrDueDiligenceResponse,
   type RecordDeathRequest,
   type RecordMarketSlaughterRequest,
   type RecordMarketTransactionRequest,
@@ -76,6 +80,12 @@ export class MovementRouter {
   @Query({ input: movementListRequestSchema, output: movementListResponseSchema })
   async list(@Input() input: MovementListRequest): Promise<MovementListResponse> {
     return unwrap(await this.movementService.listByAnimal(input));
+  }
+
+  // ── WO-115: EUDR 2023/1115 due-diligence (R1) ──
+  @Query({ input: eudrDueDiligenceRequestSchema, output: eudrDueDiligenceResponseSchema })
+  async eudrDueDiligence(@Input() input: EudrDueDiligenceRequest): Promise<EudrDueDiligenceResponse> {
+    return this.movementService.runEudrDueDiligence(input.animalId);
   }
 
   @Mutation({ input: createMovementRequestSchema, output: movementResponseSchema })

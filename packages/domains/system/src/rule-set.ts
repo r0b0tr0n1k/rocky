@@ -76,6 +76,14 @@ export interface RuleSetImsoc {
   requireDiseaseClear: boolean;
 }
 
+/** EUDR 2023/1115 due-diligence config (WO-115, R1). */
+export interface RuleSetEudr {
+  /** Whether EUDR due-diligence is enforced for this jurisdiction. */
+  enabled: boolean;
+  /** Deforestation cutoff — land deforested after this date fails the EUDR overlay. Default 2020-12-31. */
+  deforestationCutoffDate: string;
+}
+
 export interface RuleSetTag {
   /** Ear-tag format for the jurisdiction (WO-118, R2): ISO_11784_15 (15-digit ISO 11784/11785) or MK_8 (8-digit MK national). */
   format: string;
@@ -117,6 +125,8 @@ export interface RuleSet {
   fsma: RuleSetFsma;
   /** IMSOC / CHED-A config (WO-121, R9). */
   imsoc: RuleSetImsoc;
+  /** EUDR 2023/1115 due-diligence config (WO-115, R1). */
+  eudr: RuleSetEudr;
   /** Whether this jurisdiction aligns with EU cattle I&R mandates (R8). When true, birth deadlines may not be loosened below the EU floor. */
   euAligned: boolean;
 }
@@ -250,6 +260,10 @@ export function buildRuleSet(
       requirePassport: byCode.get("IMSOC_REQUIRE_PASSPORT")?.value !== "false",
       requireVaccinations: byCode.get("IMSOC_REQUIRE_VACCINATIONS")?.value !== "false",
       requireDiseaseClear: byCode.get("IMSOC_REQUIRE_DISEASE_CLEAR")?.value !== "false",
+    },
+    eudr: {
+      enabled: byCode.get("EUDR_ENABLED")?.value !== "false",
+      deforestationCutoffDate: byCode.get("EUDR_DEFORESTATION_CUTOFF_DATE")?.value ?? "2020-12-31",
     },
   };
   validateSovereignLimits(ruleSet);

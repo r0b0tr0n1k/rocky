@@ -1,3 +1,15 @@
+CREATE OR REPLACE FUNCTION public.farm_org_id(p_farm_id uuid)
+  RETURNS uuid
+  LANGUAGE sql
+  SECURITY DEFINER
+  AS $function$
+    SELECT oa.organization_id
+    FROM farms f
+    JOIN addresses a ON f.address_id = a.id
+    JOIN org_areas oa ON a.commune_id = oa.commune_id
+    WHERE f.id = p_farm_id
+  $function$;
+
 CREATE TYPE "admin_roles" AS ENUM('SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF');--> statement-breakpoint
 CREATE TYPE "administration_route" AS ENUM('intramuscular', 'subcutaneous', 'intranasal', 'oral', 'topical', 'other');--> statement-breakpoint
 CREATE TYPE "allocation_status" AS ENUM('PENDING', 'PARTIALLY_FULFILLED', 'FULFILLED', 'CANCELLED');--> statement-breakpoint
@@ -444,6 +456,7 @@ CREATE TABLE "geofences" (
 	"geometry" jsonb NOT NULL,
 	"polygon" geometry(point,4326),
 	"cadastral_reference" varchar(100),
+	"deforestation_free_since" date,
 	"fence_type" "fence_type" NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
@@ -1722,7 +1735,7 @@ CREATE POLICY "birth_notification_access_policy" ON "birth_notifications" AS PER
         OR (current_setting('app.current_role', true) = ANY(ARRAY['VETERINARIAN', 'TECHNICIAN'])
             AND (farm_org_id("birth_notifications"."farm_id") = current_setting('app.current_org_id', true)::uuid
                  OR "birth_notifications"."assigned_to" = current_setting('app.current_user_id', true)::uuid))
-        OR (current_setting('app.current_role', true) = $1
+        OR (current_setting('app.current_role', true) = 'SUPER_ADMIN'
             AND "birth_notifications"."farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
     WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid
@@ -1854,10 +1867,10 @@ CREATE POLICY "movement_access_policy" ON "movements" AS PERMISSIVE FOR ALL TO p
       ));--> statement-breakpoint
 CREATE POLICY "pasture_access_policy" ON "pasture_declarations" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
-        OR (current_setting('app.current_role', true) = $1
+        OR (current_setting('app.current_role', true) = 'SUPER_ADMIN'
             AND (farm_org_id("pasture_declarations"."from_farm_id") = current_setting('app.current_org_id', true)::uuid
                  OR farm_org_id("pasture_declarations"."to_farm_id") = current_setting('app.current_org_id', true)::uuid))
-        OR (current_setting('app.current_role', true) = $2
+        OR (current_setting('app.current_role', true) = 'VD_ADMIN'
             AND ("pasture_declarations"."from_farm_id" IN (
     SELECT fs.farm_id FROM farm_subjects fs
     WHERE fs.subject_id = current_setting('app.current_user_id', true)::uuid
@@ -1942,7 +1955,7 @@ CREATE POLICY "subject_access_policy" ON "subjects" AS PERMISSIVE FOR ALL TO pub
       )) WITH CHECK (current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF']));--> statement-breakpoint
 CREATE POLICY "sync_error_access_policy" ON "sync_errors" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
-        OR (current_setting('app.current_role', true) = $1 AND farm_org_id("sync_errors"."farm_id") = current_setting('app.current_org_id', true)::uuid)
+        OR (current_setting('app.current_role', true) = 'SUPER_ADMIN' AND farm_org_id("sync_errors"."farm_id") = current_setting('app.current_org_id', true)::uuid)
       ));--> statement-breakpoint
 CREATE POLICY "vs_assignment_access_policy" ON "vs_assignments" AS PERMISSIVE FOR ALL TO public USING ((
     current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN', 'VD_STAFF'])
@@ -1992,7 +2005,7 @@ CREATE POLICY "session_access_policy" ON "user_sessions" AS PERMISSIVE FOR ALL T
       ));--> statement-breakpoint
 CREATE POLICY "user_access_policy" ON "users" AS PERMISSIVE FOR ALL TO public USING ((
         current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN'])
-        OR (current_setting('app.current_role', true) = $1
+        OR (current_setting('app.current_role', true) = 'SUPER_ADMIN'
             AND "users"."organization_id" = current_setting('app.current_org_id', true)::uuid)
         OR "users"."id" = current_setting('app.current_user_id', true)::uuid
       )) WITH CHECK (current_setting('app.current_role', true) = ANY(ARRAY['SUPER_ADMIN', 'VD_ADMIN']));

@@ -20,6 +20,8 @@ import type {
   movements as movementsTable,
 } from "@rocky/database";
 import type { SystemService } from "@rocky/domains-system";
+import type { IotRepository } from "@rocky/domains-iot";
+import { runEudrDueDiligence, type EudrDueDiligenceResult } from "./eudr-due-diligence.js";
 import {
   ANIMAL_STATUS,
   FARM_TYPE,
@@ -70,9 +72,17 @@ export class MovementService {
     private readonly repo: MovementRepository,
     private readonly animalRepo: AnimalRepository,
     private readonly system: SystemService,
+    private readonly geofenceRepo: IotRepository,
     private readonly passportService?: PassportService,
     private readonly outboxPublisher?: OutboxEventPublisher,
   ) {}
+
+  // ── WO-115: EUDR 2023/1115 due-diligence (R1) ──
+  async runEudrDueDiligence(animalId: string): Promise<EudrDueDiligenceResult> {
+    const rs = await this.system.getRuleSet();
+    if (rs.isErr()) throw rs.error;
+    return runEudrDueDiligence(this.repo, this.geofenceRepo, rs.value, animalId);
+  }
 
   /** ── Rule C.4: Invalidate active pasture declaration before unexpected movement ── */
   private async invalidatePastureIfNeeded(
@@ -180,6 +190,24 @@ export class MovementService {
         if (underWithdrawal) {
           throw new MovementError(MOVEMENT_ERRORS.WITHDRAWAL_PERIOD_ACTIVE, {
             animalId: input.animalId,
+          });
+        }
+      }
+
+      // ── WO-115: EUDR 2023/1115 due-diligence guillotine (R1) ──
+      // Blocks slaughter / home-slaughter / export when the animal pastures fail the
+      // deforestation cutoff. Mirrors the WO-113 withdrawal gate; returns 403 FORBIDDEN.
+      if (
+        input.type === MOVEMENT_TYPE.SLAUGHTERHOUSE ||
+        input.type === MOVEMENT_TYPE.HOME_SLAUGHTER ||
+        input.type === MOVEMENT_TYPE.EXPORT
+      ) {
+        const eudr = await this.runEudrDueDiligence(input.animalId);
+        if (!eudr.compliant) {
+          throw new MovementError(MOVEMENT_ERRORS.EUDR_BREACHED, {
+            animalId: input.animalId,
+            cutoff: eudr.cutoff,
+            breaches: eudr.breaches,
           });
         }
       }

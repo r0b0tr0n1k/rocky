@@ -22,4 +22,5 @@ export const MOVEMENT_TRPC_ERROR_MAP: TRPCErrorMap = {
   MOVEMENT_WITHDRAWAL_PERIOD_ACTIVE: { code: "FORBIDDEN", message: "WITHDRAWAL_PERIOD_ACTIVE: animal under veterinary withdrawal period (EU 2019/6 Art.108)" },
   MOVEMENT_TRANSPORT_WELFARE_MAX_EXCEEDED: { code: "FORBIDDEN", message: "TRANSPORT_WELFARE_MAX_EXCEEDED: journey exceeds species max (EC 1/2005 Ch.V)" },
   MOVEMENT_TRANSPORT_WELFARE_REST_STOP_REQUIRED: { code: "FORBIDDEN", message: "TRANSPORT_WELFARE_REST_STOP_REQUIRED: long journey missing rest-stop leg (EC 1/2005 Ch.V)" },
+  MOVEMENT_EUDR_BREACHED: { code: "FORBIDDEN", message: "EUDR_BREACHED: pasture deforestation cutoff not met (EUDR 2023/1115)" },
 };

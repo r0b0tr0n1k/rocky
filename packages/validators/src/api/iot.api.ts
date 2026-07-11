@@ -127,6 +127,7 @@ export interface GeofenceResponse {
   farmId: string;
   pastureId: string | null;
   cadastralReference: string | null;
+  deforestationFreeSince: string | null;
   geometry: any;
   polygon: any;
   fenceType: fenceTypeType;
@@ -278,6 +279,7 @@ export interface ListReadingsRequest {
 
 export const createGeofenceRequestSchema = z.strictObject({
   cadastralReference: z.string().optional(),
+  deforestationFreeSince: z.string().optional(),
   name: z.string().min(1).max(200),
   description: z.string().optional(),
   farmId: z.uuid(),
@@ -312,6 +314,7 @@ export interface CreateGeofenceRequest {
   farmId: string;
   pastureId?: string;
   cadastralReference?: string;
+  deforestationFreeSince?: string;
   fenceType: fenceTypeType;
   geometry:
     | {
