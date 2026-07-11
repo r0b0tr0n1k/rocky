@@ -37,6 +37,7 @@ import {
 import { ActionDialog } from "#components/shared/action-dialog";
 import { DataTable } from "#components/shared/data-table";
 import { PageHeader } from "#components/shared/page-header";
+import { Timeline, type TimelineItem } from "#components/shared/timeline";
 import {
   diseaseColumns,
   labTestColumns,
@@ -123,6 +124,50 @@ export default function HealthPage() {
   const recordTreatment = useMutation(trpc.health.recordTreatment.mutationOptions({ onSuccess: () => invalidate(trpc.health.listTreatments.queryKey()) }));
   const recordLabTest = useMutation(trpc.health.recordLabTest.mutationOptions({ onSuccess: () => invalidate(trpc.health.listLabTests.queryKey()) }));
 
+  // -- Clinical record (animal-scoped Timeline) --
+  const [selectedAnimal, setSelectedAnimal] = React.useState<string | null>(null);
+  const clinicalVacc = useQuery(trpc.health.listVaccinations.queryOptions(
+    { animalId: selectedAnimal ?? undefined, limit: 200 },
+    { enabled: !!selectedAnimal },
+  ));
+  const clinicalTreat = useQuery(trpc.health.listTreatments.queryOptions(
+    { animalId: selectedAnimal ?? undefined, limit: 200 },
+    { enabled: !!selectedAnimal },
+  ));
+  const clinicalLab = useQuery(trpc.health.listLabTests.queryOptions(
+    { animalId: selectedAnimal ?? undefined, limit: 200 },
+    { enabled: !!selectedAnimal },
+  ));
+
+  const clinicalEvents = [
+    ...((clinicalVacc.data?.data ?? []) as VaccinationResponse[]).map((v) => ({
+      id: `vacc-${v.id}`,
+      date: new Date(v.adminDate),
+      title: "Vaccination",
+      description: vaccineMap.get(v.vaccineId)?.name ?? v.vaccineId,
+    })),
+    ...((clinicalTreat.data?.data ?? []) as TreatmentResponse[]).map((t) => ({
+      id: `treat-${t.id}`,
+      date: new Date(t.diagnosisDate),
+      title: "Treatment",
+      description: t.treatmentDesc || (t.diseaseId ? diseaseMap.get(t.diseaseId)?.name : undefined),
+    })),
+    ...((clinicalLab.data?.data ?? []) as LabTestResponse[]).map((l) => ({
+      id: `lab-${l.id}`,
+      date: new Date(l.resultDate ?? l.sampleDate),
+      title: "Lab test",
+      description: l.result,
+    })),
+  ].sort((a, b) => b.date.getTime() - a.date.getTime());
+
+  const clinicalItems: TimelineItem[] = clinicalEvents.map((e, i) => ({
+    id: e.id,
+    title: e.title,
+    description: e.description,
+    date: e.date,
+    status: i === 0 ? "current" : "done",
+  }));
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Health" description="Diseases, vaccines, vaccinations, treatments, and lab tests." />
@@ -134,6 +179,7 @@ export default function HealthPage() {
           <TabsTrigger value="vaccinations">Vaccinations</TabsTrigger>
           <TabsTrigger value="treatments">Treatments</TabsTrigger>
           <TabsTrigger value="labTests">Lab tests</TabsTrigger>
+          <TabsTrigger value="clinical">Clinical record</TabsTrigger>
         </TabsList>
 
         <TabsContent value="diseases">
@@ -340,6 +386,29 @@ export default function HealthPage() {
               )}
             />
           </div>
+        <TabsContent value="clinical">
+          <div className="flex flex-col gap-4">
+            <select
+              value={selectedAnimal ?? ""}
+              onChange={(e) => setSelectedAnimal(e.target.value || null)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="">Select animal…</option>
+              {animalOptions.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+            {selectedAnimal ? (
+              clinicalItems.length > 0 ? (
+                <Timeline items={clinicalItems} />
+              ) : (
+                <p className="text-sm text-muted-foreground">No vaccination, treatment, or lab-test records for this animal.</p>
+              )
+            ) : (
+              <p className="text-sm text-muted-foreground">Select an animal to view its clinical timeline.</p>
+            )}
+          </div>
+        </TabsContent>
         </TabsContent>
       </Tabs>
     </div>
