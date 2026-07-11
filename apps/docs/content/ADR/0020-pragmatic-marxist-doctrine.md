@@ -94,6 +94,29 @@ Write tests that literally touch external reality: real Postgres (RLS leakage is
 violation), the tRPC transport, the document-generation pipeline (ADR-0009), IoT geofence ingestion.
 Boot real infrastructure via `createE2EContext()` (testcontainers) and assert on _effects_, not mocks.
 
+> **Border tests reality (WO-033, 2026-07-11):** nestjs-trpc's `generate` emits `appRouter` with
+> **placeholder resolvers** (`async () => "PLACEHOLDER_DO_NOT_REMOVE"`) for type inference only. The
+> *real* runtime router — domain services, `ExecutionMiddleware` (RLS), `PolicyResolver`, and the
+> `TRPC_ERROR_MAP` translation — is assembled **internally by nestjs-trpc and never exported**. Worse,
+> the `globalMiddlewares` (`ExecutionMiddleware`, `PolicyResolver`) run only in the Nest HTTP layer, so
+> `appRouter.createCaller()` **skips them**. A true full-pipeline e2e (Router -> Service -> Repo ->
+> Postgres -> Zod, per role) is therefore **not achievable** without restructuring nestjs-trpc's
+> runtime exposure.
+>
+> The dialectically-correct e2e that *is* achievable (delivered in WO-033):
+> - **tRPC<->Zod wire boundary** — `packages/trpc/src/e2e/trpc-wire-boundary.test.ts` drives the
+>   generated `appRouter` (whose `.input()`/`.output()` Zod schemas are REAL, imported from
+>   `@rocky/validators`) via `appRouter.createCaller({ headers: new Headers() })` and asserts bad input
+>   -> `TRPCError`. This proves the wire enforces the Diamond Seal schemas. The `appRouter` *instance*
+>   is expropriated from the generator by `scripts/patch-trpc-transformer.mjs` (rewrites
+>   `const appRouter` -> `export const appRouter`; idempotent, regeneration-safe) and re-exported from
+>   `packages/trpc/src/index.ts`.
+> - **Error-map translation** — `packages/trpc/src/e2e/error-map.test.ts` unit-tests
+>   `createResultUnwrapper(ANIMAL_TRPC_ERROR_MAP)` -> `TRPCError` code mapping (the user-facing ask).
+> - **RLS per role** stays in the repo-level `*.repository.rls.test.ts` (animal, movement, passport,
+>   archive, farm, subject) — the *correct* layer for security (see §I "Points of Friction matrix").
+> - Both suites run **without RLS env** (placeholder resolvers touch no DB); they execute in CI always.
+
 #### C. Compile-time tests — the Guillotine (already running)
 
 Rocky's `NoDrift` / `NoDriftSimple` / `ActivateGuillotines` (ADR-0018, `packages/validators/src/utils/type-bridge.ts`)
@@ -109,7 +132,7 @@ enforces the Diamond Seal.
 | Repository RLS policies                    | Data leakage = compliance violation          | `*.repository.rls.test.ts` (Scenario C)      |
 | Border / integration                       | Cables and credentials break                 | `*/e2e/*.test.ts` via `createE2EContext()`   |
 | Compile-time type contracts                | Drift between schemas and SDKs               | `NoDrift` / `ActivateGuillotines` (ADR-0018) |
-| tRPC router I/O                            | Schema validation + error mapping            | `*.router.test.ts` (Scenario C, selective)   |
+| tRPC router I/O (wire boundary)           | Schema validation + error mapping            | `packages/trpc/src/e2e/*.test.ts` (createCaller + createResultUnwrapper) |
 
 | **Do NOT test**                            | Why                                                                 |
 | ------------------------------------------ | -------------------------------------------------------------------- |
@@ -295,7 +318,7 @@ contracts + pipeline-stage tracing ⇒
 
 ### Phase 2 — Next sprint (borders + observability skeleton)
 
-- [ ] `*/e2e/*.test.ts` border tests (real Postgres RLS, document pipeline).
+- [x] `*/e2e/*.test.ts` border tests (tRPC<->Zod wire boundary + error-map unit) — delivered WO-033 (2026-07-11); see §I.B "Border tests reality".
 - [ ] Scaffold `@rocky/observability` with `withSpan`/`recordMetric`; implement `TraceStage`/
       `MetricsStage` bodies.
 

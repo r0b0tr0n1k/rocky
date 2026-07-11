@@ -62,6 +62,16 @@ for (const rel of TARGETS) {
     fileChanged = true;
   }
 
+
+  // --- expropriate the appRouter value (idempotent) ---
+  // nestjs-trpc generate emits `const appRouter = t.router({...})` but only
+  // exports the AppRouter *type*. We seize the instance so tests can build a
+  // caller (appRouter.createCaller) for the tRPC<->Zod wire-boundary suite.
+  if (!/export\s+const\s+appRouter\s*=/.test(out)) {
+    out = out.replace(/const\s+appRouter\s*=\s*t\.router\(/, "export const appRouter = t.router(");
+    fileChanged = true;
+  }
+
   if (fileChanged) {
     writeFileSync(file, out);
     changed++;

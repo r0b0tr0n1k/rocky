@@ -33,7 +33,8 @@
     "typescript": "catalog:",
     "@rocky/testing": "workspace:*",
     "vite-tsconfig-paths": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "postgres": "catalog:"
   },
   "scripts": {
     "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",

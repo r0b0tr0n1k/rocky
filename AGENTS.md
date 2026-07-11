@@ -133,7 +133,7 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 | **Auth Bot**          | `packages/auth/`               | Better Auth singleton, session resolution, auth client factory                                                                              |
 | **Authorization Bot** | `packages/authorization/`      | Principal, @Policy decorator system, PolicyRegistry, PolicyEngine                                                                           |
 | **Execution Bot**     | `packages/execution/`          | ExecutionPipeline, RLS stage, RuntimeBuilder, event emitter                                                                                 |
-| **tRPC Bot**          | `packages/trpc/`               | AppRouter types, AppContext, superjson, generated server types                                                                              |
+| **tRPC Bot**          | `packages/trpc/`               | AppRouter types, appRouter instance (tests), AppContext, superjson, generated server types                                                                              |
 | **Frontend Bot**      | `apps/mob/app/`            | Expo tRPC client, components                                                                                                                |
 | **Admin Bot**         | `apps/web/`                    | Next.js admin panel                                                                                                                         |
 | **Docs Bot**          | `apps/docs/`                   | Nextra Docs Theme site (Next.js + Nextra 4); MDX content in `content/`. Architecture ADRs in `apps/docs/content/ADR/` (see ADR 0011/0018/0019) |
@@ -166,7 +166,7 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 
 **Execution Bot** — Owns the execution package in `packages/execution/`. Implements the `ExecutionPipeline` (composable stage chain), `RLSStage` (transaction-scoped `SET LOCAL` for pgPolicy), `RuntimeBuilder` (locale, traceId, tenant), and `ExecutionEventEmitter` (lifecycle events).
 
-**tRPC Bot** — Owns the tRPC transport package in `packages/trpc/`. Maintains the `AppContext` type, generated `AppRouter` type (from nestjs-trpc generate — 23 routers, 154 procedures), superjson transformer, and `createResultUnwrapper()`. `AppRouter` is re-exported from `packages/trpc/src/index.ts`; frontends (web + mobile) consume `AppRouter` for full type safety.
+**tRPC Bot** — Owns the tRPC transport package in `packages/trpc/`. Maintains the `AppContext` type, generated `AppRouter` type (from nestjs-trpc generate — 23 routers, 154 procedures), superjson transformer, and `createResultUnwrapper()`. `AppRouter` is re-exported from `packages/trpc/src/index.ts`; frontends (web + mobile) consume `AppRouter` for full type safety. The `appRouter` *instance* is also re-exported (expropriated from the generator by `scripts/patch-trpc-transformer.mjs`, regeneration-safe) for the tRPC<->Zod wire-boundary test suite (ADR-0020 §I.B).
 
 **Database Bot** — Handles all Drizzle ORM schemas in `@rocky/database`. Manages pgTable definitions, enum chains (constants→pgEnum→zEnum), RLS policies, and migrations via Drizzle Kit.
 
@@ -190,7 +190,7 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 
 **Execution Bot** — Owns the execution package in `packages/execution/`. Implements the `ExecutionPipeline` (composable stage chain), `RLSStage` (transaction-scoped `SET LOCAL` for pgPolicy), `RuntimeBuilder` (locale, traceId, tenant), and `ExecutionEventEmitter` (lifecycle events).
 
-**tRPC Bot** — Owns the tRPC transport package in `packages/trpc/`. Maintains the `AppContext` type, generated `AppRouter` type (from nestjs-trpc generate — 23 routers, 154 procedures), superjson transformer, and `createResultUnwrapper()`. `AppRouter` is re-exported from `packages/trpc/src/index.ts`; frontends (web + mobile) consume `AppRouter` for full type safety.
+**tRPC Bot** — Owns the tRPC transport package in `packages/trpc/`. Maintains the `AppContext` type, generated `AppRouter` type (from nestjs-trpc generate — 23 routers, 154 procedures), superjson transformer, and `createResultUnwrapper()`. `AppRouter` is re-exported from `packages/trpc/src/index.ts`; frontends (web + mobile) consume `AppRouter` for full type safety. The `appRouter` *instance* is also re-exported (expropriated from the generator by `scripts/patch-trpc-transformer.mjs`, regeneration-safe) for the tRPC<->Zod wire-boundary test suite (ADR-0020 §I.B).
 
 **Mobile Bot** — Manages the Expo React Native mobile app in `apps/mob/`. Handles offline-first data entry, local SQLite database, tRPC sync queue, network-aware connectivity, and per-role data scoping. See `apps/mob/AGENTS.md` for offline sync architecture and `models/mobile-schema-profiles.yaml` for SQLite schema profiles. Owns the Mobile ADRs (with Frontend Bot for screens/components) in `apps/docs/content/ADR/` per ADR-0033.
 

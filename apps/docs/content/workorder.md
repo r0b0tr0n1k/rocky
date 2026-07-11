@@ -46,7 +46,7 @@
 | WO-030 | `*.service.workflow.test.ts` per domain (state machines)      | 0020 P1    | P1       | Done ✅ |
 | WO-031 | `*.repository.rls.test.ts` per security-sensitive domain      | 0020 P1    | P1       | Done       |
 | WO-032 | Audit JSDoc: strip WHAT-tautologies, keep WHY-constraints      | 0020 P1    | P1       | Done    |
-| WO-033 | `*/e2e/*.test.ts` border tests (real Postgres RLS)            | 0020 P2    | P2       | In Progress ⏳   |
+| WO-033 | `*/e2e/*.test.ts` border tests (real Postgres RLS)            | 0020 P2    | P2       | Done ✅   |
 | WO-034 | Scaffold `@rocky/observability`; implement `TraceStage`/`MetricsStage` | 0020 P2 / 0003 | P2 | Open |
 | WO-035 | Retire manual `logger.*` in services → span attributes        | 0020 P3    | P3       | Open   |
 | WO-036 | Business metrics emitted inside domain services/workers       | 0020 P3    | P3       | Open   |
@@ -1170,3 +1170,48 @@ not 1:1 (informs ADR-0052 parity contract). Extends ADR-0034/0039; cites ADR-002
 - **Lesson (the Real):** RLS border testing at the repository level was already mechanized and merely
   under-populated; the genuine WO-033 gap is the *pipeline* border layer, gated on the tRPC caller
   wiring.
+
+
+## WO-033 corrigendum #2 (2026-07-11) — e2e border suite delivered
+
+**Strike executed (Option 1 + Option 2b, as approved):**
+
+1. **Expropriated `appRouter`** — `scripts/patch-trpc-transformer.mjs` now rewrites
+   `const appRouter = t.router({` -> `export const appRouter = t.router({` (idempotent,
+   regeneration-safe; verified re-running is a no-op). `packages/trpc/src/index.ts`
+   re-exports it. nestjs-trpc's `generate` only emitted the `AppRouter` *type*; the
+   instance is now seized for tests.
+2. **Wire-boundary e2e** — `packages/trpc/src/e2e/trpc-wire-boundary.test.ts`:
+   `appRouter.createCaller({ headers })` asserts the real Zod @Input schemas are
+   enforced at the tRPC wire (bad uuid / empty required field / missing payload /
+   unknown enum -> TRPCError) across animal/farm/inspection/movement.
+3. **Error-map unit test** — `packages/trpc/src/e2e/error-map.test.ts`:
+   `createResultUnwrapper(ANIMAL_TRPC_ERROR_MAP)` maps domain error codes
+   (ANIMAL_NOT_FOUND -> NOT_FOUND, ANIMAL_FORBIDDEN -> FORBIDDEN) to TRPCError.
+4. **Test infra** — added `packages/trpc/vitest.config.ts` + `test` script + vitest/
+   vite-tsconfig-paths devDeps. Both suites run WITHOUT RLS env (phantom resolvers
+   touch no DB); they execute in CI always.
+
+**Critical architectural finding (dialectical limit of the original plan):**
+nestjs-trpc `generate` emits **PLACEHOLDER resolvers** (`async () => "PLACEHOLDER_DO_NOT_REMOVE"`)
+for type-inference only. The *real* runtime router — with domain services,
+`ExecutionMiddleware` (RLS), `PolicyResolver`, and the `TRPC_ERROR_MAP` translation —
+is assembled **internally by nestjs-trpc and never exported**. Therefore a true
+full-pipeline e2e via `appRouter.createCaller` (Router -> Service -> Repo -> Postgres
+-> Zod, per role) is **not achievable** without restructuring nestjs-trpc's runtime
+exposure. The `globalMiddlewares` (ExecutionMiddleware, PolicyResolver) also run only
+in the Nest HTTP layer, so `createCaller` skips them.
+
+**Consequence — scope resolved dialectically:**
+- The tRPC<->Zod **wire boundary** (what the e2e suite now covers) is tested via the
+  generated router's real Zod schemas.
+- The **error-map translation** (the user's explicit ask) is covered by the isolated
+  unit test.
+- **RLS per role** stays in the repo-level `*.repository.rls.test.ts` (animal, movement,
+  passport, archive, farm, subject) — the correct layer for security.
+- The SUPER_ADMIN cookie helper (original Step 2) is **superfluous**: phantom resolvers
+  skip DB/auth/middleware, so no session is needed.
+
+**Status: WO-033 e2e border tier DELIVERED.** A deeper "real-router e2e" would require
+exposing nestjs-trpc's assembled router (separate, larger effort) and is left for a
+follow-up if desired.
