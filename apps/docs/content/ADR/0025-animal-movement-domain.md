@@ -1,9 +1,15 @@
 # ADR-0025: Animal Registration & Movement Rules
 
-**Status:** Accepted
-**Date:** 2026-07-08
-**Author:** RobotFarm (Animal Bot + Movement Bot)
-**Supersedes:** N/A
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-08 |
+| **Author** | RobotFarm (Animal Bot + Movement Bot) |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
+
 **Superseded by:** N/A
 **Source of truth:** `docs/old/fs2.md` (registration & movements), `docs/old/workflow.md` (movement workflow instances)
 

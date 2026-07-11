@@ -1,8 +1,14 @@
 # ADR-0013: Principal Caching Strategy
 
-**Status:** Accepted  
-**Date:** 2026-07-06  
-**Author:** RobotFarm
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-06 |
+| **Author** | RobotFarm |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
 
 ## Context
 

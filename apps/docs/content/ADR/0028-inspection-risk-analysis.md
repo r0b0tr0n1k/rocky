@@ -1,9 +1,15 @@
 # ADR-0028: Risk Analysis & On-Spot Inspection
 
-**Status:** Accepted
-**Date:** 2026-07-08
-**Author:** RobotFarm (Inspection Bot)
-**Supersedes:** N/A
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-08 |
+| **Author** | RobotFarm (Inspection Bot) |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
+
 **Superseded by:** N/A
 **Source of truth:** `docs/old/an_ea.md` (risk analysis), `docs/old/workflow.md` (Instance 18)
 

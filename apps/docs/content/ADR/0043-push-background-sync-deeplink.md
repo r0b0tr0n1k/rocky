@@ -1,19 +1,21 @@
----
-title: ADR-0043 — Push Notifications, Background Sync & Deep-link (Mobile)
-status: accepted
-date: 2026-07-09
-deciders: [Rocky Architecture Board]
-tags: [frontend, mobile, notifications, sync, deeplink, background, adr-standard, client-surface]
----
+# ADR-0043: Push Notifications, Background Sync & Deep-link (Mobile)
 
-# ADR-0043 — Push Notifications, Background Sync & Deep-link (Mobile)
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-09 |
+| **Author** | Rocky Architecture Board |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
 
 > Client-surface ADR (standard: ADR-0033). The mobile real-time/background story: how Rocky
 > *addresses* the field worker (push), how it *keeps data fresh offline* (background sync), and how an
 > external address *resolves* to a screen (deep-link). *sniffs* — today the worker is addressed only when
 > they remember to open the tab; the Big Other (server) whispers, but the subject is not listening.
 
-## 1. Context (verified)
+## Context (verified)
 
 - **Server notifications exist.** `apps/api/src/routers/notification.router.ts` exposes `unreadCount`
   (query), `send`, and `markAsRead` (mutations). The DB has `sm/notifications`, `sm/notification-deliveries`,
@@ -40,7 +42,7 @@ that delivery stops at the database — the worker only learns of it on their ne
 mediation. Background sync is the suture between online and offline; deep-link is the mapping of the Symbolic
 address (URL) onto the Real of the screen.
 
-## 2. Decision
+## Decision
 
 1. **Push notifications** — register an Expo push token on login (store against the user/device), have the server
    emit an Expo push when a notification row is created, and on receipt route the payload through a
@@ -107,7 +109,7 @@ resolver → route; background-fetch drains the sync queue. Red nodes are the pr
   deep-linked entity is not cached, show the `Skeleton`/`Empty` UX (ADR-0041) and queue a background fetch
   (§4) rather than a hard failure.
 
-## 6. Consequences
+## Consequences
 
 |                     | Today                        | Proposed                              | Server        |
 |---------------------|------------------------------|---------------------------------------|---------------|
@@ -130,7 +132,7 @@ resolver → route; background-fetch drains the sync queue. Red nodes are the pr
 - All three are **client-only** additions; the server notification/sync contracts are unchanged (ADR-0036/0015). The
   gaps are precisely the missing mobile halves — encoded as WO-091/092/093.
 
-## 7. Implementation Notes
+## Implementation
 
 - **WO-091:** add `expo-notifications`; register token on login (store on `notification-preferences`/device table);
   server emits Expo push on notification creation (respect opt-outs); receipt routes via deep-link resolver.
@@ -140,7 +142,7 @@ resolver → route; background-fetch drains the sync queue. Red nodes are the pr
   ADR-0036 cache + ADR-0041 `Skeleton`/`Empty`.
 - Keep the `rocky` scheme (already in `app.json`); extend its *use* beyond the auth callback.
 
-## 8. Verification
+## Verification
 
 ```bash
 # Push deps present + token registration on login:
@@ -153,7 +155,7 @@ rg -n "linking|addNotificationReceivedListener|getLastNotificationResponseAsync|
 rg -n "unreadCount|markAsRead|send" apps/api/src/routers/notification.router.ts
 ```
 
-## 9. References
+## References
 
 - ADR-0036 (Offline-first Sync Architecture — transport + cache this ADR's background sync depends on).
 - ADR-0015 (Mobile PDA Sync — seed for the sync router, WO-081).
@@ -166,7 +168,7 @@ rg -n "unreadCount|markAsRead|send" apps/api/src/routers/notification.router.ts
 
 - **ADR-0032** (tRPC `AppRouter` / `superjson` — push notifications and background sync emit through the same `AppRouter` the client consumes; `TRPCError` surfaces as a toast per ADR-0041).
 
-## 10. Implementation Status (2026-07-11)
+## Implementation Status (2026-07-11)
 
 All three keystones (WO-091/092/093) are **built and typecheck-clean**; the epic is code-complete. Native behavior
 (push receipt, deep-link routing, background fetch) is only provable on a device and is folded into the WO-082

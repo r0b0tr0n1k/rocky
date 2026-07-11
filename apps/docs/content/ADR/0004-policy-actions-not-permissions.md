@@ -1,11 +1,12 @@
 # ADR-0004: Policy Actions, Not Permissions
 
-| Key            | Value               |
-| -------------- | ------------------- |
-| **Status**     | Accepted            |
-| **Date**       | 2026-07-05          |
-| **Author**     | Architecture Review |
-| **Supersedes** | None                |
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-05 |
+| **Author** | Architecture Review |
+| **Supersedes** | None |
+| **Superseded** | None |
 
 ---
 

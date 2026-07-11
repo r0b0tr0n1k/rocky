@@ -1,9 +1,14 @@
 # ADR-0014: Cross-Domain Event Decoupling via Outbox
 
-**Status:** Accepted  
-**Date:** 2026-07-06  
-**Author:** RobotFarm  
-**Supersedes:** Direct `InspectionRepository` call in `HealthService`
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-06 |
+| **Author** | RobotFarm |
+| **Supersedes** | Direct `InspectionRepository` call in `HealthService` |
+| **Superseded** | None |
+
+---
 
 ## Context
 

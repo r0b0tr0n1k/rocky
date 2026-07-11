@@ -1,9 +1,15 @@
-# ADR 0018: API Validator Schema Design (Diamond Seal Guillotines)
+# ADR-0018: API Validator Schema Design (Diamond Seal Guillotines)
 
-**Status:** Accepted
-**Date:** 2026-07-07
-**Author:** RobotFarm (Validation Bot)
-**Supersedes:** N/A
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-07 |
+| **Author** | RobotFarm (Validation Bot) |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
+
 **Superseded by:** N/A
 
 ## Context

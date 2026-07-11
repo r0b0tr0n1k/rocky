@@ -1,12 +1,12 @@
 # ADR-0036: Offline-first Sync Architecture (Mobile)
 
-| Key            | Value                                                                 |
-| -------------- | -------------------------------------------------------------------- |
-| **Status**     | Accepted                                                            |
-| **Date**       | 2026-07-09                                                          |
-| **Author**     | Architecture Review                                                 |
-| **Supersedes** | None (ADR-0015 is the seed spec)                                    |
-| **Superseded** | None                                                                |
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-09 |
+| **Author** | Architecture Review |
+| **Supersedes** | None (ADR-0015 is the seed spec) |
+| **Superseded** | None |
 
 ---
 

@@ -1,12 +1,12 @@
 # ADR-0037: Design System & Theming (Web & Mobile)
 
-| Key            | Value                                                                 |
-| -------------- | -------------------------------------------------------------------- |
-| **Status**     | Accepted                                                            |
-| **Date**       | 2026-07-09                                                          |
-| **Author**     | Architecture Review                                                 |
-| **Supersedes** | None                                                                |
-| **Superseded** | None                                                                |
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-09 |
+| **Author** | Architecture Review |
+| **Supersedes** | None |
+| **Superseded** | None |
 
 ---
 

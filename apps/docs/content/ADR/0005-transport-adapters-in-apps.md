@@ -1,11 +1,12 @@
 # ADR-0005: Transport Adapters in `apps/api/adapters/`
 
-| Key            | Value               |
-| -------------- | ------------------- |
-| **Status**     | Accepted            |
-| **Date**       | 2026-07-05          |
-| **Author**     | Architecture Review |
-| **Supersedes** | None                |
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-05 |
+| **Author** | Architecture Review |
+| **Supersedes** | None |
+| **Superseded** | None |
 
 ---
 

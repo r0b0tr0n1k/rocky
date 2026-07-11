@@ -1,18 +1,20 @@
----
-title: ADR-0039 — Navigation & Routing (Web + Mobile)
-status: accepted
-date: 2026-07-09
-deciders: [Rocky Architecture Board]
-tags: [frontend, mobile, navigation, routing, adr-standard, client-surface]
----
+# ADR-0039: Navigation & Routing (Web + Mobile)
 
-# ADR-0039 — Navigation & Routing (Web + Mobile)
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-09 |
+| **Author** | Rocky Architecture Board |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
 
 > Client-surface ADR (standard: ADR-0033). Documents how `apps/web` and `apps/mob`
 > route and gate navigation, and how permission-aware nav is *supposed* to work on both —
 > versus what actually runs today (see WO-089).
 
-## 1. Context
+## Context
 
 Web routing is **file-based** Next.js App Router under `apps/web/app`:
 
@@ -51,7 +53,7 @@ surface** (the web filter fail-opens; mobile tabs are unconditional). The *serve
 (ADR-0022) is the only enforcement. WO-089 proposes correcting this. This ADR documents the intended
 standard and the present gap.
 
-## 2. Decision
+## Decision
 
 1. **Web uses file-based routing** + `(admin)` route group + `AdminShell`. No `middleware.ts`.
 2. **Mobile uses Expo Router** + a single `Stack` (`(auth)` | `(tabs)`) gated by `SessionProvider`;
@@ -100,7 +102,7 @@ Permissions *should* reach the client from the server-side `PrincipalResolver` (
 means no `customSession` exists and permissions never reach the client**, so `session.permissions` is **empty** — the filter never fires. **WO-089 re-enables it.** Until
 then, **never** hardcode permission logic; derive visibility from the session (once populated).
 
-## 4. Consequences
+## Consequences
 
 |             | Web                  | Mobile           |
 |-------------|----------------------|------------------|
@@ -128,13 +130,13 @@ then, **never** hardcode permission logic; derive visibility from the session (o
   surface** (web filter dead/fail-open; mobile unfiltered). The contradiction: backend enriches
   `permissions`, but the client session was split out of it (WO-089).
 
-## 5. Implementation Notes
+## Implementation
 
 - **Web requires a change after all**: re-enable `session.permissions` via a `rbac.myPermissions` query (WO-089) so the
   existing `filterNavByPermissions` actually fires. Mobile: filter tabs (WO-085).
 - After WO-089, both surfaces derive nav visibility from `session.permissions` — no hardcoded gating.
 
-## 6. Verification
+## Verification
 
 ```bash
 # Web filter EXISTS but FAIL-OPENS today (session.permissions empty on client) — WO-089
@@ -147,7 +149,7 @@ rg -n "myPermissions" apps/api/src/routers/rbac.router.ts
 rg -n "customSession" packages/auth/src/better-auth.ts   # expect: 0 matches
 ```
 
-## 7. References
+## References
 
 - ADR-0017 (frontend architecture — "users see only permitted rooms").
 - ADR-0021 / ADR-0022 (Better Auth + Policy Engine).

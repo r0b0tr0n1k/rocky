@@ -1,9 +1,15 @@
 # ADR-0031: IoT & Connectivity Abstraction (Optional, Future-Facing)
 
-**Status:** Accepted
-**Date:** 2026-07-08
-**Author:** RobotFarm (IoT Bot)
-**Supersedes:** N/A
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-08 |
+| **Author** | RobotFarm (IoT Bot) |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
+
 **Superseded by:** N/A
 **Source of truth:** `docs/old/future.md` (IoT vision); current `packages/domains/iot` + `packages/database/src/constants/transmission-type.ts`
 

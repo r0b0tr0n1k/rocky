@@ -1,12 +1,14 @@
----
-title: ADR-0046 — Inspections / Corrections Domain Feature (Web + Mobile)
-status: proposed
-date: 2026-07-09
-deciders: [Rocky Architecture Board]
-tags: [frontend, mobile, domain, inspection, correction, adr-standard, client-surface]
----
+# ADR-0046: Inspections / Corrections Domain Feature (Web + Mobile)
 
-# ADR-0046 — Inspections / Corrections Domain Feature (Web + Mobile)
+| Key | Value |
+| --- | --- |
+| **Status** | Proposed |
+| **Date** | 2026-07-09 |
+| **Author** | Rocky Architecture Board |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
 
 > Client-surface domain ADR (standard: ADR-0033; third of 0044+). Inspections is where the **field meets
 > surveillance**: a VI completes an on-spot inspection (offline), which is archived (ADR-0029) and may have been
@@ -14,7 +16,7 @@ tags: [frontend, mobile, domain, inspection, correction, adr-standard, client-su
 > *sniffs* — the inspection is born from a diseased animal (Health) and dies into the archive; the client must
 > make that lifecycle *visible* without re-enforcing the rules the server already owns.
 
-## 1. Context (verified)
+## Context (verified)
 
 **Mobile `inspections/`** (`apps/mob/app/(tabs)/inspections/`): `index.tsx`, `[id].tsx`. **No `new.tsx`** —
 creating/scheduling an inspection is a VI/admin action performed on web. The mobile `[id]` screen *completes* an
@@ -46,7 +48,7 @@ risk-analysis surface. **Web `corrections/`**: `page.tsx` (list, with detail inl
   inspection case (ADR-0026/0045). The client should surface "Farm flagged for inspection".
 - *Outbound:* inspection completion → `archiveInspectionForm()` (3-year retention, ADR-0029). Toast on completion.
 
-## 2. Decision (the inspections/corrections feature standard)
+## Decision (the inspections/corrections feature standard)
 
 1. **One schema, two surfaces, one contract** (ADR-0038): web `new`/`[id]` and mobile `[id]` both call the same
    Diamond Seal `*RequestSchema` (`createInspectionRequestSchema`, `completeInspectionRequestSchema`,
@@ -136,7 +138,7 @@ The VI completes inspections in the field with no signal — `completeInspection
 It must queue (WO-082) and sync (WO-081); the `[id]` detail must render from cache offline (ADR-0041).
 Corrections are office-driven, so offline is view-only.
 
-## 6. Consequences
+## Consequences
 
 |                     | Web                                | Mobile                                    | Server        |
 |---------------------|------------------------------------|-------------------------------------------|---------------|
@@ -162,7 +164,7 @@ Corrections are office-driven, so offline is view-only.
 - Inspections is the *consumer* of Health's notifiable trigger and the *producer* of Archive entries — the
   cross-domain spine of surveillance. The client's job is to make that spine *legible*, not to re-decide it.
 
-## 7. Implementation Notes
+## Implementation
 
 - Reuse trunk WOs: **WO-081** (sync router), **WO-082** (offline cache + queue), **WO-085** (tab filter),
   **WO-086** (i18n — inspection form labels, 9 CheckedAnimal sections), **WO-087** (web UX boundaries),
@@ -173,7 +175,7 @@ Corrections are office-driven, so offline is view-only.
 - Forms: extend `zodResolver(createXxxRequestSchema)` to `completeInspection` + correction views (mirror
   `animals/create`, ADR-0038).
 
-## 8. Verification
+## Verification
 
 ```bash
 # Inspection router: auth-only CRUD + analysis:read/run gating:
@@ -186,7 +188,7 @@ rg -n "flagFarmForInspection|archiveInspectionForm" packages/domains/inspection/
 rg -n "completeInspectionRequestSchema|createCorrectionRequestSchema" apps/mob apps/web
 ```
 
-## 9. References
+## References
 
 - ADR-0028 (Inspection Risk Analysis — weighted 10% selection, on-spot lifecycle, form gen, `analysis:read/run`).
 - ADR-0029 (Passport/Archive — `archiveInspectionForm` 3-yr retention).

@@ -1,12 +1,12 @@
 # ADR-0032: tRPC Transport Architecture & Mandatory `@Output` Schemas (Preventing TS6059 & Circular Dependencies)
 
-| Key            | Value                              |
-| -------------- | --------------------------------- |
-| **Status**     | Accepted                          |
-| **Date**       | 2026-07-08                       |
-| **Author**     | Architecture Review              |
-| **Supersedes** | None                             |
-| **Superseded** | None                             |
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-08 |
+| **Author** | Architecture Review |
+| **Supersedes** | None |
+| **Superseded** | None |
 
 ---
 

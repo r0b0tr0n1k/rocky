@@ -1,9 +1,15 @@
 # ADR-0027: Farm & Holder (HK) Domain + Subject Roles
 
-**Status:** Accepted
-**Date:** 2026-07-08
-**Author:** RobotFarm (Farm Bot)
-**Supersedes:** N/A
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-08 |
+| **Author** | RobotFarm (Farm Bot) |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
+
 **Superseded by:** N/A
 **Source of truth:** `docs/old/hk.md` (holders/farms), `docs/old/fs2.md` (registration)
 

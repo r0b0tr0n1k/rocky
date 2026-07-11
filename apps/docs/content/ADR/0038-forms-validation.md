@@ -1,12 +1,12 @@
 # ADR-0038: Forms & Validation (Web & Mobile)
 
-| Key            | Value                                                                 |
-| -------------- | -------------------------------------------------------------------- |
-| **Status**     | Accepted                                                            |
-| **Date**       | 2026-07-09                                                          |
-| **Author**     | Architecture Review                                                 |
-| **Supersedes** | None (codifies ADR-0017's "Form IS the API Contract" thesis)       |
-| **Superseded** | None                                                                |
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-09 |
+| **Author** | Architecture Review |
+| **Supersedes** | None (codifies ADR-0017's "Form IS the API Contract" thesis) |
+| **Superseded** | None |
 
 ---
 

@@ -1,9 +1,15 @@
 # ADR-0030: Jurisdiction-Configurable Rule Engine
 
-**Status:** Accepted
-**Date:** 2026-07-08
-**Author:** RobotFarm (Overseer)
-**Supersedes:** N/A (reframes ADR-0023's "source of truth" premise)
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-08 |
+| **Author** | RobotFarm (Overseer) |
+| **Supersedes** | N/A (reframes ADR-0023's "source of truth" premise) |
+| **Superseded** | None |
+
+---
+
 **Superseded by:** N/A
 **Source of truth:** `docs/old/*.md` are the **reference MK jurisdiction instance**, not universal law (decided 2026-07-08)
 

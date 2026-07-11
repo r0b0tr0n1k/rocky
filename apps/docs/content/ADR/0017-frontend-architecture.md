@@ -1,8 +1,14 @@
 # ADR-0017: Frontend Architecture — Type-Safe Admin Shell on the Diamond Seal
 
-**Status:** Accepted
-**Date:** 2026-07-07
-**Author:** RobotFarm
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-07 |
+| **Author** | RobotFarm |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
 
 ## Context
 

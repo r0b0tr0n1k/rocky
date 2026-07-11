@@ -1,12 +1,12 @@
 # ADR-0041: Error / Empty / Loading UX (Web & Mobile)
 
-| Key            | Value                                                                 |
-| -------------- | -------------------------------------------------------------------- |
-| **Status**     | Accepted                                                            |
-| **Date**       | 2026-07-09                                                          |
-| **Author**     | Architecture Review                                                 |
-| **Supersedes** | None                                                                |
-| **Superseded** | None                                                                |
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-09 |
+| **Author** | Architecture Review |
+| **Supersedes** | None |
+| **Superseded** | None |
 
 ---
 

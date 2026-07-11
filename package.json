@@ -20,6 +20,7 @@
     "generate:zod": "node scripts/generate-dumb-zod.mjs",
     "generate:all": "node scripts/regenerate-enums.mjs && node scripts/generate-dumb-zod.mjs",
     "check:trpc-boundary": "node scripts/check-trpc-boundary.mjs",
+    "check:adrs": "node scripts/check-adrs.mjs",
     "ci:checks": "pnpm generate:trpc && pnpm check:trpc-boundary && pnpm test"
   },
   "devDependencies": {

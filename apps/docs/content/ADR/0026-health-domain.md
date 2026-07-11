@@ -1,9 +1,15 @@
 # ADR-0026: Health & Disease Domain
 
-**Status:** Accepted
-**Date:** 2026-07-08
-**Author:** RobotFarm (Health Bot)
-**Supersedes:** N/A
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-08 |
+| **Author** | RobotFarm (Health Bot) |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
+
 **Superseded by:** N/A
 **Source of truth:** `docs/old/deseases.md` (diseases, vaccinations, treatments)
 

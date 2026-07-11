@@ -1,8 +1,14 @@
 # ADR-0016: Subversive Audit Metadata Injection
 
-**Status:** Accepted  
-**Date:** 2026-07-06  
-**Author:** RobotFarm
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-06 |
+| **Author** | RobotFarm |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
 
 ## Context
 

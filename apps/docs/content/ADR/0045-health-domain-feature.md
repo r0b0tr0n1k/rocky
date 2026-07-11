@@ -1,12 +1,14 @@
----
-title: ADR-0045 — Health Domain Feature (Web + Mobile)
-status: proposed
-date: 2026-07-09
-deciders: [Rocky Architecture Board]
-tags: [frontend, mobile, domain, health, vaccination, treatment, disease, adr-standard, client-surface]
----
+# ADR-0045: Health Domain Feature (Web + Mobile)
 
-# ADR-0045 — Health Domain Feature (Web + Mobile)
+| Key | Value |
+| --- | --- |
+| **Status** | Proposed |
+| **Date** | 2026-07-09 |
+| **Author** | Rocky Architecture Board |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
 
 > Client-surface domain ADR (standard: ADR-0033; second of 0044+). Health is the **second field-critical
 > domain**: vaccination and treatment are recorded in the field (offline), and a notifiable-disease treatment
@@ -14,7 +16,7 @@ tags: [frontend, mobile, domain, health, vaccination, treatment, disease, adr-st
 > vaccination with no signal; the Symbolic act (server mutation + inspection flag) must still arrive, or the
 > Real of disease surveillance collapses.
 
-## 1. Context (verified)
+## Context (verified)
 
 **Mobile `health/` tab** (`apps/mob/app/(tabs)/health/`): `index.tsx`, `vaccination.tsx`, `treatment.tsx`,
 `lab-test.tsx` (+ `_layout.tsx`). Covers vaccination, treatment, lab-test recording, and a list. **No disease
@@ -54,7 +56,7 @@ inspection").
 sync transport exists (pending promotion to the top-level `sync` router, WO-081) and must be wired to the mobile
 queue (WO-082).
 
-## 2. Decision (the health feature standard)
+## Decision (the health feature standard)
 
 1. **One operation, two surfaces, one schema** (ADR-0038): mobile split screens and the web aggregated page both
    call the same Diamond Seal `*RequestSchema` (`recordVaccinationRequestSchema`, etc.).
@@ -145,7 +147,7 @@ Health recording is _why_ offline-first matters for surveillance. `syncDownload`
 notifiable-disease → inspection flag must survive the offline→sync round-trip (the server re-evaluates on
 upload).
 
-## 6. Consequences
+## Consequences
 
 |                     | Web                              | Mobile                                       | Server        |
 |---------------------|----------------------------------|----------------------------------------------|---------------|
@@ -169,7 +171,7 @@ upload).
 - Health reveals that ADR-0042's flat-`permission` `useCan` is insufficient alone; a `clientCanRole` variant is
   required for role+RuleSet domains. This refinement should fold back into ADR-0042 / WO-089.
 
-## 7. Implementation Notes
+## Implementation
 
 - Reuse trunk WOs: **WO-081** (sync router), **WO-082** (offline cache + queue), **WO-085** (tab filter),
   **WO-086** (i18n — disease/vaccine labels), **WO-087** (web UX boundaries), **WO-088** (mobile `Empty`/sonner),
@@ -179,7 +181,7 @@ upload).
   confirm `session.roles` population (drift check); surface the notifiable→inspection toast.
 - Fold `clientCanRole` back into `@rocky/authorization` + ADR-0042 (role+RuleSet variant of `useCan`).
 
-## 8. Verification
+## Verification
 
 ```bash
 # Health router is auth-only (no flat health:* permission literal):
@@ -192,7 +194,7 @@ rg -n "recordVaccinationRequestSchema|recordTreatmentRequestSchema|recordLabTest
 rg -n "syncDownload|syncUpload" apps/api/src/routers/health.router.ts
 ```
 
-## 9. References
+## References
 
 - ADR-0026 (Health Domain — disease/vaccine/treatment/lab, `RuleSet.administerRoles`, notifiable→inspection).
 - ADR-0015 (Mobile PDA Sync), ADR-0036 (Offline-first), ADR-0035 (Rendering).

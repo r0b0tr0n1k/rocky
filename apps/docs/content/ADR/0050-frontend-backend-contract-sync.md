@@ -1,12 +1,14 @@
 # ADR-0050: Frontend ↔ Backend Contract Synchronization
 
-| Key            | Value                                                                 |
-| -------------- | -------------------------------------------------------------------- |
-| **Status**     | Proposed                                                            |
-| **Date**       | 2026-07-09                                                          |
-| **Deciders**   | RobotFarm Overseer, API Bot, Auth Bot, Authorization Bot, Frontend Bot, Mobile Bot, Docs Bot |
-| **Supersedes** | —                                                                  |
-| **Superseded** | —                                                                  |
+| Key | Value |
+| --- | --- |
+| **Status** | Proposed |
+| **Date** | 2026-07-09 |
+| **Author** | Architecture Review |
+| **Supersedes** | — |
+| **Superseded** | — |
+
+---
 
 ## Context
 

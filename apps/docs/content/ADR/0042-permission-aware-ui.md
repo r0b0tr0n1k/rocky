@@ -1,19 +1,20 @@
----
-title: ADR-0042 — Permission-Aware UI (Web + Mobile)
-status: accepted
-date: 2026-07-09
-updated: 2026-07-09
-deciders: [Rocky Architecture Board]
-tags: [frontend, mobile, authorization, rbac, permissions, adr-standard, client-surface]
----
+# ADR-0042: Permission-Aware UI (Web + Mobile)
 
-# ADR-0042 — Permission-Aware UI (Web + Mobile)
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-09 |
+| **Author** | Rocky Architecture Board |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
 
 > Client-surface ADR (standard: ADR-0033). The corrective design that completes ADR-0039's
 > "permission-gated navigation" standard and realizes ADR-0017's "users see only permitted rooms".
 > _sniffs_ — the client was permission-blind by design; this ADR makes the permitted rooms _visible_.
 
-## 1. Context
+## Context
 
 The **backend is correctly permission-aware** (ADR-0021 / ADR-0022):
 
@@ -51,7 +52,7 @@ by a `403`, with no prior signal. The **Real** is that the client cannot even _s
 because no permission source reaches it. The web filter's fail-open is the symptom — it _looks_ like
 permission-gating while doing nothing. ADR-0042 proposes to make the Visible equal to the Enforced.
 
-## 2. Decision
+## Decision
 
 **Deliver permissions to the client _without_ re-coupling auth ↔ RBAC; keep the server authoritative.**
 
@@ -185,7 +186,7 @@ user as a `sonner` toast (WO-088), not a swallowed promise rejection (`session-p
 API-unreachable is the anti-pattern to retire). So the Real (server denial) surfaces gracefully, while the
 Imaginary (visible permitted rooms) is finally honest.
 
-## 7. Consequences
+## Consequences
 
 |                          | Web                    | Mobile                 | Server              |
 |--------------------------|------------------------|------------------------|---------------------|
@@ -213,7 +214,7 @@ Imaginary (visible permitted rooms) is finally honest.
   _intent_; ADR-0042 supplies the _mechanism_ (WO-089). Until WO-089 lands, ADR-0039's web "compliant" claim is
   void — which is exactly why ADR-0039 was corrected to call the filter dead.
 
-## 8. Implementation Notes
+## Implementation
 
 - **Server (WO-089):** add `myPermissions` query to the existing `rbac` router; inject `PrincipalResolver`
   (AuthorizationModule) and return `principal.permissions`. Do **not** add `customSession` to
@@ -225,7 +226,7 @@ Imaginary (visible permitted rooms) is finally honest.
   actions; wrap app in `PermissionsProvider`.
 - **Both:** `sonner` toast on `403` (WO-088); stop swallowing API errors in `session-provider.tsx`.
 
-## 9. Verification
+## Verification
 
 ```bash
 # Server delivers permissions via a domain query (NOT customSession):
@@ -342,7 +343,7 @@ The correct fix is **not** to populate it (that would re-couple auth<->RBAC, rej
 `better-auth.d.ts` to stop promising a runtime contract that will never exist — the client source of truth
 is the `PermissionsProvider` context, not the session type.
 
-## 10. References
+## References
 
 - ADR-0017 (frontend architecture — "users see only permitted rooms").
 - ADR-0021 (Better Auth configuration) / ADR-0022 (Authorization Policy Engine — server enforcement).

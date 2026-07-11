@@ -1,11 +1,12 @@
 # ADR-0008: Testing Doctrine — Diamond Seal Testing Infrastructure
 
-| Key            | Value               |
-| -------------- | ------------------- |
-| **Status**     | Accepted            |
-| **Date**       | 2026-07-05          |
-| **Author**     | Architecture Review |
-| **Supersedes** | None                |
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-05 |
+| **Author** | Architecture Review |
+| **Supersedes** | None |
+| **Superseded** | None |
 
 ---
 

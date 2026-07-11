@@ -1,12 +1,12 @@
 # ADR-0035: Rendering & Data-Fetching Standard (Web & Mobile)
 
-| Key            | Value                                                                 |
-| -------------- | -------------------------------------------------------------------- |
-| **Status**     | Accepted                                                            |
-| **Date**       | 2026-07-09                                                          |
-| **Author**     | Architecture Review                                                 |
-| **Supersedes** | None                                                                |
-| **Superseded** | None                                                                |
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-09 |
+| **Author** | Architecture Review |
+| **Supersedes** | None |
+| **Superseded** | None |
 
 ---
 

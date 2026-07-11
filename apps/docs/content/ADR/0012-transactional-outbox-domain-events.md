@@ -1,9 +1,14 @@
 # ADR-0012: Transactional Outbox for Domain Events
 
-**Status:** Accepted  
-**Date:** 2026-07-06  
-**Author:** RobotFarm  
-**Supersedes:** ADR-0007 (Audit via Lifecycle Events)
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-06 |
+| **Author** | RobotFarm |
+| **Supersedes** | ADR-0007 (Audit via Lifecycle Events) |
+| **Superseded** | None |
+
+---
 
 ## Context
 

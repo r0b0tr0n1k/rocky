@@ -1,9 +1,14 @@
-# ADR 0010: Date Coercion Architecture
+# ADR-0010: Date Coercion Architecture
 
-**Status:** Accepted (Updated 2026-07-07)
-**Date:** 2026-07-05
-**Author:** RobotFarm
-**Supersedes:** N/A
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-05 |
+| **Author** | RobotFarm |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
 
 ## Context
 

@@ -1,9 +1,14 @@
-# ADR 0011: Diamond Seal Layer Boundaries
+# ADR-0011: Diamond Seal Layer Boundaries
 
-**Status:** Accepted
-**Date:** 2026-07-05
-**Author:** RobotFarm
-**Supersedes:** N/A
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-05 |
+| **Author** | RobotFarm |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
 
 ## Context
 

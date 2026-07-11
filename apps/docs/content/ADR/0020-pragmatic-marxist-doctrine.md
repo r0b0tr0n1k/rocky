@@ -1,9 +1,15 @@
 # ADR-0020: Pragmatic Marxist Doctrine for Testing, Documentation, and Observability
 
-**Status:** Accepted
-**Date:** 2026-07-08
-**Author:** RobotFarm (Overseer)
-**Supersedes:** N/A
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-08 |
+| **Author** | RobotFarm (Overseer) |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
+
 **Superseded by:** N/A
 
 > _"The philosophers have only interpreted the codebase; the point is to automate it."_

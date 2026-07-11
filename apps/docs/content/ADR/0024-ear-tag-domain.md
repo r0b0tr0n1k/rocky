@@ -1,9 +1,15 @@
 # ADR-0024: Ear Tag Order Lifecycle & Numbering
 
-**Status:** Accepted
-**Date:** 2026-07-08
-**Author:** RobotFarm (EarTag Bot)
-**Supersedes:** N/A
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-08 |
+| **Author** | RobotFarm (EarTag Bot) |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
+
 **Superseded by:** N/A
 **Source of truth:** `docs/old/fs.md` (ear-tag process flows), `docs/old/an_ea.md` (Eartags DB schema), `FS - eartags_MK(v1.0).pdf p6`
 

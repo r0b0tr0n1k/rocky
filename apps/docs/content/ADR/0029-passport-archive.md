@@ -1,9 +1,15 @@
 # ADR-0029: Passport Lifecycle & Archive Retention
 
-**Status:** Accepted
-**Date:** 2026-07-08
-**Author:** RobotFarm (Passport Bot + Archive Bot)
-**Supersedes:** N/A
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-08 |
+| **Author** | RobotFarm (Passport Bot + Archive Bot) |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
+
 **Superseded by:** N/A
 **Source of truth:** `docs/old/workflow.md` (Instances 11/14/17), `docs/old/future.md`
 

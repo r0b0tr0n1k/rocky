@@ -1,9 +1,15 @@
 # ADR-0022: Authorization Policy Engine
 
-**Status:** Accepted
-**Date:** 2026-07-08
-**Author:** RobotFarm (Authorization Bot)
-**Supersedes:** N/A
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-08 |
+| **Author** | RobotFarm (Authorization Bot) |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
+
 **Superseded by:** N/A
 
 ## Context

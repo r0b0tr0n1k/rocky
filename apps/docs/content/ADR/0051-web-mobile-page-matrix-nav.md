@@ -1,12 +1,14 @@
 # ADR-0051: Web ↔ Mobile Page Matrix & Navigation Logic
 
-| Key            | Value                                                                 |
-| -------------- | -------------------------------------------------------------------- |
-| **Status**     | Proposed                                                            |
-| **Date**       | 2026-07-09                                                          |
-| **Deciders**   | Frontend Bot, Mobile Bot, UI Bot, Auth Bot, Authorization Bot, Docs Bot |
+| Key | Value |
+| --- | --- |
+| **Status** | Proposed |
+| **Date** | 2026-07-09 |
+| **Author** | Architecture Review |
 | **Supersedes** | extends ADR-0034 (Client Surface Inventory), ADR-0039 (Navigation) |
-| **Superseded** | —                                                                  |
+| **Superseded** | — |
+
+---
 
 ## Context
 

@@ -1,9 +1,15 @@
-# ADR 0019: Two Type Contracts — The Dialectic from Postgres to tRPC Client
+# ADR-0019: Two Type Contracts — The Dialectic from Postgres to tRPC Client
 
-**Status:** Accepted
-**Date:** 2026-08-07
-**Author:** RobotFarm (Validation Bot + Architecture Overseer)
-**Supersedes:** N/A
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-08-07 |
+| **Author** | RobotFarm (Validation Bot + Architecture Overseer) |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
+
 **Superseded by:** N/A
 
 ## Context

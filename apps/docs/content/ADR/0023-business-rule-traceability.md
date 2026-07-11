@@ -1,9 +1,15 @@
 # ADR-0023: Business-Rule Adoption & Source-to-Code Traceability
 
-**Status:** Accepted
-**Date:** 2026-07-08
-**Author:** RobotFarm (Overseer)
-**Supersedes:** N/A
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-08 |
+| **Author** | RobotFarm (Overseer) |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
+
 **Superseded by:** N/A
 
 ## Context

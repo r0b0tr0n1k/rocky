@@ -1,12 +1,14 @@
----
-title: ADR-0044 — Livestock Domain Feature (Web + Mobile)
-status: proposed
-date: 2026-07-09
-deciders: [Rocky Architecture Board]
-tags: [frontend, mobile, domain, livestock, animals, eartags, movements, passport, adr-standard, client-surface]
----
+# ADR-0044: Livestock Domain Feature (Web + Mobile)
 
-# ADR-0044 — Livestock Domain Feature (Web + Mobile)
+| Key | Value |
+| --- | --- |
+| **Status** | Proposed |
+| **Date** | 2026-07-09 |
+| **Author** | Rocky Architecture Board |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
 
 > Client-surface domain ADR (standard: ADR-0033; first of the 0044+ set). The **anchor domain**: livestock
 > is the core daily field workflow — animal registration (incl. birth), ear-tag ordering/collection, movements
@@ -14,7 +16,7 @@ tags: [frontend, mobile, domain, livestock, animals, eartags, movements, passpor
 > client trunk 0034–0043. _sniffs_ — the worker registers a calf in a field with no signal; the Symbolic order
 > (server mutation) must still arrive, via the offline queue, or the Real of the farm book diverges.
 
-## 1. Context (verified)
+## Context (verified)
 
 **Mobile livestock tabs** (`apps/mob/app/(tabs)/`):
 
@@ -47,7 +49,7 @@ confirmed when wiring `useCan` (WO-089).
 - **Permission-gating:** tabs/actions render unconditionally today (ADR-0039/0042); the server `@Policy` enforces,
   but the client is blind (WO-089).
 
-## 2. Decision (the livestock feature standard)
+## Decision (the livestock feature standard)
 
 1. **One operation, two surfaces, one schema.** Web and mobile implement the same livestock operations from the
    same Diamond Seal `*RequestSchema` (no drift — ADR-0038). Mobile is the field entry point; web is the
@@ -136,7 +138,7 @@ all without signal. Until WO-081/WO-082 land, these are **blocked offline**. The
 livestock entities (animal, ear_tag, movement, passport) so deep-linked records (WO-093) and list views resolve
 offline (ADR-0041 `Skeleton`/`Empty`).
 
-## 6. Consequences
+## Consequences
 
 |                     | Web                         | Mobile                                  | Server        |
 |---------------------|-----------------------------|------------------------------------------|---------------|
@@ -159,7 +161,7 @@ offline (ADR-0041 `Skeleton`/`Empty`).
 - This ADR is the template for the rest of 0044+ (Health, Inspections/Corrections, Infrastructure,
   Administration): same shape — shared schema, `useCan` gating, offline-queue for field ops, server `@Policy`.
 
-## 7. Implementation Notes
+## Implementation
 
 - Reuse trunk WOs: **WO-081** (sync router), **WO-082** (offline cache + queue), **WO-085** (mobile tab filter),
   **WO-086** (i18n), **WO-087** (web UX boundaries), **WO-088** (mobile `Empty`/sonner), **WO-089**
@@ -169,7 +171,7 @@ offline (ADR-0041 `Skeleton`/`Empty`).
   passport; verify movement/passport permission literals.
 - Forms: extend `zodResolver(createXxxRequestSchema)` to `eartags`/`movements`/`passport` (mirror `animals/create`).
 
-## 8. Verification
+## Verification
 
 ```bash
 # Forms bind Diamond Seal schemas (ADR-0038):
@@ -181,7 +183,7 @@ rg -n "@Policy" apps/api/src/routers/animal.router.ts apps/api/src/routers/earta
 rg -n "useCan" apps/mob/app/\(tabs\)/animals apps/mob/app/\(tabs\)/eartags apps/mob/app/\(tabs\)/movements
 ```
 
-## 9. References
+## References
 
 - ADR-0024 (Ear Tag Domain), ADR-0025 (Animal/Movement Domain), ADR-0029 (Passport/Archive) — backend.
 - ADR-0015 (Mobile PDA Sync), ADR-0036 (Offline-first Sync), ADR-0035 (Rendering).

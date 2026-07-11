@@ -1,12 +1,14 @@
----
-title: ADR-0048 — Administration Domain Feature (Web + Mobile)
-status: accepted
-date: 2026-07-09
-deciders: [Rocky Architecture Board]
-tags: [frontend, mobile, domain, administration, rbac, farm, subject, user, org, adr-standard, client-surface, security]
----
+# ADR-0048: Administration Domain Feature (Web + Mobile)
 
-# ADR-0048 — Administration Domain Feature (Web + Mobile)
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-09 |
+| **Author** | Rocky Architecture Board |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
 
 > Client-surface domain ADR (standard: ADR-0033; **final of 0044+**). Administration is the **meta-domain**: it
 > owns the farms, the keepers (subjects), the users, the organizations, and — decisively — the **RBAC roles and
@@ -16,7 +18,7 @@ tags: [frontend, mobile, domain, administration, rbac, farm, subject, user, org,
 
 > **Corrigendum (WO-098 implementation, 2026-07-09):** Administration is implemented and the security keystone is closed. `rbac.router` and `user.router` now carry `@Policy({ authenticated: true, roles: ["SUPER_ADMIN"] })` (server-enforced via ADR-0022 `PolicyEngine.policy.roles`) — verified in the working tree. `farm`/`subject`/`organization` routers remain `@Policy({ authenticated: true })` (RLS-scoped, role decision deferred to ADR-0027). All web admin forms bind Diamond Seal `*RequestSchema` via `zodResolver` (verified: 14/14 forms). Web-only parity is recorded per ADR-0033 §6. Client-side, the "New user" / "Assign role" / "Revoke role" buttons are SUPER_ADMIN-gated; "Register animal" and all `authenticated: true` actions stay visible (no 403 exists — gating would false-hide).
 
-## 1. Context (verified)
+## Context (verified)
 
 **Web admin surface** (`apps/web/app/(admin)/`): `farms/`, `subjects/`, `rbac/`, `users/`, `organizations/`
 (+ `systemParameters`, `vsAssignment`, `vsContract`, `audit`, `archive`). **Mobile: no admin surface** (confirmed
@@ -46,7 +48,7 @@ holding a mobile app session. This is a server-side authorization gap, not a cli
 and `clientCanRole` (ADR-0045) consume. Administration is therefore the source of the gating taxonomy mapped in
 0044–0047.
 
-## 2. Decision (the administration feature standard)
+## Decision (the administration feature standard)
 
 1. **Web-only feature, documented as such** (c.f. Infrastructure, ADR-0047). Administration has no mobile surface
    by design; ADR-0033 parity is satisfied at the operation level (web covers all admin ops).
@@ -135,7 +137,7 @@ then, client navigation gating (ADR-0039/WO-089) is the only protection, and it 
 Administration is back-office → always online; **no offline need**, no mobile cache/read path (no UI). This is the
 same posture as Infrastructure (ADR-0047).
 
-## 6. Consequences
+## Consequences
 
 |                     | Web                                      | Mobile            | Server        |
 |---------------------|------------------------------------------|-------------------|---------------|
@@ -158,7 +160,7 @@ same posture as Infrastructure (ADR-0047).
 - Administration is the second web-only domain (after Infrastructure). ADR-0033 must state "web-only is valid
   parity" to prevent churn — and must note that web-only does **not** mean "ungated".
 
-## 7. Implementation Notes
+## Implementation
 
 - Reuse trunk WOs: **WO-086** (i18n — admin labels), **WO-087** (web UX boundaries for admin pages),
   **WO-089** (admin navigation role-gating; currently fail-open), **WO-082** (n/a — no mobile).
@@ -168,7 +170,7 @@ same posture as Infrastructure (ADR-0047).
   Diamond Seal `zodResolver` (extend ADR-0038); (d) document web-only parity in ADR-0033.
 - This is the **keystone security ADR** of the 0044+ set — it protects the very permissions the other ADRs rely on.
 
-## 8. Verification
+## Verification
 
 ```bash
 # Admin routers are auth-only (no roles gate today):
@@ -182,7 +184,7 @@ ls apps/mob/app/\(tabs\) | rg -i "admin|rbac|user" || echo "confirmed: no mobile
 rg -n "createFarmRequestSchema|createUserRequestSchema|createRoleRequestSchema" apps/web
 ```
 
-## 9. References
+## References
 
 - ADR-0021 (Better Auth config — `admin({ adminRoles: ["SUPER_ADMIN"] })`), ADR-0022 (Policy Engine — the
   `policy.roles` support this ADR switches on), ADR-0027 (Farm/Holder/Subject).

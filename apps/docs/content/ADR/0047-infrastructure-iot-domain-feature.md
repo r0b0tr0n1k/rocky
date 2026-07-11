@@ -1,12 +1,14 @@
----
-title: ADR-0047 — Infrastructure (IoT / Devices) Domain Feature (Web + Mobile)
-status: proposed
-date: 2026-07-09
-deciders: [Rocky Architecture Board]
-tags: [frontend, mobile, domain, iot, device, infrastructure, adr-standard, client-surface]
----
+# ADR-0047: Infrastructure (IoT / Devices) Domain Feature (Web + Mobile)
 
-# ADR-0047 — Infrastructure (IoT / Devices) Domain Feature (Web + Mobile)
+| Key | Value |
+| --- | --- |
+| **Status** | Proposed |
+| **Date** | 2026-07-09 |
+| **Author** | Rocky Architecture Board |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
 
 > Client-surface domain ADR (standard: ADR-0033; fourth of 0044+). Infrastructure is the **back-office that the
 > field never sees**: the mobile app *is* a device (managed by `device.router`) but has no device screens. *sniffs*
@@ -14,7 +16,7 @@ tags: [frontend, mobile, domain, iot, device, infrastructure, adr-standard, clie
 > Infrastructure is therefore **web-only**, and the only mobile footprint is a heartbeat (`recordSync`) the offline
 > sync engine should emit.
 
-## 1. Context (verified)
+## Context (verified)
 
 **Mobile: no IoT/device surface.** `apps/mob/app/(tabs)/` contains no `iot`/`device`/`sensor`/`geo` tab
 (confirmed). The mobile app is a PDA — its identity exists in `device.router` (`pdaDevice*`) — but device/IoT
@@ -39,7 +41,7 @@ the 0044+ taxonomy (c.f. Livestock `useCan`, Health `clientCanRole`, Inspections
 without a return* — recorded into the Symbolic, awaiting a future cross-domain link. The one *actual* cross-link
 today is `device.recordSync`: the WO-082 mobile sync could log a PDA heartbeat here.
 
-## 2. Decision (the infrastructure feature standard)
+## Decision (the infrastructure feature standard)
 
 1. **Web-only feature, documented as such.** Infrastructure has **no mobile screens by design** — the app is a
    device, not a device manager. ADR-0033 parity is satisfied at the *operation* level (web covers all device/iot
@@ -117,7 +119,7 @@ Infrastructure management is admin/back-office → always online; **no offline n
 `recordSync` heartbeat, which the WO-082 sync engine emits when a PDA syncs — an *uplink*, not a field form. No
 local cache/read path is required for Infrastructure on mobile (there is no UI).
 
-## 6. Consequences
+## Consequences
 
 |                     | Web                                | Mobile                          | Server        |
 |---------------------|------------------------------------|--------------------------------|---------------|
@@ -141,7 +143,7 @@ local cache/read path is required for Infrastructure on mobile (there is no UI).
   tab". Parity is at the *operation* level; some domains are intrinsically back-office. ADR-0033 should state this
   explicitly to prevent future "why no IoT tab?" churn.
 
-## 7. Implementation Notes
+## Implementation
 
 - Reuse trunk WOs: **WO-086** (i18n — device/geofence labels), **WO-087** (web UX boundaries for `devices`/`iot`
   admin pages), **WO-082** (mobile sync → `device.recordSync` heartbeat).
@@ -150,7 +152,7 @@ local cache/read path is required for Infrastructure on mobile (there is no UI).
   (in ADR-0033) that Infrastructure is web-only by design; display geofence events as "recorded, not yet acted on".
 - No `useCan`/`clientCanRole` work needed (auth-only).
 
-## 8. Verification
+## Verification
 
 ```bash
 # No mobile IoT/device tab:
@@ -165,7 +167,7 @@ rg -n "logGeofenceEvent" packages/domains/iot/src
 rg -n "createPdaDeviceRequestSchema|registerDeviceRequestSchema|createGeofenceRequestSchema" apps/web
 ```
 
-## 9. References
+## References
 
 - ADR-0031 (IoT Connectivity Abstraction — device registry, readings, geofences, events; "no event queues").
 - ADR-0036 (Offline-first — WO-082 sync → `recordSync`), ADR-0038 (Forms), ADR-0042 (Permission-Aware UI — the

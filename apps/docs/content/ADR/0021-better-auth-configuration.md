@@ -1,9 +1,15 @@
 # ADR-0021: Better Auth Configuration & Session Resolution
 
-**Status:** Accepted
-**Date:** 2026-07-08
-**Author:** RobotFarm (Auth Bot)
-**Supersedes:** N/A
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-08 |
+| **Author** | RobotFarm (Auth Bot) |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
+
 **Superseded by:** N/A
 
 ## Context

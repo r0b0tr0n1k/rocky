@@ -1,12 +1,14 @@
----
-title: ADR-0049 — Client Auth & Session Architecture
-status: accepted
-date: 2026-07-09
-deciders: [Rocky Architecture Board]
-tags: [frontend, mobile, auth, session, authorization, adr-standard, client-surface]
----
+# ADR-0049: Client Auth & Session Architecture
 
-# ADR-0049 — Client Auth & Session Architecture
+| Key | Value |
+| --- | --- |
+| **Status** | Accepted |
+| **Date** | 2026-07-09 |
+| **Author** | Rocky Architecture Board |
+| **Supersedes** | None |
+| **Superseded** | None |
+
+---
 
 > Client-surface ADR (standard: ADR-0033). The dialectical counterpart to **ADR-0021** (backend
 > Better Auth configuration). Documents how the two client surfaces (Next.js admin, Expo mobile)
