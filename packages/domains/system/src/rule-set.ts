@@ -20,6 +20,12 @@ export interface RuleSetThresholds {
   taggingDays: number;
   /** Birth-notification deadline in days (WO-022 / R8). EU floor 7; jurisdiction may be stricter. */
   notificationDays: number;
+  /** Disease-zone restriction radii (WO-119, AHL 2016/429 Art.21-22). Protection zone around infected premises. EU floor 3 km. */
+  protectionZoneKm: number;
+  /** Surveillance zone radius in km (EU floor 10). Concentric with the protection zone. */
+  surveillanceZoneKm: number;
+  /** Whether the disease-zone spatial block is enforced (WO-119). Default true. */
+  diseaseZoneEnabled: boolean;
 }
 
 export interface RuleSetRetention {
@@ -224,6 +230,9 @@ export function buildRuleSet(
       calvingPeriodDays: num("CALVING_PERIOD_DAYS"),
       taggingDays: wParam("BIRTH_TAGGING_DAYS", EU_BIRTH_DEADLINES.taggingMaxDays),
       notificationDays: wParam("BIRTH_NOTIFICATION_DAYS", EU_BIRTH_DEADLINES.notificationMaxDays),
+      protectionZoneKm: wParam("PROTECTION_ZONE_KM", 3),
+      surveillanceZoneKm: wParam("SURVEILLANCE_ZONE_KM", 10),
+      diseaseZoneEnabled: byCode.get("DISEASE_ZONE_ENABLED")?.value !== "false",
     },
     weights: {
       selectionPercentage: num("SELECTION_PERCENTAGE"),

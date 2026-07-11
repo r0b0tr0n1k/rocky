@@ -4,6 +4,7 @@ export * from "./archive.api.js";
 export * from "./correction.api.js";
 export * from "./document.api.js";
 export * from "./eudr.api.js";
+export * from "./diseaseZone.api.js";
 export * from "./ched.api.js";
 export * from "./eartags.api.js";
 export * from "./farms.api.js";

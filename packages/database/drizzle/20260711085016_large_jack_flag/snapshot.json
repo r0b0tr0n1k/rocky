@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "0101fddf-378c-483c-a11c-d6b72083527b",
+  "id": "1a42f85c-f181-4ef3-8720-c0919cec1619",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -414,7 +414,8 @@
         "farm_boundary",
         "pasture_boundary",
         "exclusion_zone",
-        "water_source"
+        "water_source",
+        "disease_zone"
       ],
       "name": "fence_type",
       "entityType": "enums",

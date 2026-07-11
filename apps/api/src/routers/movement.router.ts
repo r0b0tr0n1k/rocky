@@ -32,6 +32,10 @@ import {
   type EudrDueDiligenceRequest,
   eudrDueDiligenceResponseSchema,
   type EudrDueDiligenceResponse,
+  diseaseZoneCheckRequestSchema,
+  type DiseaseZoneCheckRequest,
+  diseaseZoneCheckResponseSchema,
+  type DiseaseZoneCheckResponse,
   type RecordDeathRequest,
   type RecordMarketSlaughterRequest,
   type RecordMarketTransactionRequest,
@@ -86,6 +90,12 @@ export class MovementRouter {
   @Query({ input: eudrDueDiligenceRequestSchema, output: eudrDueDiligenceResponseSchema })
   async eudrDueDiligence(@Input() input: EudrDueDiligenceRequest): Promise<EudrDueDiligenceResponse> {
     return this.movementService.runEudrDueDiligence(input.animalId);
+  }
+
+  // ── WO-119: Disease-zone spatial check (AHL 2016/429) ──
+  @Query({ input: diseaseZoneCheckRequestSchema, output: diseaseZoneCheckResponseSchema })
+  async diseaseZoneCheck(@Input() input: DiseaseZoneCheckRequest): Promise<DiseaseZoneCheckResponse> {
+    return this.movementService.runDiseaseZoneCheck(input.farmId);
   }
 
   @Mutation({ input: createMovementRequestSchema, output: movementResponseSchema })

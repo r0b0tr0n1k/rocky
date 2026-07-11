@@ -1,4 +1,5 @@
-import { iotDevices, sensorReadings, geofences, animalGeofenceEvents } from "@rocky/database";
+import { iotDevices, sensorReadings, geofences, animalGeofenceEvents, farms } from "@rocky/database";
+import { FENCE_TYPE } from "@rocky/database/constants";
 import { BaseRepository } from "@rocky/domains-shared";
 import { and, asc, desc, eq, gte, inArray, lte, sql, type SQL } from "drizzle-orm";
 
@@ -123,6 +124,31 @@ export class IotRepository extends BaseRepository {
     const conditions: SQL[] = [inArray(geofences.pastureId, pastureIds)];
     if (fenceType) conditions.push(eq(geofences.fenceType, fenceType));
     return this.client.select().from(geofences).where(and(...conditions));
+  }
+
+  /**
+   * WO-119 (AHL 2016/429): active disease-zone geofences whose polygon is within
+   * `radiusMeters` of the given farm's GPS location. Uses ST_DWithin on cast-to-geography
+   * geometry so the radius is interpreted in METRES (geometry SRID 4326 would be degrees).
+   * Returns the intersecting disease-zone geofences (protection/surveillance determined by caller radius).
+   */
+  async findActiveDiseaseZonesNearFarm(farmId: string, radiusMeters: number) {
+    if (!farmId) return [];
+    return this.client
+      .select({
+        id: geofences.id,
+        name: geofences.name,
+        farmId: geofences.farmId,
+        fenceType: geofences.fenceType,
+        cadastralReference: geofences.cadastralReference,
+        polygon: geofences.polygon,
+      })
+      .from(geofences)
+      .innerJoin(
+        farms,
+        sql`ST_DWithin(${geofences.polygon}::geography, ${farms.location}::geography, ${radiusMeters})`,
+      )
+      .where(and(eq(geofences.fenceType, FENCE_TYPE.DISEASE_ZONE), eq(geofences.isActive, true), eq(farms.id, farmId)));
   }
 
   // ── Geofence Events ──

@@ -22,6 +22,7 @@ import type {
 import type { SystemService } from "@rocky/domains-system";
 import type { IotRepository } from "@rocky/domains-iot";
 import { runEudrDueDiligence, type EudrDueDiligenceResult } from "./eudr-due-diligence.js";
+import { runDiseaseZoneCheck, type DiseaseZoneCheckResult } from "./disease-zone.js";
 import {
   ANIMAL_STATUS,
   FARM_TYPE,
@@ -82,6 +83,13 @@ export class MovementService {
     const rs = await this.system.getRuleSet();
     if (rs.isErr()) throw rs.error;
     return runEudrDueDiligence(this.repo, this.geofenceRepo, rs.value, animalId);
+  }
+
+  // ── WO-119: Disease-zone spatial check (AHL 2016/429) ──
+  async runDiseaseZoneCheck(fromFarmId: string): Promise<DiseaseZoneCheckResult> {
+    const rs = await this.system.getRuleSet();
+    if (rs.isErr()) throw rs.error;
+    return runDiseaseZoneCheck(this.geofenceRepo, rs.value, fromFarmId);
   }
 
   /** ── Rule C.4: Invalidate active pasture declaration before unexpected movement ── */
@@ -208,6 +216,30 @@ export class MovementService {
             animalId: input.animalId,
             cutoff: eudr.cutoff,
             breaches: eudr.breaches,
+          });
+        }
+      }
+
+      // ── WO-119: Disease-zone spatial block (AHL 2016/429 Art.21-22) ──
+      // A holding inside an active disease PROTECTION zone (3 km) is quarantined: no
+      // cross-farm movement is permitted. A holding inside the SURVEILLANCE zone (10 km)
+      // is blocked from EXPORT. Returns 403 FORBIDDEN (via MOVEMENT_TRPC_ERROR_MAP).
+      if (fromFarmId && toFarmId && fromFarmId !== toFarmId) {
+        const zone = await this.runDiseaseZoneCheck(fromFarmId);
+        if (zone.inProtectionZone) {
+          throw new MovementError(MOVEMENT_ERRORS.DISEASE_ZONE_BREACHED, {
+            farmId: fromFarmId,
+            zone: "protection",
+            radiusKm: zone.protectionZoneKm,
+            zones: zone.protectionZones,
+          });
+        }
+        if (zone.inSurveillanceZone && input.type === MOVEMENT_TYPE.EXPORT) {
+          throw new MovementError(MOVEMENT_ERRORS.DISEASE_ZONE_BREACHED, {
+            farmId: fromFarmId,
+            zone: "surveillance",
+            radiusKm: zone.surveillanceZoneKm,
+            zones: zone.surveillanceZones,
           });
         }
       }
