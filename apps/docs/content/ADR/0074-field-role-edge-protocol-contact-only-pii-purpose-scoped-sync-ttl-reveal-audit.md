@@ -2,30 +2,32 @@
 
 > The vet must call the farmer. GDPR protects the farmer; it does not gag the vet.
 > The control is not denial and not concealment -- it is necessity-limited scope,
-> bounded residence, and accountability.
+> bounded residence, device auth, and accountability.
 
 | Key            | Value                                                                  |
 | -------------- | ---------------------------------------------------------------------- |
 | **Status**     | Proposed (Phase 2 -- mobile edge; **pending stakeholder confirmation**)      |
 | **Date**       | 2026-07-11                                                             |
 | **Author**     | Architecture Review (Compliance homework)                                    |
-| **Source**     | user direction (vet needs name + phone; no VoIP-concealment); ADR-0073; ADR-0061 D5; ADR-0007; ADR-0036; role constants |
-| **Related**    | ADR-0061; ADR-0067; ADR-0073; ADR-0007; ADR-0022; ADR-0068; ADR-0036; ADR-0069 |
+| **Source**     | user direction (vet needs name+phone; dial-from-app; 24h TTL; device auth; butcher scan); ADR-0073; ADR-0061 D5; ADR-0007; ADR-0036; role constants |
+| **Related**    | ADR-0061; ADR-0067; ADR-0073; ADR-0007; ADR-0022; ADR-0068; ADR-0036; ADR-0069; ADR-0072 |
 
 ## Context
 
 The mobile surface is narrow. From the role constants: `SUPER_ADMIN`, `VD_ADMIN`,
 `VD_STAFF` are back-office (web, `apps/web`) and never touch the PDA. The genuine
-field roles are `FARMER`, `VETERINARIAN`, `TECHNICIAN`, and `VI` (inspector). Of
-these, `VETERINARIAN` and `TECHNICIAN` are **not** in `FARM_READ_ROLE`, so their RLS
-read scope is cross-farm -- they are the aggregators.
+field roles are `FARMER`, `VETERINARIAN`, `TECHNICIAN`, `VI` (inspector), and
+`SLAUGHTERHOUSE_OP` / `MARKET_OP` (own-site). Of these, `VETERINARIAN` and
+`TECHNICIAN` are **not** in `FARM_READ_ROLE`, so their RLS read scope is cross-farm --
+they are the aggregators. `SLAUGHTERHOUSE_OP` / `MARKET_OP` are `FARM_READ_ROLE`
+(own-site scoped) but still handle third-party animals + certificates.
 
 A field role **needs** keeper contact to do its lawful job: a vet calling a keeper
 about a notifiable disease, an inspector contacting a holder for an official control.
 Hiding the number behind VoIP so the vet cannot see it is *not* what GDPR intends
 (GDPR Art 6(1)(b)/(c) -- the call is necessary and lawful). The control is therefore
 neither *denial* of PII nor *concealment* of it -- it is **necessity-limited scope,
-bounded residence, and accountability**.
+bounded residence, device auth, and accountability**.
 
 Two rejected extremes, recorded so we do not drift back to them:
 - **Deny all `pii:read` to field roles** -- defeats the job; the vet cannot contact
@@ -36,45 +38,65 @@ Two rejected extremes, recorded so we do not drift back to them:
 ## Decision
 
 Adopt a **role-aware edge data policy**. Field roles receive **contact-only PII
-(name + phone) for purpose-scoped farms**, TTL-bounded on the device, and
-reveal-logged. They are **denied national IDs and any region-wide or bulk PII**.
-Back-office roles keep broader `pii:read` on the web surface, server-audited.
+(name + phone + email) for purpose-scoped farms**, TTL-bounded (24h, working),
+device-auth-gated, and reveal-logged. They are **denied national IDs and any
+region-wide or bulk PII**. The contact-only rule governs *third-party* PII; a role's
+own organisation data is showable. Back-office roles keep broader `pii:read` on the
+web surface, server-audited.
 
 ```
 EdgeDataPolicy = {
-  role:        string;
-  syncScope:   "own-farm" | "purpose-farm" | "region" | "web";
-  piiResidency: "none" | "contact-only" | "masked-own" | "full";
-  ttlMs:        number;                  // expiry for any PII that lands on device
-  revealLog:    boolean;                 // log every PII reveal by this role
-  exclude:      string[];                // PII classes never sent to this role's device
+  role:         string;
+  syncScope:    "own-farm" | "purpose-farm" | "own-site" | "region" | "web";
+  piiResidency: "none" | "contact-only" | "manifest-contact" | "masked-own" | "full";
+  ttlMs:         number;                  // expiry for any PII that lands on device
+  revealLog:     boolean;                 // log every PII reveal by this role
+  deviceAuth:    "required" | "none";     // PIN/biometric gate before PII is shown
+  exclude:       string[];                // PII classes never sent to this role's device
 }
 
 vet / technician / VI = {
   syncScope: "purpose-farm", piiResidency: "contact-only",
-  ttlMs: SHORT, revealLog: true,
+  ttlMs: 24h, revealLog: true, deviceAuth: "required",
   exclude: ["nationalId", "otherFarms", "bulk"]
 }
-farmer              = { syncScope: "own-farm",  piiResidency: "masked-own", ttlMs: LONG,  revealLog: false }
-slaughterhouse_op /  = { syncScope: "own-site", piiResidency: "masked-own", ttlMs: LONG,  revealLog: false }
-  market_op
-back-office (web)   = { syncScope: "web", piiResidency: "full", ttlMs: n/a, revealLog: true }
+butcher / market_op = {
+  syncScope: "own-site", piiResidency: "manifest-contact",
+  ttlMs: 24h, revealLog: true, deviceAuth: "required"
+  // manifest = arriving animals + death-cert / passport REFERENCE; contact-only keeper if calling
+}
+farmer = {
+  syncScope: "own-farm", piiResidency: "masked-own",
+  ttlMs: long, revealLog: false, deviceAuth: "none"
+  // farmer keeps HIS OWN data on the phone; it is low-risk and offline-capable
+}
+back-office (web) = { syncScope: "web", piiResidency: "full", deviceAuth: "required", revealLog: true }
 ```
 
-### What is IN the field-role offline bundle (per visit)
-- Animal / health / movement operational data for the synced farm.
-- Keeper **name + phone** for that farm (necessary contact).
+### What is IN the field-role offline bundle (per visit / per site)
+- Animal / health / movement operational data for the synced farm or site.
+- Keeper **name + phone + email** for that farm (necessary contact; click-to-dial
+  and click-to-mail; the dial/mail action IS the logged reveal).
 - Farm location for the visit.
+- Butcher: the arrival **manifest** (animals + death-certificate / passport
+  *reference*) for animals reaching their plant; scan ear tags to match.
 
 ### What is NOT in it
 - `personalId` / national ID (almost never needed to place a call).
 - Any other farm's keepers.
 - Any region-wide or bulk PII dump.
 
-Three bounds do the work: **scope** (per-farm, not region), **residence** (TTL,
-visit-bound, purged -- we minimize what *lingers*, not what is *seen*), and
-**accountability** (every view reveal-logged). The "mass PII on a stolen phone"
-risk is bounded to the current visit's contacts.
+Three (+ one) bounds do the work: **scope** (per-farm/site, not region),
+**residence** (TTL, visit-bound, purged -- we minimize what *lingers*, not what is
+*seen*), **device auth** (PIN/biometric before any PII shows, for third-party-PII
+roles), and **accountability** (every view reveal-logged). The "mass PII on a stolen
+phone" risk is bounded to the current visit's contacts, behind a device lock.
+
+### Online vs offline
+When network is present the app **syncs and shows live server data** (server-audited
+via ADR-0007 on the read). The TTL and contact-only projection govern only the
+*offline residue* -- a temporary mirror. We never force workers offline; online is
+the preferred path.
 
 ## Server part (the mechanism that enforces the above)
 
@@ -84,12 +106,13 @@ the Symbolic order. Two server changes implement the policy:
 ### S1. Offline projection variant on `syncDownload` (contact-only)
 The sync server already scopes rows by RLS. Add an **offline-profile projection**
 so that, for a field role's *offline cache*, the per-farm payload emits operational
-data plus the keeper's `firstName` / `lastName` / `phoneNumber` (the `contact-only`
-subset) for **that** farm, and omits `personalId` and every other farm's subjects.
+data plus the keeper's `firstName` / `lastName` / `phoneNumber` / `email` (the
+`contact-only` subset) for **that** farm, and omits `personalId` and every other
+farm's subjects.
 - Source of truth: `PII_FIELD_REGISTRY` (`packages/validators/src/pii`). Contact
-  fields = the subset the registry marks as `type: "name" | "contact"` and needed
-  for contact; `exclude` = `nationalId` + non-synced farms. The registry is consulted
-  **server-side** -- the app never imports it (per ADR-0073).
+  fields = the subset the registry marks as `type: "name" | "contact"`; `exclude` =
+  `nationalId` + non-synced farms. The registry is consulted **server-side** -- the
+  app never imports it (per ADR-0073).
 - Location: `packages/domains/sync` (syncDownload projection) + `apps/api` (sync
   router). RLS decides *which rows*; this projection decides *which columns*.
 
@@ -97,71 +120,88 @@ subset) for **that** farm, and omits `personalId` and every other farm's subject
 A tRPC mutation that receives a reveal event -- `actor` (anonymised salted hash),
 `farm`, `entity`, `column`, `purpose`, `decision: ALLOWED` -- and writes it via the
 ExecutionPipeline (`RLSStage` + lifecycle `event-emitter`) to the tamper-evident,
-hash-chained audit store (ADR-0007). The mobile `<PiiText onReveal>` ships the event
-through the outbox to this mutation. The server **re-validates** the principal and
-`pii:read` before logging -- the castrated client is never trusted.
+hash-chained audit store (ADR-0007). The mobile `<PiiText onReveal>` (fired by the
+dial / mail / view action) ships the event through the outbox to this mutation. The
+server **re-validates** the principal and `pii:read` before logging -- the castrated
+client is never trusted.
 
 ### S3. Integration points
 - **RLS** (already scopes syncDownload) + **`@Policy` / `pii:read`** (gates online
-  reveals) + **offline projection** (contact-only default) + **`audit.logReveal`**
-  (accountability) + **RuleSet** (jurisdiction `ttlMs` for contact PII).
+  reveals) + **offline projection** (contact-only default) + **RuleSet** (jurisdiction
+  `ttlMs` for contact PII).
 - The discriminator `FARM_READ_ROLE` membership remains the clean signal: in it ->
-  relaxed; not in it -> contact-only strict.
+  relaxed/own-site; not in it -> contact-only strict.
 
-### S4. TTL
-The server stamps cached contact records with `expires_at` (= sync time + policy
-`ttlMs`); the device's background-fetch sweep (ADR-0036 WO-092) purges expired
-contact PII and scrubs on app resume. Device behaviour waits for the WO-082 native
-gate to certify.
+### S4. TTL -- lazy / opportunistic purge (NOT a background timer)
+A killed app cannot run JavaScript, so no in-app timer guarantees deletion. Instead:
+- At sync, every cached contact record is stamped `expires_at = synced_at + ttlMs`.
+- Purge is **opportunistic**: on app launch, on app resume (foreground), on every
+  sync, and *best-effort* via `expo-background-fetch` (WO-092). Expired contact PII is
+  scrubbed **before it is next shown**.
+- Guarantee: *expired PII is gone before next use / next launch*, not "deleted within
+  exactly ttlMs of the app being killed." Honest and achievable.
+
+### S5. Device auth (PIN / biometric) for third-party-PII roles
+Field roles that handle third-party PII (vet / technician / VI / butcher / market_op)
+require a device PIN or biometric unlock before any PII is rendered. The farmer is
+exempt (own data, low risk). This is ADR-0072 (re-auth lock) concretized for the edge.
+- Mechanism: gate the PII-rendering path behind `expo-local-authentication`
+  (or the OS credential); the unlock is session-scoped, not per-field.
 
 ## Consequences
 
 ### Positive
-- Necessary PII is available to do the lawful job; the region-wide dump is prevented;
-  every view is accountable. Satisfies GDPR Art 5(1)(c) minimization (by scope) and
-  Art 25 by-design (necessity-limited), without gagging the field worker.
+- Necessary PII is available to do the lawful job (dial/mail a keeper); the region-wide
+  dump is prevented; every view is accountable; a stolen device is locked and its PII
+  residue is TTL-bounded. Satisfies GDPR Art 5(1)(c) (minimization by scope) and
+  Art 25 (by-design), without gagging the field worker.
 
 ### Negative / Cost
 - Server changes S1 + S2 are required (sync projection + audit mutation) and are
-  verifiable here; the device TTL sweep needs the native gate.
+  verifiable here; the device TTL sweep (S4) and device auth (S5) need the native gate.
 - **Pending stakeholder confirmation** (see below) before any build / WORKORDER.
 
 ### Neutral
 - Reuses ADR-0073's `<PiiText>` + reveal-log shape, the registry, and the audit store.
-- Deliberately excludes behavioural profiling of field roles (velocity / Anomaly
-  caps) unless a later DPIA (ADR-0069) justifies it.
+- Deliberately excludes behavioural profiling of field roles (velocity / Anomaly caps)
+  unless a later DPIA (ADR-0069) justifies it.
 
 ## Stakeholder confirmation (REQUIRED before implementation)
 
-This ADR is Proposed and explicitly **subject to stakeholder review** (user
-directive: "I will need to check all the stakeholders"). Open questions to resolve
-with vets, inspectors, the Veterinary Directorate, and the DPO:
-1. Exactly which contact fields -- name + phone only, or also email?
-2. TTL length for contact PII on device (visit-bound vs longer)?
-3. Does `personalId` / national ID ever legitimately appear for an official control?
-4. Cross-border / cross-jurisdiction (MK <-> AL) implications for contact PII?
-5. Who owns the reveal-log retention and the breach assessment if a device is lost?
+This ADR is Proposed and explicitly **subject to stakeholder review** (user directive:
+"I will need to check all the stakeholders"). Decisions above reflect the user's
+current proposal; the following remain open:
+1. ~~Which contact fields~~ -> **answered**: name + phone + email, clickable + logged.
+2. ~~TTL length / mechanism~~ -> **answered**: 24h working; lazy opportunistic purge
+   (S4); never force offline.
+3. Does `personalId` / national ID ever legitimately appear? **Proposal**: no for vet/
+   inspector; the butcher needs the death-certificate / passport *reference* (a manifest
+   document key), not the keeper's national ID -- **confirm**.
+4. Cross-border (MK <-> AL) implications for contact PII -- **open**.
+5. Who owns the reveal-log retention and the breach assessment if a device is lost --
+   **open** (ties to ADR-0072).
 
 No WORKORDER entry is created until these are answered.
 
 ## Implementation
 
-- Owning Bot: **Mobile Bot** (TTL sweep, `<PiiText>` reveal, per-role cache policy)
-  + **API Bot** (offline projection in sync router, `audit.logReveal` mutation)
-  + **Sync domain** (projection) + **Execution Bot** (audit write)
-  + **Validators Bot** (registry contact subset).
+- Owning Bot: **Mobile Bot** (TTL sweep S4, device auth S5, `<PiiText>` reveal,
+  per-role cache policy, butcher scan flow) + **API Bot** (offline projection S1 in
+  sync router, `audit.logReveal` S2) + **Sync domain** (projection) + **Execution Bot**
+  (audit write) + **Validators Bot** (registry contact subset).
 - RobotFarm pass: **NO WORKORDER yet** (user directive). Add a WO only after
   stakeholder sign-off; note in Mobile Bot AGENTS.md that field caches are
-  contact-only + TTL-bounded.
+  contact-only + TTL-bounded + device-auth-gated.
 
 ## Verification (Definition of Done)
 
 ```bash
-rg -n "contact-only|purpose-farm|expires_at|logReveal" apps/api packages/domains/sync
-# a field-role offline bundle contains name+phone for the synced farm ONLY,
+rg -n "contact-only|purpose-farm|manifest-contact|expires_at|logReveal|deviceAuth" apps/api packages/domains/sync apps/mob
+# a field-role offline bundle contains name+phone+email for the synced farm ONLY,
 # and contains NO personalId and NO other-farm subjects (assert in test)
 # a reveal event from a field device is present in the tamper-evident server log
-# after ttlMs, cached contact PII is purged on device (native gate)
+# after ttlMs, cached contact PII is purged on next app launch (native gate)
+# PII does not render until device auth passes (native gate)
 ```
 
 ## Anti-Patterns
@@ -170,8 +210,10 @@ rg -n "contact-only|purpose-farm|expires_at|logReveal" apps/api packages/domains
 2. Obscuring the number via VoIP / never showing it (absurd; not GDPR's intent).
 3. Sending a region-wide / bulk PII dump to the device.
 4. Revealing PII without logging it.
-5. Infinite TTL -- any device PII must expire.
-6. Creating a WORKORDER before stakeholder confirmation.
+5. Relying on a background JS timer for TTL (a killed app cannot run it) -- purge must
+   be lazy / opportunistic.
+6. Forcing workers offline -- online sync + live data is the preferred path.
+7. Creating a WORKORDER before stakeholder confirmation.
 
 ## Related ADRs
 
@@ -183,5 +225,6 @@ rg -n "contact-only|purpose-farm|expires_at|logReveal" apps/api packages/domains
 - **ADR-0007** -- audit via lifecycle events; the reveal log lands here.
 - **ADR-0022** -- RBAC / `pii:read` policy (gates online reveals).
 - **ADR-0068** -- lawful-basis register; the reveal `purpose` is recorded against it.
+- **ADR-0072** -- breach / re-auth; device auth (S5) is its edge form.
 - **ADR-0036** -- offline-first contract (background-fetch TTL sweep host).
 - **ADR-0069** -- DPIA; the stakeholder review below is its field-input.
