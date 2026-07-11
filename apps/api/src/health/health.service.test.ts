@@ -4,11 +4,28 @@ import { HealthService } from "@rocky/domains-health";
 import { CORRECTION_CASE_TYPE, DETECTION_SOURCE } from "@rocky/database/constants";
 import { VaccineReconciliationJob } from "../jobs/vaccine-reconciliation.job.js";
 
-// The constructor requires repo + subjectRepo + animalRepo + system (non-optional).
-// reconcileVaccineStock only touches repo + correctionService; the others are dummies.
+// Minimal stand-ins for deps the constructor requires but reconcileVaccineStock ignores.
 const dummySubjectRepo = {} as never;
 const dummyAnimalRepo = {} as never;
 const dummySystem = {} as never;
+
+type FakeResult = {
+  isOk: () => boolean;
+  isErr: () => boolean;
+  error?: Error;
+  value?: unknown;
+};
+
+const okResult = (value: unknown): FakeResult => ({
+  isOk: () => true,
+  isErr: () => false,
+  value,
+});
+const errResult = (error: Error): FakeResult => ({
+  isOk: () => false,
+  isErr: () => true,
+  error,
+});
 
 function makeService(opts: { drifted?: any[]; createOk?: boolean } = {}) {
   const drifted = opts.drifted ?? [];
@@ -20,9 +37,7 @@ function makeService(opts: { drifted?: any[]; createOk?: boolean } = {}) {
   const correctionService = {
     create: vi.fn(async (input: any) => {
       createdCases.push(input);
-      return opts.createOk === false
-        ? { isOk: () => false, isErr: () => true, error: new Error("boom") }
-        : { isOk: () => true, isErr: () => false, value: { id: "case-1" } };
+      return opts.createOk === false ? errResult(new Error("boom")) : okResult({ id: "case-1" });
     }),
   } as any;
 
@@ -47,10 +62,7 @@ const driftedBatch = (id: string, received: number, remaining: number, administe
 describe("HealthService.reconcileVaccineStock (WO-020)", () => {
   it("opens an a-posteriori COMPLEX case per drifted batch", async () => {
     const { svc, correctionService, createdCases } = makeService({
-      drifted: [
-        driftedBatch("b1", 100, 90, 5), // 100 != 90 + 5 -> drift
-        driftedBatch("b2", 50, 40, 3), // 50 != 40 + 3 -> drift
-      ],
+      drifted: [driftedBatch("b1", 100, 90, 5), driftedBatch("b2", 50, 40, 3)],
     });
 
     const result = await svc.reconcileVaccineStock("tester");
@@ -84,10 +96,7 @@ describe("HealthService.reconcileVaccineStock (WO-020)", () => {
   });
 
   it("keeps driftedCount but counts 0 corrections when case creation fails", async () => {
-    const { svc } = makeService({
-      drifted: [driftedBatch("b1", 100, 90, 5)],
-      createOk: false,
-    });
+    const { svc } = makeService({ drifted: [driftedBatch("b1", 100, 90, 5)], createOk: false });
     const result = await svc.reconcileVaccineStock();
     expect(result.isOk()).toBe(true);
     if (result.isOk()) expect(result.value).toEqual({ driftedCount: 1, correctionsCreated: 0 });
@@ -96,7 +105,7 @@ describe("HealthService.reconcileVaccineStock (WO-020)", () => {
 
 describe("VaccineReconciliationJob (WO-020)", () => {
   it("runs the daily reconciliation via HealthService", async () => {
-    const reconcile = vi.fn().mockResolvedValue({ isOk: () => true, isErr: () => false, value: { driftedCount: 3, correctionsCreated: 3 } });
+    const reconcile = vi.fn().mockResolvedValue(okResult({ driftedCount: 3, correctionsCreated: 3 }));
     const healthService = { reconcileVaccineStock: reconcile } as any;
     const job = new VaccineReconciliationJob(healthService);
     await job.runReconciliation();
@@ -104,7 +113,7 @@ describe("VaccineReconciliationJob (WO-020)", () => {
   });
 
   it("does not throw when reconciliation errors", async () => {
-    const reconcile = vi.fn().mockResolvedValue({ isOk: () => false, isErr: () => true, error: new Error("x") });
+    const reconcile = vi.fn().mockResolvedValue(errResult(new Error("x")));
     const healthService = { reconcileVaccineStock: reconcile } as any;
     const job = new VaccineReconciliationJob(healthService);
     await expect(job.runReconciliation()).resolves.toBeUndefined();
