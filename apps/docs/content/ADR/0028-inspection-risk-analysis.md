@@ -96,7 +96,7 @@ stateDiagram-v2
   (`GN_ANLS_RESULTS`) is absent. Tracked in ADR-0023.
 - **Weighted parameters are hardcoded** — `DEFAULT_WEIGHTS` is a constant, not the legacy configurable
   `GN_ANLS_PARAMS` table (deferred to ADR-0030).
-- **Birth-notification deadlines** (7/20 d, `workflow.md` Instance 8) remain unenforced (ADR-0023).
+- **Birth-notification deadlines** (7/20 d, `workflow.md` Instance 8) — enacted (WO-022): `OVERDUE` status + daily `BirthDeadlineJob` + derived farm lock (ADR-0023).
 
 ## Implementation
 

@@ -66,6 +66,7 @@ import { OutboxEventHandlers } from "./jobs/outbox-handlers.js";
 import { OutboxProcessorJob } from "./jobs/outbox-processor.job.js";
 import { RetentionJob } from "./jobs/retention.job.js";
 import { RiskAnalysisJob } from "./jobs/risk-analysis.job.js";
+import { BirthDeadlineJob } from "./jobs/birth-deadline.job.js";
 import { DbModule } from "./modules/db.module.js";
 // ── tRPC Routers ────────────────────────────────────────────────────
 import { AnimalRouter } from "./routers/animal.router.js";
@@ -504,6 +505,7 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     RetentionJob,
     RiskAnalysisJob,
     CorrectionConsistencyJob,
+    BirthDeadlineJob,
     OutboxEventHandlers,
     OutboxProcessorJob,
   ],

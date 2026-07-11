@@ -4,10 +4,10 @@
  * @description DB access layer for animals.
  */
 
-import { animals as animalsTable } from "@rocky/database";
-import { SORT_ANIMAL_BY, SORT_ORDER } from "@rocky/database/constants";
+import { animals as animalsTable, birthNotifications as birthNotificationsTable } from "@rocky/database";
+import { SORT_ANIMAL_BY, SORT_ORDER, BIRTH_NOTIFICATION_STATUS } from "@rocky/database/constants";
 import { BaseRepository } from "@rocky/domains-shared";
-import { and, asc, desc, eq, ilike, or, type SQL, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, or, type SQL, sql } from "drizzle-orm";
 
 export type SortAnimalBy = (typeof SORT_ANIMAL_BY)[keyof typeof SORT_ANIMAL_BY];
 export type SortOrder = (typeof SORT_ORDER)[keyof typeof SORT_ORDER];
@@ -113,5 +113,27 @@ export class AnimalRepository extends BaseRepository {
       .orderBy(desc(animalsTable.birthDate))
       .limit(1);
     return row ?? null;
+  }
+
+  async findOverduePendingBirthNotifications(limit = 1000): Promise<Array<typeof birthNotificationsTable.$inferSelect>> {
+    const rows = await this.client
+      .select()
+      .from(birthNotificationsTable)
+      .where(
+        and(
+          eq(birthNotificationsTable.status, BIRTH_NOTIFICATION_STATUS.PENDING),
+          sql`${birthNotificationsTable.taggingDeadline} < CURRENT_DATE`,
+        ),
+      )
+      .limit(limit);
+    return rows;
+  }
+
+  async markBirthNotificationsOverdue(ids: string[]) {
+    if (ids.length === 0) return;
+    await this.client
+      .update(birthNotificationsTable)
+      .set({ status: BIRTH_NOTIFICATION_STATUS.OVERDUE, updatedAt: new Date() })
+      .where(inArray(birthNotificationsTable.id, ids));
   }
 }

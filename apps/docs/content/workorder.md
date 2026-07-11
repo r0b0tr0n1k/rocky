@@ -39,7 +39,7 @@
 | WO-014 | Retention + role vocab sourced from RuleSet                   | 0030       | P1       | Done ✅   |
 | WO-020 | Health stock-reconciliation job                               | 0026 / 0023 | P2       | Open   |
 | WO-021 | Persist per-farm risk-analysis results (`risk_analysis_results`) | 0028 / 0023 | P2   | Done ✅ |
-| WO-022 | Enforce birth-notification deadlines (7/20 d)                 | 0028 / 0023 | P2       | Open   |
+| WO-022 | Enforce birth-notification deadlines (7/20 d)                 | 0028 / 0023 | P2       | Done ✅ |
 | WO-023 | Inspection weighted params → RuleSet `GN_ANLS_PARAMS`         | 0028 / 0030 | P1       | Done ✅   |
 | WO-024 | Complete `FIELD_CHANGED` → VD approval lock (field-diff pipeline) | 0027     | P3       | Open   |
 | WO-025 | QR-code-scannable ear tags                                    | 0024 §E / 0009 §6 | P3  | Open   |
@@ -781,9 +781,21 @@ domains. ADR-0030 is _accepted as design_; the build below is the pending implem
 
 ### WO-022 — Enforce birth-notification deadlines — P2
 
-- 7/20 d deadlines (`workflow.md` Instance 8). `calculateTaggingDeadline()` + status enum exist; **no
-  service/cron yet**.
-- **Source:** ADR-0028, ADR-0023 deferral register.
+- 7/20 d deadlines (`workflow.md` Instance 8) now enforced. `OVERDUE` added to `BIRTH_NOTIFICATION_STATUS`;
+  `BirthDeadlineJob` (`@Cron` daily) transitions PENDING -> OVERDUE past `taggingDeadline` and publishes a
+  `birth_notification.overdue` outbox event. The farm lock is **derived** (MovementService rejects outgoing
+  movements from a farm with OVERDUE births) — no migration needed. Deadlines stay jurisdiction-pluggable via
+  the stored `taggingDeadline` (creation should read RuleSet `TAGGING_DAYS`).
+- **Source:** ADR-0028 (enacted), ADR-0023 deferral register.
+
+> **Corrigendum (WO-022, 2026-07-11):** TRACES NT / EU AHL (2016/429) compliance. `OVERDUE` added to
+> `BIRTH_NOTIFICATION_STATUS` (regenerate-enums.mjs, no migration — varchar+Zod). `BirthDeadlineJob`
+> (`apps/api/src/jobs/birth-deadline.job.ts`, `@Cron(EVERY_DAY_AT_2AM)`) calls
+> `AnimalService.enforceBirthDeadlines()` which bulk-transitions PENDING->OVERDUE and publishes
+> `birth_notification.overdue` to the outbox. `AnimalRepository` gained `findOverduePendingBirthNotifications`
+> + `markBirthNotificationsOverdue`; `MovementRepository.farmHasOverdueBirths` + a `FARM_LOCKED` guard in
+> `MovementService.create` enforce the derived farm lock. Typecheck green (apps/api = 0; remaining errors are
+> pre-existing test-file noise).
 
 ### WO-023 — Inspection weighted params → RuleSet — P1
 

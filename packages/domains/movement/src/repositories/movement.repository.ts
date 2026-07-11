@@ -4,11 +4,11 @@
  * @description DB access layer for animal movements.
  */
 
-import { eq, and, desc, asc, sql, gte, lte, type SQL } from "drizzle-orm";
-import { movements as movementsTable, pastureDeclarations as pastureDeclarationsTable, farms as farmsTable } from "@rocky/database";
+import { eq, and, desc, asc, sql, gte, lte, inArray, type SQL } from "drizzle-orm";
+import { movements as movementsTable, pastureDeclarations as pastureDeclarationsTable, farms as farmsTable, birthNotifications as birthNotificationsTable } from "@rocky/database";
 import { importExportRecords as importExportRecordsTable } from "@rocky/database";
 import { BaseRepository } from "@rocky/domains-shared";
-import { SORT_BY_MOVEMENT, SORT_ORDER } from "@rocky/database/constants";
+import { SORT_BY_MOVEMENT, SORT_ORDER, BIRTH_NOTIFICATION_STATUS } from "@rocky/database/constants";
 
 export type SortByMovement = (typeof SORT_BY_MOVEMENT)[keyof typeof SORT_BY_MOVEMENT];
 export type SortOrder = (typeof SORT_ORDER)[keyof typeof SORT_ORDER];
@@ -136,5 +136,19 @@ export class MovementRepository extends BaseRepository {
       .where(eq(farmsTable.id, farmId))
       .limit(1);
     return row?.type ?? null;
+  }
+
+  async farmHasOverdueBirths(farmId: string): Promise<boolean> {
+    const [row] = await this.client
+      .select({ id: birthNotificationsTable.id })
+      .from(birthNotificationsTable)
+      .where(
+        and(
+          eq(birthNotificationsTable.farmId, farmId),
+          eq(birthNotificationsTable.status, BIRTH_NOTIFICATION_STATUS.OVERDUE),
+        ),
+      )
+      .limit(1);
+    return row !== undefined;
   }
 }

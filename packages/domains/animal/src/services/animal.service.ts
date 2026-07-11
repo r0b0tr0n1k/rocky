@@ -238,4 +238,28 @@ export class AnimalService {
       return animalResponseSchema.parse(animal);
     }, toAppError)();
   }
+
+  /**
+   * WO-022 — Enforce birth-notification tagging deadlines (TRACES / AHL 2016/429).
+   * Any PENDING notification past its taggingDeadline is transitioned to OVERDUE and a
+   * birth_notification.overdue outbox event is published per affected farm. The farm lock
+   * itself is enforced derivatively in MovementService (no outgoing movement while OVERDUE births exist).
+   */
+  async enforceBirthDeadlines(): Promise<Result<{ overdueCount: number }, Error>> {
+    return fromAsyncThrowable(async () => {
+      const overdue = await this.repo.findOverduePendingBirthNotifications();
+      if (overdue.length === 0) return { overdueCount: 0 };
+      await this.repo.markBirthNotificationsOverdue(overdue.map((b) => b.id));
+      for (const b of overdue) {
+        await this.outboxPublisher?.publish({
+          type: "birth_notification.overdue",
+          aggregateType: "birth_notification",
+          aggregateId: b.id,
+          payload: { farmId: b.farmId, taggingDeadline: b.taggingDeadline },
+          createdBy: "system",
+        });
+      }
+      return { overdueCount: overdue.length };
+    }, toAppError)();
+  }
 }

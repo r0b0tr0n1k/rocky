@@ -146,6 +146,16 @@ export class MovementService {
         });
       }
 
+      // ── WO-022: Birth-deadline farm lock (TRACES / AHL 2016/429) ──
+      // A farm with OVERDUE untagged-birth notifications is locked: no outgoing movements
+      // until the anomaly is resolved. The lock is derived from birth_notification status.
+      if (fromFarmId) {
+        const locked = await this.repo.farmHasOverdueBirths(fromFarmId);
+        if (locked) {
+          throw new MovementError(MOVEMENT_ERRORS.FARM_LOCKED, { farmId: fromFarmId });
+        }
+      }
+
       // Verify animal exists and is alive
       const animal = await this.animalRepo.findById(input.animalId);
       if (!animal) {
