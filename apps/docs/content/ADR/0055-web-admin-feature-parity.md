@@ -1,6 +1,6 @@
 # ADR-0055: Web Admin Feature Parity with Backend
 
-> The web admin is a list-only photograph of a living backend. We ratify the program that makes every backend procedure an actionable web affordance.
+> The web admin is a list-only photograph of a living backend — **only 6 of 24 routers (~13% of 156 procedures) are fully actionable from the web today**. We ratify the program that makes every backend procedure an actionable web affordance.
 
 | Key | Value |
 | --- | --- |
@@ -19,7 +19,7 @@ The backend exposes **24 routers / 156 procedures** — the full Symbolic order 
 **20 routers** but is *uneven*:
 
 - **4 backend routers have no web page at all** — `farmBook`, `vsContract`, `vsAssignment`, `sync`.
-- **12 of 24 admin areas are list-only** — they render a table but have *no* create/edit forms
+- **9 of 24 admin areas are list-only** — they render a table but have *no* create/edit forms
   (confirmed by the absence of `*-create-form.tsx` components for `earTag`, `health`, `passport`,
   `correction`, `iot`, `notification`, `rbac`, `systemParameters`, `document`).
 - The remainder are **partial CRUD** — pages exist with forms, but specific procedures are un-wired
@@ -28,12 +28,55 @@ The backend exposes **24 routers / 156 procedures** — the full Symbolic order 
 
 The consequence: the admin can *view* the Symbolic ledger but cannot *act* on the Real of the record.
 For a regulatory veterinary system, view-only administration is a **fetish** — the photograph stands in
-for the act. This ADR is distinct from **ADR-0050** (code-level contract sync: permissions/types/validators)
-and **ADR-0051** (web↔mobile page matrix). ADR-0055 is specifically **web-admin ↔ backend tRPC procedure parity**.
+for the act.
 
-Backend dependencies (ADR-0033 §D4): tRPC surface → ADR-0032; validators / Diamond Seal → ADR-0018 / ADR-0019;
-permission UI → ADR-0042 / ADR-0022; auth/session → ADR-0049; domain rules → ADR-0023 / ADR-0024 / ADR-0025 /
-ADR-0026 / ADR-0027 / ADR-0028 / ADR-0029 / ADR-0030 / ADR-0031.
+### Coverage at a glance
+
+```mermaid
+pie showData
+  title Web coverage of 24 backend routers (measured 2026-07-11)
+  "Absent — T0 (no page)" : 4
+  "List-only — T1 (no forms)" : 9
+  "Partial CRUD — T2" : 5
+  "Full CRUD — OK" : 6
+```
+
+Only **6 / 24 routers (25%)** reach full CRUD; **13 / 24 (54%) are absent or list-only**. Of the
+156 backend procedures, roughly **13% are fully actionable from the web** today — the rest are
+un-wired Mutations or absent surfaces.
+
+### The 24-router coverage matrix
+
+| Router | Procs | Web depth | Tier | Phase |
+| --- | --- | --- | --- | --- |
+| `animal` | 5 | CRUD ✓ | 🟢 OK | — |
+| `audit` | 1 | list ✓ (complete) | 🟢 OK | — |
+| `farm` | 4 | CRUD ✓ | 🟢 OK | — |
+| `subject` | 6 | CRUD ✓ | 🟢 OK | — |
+| `user` | 4 | CRUD ✓ | 🟢 OK | — |
+| `modules` | 2 | used, no page | 🟢 minor | — |
+| `archive` | 7 | CRUD − (no retention actions) | 🟣 T2 | 3 |
+| `device` | 8 | CRUD − | 🟣 T2 | 3 |
+| `inspection` | 8 | CRUD − (no risk analysis) | 🟣 T2 | 2–3 |
+| `movement` | 15 | CRUD − (no death/slaughter/import) | 🟣 T2 | 2–3 |
+| `organization` | 4 | list + new (no edit) | 🟣 T2 | 3 |
+| `correction` | 7 | list-only | 🟡 T1 | 3 |
+| `document` | 2 | list-only | 🟡 T1 | 3 |
+| `earTag` | 17 | list-only | 🟡 T1 | 2 |
+| `health` | 20 | list-only | 🟡 T1 | 2 |
+| `iot` | 11 | list-only | 🟡 T1 | 3 |
+| `notification` | 4 | list-only | 🟡 T1 | 3 |
+| `passport` | 7 | list-only | 🟡 T1 | 2 |
+| `rbac` | 6 | list-only | 🟡 T1 | 3 |
+| `systemParameters` | 2 | list-only | 🟡 T1 | 3 |
+| `farmBook` | 4 | **no page** | 🔴 T0 | 1 |
+| `sync` | 2 | **no page** (mobile-owned) | 🔴 T0 | 1 |
+| `vsAssignment` | 6 | **no page** | 🔴 T0 | 1 |
+| `vsContract` | 5 | **no page** | 🔴 T0 | 1 |
+
+Backend dependencies (ADR-0033 §D4): tRPC surface → ADR-0032; validators / Diamond Seal → ADR-0018 /
+ADR-0019; permission UI → ADR-0042 / ADR-0022; auth/session → ADR-0049; domain rules → ADR-0023 /
+ADR-0024 / ADR-0025 / ADR-0026 / ADR-0027 / ADR-0028 / ADR-0029 / ADR-0030 / ADR-0031.
 
 ## Decision
 
@@ -42,26 +85,18 @@ every backend procedure has a corresponding web affordance (list / create / edit
 action), Zod-validated via `@rocky/validators`, RBAC-gated via `@rocky/authorization` permissions (the routers
 already carry `@Policy`), with standard empty/error/toast states.
 
-The gap, measured 2026-07-11, is three tiers:
-
-- **Tier 0 — router absence (4 routers, ~17 procs):** `farmBook` (4), `vsContract` (5), `vsAssignment` (6)
-  — VS workflow, *core regulatory*; and `sync` (2, mobile-owned — web needs a read-only monitor, not CRUD).
-- **Tier 1 — list-only, Mutations un-wired (~10 routers, ~83 procs):** `earTag` (17), `health` (20),
-  `passport` (7), `correction` (7), `iot` (11), `notification` (4), `rbac` (6), `systemParameters` (2),
-  `document` (2).
-- **Tier 2 — partial CRUD (missing procedures):** `inspection` (no risk-analysis), `movement` (no
-  death/slaughter/import variants), `archive` (no retention actions), `device`, `organization` (no edit).
+The pie above is the *current state*; the flowchart below is the *plan* that closes it.
 
 ```mermaid
 flowchart LR
   subgraph T0["Tier 0 — no page (4 routers)"]
     A1["farmBook"] A2["vsContract"] A3["vsAssignment"] A4["sync (monitor)"]
   end
-  subgraph T1["Tier 1 — list-only (10 routers)"]
+  subgraph T1["Tier 1 — list-only (9 routers)"]
     B1["earTag 17"] B2["health 20"] B3["passport 7"] B4["correction 7"]
     B5["iot 11"] B6["notification 4"] B7["rbac 6"] B8["systemParameters 2"] B9["document 2"]
   end
-  subgraph T2["Tier 2 — partial CRUD"]
+  subgraph T2["Tier 2 — partial CRUD (5 routers)"]
     C1["inspection 8"] C2["movement 15"] C3["archive 7"] C4["device 8"] C5["organization 4"]
   end
   P0["Phase 0: Scaffold + RBAC gate"] --> P1["Phase 1: Tier 0"]
@@ -100,7 +135,8 @@ flowchart LR
 ### Neutral
 
 - `sync` stays mobile-owned; web receives a read-only monitor, not CRUD.
-- `audit` (1 proc) is already at parity (list-only is complete for it).
+- `audit` (1 proc) is already at parity (list-only is complete for it). `modules` is invoked but has no
+  dedicated page (tracked as minor).
 
 ## Implementation
 
