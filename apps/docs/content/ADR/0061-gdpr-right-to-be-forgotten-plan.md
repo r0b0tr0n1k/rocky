@@ -339,6 +339,24 @@ already follows from the committed `PII_FIELD_REGISTRY` (its `defaultExcluded` f
 - It is the natural front-end to the later encryption slice: when encryption lands, the SAME reveal-gate
   writes the SAME audit entry; only the storage of the value changes. No rework of the UX or the log.
 
+## PII Projection Layer (D5 detail)
+
+The `PII_FIELD_REGISTRY` (D1) is consumed by a **projection layer** that decides, per response, which
+fields reach the wire. This is the concrete "mask by default" mechanism:
+
+- **Validators / API projection:** a response serializer strips every `defaultExcluded` column unless the
+  caller's `Principal` carries `pii:read` AND supplies a `purpose`. Without both, the field is *omitted*
+  (never sent as `null` — its mere presence is not a tell). This is D5.
+- **Mobile UI:** the same `defaultExcluded` set drives client-side blurring (`••••••`) for any table
+  cell bound to a registered PII column — see the reveal-gate (dedicated section). The UI blurs even
+  what the API does send; defense in depth.
+- **Single source:** both layers read `PII_FIELD_REGISTRY` (committed in `@rocky/validators`); adding a
+  PII column is one edit, not a scatter of `if` statements. This is the "Diamond Seal" equivalent for
+  privacy — a NoDrift guillotine on PII.
+
+This is gap #4 from the ADR audit; recorded here (not as a separate ADR) to keep the privacy surface in
+one document.
+
 ## Open Questions (surfaced by the read to think to re-read loop)
 
 These MUST be answered before any code is written — they are the gaps the first draft papered over:
