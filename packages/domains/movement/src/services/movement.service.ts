@@ -164,6 +164,25 @@ export class MovementService {
         });
       }
 
+      // ── WO-113: AMR withdrawal guillotine (EU 2019/6, Art. 108) ──
+      // A treated animal may not enter the food chain (slaughter) until its
+      // withdrawal period has elapsed. 403 WITHDRAWAL_PERIOD_ACTIVE (mapped via
+      // MOVEMENT_TRPC_ERROR_MAP). Clearance = diagnosis_date + withdrawal_period days.
+      if (
+        input.type === MOVEMENT_TYPE.SLAUGHTERHOUSE ||
+        input.type === MOVEMENT_TYPE.HOME_SLAUGHTER
+      ) {
+        const underWithdrawal = await this.repo.isAnimalUnderWithdrawal(
+          input.animalId,
+          new Date(),
+        );
+        if (underWithdrawal) {
+          throw new MovementError(MOVEMENT_ERRORS.WITHDRAWAL_PERIOD_ACTIVE, {
+            animalId: input.animalId,
+          });
+        }
+      }
+
       // ── Rule E.3: Single-farm org restriction ──
       // (Enforced via RLS — no code-level check needed)
 

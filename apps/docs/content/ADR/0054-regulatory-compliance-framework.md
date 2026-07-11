@@ -91,6 +91,8 @@ overridable per jurisdiction). The disease-zone intersection (strike 1's spatial
 - **Elixir note:** the report's `SovereignRuleValidator` is **illustrative only** — our stack is TypeScript/NestJS. The equivalent lives as a guard in the RuleSet loader (`validateSovereignLimits`), not Elixir.
 - **Axis order:** see ADR-0053 — ingestion must normalize EPSG:4326 lat-first -> GeoJSON/PostGIS lon-first.
 
+- **WO-113 implemented:** `MovementService.create` throws `WITHDRAWAL_PERIOD_ACTIVE` (HTTP 403 FORBIDDEN via `MOVEMENT_TRPC_ERROR_MAP`) when a SLAUGHTERHOUSE/HOME_SLAUGHTER movement targets an animal with an active treatment (`treatments.diagnosis_date + withdrawal_period > now`). Also fixed a WO-022 gap: `FARM_LOCKED` now maps to 403. RuleSet default `amr.withdrawalPeriodDays` deferred to a follow-up (the treatment record is the authoritative per-product/species value per R4).
+
 ## Workorder strikes (draft)
 
 - **WO-113** — AMR withdrawal guillotine in `MovementService` (block slaughter; 403 `WITHDRAWAL_PERIOD_ACTIVE`); RuleSet `amr.withdrawalPeriodDays`.

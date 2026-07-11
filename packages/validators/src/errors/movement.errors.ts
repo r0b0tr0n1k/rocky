@@ -18,4 +18,6 @@ export const MOVEMENT_TRPC_ERROR_MAP: TRPCErrorMap = {
   MOVEMENT_UNREGISTERED_FARM: { code: "BAD_REQUEST", message: "Unregistered farm" },
   MOVEMENT_IMPORT_ALREADY_REGISTERED: { code: "CONFLICT", message: "Animal already registered in this country" },
   MOVEMENT_EXPORT_ANIMAL_NOT_FOUND: { code: "NOT_FOUND", message: "Animal not found for export" },
+  MOVEMENT_FARM_LOCKED: { code: "FORBIDDEN", message: "Farm locked: overdue birth notifications (WO-022)" },
+  MOVEMENT_WITHDRAWAL_PERIOD_ACTIVE: { code: "FORBIDDEN", message: "WITHDRAWAL_PERIOD_ACTIVE: animal under veterinary withdrawal period (EU 2019/6 Art.108)" },
 };

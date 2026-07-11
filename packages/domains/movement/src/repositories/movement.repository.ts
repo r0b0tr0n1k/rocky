@@ -4,8 +4,8 @@
  * @description DB access layer for animal movements.
  */
 
-import { eq, and, desc, asc, sql, gte, lte, inArray, type SQL } from "drizzle-orm";
-import { movements as movementsTable, pastureDeclarations as pastureDeclarationsTable, farms as farmsTable, birthNotifications as birthNotificationsTable } from "@rocky/database";
+import { eq, and, desc, asc, sql, gte, lte, inArray, gt, isNotNull, type SQL } from "drizzle-orm";
+import { movements as movementsTable, pastureDeclarations as pastureDeclarationsTable, farms as farmsTable, birthNotifications as birthNotificationsTable, treatments as treatmentsTable } from "@rocky/database";
 import { importExportRecords as importExportRecordsTable } from "@rocky/database";
 import { BaseRepository } from "@rocky/domains-shared";
 import { SORT_BY_MOVEMENT, SORT_ORDER, BIRTH_NOTIFICATION_STATUS } from "@rocky/database/constants";
@@ -146,6 +146,30 @@ export class MovementRepository extends BaseRepository {
         and(
           eq(birthNotificationsTable.farmId, farmId),
           eq(birthNotificationsTable.status, BIRTH_NOTIFICATION_STATUS.OVERDUE),
+        ),
+      )
+      .limit(1);
+    return row !== undefined;
+  }
+
+  /**
+   * WO-113 — AMR withdrawal guillotine (EU 2019/6, Art. 108).
+   * Returns true if the animal has an active treatment whose clearance date
+   * (diagnosis_date + withdrawal_period days) is still in the future.
+   */
+  async isAnimalUnderWithdrawal(animalId: string, now: Date): Promise<boolean> {
+    const [row] = await this.client
+      .select({ id: treatmentsTable.id })
+      .from(treatmentsTable)
+      .where(
+        and(
+          eq(treatmentsTable.animalId, animalId),
+          eq(treatmentsTable.isActive, true),
+          isNotNull(treatmentsTable.withdrawalPeriod),
+          gt(
+            sql`${treatmentsTable.diagnosisDate} + make_interval(days => ${treatmentsTable.withdrawalPeriod})`,
+            now,
+          ),
         ),
       )
       .limit(1);
