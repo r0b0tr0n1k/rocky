@@ -89,7 +89,7 @@ include `VI`, but no corresponding **VI subject role** exists (Bug B3 in ADR-002
 
 ### Negative / Divergences
 
-- **`VI` (veterinary inspector) subject role is missing** (Bug B3) — only `VETERINARIAN` exists; the
+- ~~**`VI` (veterinary inspector) subject role missing** (Bug B3)~~ **RESOLVED (2026-07-11, Horn A):** `VI` added to `SUBJECT_ROLE` (`"vi"`); distinct from private `VETERINARIAN`. State access via `VD_STAFF` + org-area RLS.
   workflow's VS/VI split is collapsed into the archive tiers alone.
 - **`FIELD_CHANGED` → document-production lock is partial** — approval fires an outbox event, but there
   is no per-field lock that blocks document generation until VD approves (legacy `HK` behavior).
@@ -99,7 +99,7 @@ include `VI`, but no corresponding **VI subject role** exists (Bug B3 in ADR-002
 
 - Keep `farmId` immutability in `farm.service.create`/`update`; never add an update path for it.
 - VD-approval side-effects MUST go through the outbox, never direct calls.
-- Resolve B3 by either adding a `VI` `SUBJECT_ROLE` or formally documenting the collapse.
+- **B3 RESOLVED (2026-07-11, Horn A):** `VI` added to `SUBJECT_ROLE` (value `"vi"`). Veterinary Inspectors are distinct subjects from private `VETERINARIAN`s; their system access uses the existing `VD_STAFF` user role + org-area RLS (no new user role). No DB migration — `farm_subjects.role` is `varchar` + Zod `zEnum`, regenerated via `scripts/regenerate-enums.mjs`.
 
 ## Alternatives Considered
 
@@ -110,8 +110,7 @@ Tracked as a divergence to revisit.
 
 ### 2. `VI` as a distinct subject role
 
-**Open (B3).** Pending domain-owner decision; the archive already models VS/VI tiers, so adding the
-role is consistent if inspection workflows need it.
+**Resolved (B3, 2026-07-11) — Horn A chosen.** The domain owner confirmed: in the Macedonian (MK) jurisdiction the Veterinary Inspector is a *state agent* of the Food and Veterinary Agency (CPC), distinct from the private Veterinary Station (VS) and its Veterinarian. Collapsing VI into VS would merge the police with the audited contractor — a conflict of interest. Therefore `VI` was added to `SUBJECT_ROLE` (value `"vi"`). VI's *system* access uses the existing `VD_STAFF` user role + `org_areas` RLS scoping (no new user role); the `SUBJECT_ROLE.VI` entry enables creating a `Subject` for the inspector and referencing it in `inspections.inspectorId` / `error_corrections.escalatedTo`. `ADMINISTER_ROLES` can now include `"vi"` per jurisdiction (ADR-0030).
 
 ## Related ADRs
 

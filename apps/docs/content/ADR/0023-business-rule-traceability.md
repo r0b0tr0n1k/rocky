@@ -127,7 +127,7 @@ Status legend: ✅ ADOPTED · 🟡 PARTIAL · ❌ MISSING · ⚠️ DEFERRED/CON
 |---|---|---|---|---|
 | B1 | **Takeover file uses the wrong check-digit algorithm AND synthetic tag numbers.** It computes `check = 10 - (sum % 10)` with weights `[3,1,3,1,3,1,3]` and enumerates `10000001 + i`, whereas the canonical `calculateEarTagCheckDigit` uses `[3,5,7,11,13,17,19]` + `sum % 10` and the real assigned tags. Export `.txt` files therefore contain invalid tags that fail `validateEarTagCheckDigit`. | `packages/domains/eartag/src/services/eartag.service.ts:512-536` | Verified against `packages/validators/src/utils/check-digit.ts` + legacy spec citation `FS - eartags_MK p6` | Fix in ADR-0024 scope; emit real assigned tags via `calculateEarTagCheckDigit` |
 | B2 | **`SM_SYS_PARAMS` / RuleSet not implemented** — all thresholds (120/4, 25/25/2, 17mo/365d, 30d) are hardcoded service constants. | `eartag` / `movement` / `animal` / `health` services | No `ruleset` store yet | **Resolved by ADR-0030** (Jurisdiction-Configurable Rule Engine) |
-| B3 | **`VI` (veterinary inspector) subject role missing** — only `VETERINARIAN` exists; workflow's VS/VI split is collapsed. | `packages/database/src/constants/subject-role.ts` | vs `workflow.md` Instance 18/22 | Add `VI` role or document the collapse (ADR-0027) |
+| B3 | **`VI` (veterinary inspector) subject role missing** — only `VETERINARIAN` exists; workflow's VS/VI split is collapsed. | `packages/database/src/constants/subject-role.ts` | vs `workflow.md` Instance 18/22 | Add `VI` role or document the collapse (ADR-0027) — **RESOLVED (Horn A, 2026-07-11):** `VI` added to `SUBJECT_ROLE` (`"vi"`); VD_STAFF + org-area RLS handles access. |
 
 ## Deferral Register (by design)
 

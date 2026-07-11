@@ -7,7 +7,7 @@
  *
  * DO NOT EDIT MANUALLY. Run: node scripts/regenerate-enums.mjs
  *
- * Generated: 2026-07-11T00:08:24.758Z
+ * Generated: 2026-07-11T03:00:50.834Z
  */
 
 import { zEnum } from "../_enum-helper.js";

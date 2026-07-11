@@ -30,7 +30,7 @@
 | WO   | Task                                                            | Source ADR | Priority | Status |
 | ---- | --------------------------------------------------------------- | ---------- | -------- | ------ |
 | WO-001 | Fix takeover-file check digit + synthetic tag numbers (B1)     | 0024 / 0023 | P1       | Done ✅   |
-| WO-002 | Add `VI` subject role (or document the collapse) (B3)          | 0027 / 0023 | P2       | Open   |
+| WO-002 | Add `VI` subject role (or document the collapse) (B3)          | 0027 / 0023 | P2       | Done ✅   |
 | WO-003 | Delete stale `apps/api/src/trpc/server.ts` + drop from patch TARGETS | 0032   | P2       | Done ✅ |
 | WO-010 | Build `ruleset` store + MK seed migration from today's constants | 0030     | P0       | Done ✅ |
 | WO-011 | Algorithm-provider registry + check-digit provider            | 0030 / 0024 | P0       | Done ✅   |
@@ -1215,3 +1215,27 @@ in the Nest HTTP layer, so `createCaller` skips them.
 **Status: WO-033 e2e border tier DELIVERED.** A deeper "real-router e2e" would require
 exposing nestjs-trpc's assembled router (separate, larger effort) and is left for a
 follow-up if desired.
+
+
+## WO-002 corrigendum (2026-07-11) — VI subject role added (Horn A)
+
+**Resolved (Bug B3, Horn A).** Domain-owner decision: in the MK jurisdiction the Veterinary
+Inspector (VI) is a *state agent* of the Food and Veterinary Agency (CPC), distinct from the private
+Veterinary Station (VS) and its Veterinarian. Collapsing VI into VS would merge police with the
+audited contractor (conflict of interest) — rejected.
+
+**Changes:**
+- `packages/database/src/constants/subject-role.ts`: added `VI: "vi"` to `SUBJECT_ROLE` and
+  `SUBJECT_ROLE_VALUES`.
+- `scripts/regenerate-enums.mjs`: regenerated enum codegen (`subjectRoleSchema = zEnum(SUBJECT_ROLE_VALUES)`
+  picks up `vi` at runtime). No literal value hardcoded — Single Source of Truth preserved.
+- **No DB migration:** `farm_subjects.role` is `varchar` + Zod `zEnum` (not a Postgres `pgEnum`), so
+  the change is code-only. `ADMINISTER_ROLES` (ADR-0030) can now include `"vi"` per jurisdiction.
+- VI *system* access uses the existing `USER_ROLE.VD_STAFF` + org-area RLS (no new user role).
+  `subject_access_policy` already allows `VD_STAFF` (an `ADMIN_ROLE`) to read all subjects — no RLS
+  change required.
+- Enables a `Subject` for the inspector, referenced by `inspections.inspectorId` and
+  `error_corrections.escalatedTo`.
+
+**Verified:** `@rocky/validators` + `@rocky/database` typecheck green (NoDrift guillotine intact).
+**Status: Done ✅.**
