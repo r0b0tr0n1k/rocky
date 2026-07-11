@@ -24,6 +24,7 @@ import {
   BookOpen,
   Link2,
   RefreshCw,
+  Network,
   type LucideIcon,
 } from "lucide-react";
 
@@ -50,6 +51,7 @@ export const navSections: NavSection[] = [
     items: [
       { title: "Animals", href: "/animals", permission: "animal:read", icon: PawPrint },
       { title: "Movements", href: "/movements", permission: "movement:read", icon: ArrowLeftRight },
+      { title: "Movement Lineage", href: "/movement-lineage", icon: Network },
       { title: "Passports", href: "/passports", permission: "passport:read", icon: BookUser },
       { title: "Ear Tags", href: "/ear-tags", permission: "eartag:read", icon: Tags },
       { title: "VS Contracts", href: "/vs-contracts", icon: FileSignature },
