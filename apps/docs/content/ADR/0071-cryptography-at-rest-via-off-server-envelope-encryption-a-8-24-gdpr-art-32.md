@@ -23,12 +23,15 @@ unsettled) was the correct *temporary* call; this ADR makes it permanent and saf
 
 **Envelope encryption, off-server KEK.** PII columns flagged `category: direct` /
 `defaultExcluded` are encrypted at rest with a per-row / per-table Data Encryption Key (DEK);
-the Key Encryption Key (KEK) lives in an **external KMS / HSM the application server never
-holds long-term**. Key custody is the separate boundary -- never in the Rocky repo, never in
-the database, ideally in the cloud provider's managed KMS. This is the deferred crypto piece
-from ADR-0061 Phase 2; ADR-0061's D-crypto section references this ADR. Phase 2;
-expert review on key rotation + jurisdiction of the KMS. RLS stays (it scopes *access*;
-crypto scopes *exposure at rest* -- they are complementary, not substitutes).
+the Key Encryption Key (KEK) lives in a **vault on a separate server** (off the database /
+application host) -- an external KMS / HSM, never held long-term by the app server.
+**Default custody: a vault on another server; a contract may state otherwise.** Key custody
+is the separate boundary -- never in the Rocky repo, never in the database. GDPR Art 32
+*recommends* encryption (appropriate technical measures) but does not strictly mandate it;
+ISO/IEC 27701 A.8.24 / A.1.2.2 *mandates* cryptographic controls. This procedure states the
+default custody so the control is implemented regardless of certification status (certification
+is a separate, paid step). RLS stays (it scopes *access*; crypto scopes *exposure at rest* --
+they are complementary, not substitutes).
 
 ## Consequences
 

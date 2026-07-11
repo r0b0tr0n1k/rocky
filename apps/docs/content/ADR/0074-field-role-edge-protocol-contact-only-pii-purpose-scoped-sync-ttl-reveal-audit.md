@@ -190,6 +190,30 @@ exempt (own data, low risk). This is ADR-0072 (re-auth lock) concretized for the
 - Mechanism: gate the PII-rendering path behind `expo-local-authentication`
   (or the OS credential); the unlock is session-scoped, not per-field.
 
+### S6. Device loss & breach assessment (Q5 resolved)
+A lost / stolen field device is handled by **procedure**, not panic:
+- **Accountability.** The device is issued to a named user (vet / technician / butcher /
+  market_op) under the **controller** (VD). That user must safeguard it + report loss
+  promptly; the controller (via DPO) owns the breach assessment. (GDPR has no literal
+  'maintainer of the equipment' role -- the accountable party is the *controller*; the
+  device user is an authorised person under Art 29, acting on the controller's instructions.)
+- **What was on the phone.** The reveal-log (S2) + the contact-only offline bundle (S1)
+  for that `deviceId` *are* the 'PII-on-device-at-loss' inventory. No extra register.
+- **Posture at loss.** Offline PII lives in an encrypted store unlocked only by device
+  PIN / biometric (S5). The data is therefore unintelligible to an unauthorised person --
+  the **Art 34(3)(a) exemption** from breach notification applies by default.
+- **Risk is trivial.** Offline data is contact-only (name + phone + email), purpose-scoped,
+  24h TTL-bounded; not a user database -- at most one or two extra contacts per device.
+  With encryption-at-rest + access control, a routine loss does not warrant Art 33
+  notification. No further measures are required.
+- **Procedure.** On reported loss: (1) revoke the device session + `deviceId`; (2) pull the
+  reveal-log + offline inventory for `deviceId` from the server; (3) DPO assesses using
+  Art 34(3)(a) and records the outcome; (4) only if there is evidence of compromise
+  (device was unlocked / breached) escalate per ADR-0072. Default: documented, not notifiable.
+- **Key custody.** The offline-store key is device-bound (OS secure enclave); the server-side
+  KEK + audit-log key live in a **vault on a separate server** by default (contract may state
+  otherwise) -- never co-located with the database (ADR-0071).
+
 ## Consequences
 
 ### Positive
@@ -201,7 +225,8 @@ exempt (own data, low risk). This is ADR-0072 (re-auth lock) concretized for the
 ### Negative / Cost
 - Server changes S1 + S2 are required (sync projection + audit mutation) and are
   verifiable here; the device TTL sweep (S4) and device auth (S5) need the native gate.
-- **Pending stakeholder confirmation** (see below) before any build / WORKORDER.
+- **All stakeholder questions are now answered** (see below); implementation may proceed
+  on the user's go-ahead. No WORKORDER yet per standing directive.
 
 ### Neutral
 - Reuses ADR-0073's `<PiiText>` + reveal-log shape, the registry, and the audit store.
@@ -210,9 +235,8 @@ exempt (own data, low risk). This is ADR-0072 (re-auth lock) concretized for the
 
 ## Stakeholder confirmation (REQUIRED before implementation)
 
-This ADR is Proposed and explicitly **subject to stakeholder review** (user directive:
-"I will need to check all the stakeholders"). Decisions above reflect the user's
-current proposal; the following remain open:
+All stakeholder questions are now **answered** (below). The ADR moves from *pending
+review* to *review complete*; a WORKORDER is created only on the user's go-ahead.
 1. ~~Which contact fields~~ -> **answered**: name + phone + email, clickable + logged.
 2. ~~TTL length / mechanism~~ -> **answered**: 24h working; lazy opportunistic purge
    (S4); never force offline.
@@ -225,8 +249,10 @@ current proposal; the following remain open:
    out of detailed scope (prior GDPR project); both MK LPDP and AL Law 124 are
    GDPR-derived, so the GDPR-aligned edge protocol satisfies both. Veterinary-law
    variance per jurisdiction is carried by the RuleSet domain (ADR-0030), not here.
-5. Who owns the reveal-log retention and the breach assessment if a device is lost --
-   **open** (ties to ADR-0072).
+5. ~~Who owns the reveal-log retention + breach assessment on device loss~~ -> **RESOLVED**:
+   device issued to a named user under the controller; the reveal-log + contact-only
+   bundle *are* the 'PII-on-device' inventory; encrypted + biometric-locked + TTL-bounded
+   => Art 34(3)(a) exemption; trivial risk; DPO assesses, default not notifiable (S6).
 
 No WORKORDER entry is created until these are answered.
 
@@ -249,6 +275,8 @@ rg -n "contact-only|purpose-farm|manifest-contact|expires_at|logReveal|deviceAut
 # a reveal event from a field device is present in the tamper-evident server log
 # after ttlMs, cached contact PII is purged on next app launch (native gate)
 # PII does not render until device auth passes (native gate)
+# on reported device loss, the reveal-log + offline bundle for deviceId = the PII-on-device inventory
+# DPO assessment cites Art 34(3)(a) (encrypted + access-controlled => not notifiable)
 ```
 
 ## Anti-Patterns
