@@ -8,6 +8,8 @@
 | **Status**     | Proposed                                                               |
 | **Date**       | 2026-07-11                                                             |
 | **Author**     | Architecture Review                                                    |
+| **Supersedes** | None |
+| **Superseded** | None |
 | **Source**     | Gap surfaced in ADR audit; WO-115 (EUDR), WO-119 (disease-zone), WO-121 (IMSOC/CHED) gate server-side |
 | **Related**    | ADR-0036 (offline sync); ADR-0025 (movement); ADR-0030 (RuleSet); ADR-0063 / 0064 / 0062; ADR-0015 (conflict resolution); ADR-0003 (execution) |
 

@@ -8,6 +8,8 @@
 | **Status**     | Proposed                                                               |
 | **Date**       | 2026-07-11                                                             |
 | **Author**     | Architecture Review                                                    |
+| **Supersedes** | None |
+| **Superseded** | None |
 | **Source**     | Root AGENTS.md "Error Sovereignty Doctrine"; drift risk without a formal ADR |
 | **Related**    | ADR-0003 (execution); ADR-0032 (tRPC); ADR-0018 / 0019 (validators); ADR-0041 (error UX); ADR-0022 (authz) |
 
