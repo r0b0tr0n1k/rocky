@@ -50,6 +50,8 @@ The set covers ~everything **except** three signatures our ADRs require. Build t
 2. **`Stepper`** — `earTag` 6-stage order, `vsContract` lifecycle. Compose from `badge` + `separator` + `card`. *Owner: Admin Bot, Phase 1.*
 3. **`Map`** — `iot` geofence (GeoJSON). **Not in shadcn** → external lib decision deferred to **ADR-0031**. Until chosen, render `resizable` + a placeholder pane.
 
+> **Registry check (2026-07-11).** Searched the official `@shadcn` registry for `stepper`, `timeline`, `map` — none exist in core (the `map` hits were font/example false positives). Community registries *may* ship them, but the shadcn skill forbids guessing a registry; an explicit choice is required to pull from one. Given this repo's UI is the shared `@rocky/ui` package (`base: radix`, `style: radix-nova`, `iconLibrary: lucide`), a community piece would need import/icon rewriting and risks style drift from the design system. **Decision: compose `Timeline` + `Stepper` locally (on-style, ~30 LoC each); resolve `Map` via ADR-0031.**
+
 ## Decision — Component-selection reference
 
 | Need | Use |
