@@ -10,7 +10,7 @@ Next.js admin panel for CPC/VD back-office workflows.
 ## Responsibilities
 
 - Build admin UI with `@rocky/ui` (shared shadcn components) and `@rocky/validators` (Zod).
-- Web-specific composition primitives live in `apps/web/components/shared/` (e.g. `ValidatedForm`, `data-table`, `status-badge`, `form-fields`, and `Stepper` for lifecycle state). Prefer these over hand-rolled markup.
+- Web-specific composition primitives live in `apps/web/components/shared/` (e.g. `validated-form`, `data-table`, `status-badge`, `form-fields`, `action-dialog`). Two lifecycle/ledger primitives were built for the **WO-123** web↔backend parity program (ADR-0055 / ADR-0060): `shared/stepper.tsx` — `Stepper` (horizontal + vertical) for order/status lifecycles (vs-contracts, farm-books, ear-tags Orders, passports); `shared/timeline.tsx` — `Timeline` for lineage/clinical records (movement-lineage, health clinical record). All parity admin pages (vs-contracts, farm-books, vs-assignments, sync, movement-lineage, ear-tags, health) consume these + enums imported from `@rocky/validators/enums`. Prefer these over hand-rolled markup.
 - Wire tRPC queries/mutations to the NestJS backend.
 - Owns the Web Admin ADRs (per ADR-0033) in `apps/docs/content/ADR/`.
 

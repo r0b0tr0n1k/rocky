@@ -1332,4 +1332,36 @@ audited contractor (conflict of interest) — rejected.
   TOC vs `trpc.<router>` usage in `apps/web`) — fails CI if a backend procedure lacks a web affordance.
 - **Acceptance (program complete):** web invokes all 24 routers (`sync` exempt as monitor); every Mutation
   has a form/action; `pnpm check:web-parity` green; `pnpm ci:checks` green.
-- **Status:** Proposed (program opened 2026-07-11). Phase 0 not yet started.
+- **Status:** In Progress (opened 2026-07-11; parity pages built this session per ADR-0055 / ADR-0060).
+  Tier-0 presence complete; Tier-1 lifecycle deepened on ear-tags + health; Tier-2 movement-lineage done;
+  Phase-4 `check:web-parity` guardian + remaining Stepper/Timeline depth outstanding.
+
+### Progress log (2026-07-11 session)
+
+Per ADR-0055 charter + ADR-0056–0060, the web↔backend parity program advanced:
+
+- **Phase 1 — Tier 0 (presence), DONE.** Built the 4 absent admin pages, each importing enums from
+  `@rocky/validators/enums` (never inline) and reusing the Stepper/Timeline primitives built from `@7ovr`:
+  - `vs-contracts` — Stepper lifecycle (`VS_CONTRACT_STATUS`) + status update — `b658f8b`
+  - `farm-books` — Stepper lifecycle (`FARM_BOOK_STATUS`) — `a138c63`
+  - `vs-assignments` — assign/unassign — `aeafe8b`
+  - `sync` — offline-sync monitor (`trpc.sync.syncDownload`) — `aeafe8b`
+- **Primitives.** `Stepper` (`apps/web/components/shared/stepper.tsx`, adapted from `@7ovr/steps-1`;
+  horizontal + vertical) + `Timeline` (`apps/web/components/shared/timeline.tsx`, composed locally).
+  Both import enums; no inline arrays — `444c027`.
+- **Phase 3 — Tier 2 (deepen), PARTIAL.** `movement-lineage` debuts the `Timeline`
+  (project lineage-graph edges → TimelineItems, oldest→newest) — `d0c3670`.
+- **Phase 2 — Tier 1 lifecycle, PARTIAL (2 of 3).** Deepened two of three lifecycle pages with primitives:
+  - `ear-tags` Orders — Stepper lifecycle (`EAR_TAG_ORDER_STATUS`); also fixed a pre-existing Orders-tab mis-cast — `4980e8d`
+  - `health` — clinical `Timeline` (vaccinations + treatments + lab tests) — `38e70e5`
+  - `passports` — pre-existed (canonical pattern); Stepper deepen optional.
+- **ADR corpus.** WO-123 decomposed into ADR-0055 (charter) + ADR-0056–0059 (per-tier) + ADR-0060
+  (component/feedback/validation map). All 24 routers now have a web surface.
+
+### Outstanding (not yet done)
+
+- **Phase 4 — `check:web-parity` guardian** (diff `api-reference.mdx` TOC vs `trpc.<router>` usage in
+  `apps/web`) — NOT built.
+- **Tier-2 deepen** on `inspections` / `passports` / `archive` / `corrections` (optional Stepper/Timeline polish).
+- **Pre-existing `pnpm --filter web check-types` errors** in `permissions-core.test.ts` + `packages/auth`
+  (test/lib, out of parity scope).
