@@ -2,7 +2,7 @@
 
 > ⚠️ **AUTO-GENERATED** from `apps/api/src/routers/*.router.ts` via `pnpm gen:api-reference`. Do not edit by hand — re-run the generator when routers change.
 
-The Rocky API is a **tRPC** layer generated from NestJS routers (`@Router` / `@Query` / `@Mutation`) by `nestjs-trpc generate` into `packages/trpc/src/generated/server.ts`. It currently exposes **24 routers / 159 procedures**. The NoDrift ideology holds at the boundary: the client `AppRouter` type *is* the contract, so drift is impossible by construction (enforced by `check:trpc-boundary` in `ci:checks`).
+The Rocky API is a **tRPC** layer generated from NestJS routers (`@Router` / `@Query` / `@Mutation`) by `nestjs-trpc generate` into `packages/trpc/src/generated/server.ts`. It currently exposes **25 routers / 173 procedures**. The NoDrift ideology holds at the boundary: the client `AppRouter` type *is* the contract, so drift is impossible by construction (enforced by `check:trpc-boundary` in `ci:checks`).
 
 ## Where the surface lives
 
@@ -22,12 +22,13 @@ Nextra’s `<TSDoc>` component turns TS types into property / parameter / return
 - [correction](#correction) — 7 procedures
 - [device](#device) — 8 procedures
 - [document](#document) — 2 procedures
-- [earTag](#eartag) — 17 procedures
+- [earTag](#eartag) — 18 procedures
 - [farm](#farm) — 4 procedures
 - [farmBook](#farmbook) — 4 procedures
-- [health](#health) — 20 procedures
+- [geo](#geo) — 17 procedures
+- [health](#health) — 21 procedures
 - [inspection](#inspection) — 8 procedures
-- [iot](#iot) — 11 procedures
+- [iot](#iot) — 6 procedures
 - [modules](#modules) — 2 procedures
 - [movement](#movement) — 17 procedures
 - [notification](#notification) — 4 procedures
@@ -60,7 +61,7 @@ Nextra’s `<TSDoc>` component turns TS types into property / parameter / return
 | `create` | Mutation | `createArchiveDocumentRequestSchema` | `archiveDocumentResponseSchema` |
 | `listExpired` | Query | `z.strictObject({ limit: z.int().min(1).max(1000).default(100) })` | `archiveExpiredListResponseSchema` |
 | `markArchived` | Mutation | `idParam` | `archiveDocumentResponseSchema` |
-| `markDestroyed` | Mutation | `idParam` | `archiveDocumentResponseSchema` |
+| `markDestroyed` | Mutation | `markDestroyedArchiveRequestSchema` | `archiveDocumentResponseSchema` |
 | `archiveInspectionForm` | Mutation | `archiveInspectionFormRequestSchema` | `archiveDocumentResponseSchema` |
 
 ## audit
@@ -79,7 +80,7 @@ Nextra’s `<TSDoc>` component turns TS types into property / parameter / return
 | `review` | Mutation | `reviewCorrectionRequestSchema` | `correctionResponseSchema` |
 | `resolve` | Mutation | `resolveCorrectionRequestSchema` | `correctionResponseSchema` |
 | `escalate` | Mutation | `escalateCorrectionRequestSchema` | `correctionResponseSchema` |
-| `reject` | Mutation | `idParam` | `correctionResponseSchema` |
+| `reject` | Mutation | `rejectCorrectionRequestSchema` | `correctionResponseSchema` |
 
 ## device
 
@@ -91,8 +92,8 @@ Nextra’s `<TSDoc>` component turns TS types into property / parameter / return
 | `update` | Mutation | `idParam.partial().extend(updatePdaDeviceRequestSchema.shape)` | `pdaDeviceResponseSchema` |
 | `assignUser` | Mutation | `assignDeviceUserRequestSchema` | `pdaDeviceResponseSchema` |
 | `recordSync` | Mutation | `recordSyncRequestSchema` | `pdaDeviceResponseSchema` |
-| `registerFailedAttempt` | Mutation | `idParam` | `pdaDeviceBlockedResponseSchema` |
-| `unblock` | Mutation | `idParam` | `pdaDeviceResponseSchema` |
+| `registerFailedAttempt` | Mutation | `registerFailedAttemptDeviceRequestSchema` | `pdaDeviceBlockedResponseSchema` |
+| `unblock` | Mutation | `unblockDeviceRequestSchema` | `pdaDeviceResponseSchema` |
 
 ## document
 
@@ -117,6 +118,7 @@ Nextra’s `<TSDoc>` component turns TS types into property / parameter / return
 | `collectOrderTags` | Mutation | `collectOrderTagsRequestSchema` | `earTagOrderResponseSchema` |
 | `unknown` | Mutation | `createDuplicateOrderRequestSchema` | `earTagOrderResponseSchema` |
 | `unknown` | Mutation | `createOrderRequestSchema` | `earTagOrderResponseSchema` |
+| `updateOrder` | Mutation | `updateOrderRequestSchema` | `earTagOrderResponseSchema` |
 | `cancelOrder` | Mutation | `cancelOrderRequestSchema` | `earTagOrderResponseSchema` |
 | `cancelOrderItem` | Mutation | `cancelOrderItemRequestSchema` | `earTagOrderResponseSchema` |
 | `appendToOrder` | Mutation | `appendToOrderRequestSchema` | `earTagOrderResponseSchema` |
@@ -141,6 +143,28 @@ Nextra’s `<TSDoc>` component turns TS types into property / parameter / return
 | `create` | Mutation | `createFarmBookRequestSchema` | `farmBookResponseSchema` |
 | `updateStatus` | Mutation | `z.strictObject({ id: z.uuid(), data: updateFarmBookStatusRequestSchema })` | `farmBookResponseSchema` |
 
+## geo
+
+| Procedure | Kind | Input | Output |
+| --- | --- | --- | --- |
+| `listGeofences` | Query | `z.object({ farmId: z.uuid() })` | `geofenceArraySchema` |
+| `findActiveDiseaseZones` | Query | `z.object({ farmId: z.uuid() })` | `geofenceArraySchema` |
+| `listGeofenceEvents` | Query | `z.object({ animalId: z.uuid().optional(), geofenceId: z.uuid().optional(), farmId: z.uuid().optional(), limit: z.int().min(1).max(1000).default(50), offset: z.int().min(0).default(0), })` | `geofenceEventArraySchema` |
+| `createGeofence` | Mutation | `createGeofenceRequestSchema` | `geofenceResponseSchema` |
+| `deleteGeofence` | Mutation | `z.object({ id: z.uuid() })` | `z.void()` |
+| `logGeofenceEvent` | Mutation | `logGeofenceEventRequestSchema` | `geofenceEventResponseSchema` |
+| `listSettlements` | Query | `z.object({})` | `settlementArraySchema` |
+| `declareDiseaseZone` | Mutation | `declareDiseaseZoneRequestSchema` | `geofenceArraySchema` |
+| `listDiseaseZones` | Query | `z.object({ farmId: z.uuid().optional(), limit: z.int().min(1).max(1000).default(50), offset: z.int().min(0).default(0), })` | `diseaseZoneListSchema` |
+| `findGeofencesForAnimalPastures` | Query | `z.object({ animalId: z.uuid() })` | `geofenceArraySchema` |
+| `findActiveDiseaseZonesNearFarm` | Query | `z.object({ farmId: z.uuid(), radiusMeters: z.number().min(0).default(50_000) })` | `geofenceArraySchema` |
+| `findGeofencesIntersectingPolygon` | Query | `z.object({ wkt: z.string() })` | `geofenceArraySchema` |
+| `forwardGeocode` | Query | `z.object({ query: z.string(), language: z.string().optional(), limit: z.int().optional(), proximity: z.array(z.number()).length(2).optional(), bbox: z.array(z.number()).optional(), country: z.array(z.string()).optional(), })` | `geocodeResultSchema` |
+| `reverseGeocode` | Query | `z.object({ lng: z.number(), lat: z.number(), language: z.string().optional(), limit: z.int().optional() })` | `geocodeResultSchema` |
+| `staticMapUrl` | Query | `z.object({ mode: z.enum(["centered", "bounded", "automatic"]), center: z.array(z.number()).length(2).optional(), zoom: z.number().optional(), bbox: z.array(z.number()).optional(), width: z.number().optional(), height: z.number().optional(), hiDPI: z.boolean().optional(), style: z.string().optional(), path: z.array(z.array(z.number())).optional(), marker: z.array(z.tuple([z.number(), z.number(), z.string()])).optional(), pathStrokeColor: z.string().optional(), })` | `z.string()` |
+| `geolocation` | Query | `z.object({})` | `geolocationSchema` |
+| `assessDeforestation` | Query | `z.object({ geofenceId: z.uuid(), cutoffYear: z.number().int() })` | `deforestationAssessmentSchema` |
+
 ## health
 
 | Procedure | Kind | Input | Output |
@@ -148,6 +172,7 @@ Nextra’s `<TSDoc>` component turns TS types into property / parameter / return
 | `getDisease` | Query | `idParam` | `diseaseResponseSchema` |
 | `listDiseases` | Query | `diseaseListRequestSchema` | `diseaseListResponseSchema` |
 | `createDisease` | Mutation | `createDiseaseRequestSchema` | `diseaseResponseSchema` |
+| `updateDisease` | Mutation | `updateDiseaseRequestSchema` | `diseaseResponseSchema` |
 | `getVaccine` | Query | `idParam` | `vaccineResponseSchema` |
 | `listVaccines` | Query | `vaccineListRequestSchema` | `vaccineListResponseSchema` |
 | `createVaccine` | Mutation | `createVaccineRequestSchema` | `vaccineResponseSchema` |
@@ -189,11 +214,6 @@ Nextra’s `<TSDoc>` component turns TS types into property / parameter / return
 | `ingestReading` | Mutation | `ingestReadingRequestSchema` | `sensorReadingResponseSchema` |
 | `ingestReadings` | Mutation | `z.object({ readings: z.array(ingestReadingRequestSchema) })` | `sensorReadingArraySchema` |
 | `listReadings` | Query | `listReadingsRequestSchema` | `sensorReadingListResponseSchema` |
-| `createGeofence` | Mutation | `createGeofenceRequestSchema` | `geofenceResponseSchema` |
-| `listGeofences` | Query | `z.object({ farmId: z.uuid() })` | `geofenceArraySchema` |
-| `deleteGeofence` | Mutation | `z.object({ id: z.uuid() })` | `deleteGeofenceSchema` |
-| `logGeofenceEvent` | Mutation | `logGeofenceEventRequestSchema` | `geofenceEventResponseSchema` |
-| `listGeofenceEvents` | Query | `z.object({ animalId: z.uuid().optional(), geofenceId: z.uuid().optional(), farmId: z.uuid().optional(), limit: z.int().min(1).max(1000).default(50), offset: z.int().min(0).default(0), })` | `geofenceEventListResponseSchema` |
 
 ## modules
 
@@ -249,8 +269,8 @@ Nextra’s `<TSDoc>` component turns TS types into property / parameter / return
 | `getById` | Query | `idParam` | `passportResponseSchema` |
 | `list` | Query | `passportListRequestSchema` | `passportListResponseSchema` |
 | `issueForAnimal` | Mutation | `issuePassportRequestSchema` | `passportResponseSchema` |
-| `shipToVs` | Mutation | `idParam` | `passportResponseSchema` |
-| `deliverToKeeper` | Mutation | `idParam` | `passportResponseSchema` |
+| `shipToVs` | Mutation | `shipToVsPassportRequestSchema` | `passportResponseSchema` |
+| `deliverToKeeper` | Mutation | `deliverToKeeperPassportRequestSchema` | `passportResponseSchema` |
 | `seize` | Mutation | `seizePassportRequestSchema` | `passportResponseSchema` |
 | `reprint` | Mutation | `reprintPassportRequestSchema` | `passportResponseSchema` |
 

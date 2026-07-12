@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Alert, ScrollView, ActivityIndicator } from "react-native";
 import { Text } from "@/components/ui/text";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { signUp } from "@/lib/auth";
@@ -54,7 +55,8 @@ export const SignUp = ({ onSuccess }: SignUpProps) => {
 
   return (
     <ScrollView className="flex-1">
-      <View className="gap-6 p-5">
+      <Card className="m-4">
+        <CardContent className="gap-6 p-5">
         <View className="gap-2">
           <Text className="text-foreground text-2xl font-bold">Sign Up</Text>
           <Text className="text-muted-foreground text-sm">
@@ -120,7 +122,8 @@ export const SignUp = ({ onSuccess }: SignUpProps) => {
             )}
           </Button>
         </View>
-      </View>
+      </CardContent>
+      </Card>
     </ScrollView>
   );
 };

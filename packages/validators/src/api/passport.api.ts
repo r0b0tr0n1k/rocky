@@ -68,6 +68,14 @@ export interface ReprintPassportRequest {
   originalPassportId: string;
 }
 
+export interface ShipToVsPassportRequest {
+  passportId: string;
+}
+
+export interface DeliverToKeeperPassportRequest {
+  passportId: string;
+}
+
 export interface PassportListRequest {
   farmId?: string;
   status?: passportStatusType;
@@ -130,6 +138,14 @@ export const reprintPassportRequestSchema = z.strictObject({
   originalPassportId: z.uuid(),
 }) satisfies z.ZodType<ReprintPassportRequest>;
 
+export const shipToVsPassportRequestSchema = z.strictObject({
+  passportId: z.uuid(),
+}) satisfies z.ZodType<ShipToVsPassportRequest>;
+
+export const deliverToKeeperPassportRequestSchema = z.strictObject({
+  passportId: z.uuid(),
+}) satisfies z.ZodType<DeliverToKeeperPassportRequest>;
+
 export const passportListRequestSchema = z.strictObject({
   farmId: z.uuid().optional(),
   status: passportStatusSchema.optional(),
@@ -150,8 +166,10 @@ type _drift_passportListResponse = true;
 type _drift_issuePassportRequest = NoDrift<z.infer<typeof issuePassportRequestSchema>, IssuePassportRequest>;
 type _drift_seizePassportRequest = NoDrift<z.infer<typeof seizePassportRequestSchema>, SeizePassportRequest>;
 type _drift_reprintPassportRequest = NoDrift<z.infer<typeof reprintPassportRequestSchema>, ReprintPassportRequest>;
+type _drift_shipToVsPassportRequest = NoDrift<z.infer<typeof shipToVsPassportRequestSchema>, ShipToVsPassportRequest>;
+type _drift_deliverToKeeperPassportRequest = NoDrift<z.infer<typeof deliverToKeeperPassportRequestSchema>, DeliverToKeeperPassportRequest>;
 type _drift_passportListRequest = NoDrift<z.infer<typeof passportListRequestSchema>, PassportListRequest>;
 
 export type _PassportGuillotines = ActivateGuillotines<
-  [ _drift_passportResponse, _drift_passportSummary, _drift_passportListResponse, _drift_issuePassportRequest, _drift_seizePassportRequest, _drift_reprintPassportRequest, _drift_passportListRequest ]
+  [ _drift_passportResponse, _drift_passportSummary, _drift_passportListResponse, _drift_issuePassportRequest, _drift_seizePassportRequest, _drift_reprintPassportRequest, _drift_shipToVsPassportRequest, _drift_deliverToKeeperPassportRequest, _drift_passportListRequest ]
 >;

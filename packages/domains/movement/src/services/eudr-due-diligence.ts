@@ -7,7 +7,7 @@
 // without changing this gate.
 
 import type { MovementRepository } from "../repositories/movement.repository.js";
-import type { IotRepository } from "@rocky/domains-iot";
+import type { GeoRepository } from "@rocky/geo";
 import type { RuleSet } from "@rocky/domains-system";
 import { FENCE_TYPE } from "@rocky/database/constants";
 
@@ -46,7 +46,7 @@ export interface EudrDueDiligenceResult {
  */
 export async function runEudrDueDiligence(
   movementRepo: MovementRepository,
-  iotRepo: IotRepository,
+  geoRepo: GeoRepository,
   ruleSet: RuleSet,
   animalId: string,
 ): Promise<EudrDueDiligenceResult> {
@@ -67,7 +67,7 @@ export async function runEudrDueDiligence(
   const declarations = await movementRepo.findPastureDeclarationsByAnimalId(animalId);
   const pastureIds = declarations.map((d: { id: string }) => d.id);
   const geofences = pastureIds.length
-    ? await iotRepo.findByPastureIds(pastureIds, FENCE_TYPE.PASTURE_BOUNDARY)
+    ? await geoRepo.findGeofencesByPastureIds(pastureIds, FENCE_TYPE.PASTURE_BOUNDARY)
     : [];
 
   const breaches: EudrBreach[] = [];

@@ -18,3 +18,5 @@ export * from "./rbac.errors.js";
 export * from "./subject.errors.js";
 export * from "./user.errors.js";
 export * from "./system.errors.js";
+export * from "./geo.errors.js";
+export * from "./geo.errors.js";

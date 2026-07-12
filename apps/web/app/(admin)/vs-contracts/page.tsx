@@ -6,7 +6,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 
 import { Badge } from "@rocky/ui/components/badge";
-import { Button } from "@rocky/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +25,7 @@ import { DateField, SelectField, TextareaField, TextField } from "#components/sh
 import { PageHeader } from "#components/shared/page-header";
 import { Stepper } from "#components/shared/stepper";
 import { DataTable } from "#components/shared/data-table";
+import { TableCard, tableDensityClass } from "#components/shared/table-card";
 import { vsContractColumns } from "#components/vs-contracts/columns";
 import { useTRPC } from "#lib/trpc";
 
@@ -78,7 +78,17 @@ export default function VsContractsPage() {
       <PageHeader
         title="VS Contracts"
         description="Veterinary service contracts and their lifecycle."
-        actions={
+      />
+
+      <Input
+        value={region}
+        onChange={(e) => setRegion(e.target.value)}
+        placeholder="Filter by region…"
+        className="max-w-xs"
+      />
+
+      <TableCard
+        action={
           <ActionDialog
             as="button"
             triggerLabel="New contract"
@@ -109,15 +119,7 @@ export default function VsContractsPage() {
             )}
           />
         }
-      />
-
-      <Input
-        value={region}
-        onChange={(e) => setRegion(e.target.value)}
-        placeholder="Filter by region…"
-        className="max-w-xs"
-      />
-
+      >
       <DataTable
         columns={columns}
         data={rows}
@@ -126,7 +128,10 @@ export default function VsContractsPage() {
         page={0}
         pageSize={Math.max(rows.length, 20)}
         onPageChange={() => {}}
+        bordered={false}
+        tableClassName={tableDensityClass}
       />
+      </TableCard>
 
       <Dialog
         open={selected !== null}
@@ -180,3 +185,4 @@ export default function VsContractsPage() {
     </div>
   );
 }
+

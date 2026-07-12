@@ -136,6 +136,26 @@ export class EarTagRepository extends BaseRepository {
     return row ?? null;
   }
 
+  async updateOrder(input: {
+    orderId: string;
+    supplierName?: string;
+    notes?: string;
+    expectedDeliveryDate?: string;
+    totalQuantity?: number;
+  }) {
+    const [row] = await this.client
+      .update(earTagOrders)
+      .set({
+        ...(input.supplierName !== undefined ? { supplierName: input.supplierName } : {}),
+        ...(input.notes !== undefined ? { notes: input.notes } : {}),
+        ...(input.expectedDeliveryDate !== undefined ? { expectedDeliveryDate: input.expectedDeliveryDate } : {}),
+        ...(input.totalQuantity !== undefined ? { totalQuantity: input.totalQuantity } : {}),
+      })
+      .where(eq(earTagOrders.id, input.orderId))
+      .returning();
+    return row ?? null;
+  }
+
   async createOrder(input: {
     organizationId: string;
     supplierOrganizationId: string;

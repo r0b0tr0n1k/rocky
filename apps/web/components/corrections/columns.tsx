@@ -8,6 +8,7 @@ import { EyeIcon } from "lucide-react";
 import { Badge } from "@rocky/ui/components/badge";
 import {
   escalateCorrectionRequestSchema,
+  rejectCorrectionRequestSchema,
   resolveCorrectionRequestSchema,
   reviewCorrectionRequestSchema,
   type CorrectionResponse,
@@ -16,6 +17,7 @@ import { CORRECTION_STATUS, DETECTION_SOURCE } from "@rocky/validators/enums";
 import { enumToOptions } from "#lib/options";
 import { SelectField, TextareaField, TextField } from "#components/shared/form-fields";
 import { ActionDialog, RowActionMenu, type RowMenuItem } from "#components/shared/action-dialog";
+import { RowDetailsDialog } from "#components/shared/row-details-dialog";
 
 export type { CorrectionResponse } from "@rocky/validators/api";
 
@@ -33,6 +35,7 @@ export function correctionColumns(opts: {
   review: { mutate: (v: z.input<typeof reviewCorrectionRequestSchema>) => void; isPending: boolean };
   resolve: { mutate: (v: z.input<typeof resolveCorrectionRequestSchema>) => void; isPending: boolean };
   escalate: { mutate: (v: z.input<typeof escalateCorrectionRequestSchema>) => void; isPending: boolean };
+  reject: { mutate: (v: z.input<typeof rejectCorrectionRequestSchema>) => void; isPending: boolean };
 }): ColumnDef<CorrectionResponse>[] {
   return [
     { accessorKey: "errorType", header: "Error type", enableSorting: false },
@@ -108,6 +111,40 @@ export function correctionColumns(opts: {
                     <TextareaField control={form.control} name="reason" label="Reason" />
                   </>
                 )}
+              />
+            ),
+          },
+          {
+            type: "dialog",
+            dialog: (
+              <ActionDialog
+                as="menuitem"
+                triggerLabel="Reject"
+                schema={rejectCorrectionRequestSchema}
+                mutation={opts.reject}
+                title="Reject correction"
+                alert="Rejecting closes the case as not actionable."
+                defaultValues={{ id: row.original.id }}
+                fields={() => (
+                  <p className="text-sm text-muted-foreground">Confirm rejection of this correction case.</p>
+                )}
+              />
+            ),
+          },
+          {
+            type: "dialog",
+            dialog: (
+              <RowDetailsDialog
+                title={row.original.errorType}
+                description="Correction case"
+                fields={[
+                  { label: "Error type", value: row.original.errorType },
+                  { label: "Status", value: row.original.status },
+                  { label: "Source", value: row.original.detectionSource },
+                  { label: "Case type", value: row.original.caseType ?? "—" },
+                  { label: "Farm", value: row.original.farmId ?? "—" },
+                  { label: "Animal", value: row.original.animalId ?? "—" },
+                ]}
               />
             ),
           },

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Alert, ActivityIndicator } from "react-native";
 import { Text } from "@/components/ui/text";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { signIn } from "@/lib/auth";
@@ -41,7 +42,8 @@ export const SignIn = ({ onSuccess }: SignInProps) => {
   };
 
   return (
-    <View className="gap-6 p-5">
+    <Card className="m-4">
+      <CardContent className="gap-6 p-5">
       <View className="gap-2">
         <Text className="text-foreground text-2xl font-bold">Sign In</Text>
         <Text className="text-muted-foreground text-sm">
@@ -88,6 +90,7 @@ export const SignIn = ({ onSuccess }: SignInProps) => {
           )}
         </Button>
       </View>
-    </View>
+    </CardContent>
+    </Card>
   );
 };

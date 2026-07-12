@@ -1,17 +1,20 @@
 import { describe, expect, it, vi } from "vitest";
-import { runDiseaseZoneCheck, type DiseaseZoneHit } from "./disease-zone.js";
+import {
+  runDiseaseZoneCheck,
+  type DiseaseZoneHit,
+  type DiseaseZoneQuery,
+} from "./disease-zone.service.js";
 
 function makeMocks(opts: { protection?: DiseaseZoneHit[]; surveillance?: DiseaseZoneHit[] } = {}) {
-  const iotRepo = {
-    findActiveDiseaseZonesNearFarm: vi.fn((_farmId: string, radiusMeters: number) => {
-      if (radiusMeters === 3000) return Promise.resolve(opts.protection ?? []);
-      return Promise.resolve(opts.surveillance ?? []);
-    }),
-  } as never;
+  const query: DiseaseZoneQuery = {
+    findActiveDiseaseZonesNearFarm: vi.fn((_farmId: string, radiusMeters: number) =>
+      (radiusMeters === 3000 ? (opts.protection ?? []) : (opts.surveillance ?? [])) as never,
+    ),
+  };
   const ruleSet = {
     thresholds: { protectionZoneKm: 3, surveillanceZoneKm: 10, diseaseZoneEnabled: true },
   } as never;
-  return { iotRepo, ruleSet };
+  return { query, ruleSet };
 }
 
 const ZONE: DiseaseZoneHit = {
@@ -23,32 +26,32 @@ const ZONE: DiseaseZoneHit = {
 
 describe("runDiseaseZoneCheck (WO-119)", () => {
   it("skips and reports not-in-zone when diseaseZoneEnabled is false", async () => {
-    const { iotRepo, ruleSet } = makeMocks({ protection: [ZONE] });
+    const { query } = makeMocks({ protection: [ZONE] });
     const rs = { thresholds: { protectionZoneKm: 3, surveillanceZoneKm: 10, diseaseZoneEnabled: false } } as never;
-    const res = await runDiseaseZoneCheck(iotRepo, rs, "farm-1");
+    const res = await runDiseaseZoneCheck(query, rs, "farm-1");
     expect(res.enabled).toBe(false);
     expect(res.inProtectionZone).toBe(false);
     expect(res.inSurveillanceZone).toBe(false);
   });
 
   it("flags inProtectionZone when a disease zone is within 3 km", async () => {
-    const { iotRepo, ruleSet } = makeMocks({ protection: [ZONE] });
-    const res = await runDiseaseZoneCheck(iotRepo, ruleSet, "farm-1");
+    const { query, ruleSet } = makeMocks({ protection: [ZONE] });
+    const res = await runDiseaseZoneCheck(query, ruleSet, "farm-1");
     expect(res.enabled).toBe(true);
     expect(res.inProtectionZone).toBe(true);
     expect(res.protectionZones).toHaveLength(1);
   });
 
   it("flags inSurveillanceZone (10 km) without protection when only the outer ring hits", async () => {
-    const { iotRepo, ruleSet } = makeMocks({ surveillance: [ZONE] });
-    const res = await runDiseaseZoneCheck(iotRepo, ruleSet, "farm-1");
+    const { query, ruleSet } = makeMocks({ surveillance: [ZONE] });
+    const res = await runDiseaseZoneCheck(query, ruleSet, "farm-1");
     expect(res.inSurveillanceZone).toBe(true);
     expect(res.inProtectionZone).toBe(false);
   });
 
   it("reports clear when no disease zones intersect", async () => {
-    const { iotRepo, ruleSet } = makeMocks();
-    const res = await runDiseaseZoneCheck(iotRepo, ruleSet, "farm-1");
+    const { query, ruleSet } = makeMocks();
+    const res = await runDiseaseZoneCheck(query, ruleSet, "farm-1");
     expect(res.inProtectionZone).toBe(false);
     expect(res.inSurveillanceZone).toBe(false);
     expect(res.protectionZoneKm).toBe(3);
@@ -56,10 +59,10 @@ describe("runDiseaseZoneCheck (WO-119)", () => {
   });
 
   it("returns clear (no queries) when no farmId is supplied", async () => {
-    const { iotRepo, ruleSet } = makeMocks({ protection: [ZONE] });
-    const res = await runDiseaseZoneCheck(iotRepo, ruleSet, "");
+    const { query, ruleSet } = makeMocks({ protection: [ZONE] });
+    const res = await runDiseaseZoneCheck(query, ruleSet, "");
     expect(res.inProtectionZone).toBe(false);
     expect(res.inSurveillanceZone).toBe(false);
-    expect(iotRepo.findActiveDiseaseZonesNearFarm).not.toHaveBeenCalled();
+    expect(query.findActiveDiseaseZonesNearFarm).not.toHaveBeenCalled();
   });
 });

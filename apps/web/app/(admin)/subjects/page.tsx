@@ -3,18 +3,26 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
-import { skipToken, useQuery } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@rocky/ui/components/button";
 import { Input } from "@rocky/ui/components/input";
 import { subjectColumns, type SubjectSummary } from "#components/subjects/columns";
 import { DataTable } from "#components/shared/data-table";
 import { PageHeader } from "#components/shared/page-header";
+import { TableCard, tableDensityClass } from "#components/shared/table-card";
 import { useTRPC } from "#lib/trpc";
+import { bindSubjectToFarmRequestSchema } from "@rocky/validators/api";
+import { SUBJECT_ROLE } from "@rocky/validators/enums";
+import { enumToOptions } from "#lib/options";
+import { ActionDialog, RowActionMenu } from "#components/shared/action-dialog";
+import { ComboboxField, SelectField } from "#components/shared/form-fields";
+import { appendRowActions } from "#components/shared/table-card";
 
 export default function SubjectsPage() {
   const router = useRouter();
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const [q, setQ] = React.useState("");
   const [page, setPage] = React.useState(0);
   const pageSize = 20;
@@ -26,6 +34,15 @@ export default function SubjectsPage() {
     ),
   );
 
+  const farms = useQuery(trpc.farm.list.queryOptions({ limit: 100 }));
+  const farmOptions = ((farms.data?.data ?? []) as { id: string; farmId: string; name: string }[]).map((f) => ({
+    value: f.id,
+    label: `${f.farmId} · ${f.name}`,
+  }));
+  const bindToFarm = useMutation(trpc.subject.bindToFarm.mutationOptions({
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: trpc.subject.search.queryKey() }),
+  }));
+
   const rows = (searchQuery.data?.data ?? []) as SubjectSummary[];
   const total = searchQuery.data?.total ?? 0;
 
@@ -34,29 +51,61 @@ export default function SubjectsPage() {
       <PageHeader
         title="Subjects"
         description="Farmers, vets, and other human agents in the I&R system."
-        actions={
+      />
+      <TableCard
+        toolbarLeft={
+          <Input
+            placeholder="Search subjects by name or ID…"
+            value={q}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setPage(0);
+            }}
+          />
+        }
+        action={
           <Button onClick={() => router.push("/subjects/new")}>
             <Plus /> New subject
           </Button>
         }
-      />
-      <Input
-        placeholder="Search subjects by name or ID…"
-        value={q}
-        onChange={(e) => {
-          setQ(e.target.value);
-          setPage(0);
-        }}
-      />
-      <DataTable
-        columns={subjectColumns}
-        data={rows}
-        total={total}
-        isLoading={searchQuery.isLoading}
-        page={page}
-        pageSize={pageSize}
-        onPageChange={setPage}
-      />
+      >
+        <DataTable
+          columns={appendRowActions(subjectColumns, (row) => (
+            <RowActionMenu
+              items={[
+                {
+                  type: "dialog",
+                  dialog: (
+                    <ActionDialog
+                      as="menuitem"
+                      triggerLabel="Bind to farm"
+                      schema={bindSubjectToFarmRequestSchema}
+                      mutation={bindToFarm}
+                      title="Bind subject to farm"
+                      description="Assign a farm role for this subject."
+                      defaultValues={{ subjectId: row.id }}
+                      fields={(form) => (
+                        <>
+                          <ComboboxField control={form.control} name="farmId" label="Farm" placeholder="Search farms…" options={farmOptions} />
+                          <SelectField control={form.control} name="role" label="Role" options={enumToOptions(Object.values(SUBJECT_ROLE))} />
+                        </>
+                      )}
+                    />
+                  ),
+                },
+              ]}
+            />
+          ))}
+          data={rows}
+          total={total}
+          isLoading={searchQuery.isLoading}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          bordered={false}
+          tableClassName={tableDensityClass}
+        />
+      </TableCard>
     </div>
   );
 }

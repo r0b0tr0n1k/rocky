@@ -17,6 +17,7 @@ import {
 import { FieldGroup } from "@rocky/ui/components/field";
 import { DataTable } from "#components/shared/data-table";
 import { PageHeader } from "#components/shared/page-header";
+import { TableCard, tableDensityClass } from "#components/shared/table-card";
 import { SwitchField, TextField } from "#components/shared/form-fields";
 import { ValidatedForm } from "#components/shared/validated-form";
 import { useTRPC } from "#lib/trpc";
@@ -79,14 +80,18 @@ export default function SystemParametersPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="System Parameters" description="Editable software configuration values." />
-      <DataTable
-        columns={columns}
-        data={rows}
-        total={rows.length}
-        isLoading={listQuery.isLoading}
-        page={0}
-        pageSize={100}
-      />
+      <TableCard>
+        <DataTable
+          columns={columns}
+          data={rows}
+          total={rows.length}
+          isLoading={listQuery.isLoading}
+          page={0}
+          pageSize={100}
+          bordered={false}
+          tableClassName={tableDensityClass}
+        />
+      </TableCard>
     </div>
   );
 }

@@ -94,6 +94,20 @@ export class EarTagService {
     }, toAppError)();
   }
 
+  async updateOrder(input: {
+    orderId: string;
+    supplierName?: string;
+    notes?: string;
+    expectedDeliveryDate?: string;
+    totalQuantity?: number;
+  }): Promise<Result<EarTagOrderResponse, Error>> {
+    return fromAsyncThrowable(async () => {
+      const updated = await this.repo.updateOrder(input);
+      if (!updated) throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, { id: input.orderId });
+      return earTagOrderResponseSchema.parse(updated);
+    }, toAppError)();
+  }
+
   async listOrders(input: {
     status?: string;
     organizationId?: string;

@@ -4,6 +4,12 @@
 // Every tag has a lifecycle: manufactured → allocated → applied → replaced.
 //
 // Based on: FS - eartags_MK(v1.0).pdf, Eartags.PDF
+//
+// VALIDATION INTENT (doctrine: ADR-0081, Proposed): eartag input follows the
+// accept-and-flag stance. Implausible-but-legal records (e.g. takeover-file
+// counterparty not in system) are ACCEPTED + flagged, not rejected. Concrete
+// schema changes are PENDING GOVERNANCE CONFIRMATION — annotate intent, do not
+// mutate validators until the allow/deny list is ratified.
 
 import type { NoDrift, ActivateGuillotines } from "../utils/type-bridge.js";
 import { earTagsSelectSchema, earTagOrdersSelectSchema, earTagTypesSelectSchema } from "@rocky/database/zod";
@@ -131,6 +137,22 @@ export type CreateOrderRequest = {
   farmId?: string;
   description?: string;
   idempotencyKey?: string;
+};
+
+export const updateOrderRequestSchema = z.strictObject({
+  orderId: z.uuid(),
+  supplierName: z.string().min(1).max(100).optional(),
+  notes: z.string().max(500).optional(),
+  expectedDeliveryDate: z.string().optional(),
+  totalQuantity: z.int().min(1).max(100000).optional(),
+}) satisfies z.ZodType<UpdateOrderRequest>;
+
+export type UpdateOrderRequest = {
+  orderId: string;
+  supplierName?: string;
+  notes?: string;
+  expectedDeliveryDate?: string;
+  totalQuantity?: number;
 };
 
 export const cancelOrderRequestSchema = z.strictObject({
@@ -286,6 +308,7 @@ type _drift_earTagListRequest = NoDrift<z.infer<typeof earTagListRequestSchema>,
 type _drift_earTagListResponse = NoDrift<z.infer<typeof earTagListResponseSchema>, EarTagListResponse>;
 type _drift_orderStatusTransition = NoDrift<z.infer<typeof orderStatusTransitionSchema>, OrderStatusTransition>;
 type _drift_createOrderRequest = NoDrift<z.infer<typeof createOrderRequestSchema>, CreateOrderRequest>;
+type _drift_updateOrderRequest = NoDrift<z.infer<typeof updateOrderRequestSchema>, UpdateOrderRequest>;
 type _drift_cancelOrderRequest = NoDrift<z.infer<typeof cancelOrderRequestSchema>, CancelOrderRequest>;
 type _drift_cancelOrderItemRequest = NoDrift<z.infer<typeof cancelOrderItemRequestSchema>, CancelOrderItemRequest>;
 type _drift_appendToOrderRequest = NoDrift<z.infer<typeof appendToOrderRequestSchema>, AppendToOrderRequest>;
@@ -299,5 +322,5 @@ type _drift_takeoverFileResponse = NoDrift<z.infer<typeof takeoverFileResponseSc
 type _drift_getTakeoverFileRequest = NoDrift<z.infer<typeof getTakeoverFileRequestSchema>, GetTakeoverFileRequest>;
 
 export type _EartagsGuillotines = ActivateGuillotines<
-  [ _drift_earTagResponse, _drift_earTagSummary, _drift_earTagTypeResponse, _drift_earTagListRequest, _drift_earTagListResponse, _drift_orderStatusTransition, _drift_createOrderRequest, _drift_cancelOrderRequest, _drift_cancelOrderItemRequest, _drift_appendToOrderRequest, _drift_collectOrderTagsRequest, _drift_generateTagNumbersRequest, _drift_generateTagNumbersResponse, _drift_createDuplicateOrderRequest, _drift_orderListRequest, _drift_assignSupplierContingentRequest, _drift_takeoverFileResponse, _drift_getTakeoverFileRequest ]
+  [ _drift_earTagResponse, _drift_earTagSummary, _drift_earTagTypeResponse, _drift_earTagListRequest, _drift_earTagListResponse, _drift_orderStatusTransition, _drift_createOrderRequest, _drift_updateOrderRequest, _drift_cancelOrderRequest, _drift_cancelOrderItemRequest, _drift_appendToOrderRequest, _drift_collectOrderTagsRequest, _drift_generateTagNumbersRequest, _drift_generateTagNumbersResponse, _drift_createDuplicateOrderRequest, _drift_orderListRequest, _drift_assignSupplierContingentRequest, _drift_takeoverFileResponse, _drift_getTakeoverFileRequest ]
 >;

@@ -7,11 +7,12 @@ import { BanIcon, CopyIcon } from "lucide-react";
 
 import { Badge } from "@rocky/ui/components/badge";
 import type { PassportSummary } from "@rocky/validators/api";
-import { reprintPassportRequestSchema, seizePassportRequestSchema } from "@rocky/validators/api";
+import { deliverToKeeperPassportRequestSchema, reprintPassportRequestSchema, seizePassportRequestSchema, shipToVsPassportRequestSchema } from "@rocky/validators/api";
 import { DEATH_CAUSE, PASSPORT_STATUS } from "@rocky/validators/enums";
 import { enumToOptions } from "#lib/options";
 import { DateField, SelectField } from "#components/shared/form-fields";
 import { ActionDialog, RowActionMenu, type RowMenuItem } from "#components/shared/action-dialog";
+import { RowDetailsDialog } from "#components/shared/row-details-dialog";
 
 export type { PassportSummary } from "@rocky/validators/api";
 
@@ -29,6 +30,8 @@ const PASSPORT_STATUS_VARIANT: Record<string, BadgeVariant> = {
 export function passportColumns(opts: {
   seize: { mutate: (v: z.input<typeof seizePassportRequestSchema>) => void; isPending: boolean };
   reprint: { mutate: (v: z.input<typeof reprintPassportRequestSchema>) => void; isPending: boolean };
+  shipToVs: { mutate: (v: z.input<typeof shipToVsPassportRequestSchema>) => void; isPending: boolean };
+  deliverToKeeper: { mutate: (v: z.input<typeof deliverToKeeperPassportRequestSchema>) => void; isPending: boolean };
 }): ColumnDef<PassportSummary>[] {
   return [
     { accessorKey: "passportNumber", header: "Passport #" },
@@ -97,6 +100,57 @@ export function passportColumns(opts: {
                     A new passport will be printed and the original marked as reprinted.
                   </p>
                 )}
+              />
+            ),
+          },
+          {
+            type: "dialog",
+            dialog: (
+              <ActionDialog
+                as="menuitem"
+                triggerLabel="Ship to VS"
+                schema={shipToVsPassportRequestSchema}
+                mutation={opts.shipToVs}
+                title="Ship passport to VS"
+                description="Transfers physical custody of the passport to the veterinary station."
+                defaultValues={{ passportId: row.original.id }}
+                fields={() => (
+                  <p className="text-sm text-muted-foreground">Confirm shipping this passport to the veterinary station.</p>
+                )}
+              />
+            ),
+          },
+          {
+            type: "dialog",
+            dialog: (
+              <ActionDialog
+                as="menuitem"
+                triggerLabel="Deliver to keeper"
+                schema={deliverToKeeperPassportRequestSchema}
+                mutation={opts.deliverToKeeper}
+                title="Deliver passport to keeper"
+                description="Marks the passport as handed to the animal keeper."
+                defaultValues={{ passportId: row.original.id }}
+                fields={() => (
+                  <p className="text-sm text-muted-foreground">Confirm delivery of this passport to the keeper.</p>
+                )}
+              />
+            ),
+          },
+          {
+            type: "dialog",
+            dialog: (
+              <RowDetailsDialog
+                title={row.original.passportNumber}
+                description="Cattle passport"
+                fields={[
+                  { label: "Passport #", value: row.original.passportNumber },
+                  { label: "Status", value: row.original.status },
+                  { label: "Animal", value: row.original.animalId },
+                  { label: "Farm", value: row.original.farmId },
+                  { label: "Issued", value: row.original.issueDate ? new Date(row.original.issueDate).toLocaleDateString() : "—" },
+                  { label: "Active", value: row.original.isActive ? "Yes" : "No" },
+                ]}
               />
             ),
           },

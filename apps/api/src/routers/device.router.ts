@@ -8,7 +8,9 @@ import { createResultUnwrapper } from "@rocky/trpc/index.js";
 import type {
   AssignDeviceUserRequest,
   CreatePdaDeviceRequest,
+  RegisterFailedAttemptDeviceRequest,
   RecordSyncRequest,
+  UnblockDeviceRequest,
   UpdatePdaDeviceRequest,
 } from "@rocky/validators/api";
 import {
@@ -19,6 +21,8 @@ import {
   pdaDeviceListResponseSchema,
   pdaDeviceResponseSchema,
   recordSyncRequestSchema,
+  registerFailedAttemptDeviceRequestSchema,
+  unblockDeviceRequestSchema,
   updatePdaDeviceRequestSchema,
 } from "@rocky/validators/api/index.js";
 import { DEVICE_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
@@ -67,14 +71,14 @@ export class DeviceRouter {
     return unwrap(await this.deviceService.recordSync(input.deviceId));
   }
 
-  @Mutation({ input: idParam, output: pdaDeviceBlockedResponseSchema })
-  async registerFailedAttempt(@Input() input: { id: string }) {
-    return unwrap(await this.deviceService.registerFailedAttempt(input.id));
+  @Mutation({ input: registerFailedAttemptDeviceRequestSchema, output: pdaDeviceBlockedResponseSchema })
+  async registerFailedAttempt(@Input() input: RegisterFailedAttemptDeviceRequest) {
+    return unwrap(await this.deviceService.registerFailedAttempt(input.deviceId));
   }
 
-  @Mutation({ input: idParam, output: pdaDeviceResponseSchema })
-  async unblock(@Input() input: { id: string }) {
-    return unwrap(await this.deviceService.unblock(input.id));
+  @Mutation({ input: unblockDeviceRequestSchema, output: pdaDeviceResponseSchema })
+  async unblock(@Input() input: UnblockDeviceRequest) {
+    return unwrap(await this.deviceService.unblock(input.deviceId));
   }
 }
 

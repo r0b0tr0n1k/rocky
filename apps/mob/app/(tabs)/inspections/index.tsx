@@ -18,7 +18,7 @@ export default function InspectionsListScreen() {
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() => router.push(`/inspections/${item.id}`)}
-            className="flex-row items-center justify-between py-3 border-b border-border"
+            className="flex-row items-center justify-between p-3 mb-2 bg-card border border-border rounded-lg"
           >
             <View>
               <Text className="text-foreground font-medium">Farm: {item.farmId.slice(0, 8)}</Text>

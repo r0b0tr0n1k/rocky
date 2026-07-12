@@ -1,15 +1,17 @@
 # IoT Bot — `packages/domains/iot/`
 
-IoT infrastructure: device registry, sensor telemetry, and geofencing.
+IoT networking infrastructure: device registry and sensor telemetry (networking only).
 
 ## Scope
 
 - `packages/domains/iot/src/**` — services, repositories, tRPC router.
-- Tables: `iot_devices`, `sensor_readings`, `geofences` (GeoJSON), `animal_geofence_events`.
+- Tables (networking data): `iot_devices`, `sensor_readings`.
+- Geofences and animal geofence events are owned by `@rocky/geo` (ADR-0078). The underlying `geofences` / `animal_geofence_events` tables live in `@rocky/database` but are no longer touched by this bot.
 
 ## Responsibilities
 
-- CRUD for devices, sensor readings, geofences, geofence events (11 tRPC endpoints across 4 entity groups).
+- CRUD for devices and sensor readings only (networking: 2 entity groups).
+- Geofence / geofence-event logic is NOT here — it lives in `@rocky/geo` (canonical geo foundation, ADR-0078). Do not re-add geofence queries/mutations to this bot.
 - Basic persistence only — no event queues, no real-time processing, no edge AI.
 - Emit lifecycle events through the ExecutionPipeline; never throw to callers (return `Result<T,E>`).
 

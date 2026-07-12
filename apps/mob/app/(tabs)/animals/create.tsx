@@ -3,6 +3,7 @@ import { EnumSelect } from "@/components/ui/enum-select";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
+import { Card, CardContent } from "@/components/ui/card";
 import { FarmPicker } from "@/components/farms/farm-picker";
 import { useActiveFarm } from "@/providers/active-farm-provider";
 import { onlineManager } from "@tanstack/react-query";
@@ -13,7 +14,7 @@ import { useCan } from "@/providers/permissions-provider";
 import { useRouter } from "expo-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type Resolver } from "react-hook-form";
-import { ActivityIndicator, Alert, ScrollView, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView } from "react-native";
 import { BIRTH_TYPE, SEX } from "@rocky/validators/enums";
 import type { birthTypeType, sexType } from "@rocky/validators/enums";
 import { createAnimalRequestSchema } from "@rocky/validators/api";
@@ -124,7 +125,8 @@ export default function CreateAnimalScreen() {
 
   return (
     <ScrollView className="flex-1 bg-background">
-      <View className="gap-4 p-4">
+      <Card className="m-4">
+      <CardContent className="gap-4 p-4">
         <FormField label="Farm" error={!activeFarm.id ? "Select a farm first" : undefined}>
           <FarmPicker
             onSelect={(farm) => setActiveFarm({ id: farm.id, stateCode: activeFarm.stateCode })}
@@ -213,7 +215,8 @@ export default function CreateAnimalScreen() {
         >
           {isSubmitting ? <ActivityIndicator color="white" /> : <Text>Register Animal</Text>}
         </Button>
-      </View>
+      </CardContent>
+      </Card>
     </ScrollView>
   );
 }

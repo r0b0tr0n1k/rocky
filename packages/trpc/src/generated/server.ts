@@ -14,7 +14,7 @@ import { z } from "zod";
 
 const t = initTRPC.create({ transformer: superjson });
 const publicProcedure = t.procedure;
-import { animalResponseSchema, findAnimalByTagRequestSchema, animalListRequestSchema, animalListResponseSchema, createAnimalRequestSchema, updateAnimalRequestSchema, archiveDocumentResponseSchema, archiveDocumentListRequestSchema, archiveDocumentListResponseSchema, createArchiveDocumentRequestSchema, archiveExpiredListResponseSchema, archiveInspectionFormRequestSchema, auditListRequestSchema, auditListResponseSchema, correctionResponseSchema, correctionListRequestSchema, correctionListResponseSchema, createCorrectionRequestSchema, reviewCorrectionRequestSchema, resolveCorrectionRequestSchema, escalateCorrectionRequestSchema, pdaDeviceResponseSchema, pdaDeviceListRequestSchema, pdaDeviceListResponseSchema, createPdaDeviceRequestSchema, updatePdaDeviceRequestSchema, assignDeviceUserRequestSchema, recordSyncRequestSchema, pdaDeviceBlockedResponseSchema, documentGenerateRequestSchema, documentResponseSchema, earTagResponseSchema, earTagListRequestSchema, earTagListResponseSchema, earTagTypeResponseSchema, earTagOrderResponseSchema, orderListRequestSchema, earTagOrderListResponseSchema, generateTagNumbersRequestSchema, generateTagNumbersResponseSchema, orderStatusTransitionSchema, collectOrderTagsRequestSchema, createDuplicateOrderRequestSchema, createOrderRequestSchema, cancelOrderRequestSchema, cancelOrderItemRequestSchema, appendToOrderRequestSchema, assignSupplierContingentRequestSchema, getTakeoverFileRequestSchema, takeoverFileResponseSchema, farmBookResponseSchema, createFarmBookRequestSchema, updateFarmBookStatusRequestSchema, farmResponseSchema, farmListRequestSchema, farmListResponseSchema, createFarmRequestSchema, updateFarmRequestSchema, diseaseResponseSchema, diseaseListRequestSchema, diseaseListResponseSchema, createDiseaseRequestSchema, vaccineResponseSchema, vaccineListRequestSchema, vaccineListResponseSchema, createVaccineRequestSchema, createVaccineBatchRequestSchema, vaccineBatchResponseSchema, vaccinationResponseSchema, vaccinationListRequestSchema, vaccinationListResponseSchema, recordVaccinationRequestSchema, treatmentResponseSchema, treatmentListRequestSchema, treatmentListResponseSchema, recordTreatmentRequestSchema, vaccineBatchListResponseSchema, labTestResponseSchema, labTestListRequestSchema, labTestListResponseSchema, recordLabTestRequestSchema, vaccineDiseaseListResponseSchema, linkVaccineDiseaseRequestSchema, vaccineDiseaseResponseSchema, unlinkVaccineDiseaseRequestSchema, vaccineDiseaseUnlinkResponseSchema, inspectionResponseSchema, inspectionListRequestSchema, inspectionListResponseSchema, createInspectionRequestSchema, scheduleInspectionRequestSchema, completeInspectionRequestSchema, printInspectionFormRequestSchema, riskAnalysisListResponseSchema, riskAnalysisRunResponseSchema, registerDeviceRequestSchema, iotDeviceResponseSchema, listDevicesRequestSchema, iotDeviceListResponseSchema, ingestReadingRequestSchema, sensorReadingResponseSchema, listReadingsRequestSchema, sensorReadingListResponseSchema, createGeofenceRequestSchema, geofenceResponseSchema, logGeofenceEventRequestSchema, geofenceEventResponseSchema, geofenceEventListResponseSchema, moduleListRequestSchema, moduleListResponseSchema, moduleResponseSchema, updateModuleSchema, movementResponseSchema, lineageRequestSchema, lineageGraphSchema, movementListRequestSchema, movementListResponseSchema, eudrDueDiligenceRequestSchema, eudrDueDiligenceResponseSchema, diseaseZoneCheckRequestSchema, diseaseZoneCheckResponseSchema, createMovementRequestSchema, recordDeathRequestSchema, declarePastureRequestSchema, declareAlpineRequestSchema, returnFromAlpineRequestSchema, recordSlaughterRequestSchema, importEURequestSchema, importThirdCountryRequestSchema, exportAnimalRequestSchema, recordMarketTransactionRequestSchema, recordMarketUnsoldRequestSchema, recordMarketSlaughterRequestSchema, notificationOutputSchema, sendNotificationSchema, markAsReadSchema, registerDeviceSchema, organizationResponseSchema, organizationSummarySchema, createOrganizationRequestSchema, passportResponseSchema, passportListRequestSchema, passportListResponseSchema, issuePassportRequestSchema, seizePassportRequestSchema, reprintPassportRequestSchema, roleResponseSchema, roleWithPermissionsResponseSchema, permissionResponseSchema, assignRoleToUserRequestSchema, revokeRoleFromUserRequestSchema, subjectResponseSchema, subjectSummarySchema, createSubjectRequestSchema, updateSubjectRequestSchema, bindSubjectToFarmRequestSchema, farmSubjectBindingResponseSchema, unbindSubjectFromFarmRequestSchema, syncDownloadRequestSchema, syncDownloadResponseSchema, syncUploadRequestSchema, syncUploadResponseSchema, systemParameterListRequestSchema, systemParameterListResponseSchema, systemParameterResponseSchema, updateSystemParameterSchema, userResponseSchema, userListRequestSchema, userSummarySchema, createUserRequestSchema, updateUserRequestSchema, vsAssignmentResponseSchema, createVsAssignmentRequestSchema, updateVsAssignmentRequestSchema, vsContractResponseSchema, createVsContractRequestSchema, updateVsContractStatusRequestSchema } from "@rocky/validators/api/index.js";
+import { animalResponseSchema, findAnimalByTagRequestSchema, animalListRequestSchema, animalListResponseSchema, createAnimalRequestSchema, updateAnimalRequestSchema, archiveDocumentResponseSchema, archiveDocumentListRequestSchema, archiveDocumentListResponseSchema, createArchiveDocumentRequestSchema, archiveExpiredListResponseSchema, markDestroyedArchiveRequestSchema, archiveInspectionFormRequestSchema, auditListRequestSchema, auditListResponseSchema, correctionResponseSchema, correctionListRequestSchema, correctionListResponseSchema, createCorrectionRequestSchema, reviewCorrectionRequestSchema, resolveCorrectionRequestSchema, escalateCorrectionRequestSchema, rejectCorrectionRequestSchema, pdaDeviceResponseSchema, pdaDeviceListRequestSchema, pdaDeviceListResponseSchema, createPdaDeviceRequestSchema, updatePdaDeviceRequestSchema, assignDeviceUserRequestSchema, recordSyncRequestSchema, registerFailedAttemptDeviceRequestSchema, pdaDeviceBlockedResponseSchema, unblockDeviceRequestSchema, documentGenerateRequestSchema, documentResponseSchema, earTagResponseSchema, earTagListRequestSchema, earTagListResponseSchema, earTagTypeResponseSchema, earTagOrderResponseSchema, orderListRequestSchema, earTagOrderListResponseSchema, generateTagNumbersRequestSchema, generateTagNumbersResponseSchema, orderStatusTransitionSchema, collectOrderTagsRequestSchema, createDuplicateOrderRequestSchema, createOrderRequestSchema, updateOrderRequestSchema, cancelOrderRequestSchema, cancelOrderItemRequestSchema, appendToOrderRequestSchema, assignSupplierContingentRequestSchema, getTakeoverFileRequestSchema, takeoverFileResponseSchema, farmBookResponseSchema, createFarmBookRequestSchema, updateFarmBookStatusRequestSchema, farmResponseSchema, farmListRequestSchema, farmListResponseSchema, createFarmRequestSchema, updateFarmRequestSchema, geofenceResponseSchema, geofenceEventResponseSchema, createGeofenceRequestSchema, logGeofenceEventRequestSchema, settlementResponseSchema, declareDiseaseZoneRequestSchema, diseaseZoneListResponseSchema, diseaseResponseSchema, diseaseListRequestSchema, diseaseListResponseSchema, createDiseaseRequestSchema, updateDiseaseRequestSchema, vaccineResponseSchema, vaccineListRequestSchema, vaccineListResponseSchema, createVaccineRequestSchema, createVaccineBatchRequestSchema, vaccineBatchResponseSchema, vaccinationResponseSchema, vaccinationListRequestSchema, vaccinationListResponseSchema, recordVaccinationRequestSchema, treatmentResponseSchema, treatmentListRequestSchema, treatmentListResponseSchema, recordTreatmentRequestSchema, vaccineBatchListResponseSchema, labTestResponseSchema, labTestListRequestSchema, labTestListResponseSchema, recordLabTestRequestSchema, vaccineDiseaseListResponseSchema, linkVaccineDiseaseRequestSchema, vaccineDiseaseResponseSchema, unlinkVaccineDiseaseRequestSchema, vaccineDiseaseUnlinkResponseSchema, inspectionResponseSchema, inspectionListRequestSchema, inspectionListResponseSchema, createInspectionRequestSchema, scheduleInspectionRequestSchema, completeInspectionRequestSchema, printInspectionFormRequestSchema, riskAnalysisListResponseSchema, riskAnalysisRunResponseSchema, registerDeviceRequestSchema, iotDeviceResponseSchema, listDevicesRequestSchema, iotDeviceListResponseSchema, ingestReadingRequestSchema, sensorReadingResponseSchema, listReadingsRequestSchema, sensorReadingListResponseSchema, moduleListRequestSchema, moduleListResponseSchema, moduleResponseSchema, updateModuleSchema, movementResponseSchema, lineageRequestSchema, lineageGraphSchema, movementListRequestSchema, movementListResponseSchema, eudrDueDiligenceRequestSchema, eudrDueDiligenceResponseSchema, diseaseZoneCheckRequestSchema, diseaseZoneCheckResponseSchema, createMovementRequestSchema, recordDeathRequestSchema, declarePastureRequestSchema, declareAlpineRequestSchema, returnFromAlpineRequestSchema, recordSlaughterRequestSchema, importEURequestSchema, importThirdCountryRequestSchema, exportAnimalRequestSchema, recordMarketTransactionRequestSchema, recordMarketUnsoldRequestSchema, recordMarketSlaughterRequestSchema, notificationOutputSchema, sendNotificationSchema, markAsReadSchema, registerDeviceSchema, organizationResponseSchema, organizationSummarySchema, createOrganizationRequestSchema, passportResponseSchema, passportListRequestSchema, passportListResponseSchema, issuePassportRequestSchema, shipToVsPassportRequestSchema, deliverToKeeperPassportRequestSchema, seizePassportRequestSchema, reprintPassportRequestSchema, roleResponseSchema, roleWithPermissionsResponseSchema, permissionResponseSchema, assignRoleToUserRequestSchema, revokeRoleFromUserRequestSchema, subjectResponseSchema, subjectSummarySchema, createSubjectRequestSchema, updateSubjectRequestSchema, bindSubjectToFarmRequestSchema, farmSubjectBindingResponseSchema, unbindSubjectFromFarmRequestSchema, syncDownloadRequestSchema, syncDownloadResponseSchema, syncUploadRequestSchema, syncUploadResponseSchema, systemParameterListRequestSchema, systemParameterListResponseSchema, systemParameterResponseSchema, updateSystemParameterSchema, userResponseSchema, userListRequestSchema, userSummarySchema, createUserRequestSchema, updateUserRequestSchema, vsAssignmentResponseSchema, createVsAssignmentRequestSchema, updateVsAssignmentRequestSchema, vsContractResponseSchema, createVsContractRequestSchema, updateVsContractStatusRequestSchema } from "@rocky/validators/api/index.js";
 
 export const appRouter = t.router({
   animal: t.router({
@@ -61,7 +61,7 @@ export const appRouter = t.router({
       .output(archiveDocumentResponseSchema)
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     markDestroyed: publicProcedure
-      .input(z.object({ id: z.uuid() }))
+      .input(markDestroyedArchiveRequestSchema)
       .output(archiveDocumentResponseSchema)
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     archiveInspectionForm: publicProcedure
@@ -101,7 +101,7 @@ export const appRouter = t.router({
       .output(correctionResponseSchema)
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     reject: publicProcedure
-      .input(z.object({ id: z.uuid() }))
+      .input(rejectCorrectionRequestSchema)
       .output(correctionResponseSchema)
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
     }),
@@ -131,11 +131,11 @@ export const appRouter = t.router({
       .output(pdaDeviceResponseSchema)
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     registerFailedAttempt: publicProcedure
-      .input(z.object({ id: z.uuid() }))
+      .input(registerFailedAttemptDeviceRequestSchema)
       .output(pdaDeviceBlockedResponseSchema)
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     unblock: publicProcedure
-      .input(z.object({ id: z.uuid() }))
+      .input(unblockDeviceRequestSchema)
       .output(pdaDeviceResponseSchema)
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
     }),
@@ -198,6 +198,10 @@ export const appRouter = t.router({
       .input(createOrderRequestSchema)
       .output(earTagOrderResponseSchema)
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    updateOrder: publicProcedure
+      .input(updateOrderRequestSchema)
+      .output(earTagOrderResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     cancelOrder: publicProcedure
       .input(cancelOrderRequestSchema)
       .output(earTagOrderResponseSchema)
@@ -255,6 +259,153 @@ export const appRouter = t.router({
       .output(farmResponseSchema)
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
     }),
+  geo: t.router({
+    listGeofences: publicProcedure
+      .input(z.object({ farmId: z.uuid() }))
+      .output(z.array(geofenceResponseSchema))
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    findActiveDiseaseZones: publicProcedure
+      .input(z.object({ farmId: z.uuid() }))
+      .output(z.array(geofenceResponseSchema))
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    listGeofenceEvents: publicProcedure
+      .input(z.object({
+			animalId: z.uuid().optional(),
+			geofenceId: z.uuid().optional(),
+			farmId: z.uuid().optional(),
+			limit: z.int().min(1).max(1000).default(50),
+			offset: z.int().min(0).default(0),
+		}))
+      .output(z.array(geofenceEventResponseSchema))
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    createGeofence: publicProcedure
+      .input(createGeofenceRequestSchema)
+      .output(geofenceResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    deleteGeofence: publicProcedure
+      .input(z.object({ id: z.uuid() }))
+      .output(z.void())
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    logGeofenceEvent: publicProcedure
+      .input(logGeofenceEventRequestSchema)
+      .output(geofenceEventResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    listSettlements: publicProcedure
+      .input(z.object({}))
+      .output(z.array(settlementResponseSchema))
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    declareDiseaseZone: publicProcedure
+      .input(declareDiseaseZoneRequestSchema)
+      .output(z.array(geofenceResponseSchema))
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    listDiseaseZones: publicProcedure
+      .input(z.object({
+			farmId: z.uuid().optional(),
+			limit: z.int().min(1).max(1000).default(50),
+			offset: z.int().min(0).default(0),
+		}))
+      .output(diseaseZoneListResponseSchema)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    findGeofencesForAnimalPastures: publicProcedure
+      .input(z.object({ animalId: z.uuid() }))
+      .output(z.array(geofenceResponseSchema))
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    findActiveDiseaseZonesNearFarm: publicProcedure
+      .input(z.object({ farmId: z.uuid(), radiusMeters: z.number().min(0).default(50_000) }))
+      .output(z.array(geofenceResponseSchema))
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    findGeofencesIntersectingPolygon: publicProcedure
+      .input(z.object({ wkt: z.string() }))
+      .output(z.array(geofenceResponseSchema))
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    forwardGeocode: publicProcedure
+      .input(z.object({
+			query: z.string(),
+			language: z.string().optional(),
+			limit: z.int().optional(),
+			proximity: z.array(z.number()).length(2).optional(),
+			bbox: z.array(z.number()).optional(),
+			country: z.array(z.string()).optional(),
+		}))
+      .output(z.object({
+	features: z.array(z.object({
+	id: z.string(),
+	name: z.string(),
+	placeName: z.string(),
+	center: z.tuple([z.number(), z.number()]),
+	relevance: z.number(),
+	placeType: z.array(z.string()),
+	countryCode: z.string().optional(),
+	bbox: z.array(z.number()).optional(),
+})),
+	attribution: z.string(),
+}))
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    reverseGeocode: publicProcedure
+      .input(z.object({ lng: z.number(), lat: z.number(), language: z.string().optional(), limit: z.int().optional() }))
+      .output(z.object({
+	features: z.array(z.object({
+	id: z.string(),
+	name: z.string(),
+	placeName: z.string(),
+	center: z.tuple([z.number(), z.number()]),
+	relevance: z.number(),
+	placeType: z.array(z.string()),
+	countryCode: z.string().optional(),
+	bbox: z.array(z.number()).optional(),
+})),
+	attribution: z.string(),
+}))
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    staticMapUrl: publicProcedure
+      .input(z.object({
+			mode: z.enum(["centered", "bounded", "automatic"]),
+			center: z.array(z.number()).length(2).optional(),
+			zoom: z.number().optional(),
+			bbox: z.array(z.number()).optional(),
+			width: z.number().optional(),
+			height: z.number().optional(),
+			hiDPI: z.boolean().optional(),
+			style: z.string().optional(),
+			path: z.array(z.array(z.number())).optional(),
+			marker: z.array(z.tuple([z.number(), z.number(), z.string()])).optional(),
+			pathStrokeColor: z.string().optional(),
+		}))
+      .output(z.string())
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    geolocation: publicProcedure
+      .input(z.object({}))
+      .output(z.object({
+	country: z.string().optional(),
+	countryCode: z.string().optional(),
+	city: z.string().optional(),
+	latitude: z.number().optional(),
+	longitude: z.number().optional(),
+	eu: z.boolean().optional(),
+}))
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    assessDeforestation: publicProcedure
+      .input(z.object({ geofenceId: z.uuid(), cutoffYear: z.number().int() }))
+      .output(z.object({
+	geofenceId: z.string(),
+	source: z.enum(["sentinel2_ndvi", "land_cover_2020", "hansen_gfc"]),
+	cutoffYear: z.number(),
+	totalPixels: z.number(),
+	deforestedPixels: z.number(),
+	deforestationFreeSince: z.date().nullable(),
+	compliant: z.boolean(),
+}))
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    forestLayer: publicProcedure
+      .input(z.object({ farmId: z.uuid(), cutoffYear: z.number().int().optional() }))
+      .output(z.array(z.object({
+	id: z.string(),
+	geometry: z.unknown(),
+	kind: z.enum(["geofence", "disease_zone", "deforested", "compliant"]).or(z.string()),
+	properties: z.record(z.string(), z.unknown()).optional(),
+})))
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   health: t.router({
     getDisease: publicProcedure
       .input(z.object({ id: z.uuid() }))
@@ -266,6 +417,10 @@ export const appRouter = t.router({
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     createDisease: publicProcedure
       .input(createDiseaseRequestSchema)
+      .output(diseaseResponseSchema)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    updateDisease: publicProcedure
+      .input(updateDiseaseRequestSchema)
       .output(diseaseResponseSchema)
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getVaccine: publicProcedure
@@ -408,32 +563,6 @@ export const appRouter = t.router({
     listReadings: publicProcedure
       .input(listReadingsRequestSchema)
       .output(sensorReadingListResponseSchema)
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    createGeofence: publicProcedure
-      .input(createGeofenceRequestSchema)
-      .output(geofenceResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    listGeofences: publicProcedure
-      .input(z.object({ farmId: z.uuid() }))
-      .output(z.array(geofenceResponseSchema))
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    deleteGeofence: publicProcedure
-      .input(z.object({ id: z.uuid() }))
-      .output(z.void())
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    logGeofenceEvent: publicProcedure
-      .input(logGeofenceEventRequestSchema)
-      .output(geofenceEventResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    listGeofenceEvents: publicProcedure
-      .input(z.object({
-      animalId: z.uuid().optional(),
-      geofenceId: z.uuid().optional(),
-      farmId: z.uuid().optional(),
-      limit: z.int().min(1).max(1000).default(50),
-      offset: z.int().min(0).default(0),
-    }))
-      .output(geofenceEventListResponseSchema)
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
     }),
   modules: t.router({
@@ -564,11 +693,11 @@ export const appRouter = t.router({
       .output(passportResponseSchema)
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     shipToVs: publicProcedure
-      .input(z.object({ id: z.uuid() }))
+      .input(shipToVsPassportRequestSchema)
       .output(passportResponseSchema)
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     deliverToKeeper: publicProcedure
-      .input(z.object({ id: z.uuid() }))
+      .input(deliverToKeeperPassportRequestSchema)
       .output(passportResponseSchema)
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     seize: publicProcedure

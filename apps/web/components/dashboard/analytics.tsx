@@ -25,7 +25,7 @@ import {
 } from "@rocky/ui/components/chart";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart as PieChartPrimitive, XAxis } from "recharts";
 
-import { StatCard } from "@rocky/ui/components/stat-card";
+import { DashboardStat } from "#components/dashboard/stat-tile";
 
 const prettify = (value: string) => value.charAt(0) + value.slice(1).toLowerCase();
 
@@ -94,10 +94,10 @@ export function DashboardAnalytics({
   return (
     <div className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Animals" value={totals.animals} hint="Registered cattle" icon={PawPrint} accent="primary" />
-        <StatCard label="Farms" value={totals.farms} hint="Active holdings" icon={Building2} accent="emerald" />
-        <StatCard label="Movements" value={totals.movements} hint="Recorded transfers" icon={ArrowLeftRight} accent="amber" />
-        <StatCard label="Inspections" value={totals.inspections} hint="On-site visits" icon={ClipboardCheck} accent="violet" />
+        <DashboardStat label="Animals" value={totals.animals} hint="Registered cattle" icon={PawPrint} />
+        <DashboardStat label="Farms" value={totals.farms} hint="Active holdings" icon={Building2} />
+        <DashboardStat label="Movements" value={totals.movements} hint="Recorded transfers" icon={ArrowLeftRight} />
+        <DashboardStat label="Inspections" value={totals.inspections} hint="On-site visits" icon={ClipboardCheck} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

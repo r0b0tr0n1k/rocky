@@ -6,7 +6,8 @@
  */
 
 const POINT_REGEX = /POINT\(([-\d.]+)\s+([-\d.]+)\)/;
-const POLYGON_REGEX = /POLYGON\((.+)\)/;
+// Accepts both POLYGON((x y, ...)) (standard PostGIS ring) and POLYGON(x y, ...).
+const POLYGON_REGEX = /POLYGON\s*\(+\s*(.+?)\s*\)+\s*$/;
 
 /**
  * Convert latitude/longitude to PostGIS Point WKT format
@@ -78,7 +79,8 @@ export function geometryPolygonFromWkt(
 		latitude: number;
 		longitude: number;
 	} => {
-		const parts = coord.split(" ");
+		// Strip any residual ring parentheses around an individual coordinate.
+		const parts = coord.replace(/^\(+|\s*\)+$/g, "").trim().split(/\s+/);
 		const longitude = Number(parts[0]);
 		const latitude = Number(parts[1]);
 		if (Number.isNaN(longitude) || Number.isNaN(latitude)) {

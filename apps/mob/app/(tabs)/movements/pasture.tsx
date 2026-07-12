@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
+import { Card, CardContent } from "@/components/ui/card";
 import { onlineManager } from "@tanstack/react-query";
 import { trpc } from "@/providers/trpc-provider";
 import { useOfflineMutation } from "@/lib/offline/use-offline-mutation";
@@ -96,7 +97,8 @@ export default function PastureScreen() {
 
   return (
     <ScrollView className="flex-1 bg-background">
-      <View className="p-4 gap-4">
+    <Card className="m-4">
+      <CardContent className="gap-4 p-4">
         <FormField
           label="Animal IDs (comma-separated)"
           error={errors.animalIds?.message}
@@ -170,7 +172,8 @@ export default function PastureScreen() {
         <Button onPress={onSubmit} disabled={isSubmitting || !canDeclarePasture} size="lg">
           {isSubmitting ? <ActivityIndicator color="white" /> : <Text>Declare Pasture Movement</Text>}
         </Button>
-      </View>
+      </CardContent>
+      </Card>
     </ScrollView>
   );
 }

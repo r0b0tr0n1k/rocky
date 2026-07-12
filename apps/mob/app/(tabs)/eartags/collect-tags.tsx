@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, ScrollView, Alert } from "react-native";
 import { Text } from "@/components/ui/text";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -29,7 +30,8 @@ export default function CollectTagsScreen() {
 
   return (
     <ScrollView className="flex-1 bg-background">
-      <View className="p-4 gap-4">
+    <Card className="m-4">
+      <CardContent className="gap-4 p-4">
         <View className="gap-2">
           <Label nativeID="orderId">Order ID</Label>
           <Input placeholder="UUID of the order" value={orderId} onChangeText={setOrderId} />
@@ -41,7 +43,8 @@ export default function CollectTagsScreen() {
         <Button onPress={handleSubmit} disabled={collectTags.isPending} size="lg">
           <Text>Collect Tags</Text>
         </Button>
-      </View>
+      </CardContent>
+      </Card>
     </ScrollView>
   );
 }

@@ -6,6 +6,8 @@ import { PassportService } from "@rocky/domains-passport";
 import type { AppContext } from "@rocky/trpc/context.js";
 import { createResultUnwrapper } from "@rocky/trpc/index.js";
 import {
+  type DeliverToKeeperPassportRequest,
+  deliverToKeeperPassportRequestSchema,
   type IssuePassportRequest,
   issuePassportRequestSchema,
   passportListRequestSchema,
@@ -15,6 +17,8 @@ import {
   reprintPassportRequestSchema,
   type SeizePassportRequest,
   seizePassportRequestSchema,
+  type ShipToVsPassportRequest,
+  shipToVsPassportRequestSchema,
 } from "@rocky/validators/api/index.js";
 import { PASSPORT_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
 import { Ctx, Input, Mutation, Query, Router } from "nestjs-trpc";
@@ -50,14 +54,14 @@ export class PassportRouter {
     return unwrap(await this.passportService.issueForAnimal({ ...input, createdBy: ctx.execution?.principal.id }));
   }
 
-  @Mutation({ input: idParam, output: passportResponseSchema })
-  async shipToVs(@Input() input: { id: string }) {
-    return unwrap(await this.passportService.shipToVs(input.id));
+  @Mutation({ input: shipToVsPassportRequestSchema, output: passportResponseSchema })
+  async shipToVs(@Input() input: ShipToVsPassportRequest) {
+    return unwrap(await this.passportService.shipToVs(input.passportId));
   }
 
-  @Mutation({ input: idParam, output: passportResponseSchema })
-  async deliverToKeeper(@Input() input: { id: string }) {
-    return unwrap(await this.passportService.deliverToKeeper(input.id));
+  @Mutation({ input: deliverToKeeperPassportRequestSchema, output: passportResponseSchema })
+  async deliverToKeeper(@Input() input: DeliverToKeeperPassportRequest) {
+    return unwrap(await this.passportService.deliverToKeeper(input.passportId));
   }
 
   @Mutation({ input: seizePassportRequestSchema, output: passportResponseSchema })

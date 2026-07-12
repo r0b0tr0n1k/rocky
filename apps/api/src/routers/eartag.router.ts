@@ -16,11 +16,13 @@ import {
   type CollectOrderTagsRequest,
   type CreateDuplicateOrderRequest,
   type CreateOrderRequest,
+  type UpdateOrderRequest,
   cancelOrderItemRequestSchema,
   cancelOrderRequestSchema,
   collectOrderTagsRequestSchema,
   createDuplicateOrderRequestSchema,
   createOrderRequestSchema,
+  updateOrderRequestSchema,
   type EarTagListRequest,
   type EarTagListResponse,
   type EarTagOrderListResponse,
@@ -161,6 +163,13 @@ export class EarTagRouter {
       organizationId: input.organizationId,
       ok: result.isOk(),
     });
+    return unwrap(result);
+  }
+
+  @Mutation({ input: updateOrderRequestSchema, output: earTagOrderResponseSchema })
+  async updateOrder(@Input() input: UpdateOrderRequest): Promise<EarTagOrderResponse> {
+    this.logger.log("Updating ear tag order", { orderId: input.orderId });
+    const result = await this.earTagService.updateOrder(input);
     return unwrap(result);
   }
 

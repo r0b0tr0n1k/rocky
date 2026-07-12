@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { AnimalEditForm } from "#components/animals/animal-edit-form";
 import { Button } from "@rocky/ui/components/button";
 import { PageHeader } from "#components/shared/page-header";
+import { Card, CardContent } from "@rocky/ui/components/card";
 
 export default function EditAnimalPage() {
   const router = useRouter();
@@ -22,7 +23,11 @@ export default function EditAnimalPage() {
           </Button>
         }
       />
-      <AnimalEditForm id={params.id} />
+      <Card>
+        <CardContent className="p-6">
+          <AnimalEditForm id={params.id} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

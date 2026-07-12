@@ -72,6 +72,10 @@ export interface EscalateCorrectionRequest {
   reason?: string;
 }
 
+export interface RejectCorrectionRequest {
+  id: string;
+}
+
 export interface CorrectionListRequest {
   farmId?: string;
   animalId?: string;
@@ -133,6 +137,10 @@ export const escalateCorrectionRequestSchema = z.strictObject({
   reason: z.string().max(1000).optional(),
 }) satisfies z.ZodType<EscalateCorrectionRequest>;
 
+export const rejectCorrectionRequestSchema = z.strictObject({
+  id: z.uuid(),
+}) satisfies z.ZodType<RejectCorrectionRequest>;
+
 export const correctionListRequestSchema = z.strictObject({
   farmId: z.uuid().optional(),
   animalId: z.uuid().optional(),
@@ -155,8 +163,9 @@ type _drift_createCorrectionRequest = NoDrift<z.infer<typeof createCorrectionReq
 type _drift_reviewCorrectionRequest = NoDrift<z.infer<typeof reviewCorrectionRequestSchema>, ReviewCorrectionRequest>;
 type _drift_resolveCorrectionRequest = NoDrift<z.infer<typeof resolveCorrectionRequestSchema>, ResolveCorrectionRequest>;
 type _drift_escalateCorrectionRequest = NoDrift<z.infer<typeof escalateCorrectionRequestSchema>, EscalateCorrectionRequest>;
+type _drift_rejectCorrectionRequest = NoDrift<z.infer<typeof rejectCorrectionRequestSchema>, RejectCorrectionRequest>;
 type _drift_correctionListRequest = NoDrift<z.infer<typeof correctionListRequestSchema>, CorrectionListRequest>;
 
 export type _CorrectionGuillotines = ActivateGuillotines<
-  [ _drift_correctionResponse, _drift_correctionListResponse, _drift_createCorrectionRequest, _drift_reviewCorrectionRequest, _drift_resolveCorrectionRequest, _drift_escalateCorrectionRequest, _drift_correctionListRequest ]
+  [ _drift_correctionResponse, _drift_correctionListResponse, _drift_createCorrectionRequest, _drift_reviewCorrectionRequest, _drift_resolveCorrectionRequest, _drift_escalateCorrectionRequest, _drift_rejectCorrectionRequest, _drift_correctionListRequest ]
 >;

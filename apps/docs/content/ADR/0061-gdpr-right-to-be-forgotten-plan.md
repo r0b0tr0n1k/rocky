@@ -83,11 +83,12 @@ Chasing them first is exactly how good intentions go bad.
   is universal; erasure is person-specific.
 
 **Revised build order (pragmatic):**
-   - **(0) reveal-gate + tamper-evident access log — NEAR-TERM, no encryption needed** (see dedicated section).
-   - (1) encrypt PII at rest + `pii_sealed` — **PAUSED** (key custody pending advisor input; the no-brainer, not rushed).
-   - (2) PII masking via `PII_FIELD_REGISTRY` (`defaultExcluded`) — **DONE**, drives blur-by-default.
-   - (3) RuleSet params (D10).
-   - … ; (N) full erasure / crons — **deferred pending advisor input**.
+
+- **(0) reveal-gate + tamper-evident access log — NEAR-TERM, no encryption needed** (see dedicated section).
+- (1) encrypt PII at rest + `pii_sealed` — **PAUSED** (key custody pending advisor input; the no-brainer, not rushed).
+- (2) PII masking via `PII_FIELD_REGISTRY` (`defaultExcluded`) — **DONE**, drives blur-by-default.
+- (3) RuleSet params (D10).
+- … ; (N) full erasure / crons — **deferred pending advisor input**.
 access-log with viewer-anonymity; (3) PII_FIELD_REGISTRY masking (D1 — DONE); (4) RuleSet
 params (D10); … ; (N) full erasure / crons — **deferred pending advisor input**.
 
@@ -206,7 +207,8 @@ encryptedBlob: encryptedVarchar("encrypted_blob", { length: 4096 }),
 
 **Status: PAUSED.** Per the 2026-07-11 directive, DB encryption is deferred until
 key-custody (KMS / KEK) is settled by advisor input. The `PII_FIELD_REGISTRY` masking
-+ reveal-gate (Phase 1) ships first; this type lands in Phase 2.
+
+- reveal-gate (Phase 1) ships first; this type lands in Phase 2.
 
 ### D5 — Data minimization / default-NOT-shown (the best way is to not show it)
 
@@ -302,6 +304,7 @@ we CAN and SHOULD build now is the **access-audit pattern**, which needs **no en
 already follows from the committed `PII_FIELD_REGISTRY` (its `defaultExcluded` flag).
 
 ### Flow
+
 1. **Masked by default.** Any `defaultExcluded` column in `PII_FIELD_REGISTRY` renders **blurred**
    in the frontend (e.g. `••••••`). PII never reaches the screen unless explicitly revealed. The API
    projection layer (D5) omits these fields unless the caller holds `pii:read` + `purpose`; the UI
@@ -329,6 +332,7 @@ already follows from the committed `PII_FIELD_REGISTRY` (its `defaultExcluded` f
    The log is evidence; it cannot be quietly edited. (D7.)
 
 ### What this buys us (now)
+
 - We comply with "log access to PII" **without encrypting anything yet**.
 - We protect the *developers*: a signed, purpose-tagged trail proves what was seen, by whom (anonymized),
   under what basis — our defense if challenged.
@@ -375,6 +379,8 @@ law — the broader mapping set is only partially validated.
 
 ## Open Questions (surfaced by the read to think to re-read loop)
 
+> Tracked in WORKORDER as **WO-133 … WO-141** (status `Open` until expert / legal input lands).
+
 These MUST be answered before any code is written — they are the gaps the first draft papered over:
 
 1. **GDPR applicability to MK (Art.3 territorial scope).** Does GDPR trigger for a North Macedonia
@@ -393,11 +399,22 @@ These MUST be answered before any code is written — they are the gaps the firs
    it is itself signed and reviewed.
 5. **Signing-key custody and continuous verification.** Who holds the Ed25519 private key? Separate
    it from PII editors; anchor the chain genesis out-of-band; verify continuously, not only on read.
+   *(Scope note: Ed25519 signing-key custody is **ISO/IEC 27701** best practice, **NOT a GDPR legal
+   mandate** — treat as phase-2 / optional, not as law.)*
 6. **Pseudonym rotation on erasure.** After erasure, `subject_pseudonym` should be re-issued (not
    reused) so it cannot be correlated across pre/post-erasure tables.
-7. **Vault row lifecycle post-shred.** After DEK destruction, delete (or mark `destroyed`) the vault
-   row so no orphan mapping remains; confirm `subject_id` stays but the `subject_id <-> subject_pseudonym`
-   bridge is severed.
+7. **Vault row lifecycle post-shred.** After DEK destruction, mark the vault row `destroyed` — but
+   the **data rows are NOT physically deleted** (the epidemiology / audit trail must survive); only
+   cow *images* may be removed. GDPR erasure = unrecoverable ciphertext via DEK shred + severed
+   pseudonym bridge, **not row deletion**.
+8. **Erasure ≠ deletion (operational reality).** We will not physically delete records. Erasure is
+   crypto-shredding the DEK (plaintext unrecoverable) + re-issuing the pseudonym (bridge severed).
+   Only cow images may be removed. This is the accept-and-flag stance (ADR-0081): capture the truth,
+   minimize access, do not destroy.
+9. **GDPR (law) vs ISO/IEC 27701 (standard, not law).** The vault, Ed25519 signing, DPIA/DPO
+   ownership, and ISO 27701 alignment are *voluntary standards*, not legal mandates. Do not architect
+   mandatory compliance to ISO requirements; treat them as best-practice / phase-2 only. GDPR's actual
+   legal obligations are narrower than the plan's full apparatus.
 
 ## Consequences
 
@@ -523,6 +540,7 @@ after the animal (and the law's memory of it) has passed. The "trickiest to impl
 erasure is therefore a **deferred, lifecycle-gated** erasure, not an on-request one.
 
 ### Status
+
 Refinement accepted into the plan; not yet implemented (the plan remains deferred code).
 It tightens D3 (precedence) and D8 (erasure steps 1 + 3) and implies a `linkedAnimalHold`
 derivation in the erasure service.

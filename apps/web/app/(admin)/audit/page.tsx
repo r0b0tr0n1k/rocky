@@ -10,7 +10,10 @@ import type { ColumnDef } from "@tanstack/react-table";
 import * as React from "react";
 import { DataTable } from "#components/shared/data-table";
 import { PageHeader } from "#components/shared/page-header";
+import { RowActionMenu } from "#components/shared/action-dialog";
+import { RowDetailsDialog, type DetailField } from "#components/shared/row-details-dialog";
 import { StatusBadge } from "#components/shared/status-badge";
+import { TableCard, tableDensityClass, appendRowActions } from "#components/shared/table-card";
 import { enumToOptions } from "#lib/options";
 import { useTRPC } from "#lib/trpc";
 
@@ -76,14 +79,32 @@ export default function AuditPage() {
           ))}
         </select>
       </div>
-      <DataTable
-        columns={columns}
-        data={(auditQ.data?.data ?? []) as AuditResponse[]}
-        total={auditQ.data?.total ?? 0}
-        isLoading={auditQ.isLoading}
-        page={0}
-        pageSize={PAGE_SIZE}
-      />
+      <TableCard>
+        <DataTable
+          columns={appendRowActions(columns, (row) => (
+            <RowActionMenu items={[{ type: "dialog", dialog: <AuditDetails audit={row} /> }]} />
+          ))}
+          data={(auditQ.data?.data ?? []) as AuditResponse[]}
+          total={auditQ.data?.total ?? 0}
+          isLoading={auditQ.isLoading}
+          page={0}
+          pageSize={PAGE_SIZE}
+          bordered={false}
+          tableClassName={tableDensityClass}
+        />
+      </TableCard>
     </div>
   );
+}
+
+function AuditDetails({ audit }: { audit: AuditResponse }) {
+  const fields: DetailField[] = [
+    { label: "Action", value: audit.action },
+    { label: "Resource", value: audit.resource },
+    { label: "Resource ID", value: audit.resourceId ?? "—" },
+    { label: "User", value: audit.userId ?? "—" },
+    { label: "Result", value: audit.success ? "OK" : "Fail" },
+    { label: "When", value: new Date(audit.createdAt).toLocaleString() },
+  ];
+  return <RowDetailsDialog title="Audit event" description="Audit log record" fields={fields} />;
 }

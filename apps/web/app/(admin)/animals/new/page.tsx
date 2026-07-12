@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { AnimalCreateForm } from "#components/animals/animal-create-form";
 import { Button } from "@rocky/ui/components/button";
 import { PageHeader } from "#components/shared/page-header";
+import { Card, CardContent } from "@rocky/ui/components/card";
 
 export default function NewAnimalPage() {
   const router = useRouter();
@@ -21,7 +22,11 @@ export default function NewAnimalPage() {
           </Button>
         }
       />
-      <AnimalCreateForm />
+      <Card>
+        <CardContent className="p-6">
+          <AnimalCreateForm />
+        </CardContent>
+      </Card>
     </div>
   );
 }

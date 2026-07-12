@@ -12,7 +12,6 @@ import {
   SelectValue,
 } from "@rocky/ui/components/select";
 
-import { Button } from "@rocky/ui/components/button";
 import {
   createVsAssignmentRequestSchema,
   type FarmSummary,
@@ -28,6 +27,7 @@ import {
 } from "#components/shared/form-fields";
 import { PageHeader } from "#components/shared/page-header";
 import { DataTable } from "#components/shared/data-table";
+import { TableCard, tableDensityClass } from "#components/shared/table-card";
 import { vsAssignmentColumns } from "#components/vs-assignments/columns";
 import { useTRPC } from "#lib/trpc";
 
@@ -73,23 +73,23 @@ export default function VsAssignmentsPage() {
     () =>
       vsAssignmentColumns({
         renderUnassign: (row) => (
-          <ActionDialog
-            as="menuitem"
-            triggerLabel="Unassign"
-            schema={unassignFormSchema}
-            mutation={unassign}
-            defaultValues={{ id: row.id, data: {} }}
-            title="Unassign farm"
-            description="Ends this veterinary-service assignment for the farm."
-            fields={(form) => (
-              <>
-                <DateField control={form.control} name="data.endDate" label="End date" />
-                <TextareaField control={form.control} name="data.notes" label="Notes" />
-              </>
-            )}
-          />
-        ),
-      }),
+            <ActionDialog
+              as="menuitem"
+              triggerLabel="Unassign"
+              schema={unassignFormSchema}
+              mutation={unassign}
+              defaultValues={{ id: row.id, data: {} }}
+              title="Unassign farm"
+              description="Ends this veterinary-service assignment for the farm."
+              fields={(form) => (
+                <>
+                  <DateField control={form.control} name="data.endDate" label="End date" />
+                  <TextareaField control={form.control} name="data.notes" label="Notes" />
+                </>
+              )}
+            />
+          ),
+        }),
     [unassign],
   );
 
@@ -98,7 +98,24 @@ export default function VsAssignmentsPage() {
       <PageHeader
         title="VS Assignments"
         description="Which farms are covered by which veterinary-service contracts."
-        actions={
+      />
+
+      <Select value={farmId ?? "all"} onValueChange={(v) => setFarmId(v === "all" ? undefined : v)}>
+        <SelectTrigger className="w-[280px]">
+          <SelectValue placeholder="Select a farm…" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All farms</SelectItem>
+          {farmOptions.map((o) => (
+            <SelectItem key={o.value} value={o.value}>
+              {o.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <TableCard
+        action={
           <ActionDialog
             as="button"
             triggerLabel="Assign farm"
@@ -130,22 +147,7 @@ export default function VsAssignmentsPage() {
             )}
           />
         }
-      />
-
-      <Select value={farmId ?? "all"} onValueChange={(v) => setFarmId(v === "all" ? undefined : v)}>
-        <SelectTrigger className="w-[280px]">
-          <SelectValue placeholder="Select a farm…" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All farms</SelectItem>
-          {farmOptions.map((o) => (
-            <SelectItem key={o.value} value={o.value}>
-              {o.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
+      >
       <DataTable
         columns={columns}
         data={rows}
@@ -154,7 +156,11 @@ export default function VsAssignmentsPage() {
         page={0}
         pageSize={Math.max(rows.length, 20)}
         onPageChange={() => {}}
+        bordered={false}
+        tableClassName={tableDensityClass}
       />
+      </TableCard>
     </div>
   );
 }
+

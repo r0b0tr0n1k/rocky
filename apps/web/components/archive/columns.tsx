@@ -3,13 +3,15 @@
 import { format } from "date-fns";
 import type { ComponentProps } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
+import type { z } from "zod";
 import { EyeIcon } from "lucide-react";
 
 import { Badge } from "@rocky/ui/components/badge";
 import { RowActions } from "#components/shared/row-actions";
+import { ActionDialog, RowActionMenu, type RowMenuItem } from "#components/shared/action-dialog";
 import { StatusBadge } from "#components/shared/status-badge";
 import { ARCHIVE_DOCUMENT_TYPE, ARCHIVE_LOCATION } from "@rocky/validators/enums";
-import type { ArchiveDocumentResponse } from "@rocky/validators/api";
+import { markDestroyedArchiveRequestSchema, type ArchiveDocumentResponse } from "@rocky/validators/api";
 
 export type { ArchiveDocumentResponse } from "@rocky/validators/api";
 
@@ -44,7 +46,10 @@ export interface ArchiveColumnLookups {
 export function archiveColumns({
   animalLabel,
   farmLabel,
-}: ArchiveColumnLookups): ColumnDef<ArchiveDocumentResponse>[] {
+  markDestroyed,
+}: ArchiveColumnLookups & {
+  markDestroyed: { mutate: (v: z.input<typeof markDestroyedArchiveRequestSchema>) => void; isPending: boolean };
+}): ColumnDef<ArchiveDocumentResponse>[] {
   return [
     {
       accessorKey: "documentType",
@@ -103,11 +108,29 @@ export function archiveColumns({
       id: "actions",
       header: () => <span className="sr-only">Actions</span>,
       enableSorting: false,
-      cell: ({ row }) => (
-        <RowActions
-          actions={[{ label: "View", icon: EyeIcon, href: `/archive/${row.original.id}/edit` }]}
-        />
-      ),
+      cell: ({ row }) => {
+        const items: RowMenuItem[] = [
+          { type: "link", label: "View", icon: EyeIcon, href: `/archive/${row.original.id}/edit` },
+          {
+            type: "dialog",
+            dialog: (
+              <ActionDialog
+                as="menuitem"
+                triggerLabel="Mark destroyed"
+                schema={markDestroyedArchiveRequestSchema}
+                mutation={markDestroyed}
+                title="Mark document destroyed"
+                alert="This permanently marks the document as destroyed after retention expiry."
+                defaultValues={{ id: row.original.id }}
+                fields={() => (
+                  <p className="text-sm text-muted-foreground">Confirm destruction of this archived document.</p>
+                )}
+              />
+            ),
+          },
+        ];
+        return <RowActionMenu items={items} />;
+      },
     },
   ];
 }

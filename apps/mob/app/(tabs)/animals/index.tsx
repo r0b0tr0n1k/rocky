@@ -41,7 +41,7 @@ export default function AnimalsListScreen() {
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() => router.push(`/animals/${item.id}`)}
-            className="flex-row items-center justify-between py-3 border-b border-border"
+            className="flex-row items-center justify-between p-3 mb-2 bg-card border border-border rounded-lg"
           >
             <View>
               <Text className="text-foreground font-medium">

@@ -51,6 +51,7 @@ export const DOMAIN_TABLE_MAP = {
         "an/geofences.ts",
         "an/animal-geofence-events.ts",
         "an/pda-devices.ts",
+        "an/settlements.ts",
     ],
     farm: [
         "hk/addresses.ts",

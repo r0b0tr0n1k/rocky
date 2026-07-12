@@ -20,10 +20,11 @@
     "generate:zod": "node scripts/generate-dumb-zod.mjs",
     "generate:all": "node scripts/regenerate-enums.mjs && node scripts/generate-dumb-zod.mjs",
     "check:trpc-boundary": "node scripts/check-trpc-boundary.mjs",
+    "check:web-parity": "node scripts/check-web-parity.mjs",
     "check:adrs": "node scripts/check-adrs.mjs",
     "check:md-links": "node scripts/check-md-links.mjs",
     "check:agents": "node scripts/check-agents.mjs",
-    "ci:checks": "pnpm generate:trpc && pnpm check:trpc-boundary && pnpm check:adrs && pnpm check:md-links && pnpm check:agents && pnpm test",
+    "ci:checks": "pnpm generate:trpc && pnpm check:trpc-boundary && pnpm check:adrs && pnpm check:md-links && pnpm check:agents && pnpm check:web-parity && pnpm test",
     "gen:api-reference": "node scripts/generate-api-reference.mjs"
   },
   "devDependencies": {

@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@rocky/ui/components/button";
 import { Input } from "@rocky/ui/components/input";
 import { PageHeader } from "#components/shared/page-header";
+import { Card, CardContent } from "@rocky/ui/components/card";
 import { useTRPC } from "#lib/trpc";
 
 export default function SyncPage() {
@@ -40,38 +41,42 @@ export default function SyncPage() {
         description="Pull an RLS-scoped field-entity snapshot for the mobile PDA fleet."
       />
 
-      <div className="flex items-end gap-3">
-        <div className="flex flex-col gap-1">
-          <span className="text-sm text-muted-foreground">Since (optional)</span>
-          <Input type="date" value={since} onChange={(e) => setSince(e.target.value)} />
-        </div>
-        <Button onClick={() => download.refetch()} disabled={download.isFetching}>
-          <Download data-icon="inline-start" /> Pull snapshot
-        </Button>
-      </div>
-
-      {download.isError ? (
-        <p className="text-sm text-destructive">Sync failed: {String(download.error)}</p>
-      ) : null}
-
-      {d ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {counts.map(([label, n]) => (
-            <div key={label} className="rounded-md border p-3">
-              <div className="text-2xl font-semibold tabular-nums">{n}</div>
-              <div className="text-xs text-muted-foreground">{label}</div>
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-end gap-3">
+            <div className="flex flex-col gap-1">
+              <span className="text-sm text-muted-foreground">Since (optional)</span>
+              <Input type="date" value={since} onChange={(e) => setSince(e.target.value)} />
             </div>
-          ))}
-          <div className="col-span-2 rounded-md border p-3 sm:col-span-3">
-            <div className="text-xs text-muted-foreground">Synced at</div>
-            <div className="text-sm">{new Date(d.syncedAt).toLocaleString()}</div>
-            <div className="mt-1 text-xs text-muted-foreground">Watermark</div>
-            <div className="text-sm">
-              {d.watermark ? new Date(d.watermark).toLocaleString() : "—"}
-            </div>
+            <Button onClick={() => download.refetch()} disabled={download.isFetching}>
+              <Download data-icon="inline-start" /> Pull snapshot
+            </Button>
           </div>
-        </div>
-      ) : null}
+
+          {download.isError ? (
+            <p className="mt-4 text-sm text-destructive">Sync failed: {String(download.error)}</p>
+          ) : null}
+
+          {d ? (
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {counts.map(([label, n]) => (
+                <div key={label} className="rounded-md border p-3">
+                  <div className="text-2xl font-semibold tabular-nums">{n}</div>
+                  <div className="text-xs text-muted-foreground">{label}</div>
+                </div>
+              ))}
+              <div className="col-span-2 rounded-md border p-3 sm:col-span-3">
+                <div className="text-xs text-muted-foreground">Synced at</div>
+                <div className="text-sm">{new Date(d.syncedAt).toLocaleString()}</div>
+                <div className="mt-1 text-xs text-muted-foreground">Watermark</div>
+                <div className="text-sm">
+                  {d.watermark ? new Date(d.watermark).toLocaleString() : "—"}
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </CardContent>
+      </Card>
     </div>
   );
 }

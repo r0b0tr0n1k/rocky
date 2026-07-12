@@ -3,6 +3,7 @@ import { EnumSelect } from "@/components/ui/enum-select";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
+import { Card, CardContent } from "@/components/ui/card";
 import { onlineManager } from "@tanstack/react-query";
 import { trpc } from "@/providers/trpc-provider";
 import { useOfflineMutation } from "@/lib/offline/use-offline-mutation";
@@ -122,7 +123,8 @@ export default function BirthNotificationScreen() {
 
   return (
     <ScrollView className="flex-1 bg-background">
-      <View className="p-4 gap-4">
+    <Card className="m-4">
+      <CardContent className="gap-4 p-4">
         <Text className="text-foreground text-lg font-bold">Record New Birth</Text>
 
         <FormField label="Calf Ear Tag Number" error={errors.earTagNumber?.message} nativeID="earTag">
@@ -183,7 +185,8 @@ export default function BirthNotificationScreen() {
         <Button onPress={onSubmit} disabled={isSubmitting || !canRegister} size="lg">
           {isSubmitting ? <ActivityIndicator color="white" /> : <Text>Submit Birth Notification</Text>}
         </Button>
-      </View>
+      </CardContent>
+      </Card>
     </ScrollView>
   );
 }

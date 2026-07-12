@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { UserCreateForm } from "#components/users/user-create-form";
 import { Button } from "@rocky/ui/components/button";
 import { PageHeader } from "#components/shared/page-header";
+import { Card, CardContent } from "@rocky/ui/components/card";
 
 export default function NewUserPage() {
   const router = useRouter();
@@ -21,7 +22,11 @@ export default function NewUserPage() {
           </Button>
         }
       />
-      <UserCreateForm />
+      <Card>
+        <CardContent className="p-6">
+          <UserCreateForm />
+        </CardContent>
+      </Card>
     </div>
   );
 }

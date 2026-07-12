@@ -1,6 +1,6 @@
 # ADR Index
 
-All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 75 records total.
+All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 81 records total.
 
 ### Core Backend / Architecture (0001-0032)
 
@@ -28,6 +28,7 @@ All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 75
 | ADR-0020 | Pragmatic Marxist Doctrine for Testing, Documentation, and Observability |
 | ADR-0021 | Better Auth Configuration & Session Resolution |
 | ADR-0022 | Authorization Policy Engine |
+| ADR-0081 | Accept-and-Flag Validation Doctrine (plausibility over rejection) |
 | ADR-0023 | Business-Rule Adoption & Source-to-Code Traceability |
 | ADR-0024 | Ear Tag Order Lifecycle & Numbering |
 | ADR-0025 | Animal Registration & Movement Rules |
@@ -38,7 +39,6 @@ All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 75
 | ADR-0030 | Jurisdiction-Configurable Rule Engine |
 | ADR-0031 | IoT & Connectivity Abstraction (Optional, Future-Facing) |
 | ADR-0032 | tRPC Transport Architecture & Mandatory `@Output` Schemas (Preventing TS6059 & Circular Dependencies) |
-
 
 ### Frontend & Mobile (0033-0060)
 
@@ -73,8 +73,7 @@ All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 75
 | ADR-0059 | Web UI — Tier 2 Deepen |
 | ADR-0060 | Web UI Component & Feedback Map |
 
-
-### Regulatory, Geo & Recent Architecture (0053-0075)
+### Regulatory, Geo & Recent Architecture (0053-0078)
 
 | ADR | Title |
 | --- | --- |
@@ -101,6 +100,9 @@ All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 75
 | ADR-0073 | Mobile Edge Compliance -- PII at the Edge (A.1.2.x / A.8.24 / ADR-0061 D5) |
 | ADR-0074 | Field-Role Edge Protocol -- Contact-Only PII, Purpose-Scoped Sync, TTL & Reveal Audit |
 | ADR-0075 | Processor & Subprocessor Management (GDPR Art 28(4) / MK LPDP Art 28 / ISO 27701 B.5.2.1 + B.2.2.1) |
-
+| ADR-0076 | Enterprise UX — List-Page Containment, Action Alignment & Control Theater |
+| ADR-0077 | Mobile Enterprise UX — Containment & Action Alignment on the PDA |
+| ADR-0078 | Geo Spatial Service — Extract `packages/geo` (cross-cutting, queried-for-geo-data) |
+| ADR-0080 | Disease-Zone Data Collection & Declaration Workflow (WO-119) |
 
 > Generated from `apps/docs/content/ADR/*.md` first-heading titles. Regenerate after adding an ADR.

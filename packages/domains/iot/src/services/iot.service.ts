@@ -5,18 +5,12 @@ import type {
   ListDevicesRequest,
   IngestReadingRequest,
   ListReadingsRequest,
-  CreateGeofenceRequest,
-  LogGeofenceEventRequest,
   IotDeviceResponse,
   SensorReadingResponse,
-  GeofenceResponse,
-  GeofenceEventResponse,
 } from "@rocky/validators/api";
 import {
   iotDeviceResponseSchema,
   sensorReadingResponseSchema,
-  geofenceResponseSchema,
-  geofenceEventResponseSchema,
 } from "@rocky/validators/api";
 import { IOT_ERRORS, IotError } from "../errors/iot.errors.js";
 import type { IotRepository } from "../repositories/iot.repository.js";
@@ -130,71 +124,4 @@ export class IotService {
     }, toAppError)();
   }
 
-  // ── Geofences ──
-
-  async createGeofence(data: CreateGeofenceRequest): Promise<Result<GeofenceResponse, Error>> {
-    return fromAsyncThrowable(async () => {
-      const geofence = await this.repo.insertGeofence({
-        name: data.name,
-        description: data.description,
-        farmId: data.farmId,
-        pastureId: data.pastureId,
-        fenceType: data.fenceType,
-        geometry: data.geometry,
-        cadastralReference: data.cadastralReference,
-       });
-       return geofenceResponseSchema.parse(geofence);
-    }, toAppError)();
-  }
-
-  async listGeofencesByFarm(farmId: string): Promise<Result<GeofenceResponse[], Error>> {
-    return fromAsyncThrowable(async () => {
-      const rows = await this.repo.listGeofencesByFarm(farmId);
-      return rows.map((g: unknown) => geofenceResponseSchema.parse(g));
-    }, toAppError)();
-  }
-
-  async deleteGeofence(id: string): Promise<Result<void, Error>> {
-    return fromAsyncThrowable(async () => {
-      const existing = await this.repo.findGeofenceById(id);
-      if (!existing) throw new IotError(IOT_ERRORS.GEOFENCE_NOT_FOUND, { id });
-      await this.repo.deleteGeofence(id);
-    }, toAppError)();
-  }
-
-  // ── Geofence Events ──
-
-  async logGeofenceEvent(data: LogGeofenceEventRequest): Promise<Result<GeofenceEventResponse, Error>> {
-    return fromAsyncThrowable(async () => {
-      const event = await this.repo.insertGeofenceEvent({
-        animalId: data.animalId,
-        geofenceId: data.geofenceId,
-        farmId: data.farmId,
-        eventType: data.eventType,
-        eventAt: new Date(data.eventAt),
-        location: data.latitude && data.longitude
-          ? { x: data.longitude, y: data.latitude }
-          : undefined,
-        source: data.source,
-       });
-       return geofenceEventResponseSchema.parse(event);
-    }, toAppError)();
-  }
-
-  async listGeofenceEvents(input: {
-    animalId?: string;
-    geofenceId?: string;
-    farmId?: string;
-    limit?: number;
-    offset?: number;
-  }): Promise<Result<{ data: GeofenceEventResponse[]; total: number; limit: number; offset: number }, Error>> {
-    return fromAsyncThrowable(async () => {
-      const { data, total } = await this.repo.listGeofenceEvents({
-        ...input,
-        limit: input.limit ?? 50,
-        offset: input.offset ?? 0,
-      });
-      return { data: data.map((d: unknown) => geofenceEventResponseSchema.parse(d)), total, limit: input.limit ?? 50, offset: input.offset ?? 0 };
-    }, toAppError)();
-  }
 }

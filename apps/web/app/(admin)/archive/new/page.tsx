@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { ArchiveCreateForm } from "#components/archive/archive-create-form";
 import { Button } from "@rocky/ui/components/button";
 import { PageHeader } from "#components/shared/page-header";
+import { Card, CardContent } from "@rocky/ui/components/card";
 
 export default function NewArchivePage() {
   const router = useRouter();
@@ -21,7 +22,11 @@ export default function NewArchivePage() {
           </Button>
         }
       />
-      <ArchiveCreateForm />
+      <Card>
+        <CardContent className="p-6">
+          <ArchiveCreateForm />
+        </CardContent>
+      </Card>
     </div>
   );
 }

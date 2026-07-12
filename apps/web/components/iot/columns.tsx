@@ -5,13 +5,11 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { StatusBadge } from "#components/shared/status-badge";
 import type {
-  GeofenceEventResponse,
-  GeofenceResponse,
   IotDeviceResponse,
   SensorReadingResponse,
 } from "@rocky/validators/api";
 
-export type { GeofenceEventResponse, GeofenceResponse, IotDeviceResponse, SensorReadingResponse } from "@rocky/validators/api";
+export type { IotDeviceResponse, SensorReadingResponse } from "@rocky/validators/api";
 
 export function deviceColumns(farmLabel: (id: string | null | undefined) => string): ColumnDef<IotDeviceResponse>[] {
   return [
@@ -70,49 +68,3 @@ export function sensorReadingColumns(
   ];
 }
 
-export function geofenceColumns(farmLabel: (id: string) => string): ColumnDef<GeofenceResponse>[] {
-  return [
-    { accessorKey: "name", header: "Name", enableSorting: false },
-    { accessorKey: "farmId", header: "Farm", enableSorting: false, cell: ({ row }) => farmLabel(row.original.farmId) },
-    {
-      accessorKey: "fenceType",
-      header: "Type",
-      enableSorting: false,
-      cell: ({ row }) => <StatusBadge value={row.original.fenceType} />,
-    },
-    {
-      accessorKey: "createdAt",
-      header: "Created",
-      enableSorting: false,
-      cell: ({ row }) => format(row.original.createdAt, "PP"),
-    },
-  ];
-}
-
-export function geofenceEventColumns(
-  animalLabel: (id: string) => string,
-  geofenceLabel: (id: string) => string,
-): ColumnDef<GeofenceEventResponse>[] {
-  return [
-    { accessorKey: "animalId", header: "Animal", enableSorting: false, cell: ({ row }) => animalLabel(row.original.animalId) },
-    { accessorKey: "geofenceId", header: "Geofence", enableSorting: false, cell: ({ row }) => geofenceLabel(row.original.geofenceId) },
-    {
-      accessorKey: "eventType",
-      header: "Event",
-      enableSorting: false,
-      cell: ({ row }) => <StatusBadge value={row.original.eventType} />,
-    },
-    {
-      accessorKey: "eventAt",
-      header: "At",
-      enableSorting: false,
-      cell: ({ row }) => format(row.original.eventAt, "PP p"),
-    },
-    {
-      accessorKey: "source",
-      header: "Source",
-      enableSorting: false,
-      cell: ({ row }) => (row.original.source ? <StatusBadge value={row.original.source} /> : "—"),
-    },
-  ];
-}

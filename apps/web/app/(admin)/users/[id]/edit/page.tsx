@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { UserEditForm } from "#components/users/user-edit-form";
 import { Button } from "@rocky/ui/components/button";
 import { PageHeader } from "#components/shared/page-header";
+import { Card, CardContent } from "@rocky/ui/components/card";
 
 export default function EditUserPage() {
   const router = useRouter();
@@ -22,7 +23,11 @@ export default function EditUserPage() {
           </Button>
         }
       />
-      <UserEditForm id={params.id} />
+      <Card>
+        <CardContent className="p-6">
+          <UserEditForm id={params.id} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

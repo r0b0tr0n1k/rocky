@@ -52,7 +52,7 @@
 | WO-036 | Business metrics emitted inside domain services/workers       | 0020 P3    | P3       | Open   |
 | WO-040 | Migrate `.strip()` response schemas → `.strict()` + smoke test | 0018      | P2       | Done ✅   |
 | WO-041 | Convert create schemas `.omit()` → `.pick()`                 | 0018       | P2       | Done ✅   |
-| WO-050 | PDF/A rendering + cryptographic seal                          | 0009 / 0029 | Future   | Deferred |
+| WO-050 | PDF/A rendering + cryptographic seal                          | 0009 / 0029 | Active   | In progress (ADR-0082) |
 | WO-060 | Gate IoT behind `RuleSet.features.iot` (UI + routers)         | 0031       | P3       | Open   |
 | WO-061 | IoT LPWAN QoS/SLA model (dedup, late-arrival)                 | 0031       | Future   | Deferred |
 | WO-070 | Deferral register: AMR, 10 km buffer, genetic lineage, blockchain, notification SMS | 0023 / 0014 | Future | Deferred |
@@ -84,8 +84,46 @@
 | WO-105 | Adopt Guillotine cross-layer bridge primitives (from reference) into `@rocky/validators` `type-bridge.ts`: `OkType`/`ErrType`/`InferOk`, `SubtypeGuillotine`, `AssertFieldCoverage` - DONE (validators tsc green). **B2b applied to ALL 24 routers** (`apps/api/src/routers/*.router.ts`, 93 aliases on the 19 newly-swept + ~59 on the 5 prior; api tsc green) via `SubtypeGuillotine<z.output<schema>, Awaited<ReturnType<Router['m']>>>` (derived responses -> one-directional; `rbac` uses `NoDrift` where interface is AssertEqual). **3 drifts caught + fixed:** `inspection.riskAnalysisListResponseSchema.data` was `z.array(z.unknown())` -> `z.array(riskAnalysesSelectSchema)`; `audit`+`sync` routers lacked `z` import for `z.output<>` -> added `import { z } from "zod"`. **B1 (`AssertFieldCoverage`) N/A** - sculpted responses make `Api subset Db` false by design (false-positive trap). **B3 N/A** - domain services import `z.infer<>` directly (no separate interface). **OkType unused for B2b** - thin routers unwrap the service `Result`, so `Awaited<ReturnType<Router>>` already resolves T. | 0018/0050 | P2 | Done ✅ |
 | WO-106 | Offline subsystem doctrine doc-test (`apps/docs/scripts/verify-offline-doctrine.mjs`, `pnpm --filter docs test:offline`) — in the spirit of `TESTING_DOCTRINE.md`: Part 1 verifies the `apps/mob/AGENTS.md` Offline Subsystem Contract (files exist, named symbols are real exports — no phantom imports, idempotency-key invariant present, ADR cross-links resolve); Part 2 functionally exercises the REAL `lib/offline/*` (outbox lifecycle pending→synced/failed/dismissed, `deviceId:uuid` idempotency key uniqueness + RFC-4122 v4, `storeDownload` cache materialization + watermark advance, `getDeviceId` stability + secure-store persistence, `getQueryPersister`) against in-memory fakes for `expo-sqlite`/`expo-secure-store` (redirected via `tsconfig.offline-test.json` `paths` + tsx). 11/11 pass. | 0011/0011 | P2 | Done ✅ |
 | WO-107 | Document the docs-app stale-`.next` hydration phantom in `apps/docs/AGENTS.md` (Troubleshooting): `data-rc-order`/`data-css-hash`/`data-token-hash` antd-style `<style>` hydration mismatch is a STALE CACHE, not a code bug — antd/`@ant-design/cssinjs` appear 0× in lockfile, no imports; clean headless-Chromium load hydrates fine (hue 152). Fix = `rm -rf apps/docs/.next && pnpm dev`. Do NOT edit `app/layout.tsx` `color` prop. | 0001/0001 | P3 | Done ✅ |
+| WO-143 | Geo map Forest / EUDR overlay (ADR-0063 deforestation resolution): `geo.forestLayer` query paints each farm geofence green (intact) / red (breached) from the EUDR deforestation verdict; `/admin/geo` toggle "Forest / EUDR overlay" feeds `GeoMapView` `kind: compliant|deforested`. With the default`NoDataRasterSource` every geofence renders green (compliant); a real Sentinel-2 / Land Cover 2020 `RasterSourcePort`flips breaches to red automatically. Also fixed 2 pre-existing geo-page type bugs (`invalidateQueries` queryKey wrapper, `fenceType` enum cast) surfaced by regenerated tRPC types. | 0063 | P2 | Done ✅ |
 
 ---
+
+## ADR-0081 — accept-and-flag open questions (answers pending)
+
+> Extracted from **ADR-0081** (Accept-and-Flag Validation Doctrine). The doctrine is ratified;
+> only the enumeration awaits confirmation. Answers have **not yet been provided** by government /
+> business, so each stays `Open` until an answer lands — then it converts to a build task.
+
+| WO | Task | Source | Priority | Status |
+| --- | --- | --- | --- | --- |
+| WO-124 | Ratify Tier-1 invariant set (dead/slaughtered cannot move + seizure lock) — blocks any hard-reject | 0081 | P1 | Open · answer pending (gov) |
+| WO-125 | Off-system-buyer disease-control trace: design seller-query step capturing buyer identity (legally required) | 0081 | P1 | Open · pending design |
+| WO-126 | Suspicious-eartag "notify someone" procedure (responsible party / channel) | 0081 | P2 | Open · TBD |
+| WO-127 | Enforce 8-hour live→slaughterhouse transport window (flag on exceed) | 0081 | P2 | Open |
+| WO-128 | Slaughterhouse tag-return obligation tracking on the slaughter movement | 0081 | P2 | Open |
+| WO-129 | Vet processes lost/destroyed eartag (required procedure, not auto-close) | 0081 | P2 | Open |
+| WO-130 | Movement validator: nullable `toFarmId` + external counterparty (`buyerName`/`buyerExternalRef`) | 0081 | P1 | Open · pending ratification |
+| WO-131 | Carcass / meat tracking scope (cow→market known in theory; impl undecided) | 0081 | P3 | Open · TBD |
+| WO-132 | EarTag takeover file: user-supplied `takeoverId` acceptable vs derive-from-order | 0081 | P3 | Open |
+| WO-142 | Frontend visibility / permission model for compliance options + accept-and-flag UI: who can SEE/CONFIGURE the tri-state options screen (propose `sm:compliance:write`, SUPER_ADMIN-gated like other `sm:*`); who sees plausibility flags/events (`inspection:read`/`correction:read`); farmer+government confirm path; PII/erasure needs `pii:read` (not yet in catalog — ADR-0061 Phase 2) | 0081 | P1 | Open · modeled as permission-gated |
+
+## ADR-0061 — GDPR open questions (answers pending)
+
+> Extracted from **ADR-0061** §Open Questions. These MUST be answered before any code is written;
+> the answers are **pending expert / legal input** (DB encryption itself is deferred to end-of-program
+> per the 2026-07-11 directive).
+
+| WO | Task | Source | Priority | Status |
+| --- | --- | --- | --- | --- |
+| WO-133 | GDPR applicability: non-GDPR markets exist + some jurisdictions ignore it in practice — SCOPE MUST BE DECIDED FIRST (likely minimal / not applicable) | 0061 | P0 | Open · answer pending (legal) |
+| WO-134 | Enumerate MK national animal-health / public-health / personal-data acts → load as `gdpr.overrides[]` (may be absent / lax) | 0061 | P1 | Open · pending legal input |
+| WO-135 | DSAR identity verification (confirm requester is data subject / lawful rep before erasing) | 0061 | P1 | Open |
+| WO-136 | Break-glass emergency PII access (time-limited, dual-auth, fully-logged, signed) | 0061 | P1 | Open |
+| WO-137 | Signing-key custody + continuous verification (Ed25519) — **ISO/IEC 27701 best practice, NOT a GDPR legal mandate**; phase-2 / optional, not law | 0061 | P2 | Open |
+| WO-138 | Pseudonym rotation on erasure (re-issue, not reuse) | 0061 | P2 | Open |
+| WO-139 | Erasure ≠ deletion: crypto-shred DEK + sever pseudonym bridge; **data rows NOT physically deleted** (epidemiology survives); only cow images may be removed | 0061 | P2 | Open |
+| WO-141 | GDPR (law) vs ISO/IEC 27701 (voluntary standard, NOT law): do not architect mandatory compliance to ISO; vault/signing/DPIA/DPO are best-practice / phase-2 only; GDPR legal obligations are narrower | 0061 | P1 | Open |
+| WO-140 | GDPR consent-fantasy / graceful degradation: do NOT require universal farmer consent contracts + full paperwork (unrealistic for field farmers); PII minimization by default, config-by-jurisdiction; accept-and-flag applied to compliance itself. Encryption still planned (end-of-program) but consent is not a hard gate | 0061 | P1 | Open · answer pending (realism) |
 
 ## 0. Client ADR Build-out (ADR-0033)
 
@@ -947,10 +985,10 @@ domains. ADR-0030 is _accepted as design_; the build below is the pending implem
 
 ## 6. Deferred by Design / Future (tracked, not this sprint)
 
-### WO-050 — PDF/A rendering + cryptographic seal — Future
+### WO-050 — PDF/A rendering + cryptographic seal — Active
 
-- `packages/pdf` emits YAML/XML intermediates as the stable API; PDF/A is a future rendering concern.
-- **Source:** ADR-0009 §4, ADR-0029.
+- **Activated by ADR-0082.** `packages/pdf` emits YAML/XML intermediates (stable API, ADR-0009) and, for `format: "pdf"`, renders via **Typst** + embeds as **PDF/A-3** via the `@e-invoice-eu` library, then **PAdES-signs** (ETSI EN 319 142) with Rocky's cert delegated to an air-gapped HSM. QR codes (ear-tag linkage) generated. XML-only output is valid per EN 16931.
+- **Source:** ADR-0009 §4, ADR-0029, **ADR-0082**.
 
 ### WO-060 — IoT `RuleSet.features.iot` gate — P3
 

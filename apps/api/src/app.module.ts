@@ -17,6 +17,14 @@ import {
 import { OutboxEventPublisher } from "@rocky/execution";
 import { DeviceRepository, DeviceService } from "@rocky/domains-device";
 import { IotRepository, IotService } from "@rocky/domains-iot";
+import {
+  DeforestationMonitor,
+  GeoRepository,
+  GeoService,
+  MapTilerMapService,
+  NoDataRasterSource,
+  PolygonService,
+} from "@rocky/geo";
 import { EarTagRepository, EarTagService } from "@rocky/domains-eartag";
 import {
   FarmBookRepository,
@@ -80,6 +88,7 @@ import { ArchiveRouter } from "./routers/archive.router.js";
 import { CorrectionRouter } from "./routers/correction.router.js";
 import { DeviceRouter } from "./routers/device.router.js";
 import { IotRouter } from "./routers/iot.router.js";
+import { GeoRouter } from "./routers/geo.router.js";
 import { DocumentRouter } from "./routers/document.router.js";
 import { EarTagRouter } from "./routers/eartag.router.js";
 import { FarmBookRouter } from "./routers/farm-book.router.js";
@@ -272,7 +281,8 @@ import { TrpcModule } from "./trpc/trpc.module.js";
         movRepo: MovementRepository,
         animalRepo: AnimalRepository,
         system: SystemService,
-        iotRepo: IotRepository,
+        geoRepo: GeoRepository,
+        geoService: GeoService,
         passportService?: PassportService,
         outboxPublisher?: import("@rocky/execution").OutboxEventPublisher,
       ) =>
@@ -280,7 +290,8 @@ import { TrpcModule } from "./trpc/trpc.module.js";
           movRepo,
           animalRepo,
           system,
-          iotRepo,
+          geoRepo,
+          geoService,
           passportService,
           outboxPublisher,
         ),
@@ -288,7 +299,8 @@ import { TrpcModule } from "./trpc/trpc.module.js";
         MovementRepository,
         AnimalRepository,
         SystemService,
-        IotRepository,
+        GeoRepository,
+        GeoService,
         { token: PassportService, optional: true },
         {
           token: OutboxEventPublisher,
@@ -419,6 +431,34 @@ import { TrpcModule } from "./trpc/trpc.module.js";
       useFactory: (repo: IotRepository) => new IotService(repo),
       inject: [IotRepository],
     },
+    // ── Geo foundation (packages/geo): ADR-0053 / ADR-0054 R1 / ADR-0063 ──
+    {
+      provide: GeoRepository,
+      useFactory: (dbp) => new GeoRepository(dbp),
+      inject: [DatabaseProvider],
+    },
+    {
+      provide: GeoService,
+      useFactory: (repo: GeoRepository) => new GeoService(repo),
+      inject: [GeoRepository],
+    },
+    {
+      provide: PolygonService,
+      useFactory: () => new PolygonService(),
+    },
+    {
+      provide: MapTilerMapService,
+      useFactory: () =>
+        new MapTilerMapService({
+          apiKey: process.env.MAPTILER_API_KEY ?? "",
+          defaultLanguage: process.env.MAPTILER_DEFAULT_LANGUAGE,
+        }),
+    },
+    {
+      provide: DeforestationMonitor,
+      useFactory: (repo: GeoRepository) => new DeforestationMonitor(repo, new NoDataRasterSource()),
+      inject: [GeoRepository],
+    },
 
     // ── Document Templates ──
     {
@@ -476,12 +516,12 @@ import { TrpcModule } from "./trpc/trpc.module.js";
       provide: EudrTemplate,
       useFactory: (
         movementRepo: MovementRepository,
-        iotRepo: IotRepository,
+        geoRepo: GeoRepository,
         animalRepo: AnimalRepository,
         farmRepo: FarmRepository,
         system: SystemService,
-      ) => new EudrTemplate(movementRepo, iotRepo, animalRepo, farmRepo, system),
-      inject: [MovementRepository, IotRepository, AnimalRepository, FarmRepository, SystemService],
+      ) => new EudrTemplate(movementRepo, geoRepo, animalRepo, farmRepo, system),
+      inject: [MovementRepository, GeoRepository, AnimalRepository, FarmRepository, SystemService],
     },
 
     {
@@ -528,6 +568,7 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     CorrectionRouter,
     DeviceRouter,
     IotRouter,
+    GeoRouter,
     SyncRouter,
 
     // ── Scheduled Jobs ──

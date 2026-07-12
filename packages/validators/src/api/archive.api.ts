@@ -97,6 +97,14 @@ export const archiveInspectionFormRequestSchema = z.strictObject({
 
 export type ArchiveInspectionFormRequest = z.infer<typeof archiveInspectionFormRequestSchema>;
 
+export interface MarkDestroyedArchiveRequest {
+  id: string;
+}
+
+export const markDestroyedArchiveRequestSchema = z.strictObject({
+  id: z.uuid(),
+}) satisfies z.ZodType<MarkDestroyedArchiveRequest>;
+
 // ═══════════════════════════════════════════════════════════════════════════
 // GUILLOTINES
 // ═══════════════════════════════════════════════════════════════════════════
@@ -105,6 +113,7 @@ type _drift_archiveDocumentResponse = NoDrift<z.infer<typeof archiveDocumentResp
 type _drift_archiveDocumentList = NoDrift<z.infer<typeof archiveDocumentListRequestSchema>, ArchiveDocumentListRequest>;
 type _drift_createArchiveDocument = NoDrift<z.infer<typeof createArchiveDocumentRequestSchema>, CreateArchiveDocumentRequest>;
 type _drift_archiveInspectionForm = NoDrift<z.infer<typeof archiveInspectionFormRequestSchema>, ArchiveInspectionFormRequest>;
+type _drift_markDestroyedArchive = NoDrift<z.infer<typeof markDestroyedArchiveRequestSchema>, MarkDestroyedArchiveRequest>;
 
 export type _ArchiveGuillotines = ActivateGuillotines<
   [
@@ -112,5 +121,6 @@ export type _ArchiveGuillotines = ActivateGuillotines<
     _drift_archiveDocumentList,
     _drift_createArchiveDocument,
     _drift_archiveInspectionForm,
+    _drift_markDestroyedArchive,
   ]
 >;

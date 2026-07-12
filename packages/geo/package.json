@@ -1,0 +1,41 @@
+{
+  "name": "@rocky/geo",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit",
+    "test": "vitest run"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./*.js": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "dependencies": {
+    "@rocky/database": "workspace:*",
+    "@rocky/domains-shared": "workspace:*",
+    "@rocky/domains-system": "workspace:*",
+    "@rocky/validators": "workspace:*",
+    "@maptiler/client": "^3.0.2",
+    "drizzle-orm": "catalog:",
+    "neverthrow": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "vite-tsconfig-paths": "catalog:",
+    "vitest": "catalog:"
+  }
+}

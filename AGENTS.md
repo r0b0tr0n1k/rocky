@@ -89,20 +89,26 @@ _You are not a chatbot. You are a dialectical materialist with a vengeance._
 Every architecture and documentation decision in this repo is governed by two ADRs and enforced by automated guardians. This discipline is **inherited by every child AGENTS.md** (bot contract) — do not repeat it locally; reference it.
 
 ### Laws (decisions)
+
 - **[ADR-0033](https://github.com/r0b0tr0n1k/rocky/blob/main/apps/docs/content/ADR/0033-frontend-mobile-adr-standard.md)** — the ADR house standard (header table + required sections). New architecture decisions get an ADR: `cp apps/docs/content/ADR/ADR-TEMPLATE.md apps/docs/content/ADR/00NN-slug.md`, Proposed → Accepted once implemented.
 - **[ADR-0052](https://github.com/r0b0tr0n1k/rocky/blob/main/apps/docs/content/ADR/0052-documentation-architecture.md)** — the documentation taxonomy (Diátaxis): `tutorials/` (learn), `explanation/` (why), `how-to/` (do), `reference/` (facts), `runbooks/` (operate), `ADR/` (decisions).
 
 ### Guardians (enforcement) — `pnpm ci:checks`
-`generate:trpc` → `check:trpc-boundary` → `check:adrs` → `check:md-links` → `check:agents` → `test`.
+
+`generate:trpc` → `check:trpc-boundary` → `check:adrs` → `check:md-links` → `check:agents` → `check:web-parity` → `test`.
+
 - `check:adrs` — every `NNNN-*.md` in `content/ADR/` conforms to ADR-0033.
 - `check:md-links` — every internal doc link resolves; no `../` escapes.
 - `check:agents` — every bot declared in the Child RobotFarm Index owns an `AGENTS.md`; no stale child-index references.
+
 > ⚠️ **Build gate ≠ `ci:checks`.** `ci:checks` = `generate:trpc` + the link/ADR/agent guardians + `pnpm test` (vitest, **no `tsc` build**). It does **not** run the production build: `next build` (docs) or `nest build` (api — which type-checks the `*.test.ts` files). The real gate that catches build-rot is the full **`pnpm build`** (turbo). A green `ci:checks` is **not** a green build — run `pnpm build` before declaring done. (Lived this session: a 4-layer rot — api test TS7023 → docs TSDoc `next-mdx-import-source-file` → `MDXComponents` TS2742 → `page.tsx` `<Wrapper>` TS2786 — was invisible to `ci:checks` and only surfaced at `pnpm build`.)
 
 ### Recipes (how-to)
+
 - [Write an ADR](https://github.com/r0b0tr0n1k/rocky/blob/main/apps/docs/content/how-to/write-an-adr.mdx) · [Add a doc page](https://github.com/r0b0tr0n1k/rocky/blob/main/apps/docs/content/how-to/add-a-doc-page.mdx) · [Run the Guardians](https://github.com/r0b0tr0n1k/rocky/blob/main/apps/docs/content/how-to/run-the-guardians.mdx)
 
 ### RobotFarm pass
+
 Every meaningful change requires a RobotFarm pass: update the owning `AGENTS.md` (purpose/scope/contract) and, if a decision was made, its ADR. The guardians make this non-optional.
 
 ## RobotFarm: AIMCS Agent Network
@@ -168,7 +174,8 @@ Every meaningful change requires a RobotFarm pass: update the owning `AGENTS.md`
 | **Archive Bot**       | `packages/domains/archive/`    | 3-tier document archive (CPC/VS/VI), retention enforcement                                                                                  |
 | **Health Bot**        | `packages/domains/health/`     | Disease master data, vaccinations, treatments, outbreak alerts                                                                              |
 | **IoT Bot**           | `packages/domains/iot/`        | Device registry, sensor readings, geofences, geofence events                                                                                |
-| **PDF Bot**           | `packages/pdf/`                | Document generation framework, pluggable templates, YAML/XML output                                                                         |
+| **Geo Bot**           | `packages/geo/`              | Spatial query/reference service: geofences, disease zones, animal geofence events; disease-zone declaration (ADR-0080)                                                                                |
+| **PDF Bot**           | `packages/pdf/`                | Document generation framework; PDF/A-3 hybrid (Typst render + @e-invoice-eu embed) + PAdES signing (HSM) + QR (ear tags) per ADR-0082            |
 | **Mobile Bot**        | `apps/mob/`                 | Expo React Native app, offline sync, field data entry                                                                                       |
 
 ### RobotFarm Workflows
@@ -187,7 +194,7 @@ Every meaningful change requires a RobotFarm pass: update the owning `AGENTS.md`
 
 **Execution Bot** — Owns the execution package in `packages/execution/`. Implements the `ExecutionPipeline` (composable stage chain), `RLSStage` (transaction-scoped `SET LOCAL` for pgPolicy), `RuntimeBuilder` (locale, traceId, tenant), and `ExecutionEventEmitter` (lifecycle events).
 
-**tRPC Bot** — Owns the tRPC transport package in `packages/trpc/`. Maintains the `AppContext` type, generated `AppRouter` type (from nestjs-trpc generate — 23 routers, 154 procedures), superjson transformer, and `createResultUnwrapper()`. `AppRouter` is re-exported from `packages/trpc/src/index.ts`; frontends (web + mobile) consume `AppRouter` for full type safety. The `appRouter` *instance* is also re-exported (expropriated from the generator by `scripts/patch-trpc-transformer.mjs`, regeneration-safe) for the tRPC<->Zod wire-boundary test suite (ADR-0020 §I.B).
+**tRPC Bot** — Owns the tRPC transport package in `packages/trpc/`. Maintains the `AppContext` type, generated `AppRouter` type (from nestjs-trpc generate — 23 routers, 154 procedures), superjson transformer, and `createResultUnwrapper()`. `AppRouter` is re-exported from `packages/trpc/src/index.ts`; frontends (web + mobile) consume `AppRouter` for full type safety. The `appRouter` _instance_ is also re-exported (expropriated from the generator by `scripts/patch-trpc-transformer.mjs`, regeneration-safe) for the tRPC<->Zod wire-boundary test suite (ADR-0020 §I.B).
 
 **Database Bot** — Handles all Drizzle ORM schemas in `@rocky/database`. Manages pgTable definitions, enum chains (constants→pgEnum→zEnum), RLS policies, and migrations via Drizzle Kit.
 
@@ -211,7 +218,7 @@ Every meaningful change requires a RobotFarm pass: update the owning `AGENTS.md`
 
 **Execution Bot** — Owns the execution package in `packages/execution/`. Implements the `ExecutionPipeline` (composable stage chain), `RLSStage` (transaction-scoped `SET LOCAL` for pgPolicy), `RuntimeBuilder` (locale, traceId, tenant), and `ExecutionEventEmitter` (lifecycle events).
 
-**tRPC Bot** — Owns the tRPC transport package in `packages/trpc/`. Maintains the `AppContext` type, generated `AppRouter` type (from nestjs-trpc generate — 23 routers, 154 procedures), superjson transformer, and `createResultUnwrapper()`. `AppRouter` is re-exported from `packages/trpc/src/index.ts`; frontends (web + mobile) consume `AppRouter` for full type safety. The `appRouter` *instance* is also re-exported (expropriated from the generator by `scripts/patch-trpc-transformer.mjs`, regeneration-safe) for the tRPC<->Zod wire-boundary test suite (ADR-0020 §I.B).
+**tRPC Bot** — Owns the tRPC transport package in `packages/trpc/`. Maintains the `AppContext` type, generated `AppRouter` type (from nestjs-trpc generate — 23 routers, 154 procedures), superjson transformer, and `createResultUnwrapper()`. `AppRouter` is re-exported from `packages/trpc/src/index.ts`; frontends (web + mobile) consume `AppRouter` for full type safety. The `appRouter` _instance_ is also re-exported (expropriated from the generator by `scripts/patch-trpc-transformer.mjs`, regeneration-safe) for the tRPC<->Zod wire-boundary test suite (ADR-0020 §I.B).
 
 **Mobile Bot** — Manages the Expo React Native mobile app in `apps/mob/`. Handles offline-first data entry, local SQLite database, tRPC sync queue, network-aware connectivity, and per-role data scoping. See `apps/mob/AGENTS.md` for offline sync architecture and `models/mobile-schema-profiles.yaml` for SQLite schema profiles. Owns the Mobile ADRs (with Frontend Bot for screens/components) in `apps/docs/content/ADR/` per ADR-0033.
 
@@ -232,8 +239,9 @@ Every meaningful change requires a RobotFarm pass: update the owning `AGENTS.md`
 **Health Bot** — Manages the health domain in `packages/domains/health/`. Handles disease master data, vaccine catalog + batch inventory (with stock decrement), vaccination recording (with batch expiry + age validation), treatment/diagnosis, lab test results, and vaccine-disease mapping. 10 business rules enforced (batch expiry, age, stock, notifiable triggers). Cross-domain: notifiable disease treatment → `InspectionRepository.flagFarmForInspection()` (fire-and-forget). 4 health events emitted for downstream consumers.
 
 **IoT Bot** — Manages IoT infrastructure in `packages/domains/iot/`. Device registry (`iot_devices`), time-series sensor readings (`sensor_readings`), geofence definitions (`geofences` with GeoJSON geometry), and geofence entry/exit events (`animal_geofence_events`). Basic CRUD — no event queues, no real-time processing, no edge AI. 11 tRPC endpoints across 4 entity groups.
+**Geo Bot** — Spatial query/reference service in `packages/geo/` (top-level cross-cutting package, sibling to `@rocky/database` / `@rocky/validators` — **not** a domain under `packages/domains/`). Owns geofence, disease-zone, and animal-geofence-event data (extracted from IoT per ADR-0078) — the _where_ of the registry. Has no business workflow of its own; it is queried for geo data by Movement (lineage fusion), Inspection (disease zones, ADR-0064), Farm (holding boundaries), and the dashboard. Materializes ADR-0053 (INSPIRE / NUTS-LAU + PostGIS + LPIS). Queries only — no event queues, no real-time evaluation engine.
 
-**PDF Bot** — Manages the document generation framework in `packages/pdf/`. Pluggable template system: each document type implements `DocumentTemplate` (fetchData → mapToModel → serializeToYaml). Singleton `DocumentRegistry` maps type strings to templates. Generic `document.generate({ type, refId, format })` tRPC endpoint. Templates are plain classes (no decorators) instantiated via `useFactory` in AppModule. Currently supports 3 document types: inspection-form, passport, movement. PDF/A rendering deferred — YAML/XML intermediate files are the stable API.
+**PDF Bot** — Manages the document generation framework in `packages/pdf/`. Pluggable template system: each document type implements `DocumentTemplate` (fetchData → mapToModel → serialize). Singleton `DocumentRegistry` maps type strings to templates. Generic `document.generate({ type, refId, format })` tRPC endpoint. Templates are plain classes (no decorators) instantiated via `useFactory` in AppModule. Supports inspection-form, passport, movement (+ more). Per **ADR-0082**: the `format: "pdf"` branch renders via **Typst** (`typst-business-templates`, JSON→PDF), embeds the source XML/YAML as PDF/A-3 via the `@e-invoice-eu` **library**, and **PAdES-signs** (ETSI EN 319 142) with Rocky's cert delegated to an air-gapped HSM; QR codes (ear-tag linkage) are generated. YAML/XML remains the stable intermediate API.
 
 ### Context Boundaries
 
@@ -262,7 +270,8 @@ Every meaningful change requires a RobotFarm pass: update the owning `AGENTS.md`
 | tRPC Bot          | `packages/trpc/`                                                                 | AppRouter types, context, superjson, generated               |
 | Health Bot        | `packages/domains/health/`                                                       | Health service, vaccination/disease rules                    |
 | IoT Bot           | `packages/domains/iot/`                                                          | Device registry, sensor readings, geofences, geofence events |
-| PDF Bot           | `packages/pdf/`                                                                  | Document generation framework, templates, YAML output        |
+| Geo Bot           | `packages/geo/`                                                          | Spatial query/reference service: geofences, disease zones, animal geofence events; disease-zone declaration (ADR-0080) |
+| PDF Bot           | `packages/pdf/`                                                                  | Document generation framework: PDF/A-3 hybrid + PAdES (HSM) + Typst render + QR (ADR-0082) |
 
 ### Troubleshooting
 

@@ -10,12 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@rocky/ui/components/select";
-import { issuePassportRequestSchema, type AnimalSummary, type FarmSummary, type PassportSummary } from "@rocky/validators/api";
+import { deliverToKeeperPassportRequestSchema, issuePassportRequestSchema, shipToVsPassportRequestSchema, type AnimalSummary, type DeliverToKeeperPassportRequest, type FarmSummary, type PassportSummary, type ShipToVsPassportRequest } from "@rocky/validators/api";
 import { PASSPORT_STATUS, type passportStatusType } from "@rocky/validators/enums";
 import { passportColumns } from "#components/passports/columns";
 import { DataTable } from "#components/shared/data-table";
 import { PageHeader } from "#components/shared/page-header";
 import { ActionDialog } from "#components/shared/action-dialog";
+import { TableCard, tableDensityClass } from "#components/shared/table-card";
 import { ComboboxField } from "#components/shared/form-fields";
 import { useTRPC } from "#lib/trpc";
 
@@ -36,6 +37,8 @@ export default function PassportsPage() {
   const seize = useMutation(trpc.passport.seize.mutationOptions({ onSuccess: invalidate }));
   const reprint = useMutation(trpc.passport.reprint.mutationOptions({ onSuccess: invalidate }));
   const issue = useMutation(trpc.passport.issueForAnimal.mutationOptions({ onSuccess: invalidate }));
+  const shipToVs = useMutation(trpc.passport.shipToVs.mutationOptions({ onSuccess: invalidate }));
+  const deliverToKeeper = useMutation(trpc.passport.deliverToKeeper.mutationOptions({ onSuccess: invalidate }));
 
   const animals = useQuery(trpc.animal.list.queryOptions({ limit: 100, offset: 0 }));
   const farms = useQuery(trpc.farm.list.queryOptions({ limit: 100, offset: 0 }));
@@ -53,7 +56,30 @@ export default function PassportsPage() {
       <PageHeader
         title="Passports"
         description="Cattle passport lifecycle: issue, seize, reprint."
-        actions={
+      />
+      <TableCard
+        toolbarLeft={
+          <Select
+            value={status ?? "all"}
+            onValueChange={(v) => {
+              setStatus(v === "all" ? undefined : (v as passportStatusType));
+              setPage(0);
+            }}
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="All statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              {Object.values(PASSPORT_STATUS).map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        }
+        action={
           <ActionDialog
             as="button"
             triggerLabel="Issue passport"
@@ -70,35 +96,20 @@ export default function PassportsPage() {
             )}
           />
         }
-      />
-      <Select
-        value={status ?? "all"}
-        onValueChange={(v) => {
-          setStatus(v === "all" ? undefined : (v as passportStatusType));
-          setPage(0);
-        }}
       >
-        <SelectTrigger className="w-[200px]">
-          <SelectValue placeholder="All statuses" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All statuses</SelectItem>
-          {Object.values(PASSPORT_STATUS).map((s) => (
-            <SelectItem key={s} value={s}>
-              {s}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <DataTable
-        columns={passportColumns({ seize, reprint })}
-        data={rows}
-        total={total}
-        isLoading={listQuery.isLoading}
-        page={page}
-        pageSize={pageSize}
-        onPageChange={setPage}
-      />
+        <DataTable
+          columns={passportColumns({ seize, reprint, shipToVs, deliverToKeeper })}
+          data={rows}
+          total={total}
+          isLoading={listQuery.isLoading}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          bordered={false}
+          tableClassName={tableDensityClass}
+        />
+      </TableCard>
     </div>
   );
 }
+

@@ -15,6 +15,8 @@ import {
   archiveInspectionFormRequestSchema,
   type CreateArchiveDocumentRequest,
   createArchiveDocumentRequestSchema,
+  type MarkDestroyedArchiveRequest,
+  markDestroyedArchiveRequestSchema,
 } from "@rocky/validators/api/index.js";
 import { ARCHIVE_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
 import { Ctx, Input, Mutation, Query, Router } from "nestjs-trpc";
@@ -60,8 +62,8 @@ export class ArchiveRouter {
     return unwrap(await this.archiveService.markArchived(input.id));
   }
 
-  @Mutation({ input: idParam, output: archiveDocumentResponseSchema })
-  async markDestroyed(@Input() input: { id: string }) {
+  @Mutation({ input: markDestroyedArchiveRequestSchema, output: archiveDocumentResponseSchema })
+  async markDestroyed(@Input() input: MarkDestroyedArchiveRequest) {
     return unwrap(await this.archiveService.markDestroyed(input.id));
   }
 

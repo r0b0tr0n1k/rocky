@@ -4,6 +4,13 @@
 // Every movement changes the animal's position in the Symbolic order.
 //
 // Based on: FS - registration_MK(v0.91).pdf §Business rules (p12-15)
+//
+// VALIDATION INTENT (doctrine: ADR-0081, Proposed): movement input is two-tier.
+// Tier 1 = hard invariants (e.g. dead animal cannot move) — explicit, ratified.
+// Tier 2 = plausibility violations (off-system buyer, implausible dates) are
+// ACCEPTED + flagged, never hard-rejected. toFarmId is currently required by the
+// type; relaxing it for external counterparties is PENDING GOVERNANCE
+// CONFIRMATION — do NOT hard-reject Tier-2 here yet.
 
 import { movementsInsertSchema, movementsSelectSchema } from "@rocky/database/zod";
 import { z } from "zod";

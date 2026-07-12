@@ -9,6 +9,8 @@ import { StatCard } from "@rocky/ui/components/stat-card";
 import { animalColumns, type AnimalSummary } from "#components/animals/columns";
 import { DataTable } from "#components/shared/data-table";
 import { PageHero } from "#components/shared/page-hero";
+import { SearchInput, TableCard, tableDensityClass } from "#components/shared/table-card";
+import { useDebounced } from "#lib/use-debounced";
 import { useTotals } from "#components/dashboard/analytics";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "#lib/trpc";
@@ -18,14 +20,17 @@ type SortKey = (typeof SORT_ANIMAL_BY)[keyof typeof SORT_ANIMAL_BY];
 
 export default function AnimalsPage() {
   const router = useRouter();
+  const trpc = useTRPC();
   const [page, setPage] = React.useState(0);
   const [sort, setSort] = React.useState<{ id: string; desc: boolean } | null>(null);
+  const [search, setSearch] = React.useState("");
+  const debouncedSearch = useDebounced(search);
   const pageSize = 20;
 
-  const trpc = useTRPC();
   const listQuery = useQuery(trpc.animal.list.queryOptions({
     limit: pageSize,
     offset: page * pageSize,
+    search: debouncedSearch || undefined,
     sortBy: sort ? (sort.id as SortKey) : undefined,
     sortOrder: sort?.desc ? "desc" : "asc",
   }));
@@ -40,11 +45,6 @@ export default function AnimalsPage() {
         title="Animals"
         description="Registered cattle across all farms."
         live
-        actions={
-          <Button onClick={() => router.push("/animals/new")}>
-            <Plus /> Register animal
-          </Button>
-        }
       />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Animals" value={totals.animals} hint="Registered cattle" icon={PawPrint} accent="primary" />
@@ -52,17 +52,28 @@ export default function AnimalsPage() {
         <StatCard label="Movements" value={totals.movements} hint="Recorded transfers" icon={ArrowLeftRight} accent="amber" />
         <StatCard label="Inspections" value={totals.inspections} hint="On-site visits" icon={ClipboardCheck} accent="violet" />
       </div>
-      <DataTable
-        columns={animalColumns}
-        data={rows}
-        total={total}
-        isLoading={listQuery.isLoading}
-        sort={sort}
-        onSortChange={setSort}
-        page={page}
-        pageSize={pageSize}
-        onPageChange={setPage}
-      />
+      <TableCard
+        toolbarLeft={<SearchInput value={search} onChange={setSearch} placeholder="Search animals…" />}
+        action={
+          <Button onClick={() => router.push("/animals/new")}>
+            <Plus /> Register animal
+          </Button>
+        }
+      >
+        <DataTable
+          columns={animalColumns}
+          data={rows}
+          total={total}
+          isLoading={listQuery.isLoading}
+          sort={sort}
+          onSortChange={setSort}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          bordered={false}
+          tableClassName={tableDensityClass}
+        />
+      </TableCard>
     </div>
   );
 }

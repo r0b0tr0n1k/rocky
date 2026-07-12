@@ -20,9 +20,8 @@ import type {
   movements as movementsTable,
 } from "@rocky/database";
 import type { SystemService } from "@rocky/domains-system";
-import type { IotRepository } from "@rocky/domains-iot";
+import type { DiseaseZoneCheckResult, GeoRepository, GeoService } from "@rocky/geo";
 import { runEudrDueDiligence, type EudrDueDiligenceResult } from "./eudr-due-diligence.js";
-import { runDiseaseZoneCheck, type DiseaseZoneCheckResult } from "./disease-zone.js";
 import {
   ANIMAL_STATUS,
   FARM_TYPE,
@@ -73,7 +72,8 @@ export class MovementService {
     private readonly repo: MovementRepository,
     private readonly animalRepo: AnimalRepository,
     private readonly system: SystemService,
-    private readonly geofenceRepo: IotRepository,
+    private readonly geofenceRepo: GeoRepository,
+    private readonly geoService: GeoService,
     private readonly passportService?: PassportService,
     private readonly outboxPublisher?: OutboxEventPublisher,
   ) {}
@@ -89,7 +89,7 @@ export class MovementService {
   async runDiseaseZoneCheck(fromFarmId: string): Promise<DiseaseZoneCheckResult> {
     const rs = await this.system.getRuleSet();
     if (rs.isErr()) throw rs.error;
-    return runDiseaseZoneCheck(this.geofenceRepo, rs.value, fromFarmId);
+    return this.geoService.runDiseaseZoneCheck(fromFarmId, rs.value);
   }
 
   /** ── Rule C.4: Invalidate active pasture declaration before unexpected movement ── */

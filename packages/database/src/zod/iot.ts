@@ -6,6 +6,7 @@ import { geofences } from "../schema/an/geofences.js";
 import { iotDevices } from "../schema/an/iot-devices.js";
 import { pdaDevices } from "../schema/an/pda-devices.js";
 import { sensorReadings } from "../schema/an/sensor-readings.js";
+import { settlements } from "../schema/an/settlements.js";
 import { createInsertSchema, createSelectSchema } from "./factory.js";
 
 export const iotDevicesSelectSchema = createSelectSchema(iotDevices);
@@ -22,3 +23,6 @@ export const animalGeofenceEventsInsertSchema = createInsertSchema(animalGeofenc
 
 export const pdaDevicesSelectSchema = createSelectSchema(pdaDevices);
 export const pdaDevicesInsertSchema = createInsertSchema(pdaDevices);
+
+export const settlementsSelectSchema = createSelectSchema(settlements);
+export const settlementsInsertSchema = createInsertSchema(settlements);

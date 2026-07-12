@@ -38,6 +38,14 @@ export interface CreateDiseaseInput {
   description?: string | null;
 }
 
+export interface UpdateDiseaseInput {
+  id: string;
+  name?: string;
+  notifiable?: boolean;
+  description?: string | null;
+  quarantineDays?: number | null;
+}
+
 export interface CreateVaccineInput {
   name: string;
   manufacturer?: string | null;
@@ -142,6 +150,19 @@ export class HealthService {
     const disease = await this.repo.createDisease({ name: input.name, notifiable: input.notifiable ?? false, description: input.description });
     if (!disease) return err(new HealthError(HEALTH_ERRORS.INVALID_INPUT));
     return ok(diseaseResponseSchema.parse(disease));
+  }
+
+  async updateDisease(input: UpdateDiseaseInput) {
+    const existing = await this.repo.findDiseaseById(input.id);
+    if (!existing) return err(new HealthError(HEALTH_ERRORS.NOT_FOUND, { diseaseId: input.id }));
+    const updated = await this.repo.updateDisease(input.id, {
+      name: input.name,
+      notifiable: input.notifiable,
+      description: input.description,
+      quarantineDays: input.quarantineDays,
+    });
+    if (!updated) return err(new HealthError(HEALTH_ERRORS.NOT_FOUND, { diseaseId: input.id }));
+    return ok(diseaseResponseSchema.parse(updated));
   }
 
   // ── Vaccine CRUD ──

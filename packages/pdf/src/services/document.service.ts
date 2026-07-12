@@ -15,8 +15,15 @@
 import { Injectable } from "@nestjs/common";
 import { err, ok, type Result } from "neverthrow";
 import { DocumentRegistry } from "../engine/document-registry.js";
-import { type DocumentFormat, isFormatSupported, serializeToYaml, serializeToXml } from "../engine/yaml-serializer.js";
+import {
+  type DocumentFormat,
+  isFormatSupported,
+  serializeToYaml,
+  serializeToXml,
+} from "../engine/yaml-serializer.js";
 import { DOCUMENT_ERRORS, documentErr, DocumentError } from "../errors/document.errors.js";
+import { buildDocumentModelInputs, GENERIC_DOCUMENT_TYPST } from "../engine/typst-document.template.js";
+import { renderTypst } from "../engine/typst-renderer.js";
 
 export interface DocumentGenerateInput {
   type: string;
@@ -83,7 +90,37 @@ export class DocumentService {
       );
     }
 
-    // 5. Serialize to the requested format (YAML default; XML for TRACES NT CHED import)
+    // 5. Serialize / render to the requested format.
+    //    yaml | xml  → text intermediate (stable API, ADR-0009)
+    //    pdf        → Typst visual render → base64 PDF (PDF/A-3 + PAdES applied
+    //                 downstream by the @e-invoice-eu wrapper + HSM signer)
+    if (format === "pdf") {
+      const inputs = buildDocumentModelInputs(model, {
+        title: template.name,
+        subtitle: `${template.type} v${template.modelVersion}`,
+      });
+      let pdf: Uint8Array;
+      try {
+        pdf = await renderTypst({ template: GENERIC_DOCUMENT_TYPST, inputs });
+      } catch (renderError) {
+        return err(
+          documentErr(DOCUMENT_ERRORS.SERIALIZATION_FAILED, {
+            message: renderError instanceof Error ? renderError.message : "Typst render failed",
+            type,
+          }),
+        );
+      }
+      return ok({
+        documentType: type,
+        documentName: template.name,
+        modelVersion: template.modelVersion,
+        modelPath: template.modelPath,
+        generatedAt: new Date().toISOString(),
+        format: "pdf",
+        content: Buffer.from(pdf).toString("base64"),
+      });
+    }
+
     const serialized = format === "xml" ? serializeToXml(model) : serializeToYaml(model);
     if (serialized.isErr()) {
       return err(serialized.error);

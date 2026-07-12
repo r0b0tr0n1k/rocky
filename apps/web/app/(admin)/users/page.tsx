@@ -9,6 +9,7 @@ import { Button } from "@rocky/ui/components/button";
 import { userColumns, type UserSummary } from "#components/users/columns";
 import { DataTable } from "#components/shared/data-table";
 import { PageHeader } from "#components/shared/page-header";
+import { TableCard, tableDensityClass } from "#components/shared/table-card";
 import { useTRPC } from "#lib/trpc";
 import { usePermissions } from "#lib/permissions";
 import { SORT_BY_USER } from "@rocky/validators/enums";
@@ -41,15 +42,18 @@ export default function UsersPage() {
       <PageHeader
         title="Users"
         description="System Management user accounts."
-        actions={
+      />
+      <TableCard
+        action={
           isSuperAdmin ? (
             <Button onClick={() => router.push("/users/new")}>
               <Plus /> New user
             </Button>
-          ) : null
+          ) : undefined
         }
-      />
-      <DataTable columns={userColumns} data={rows} total={rows.length} isLoading={listQuery.isLoading} sort={sort} onSortChange={setSort} />
+      >
+        <DataTable columns={userColumns} data={rows} total={rows.length} isLoading={listQuery.isLoading} sort={sort} onSortChange={setSort} bordered={false} tableClassName={tableDensityClass} />
+      </TableCard>
     </div>
   );
 }

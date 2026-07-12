@@ -27,7 +27,7 @@ export default function EarTagOrdersScreen() {
         data={data?.data ?? []}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity className="flex-row items-center justify-between py-3 border-b border-border">
+          <TouchableOpacity className="flex-row items-center justify-between p-3 mb-2 bg-card border border-border rounded-lg">
             <View>
               <Text className="text-foreground font-medium">Order #{item.orderNumber}</Text>
               <Text className="text-muted-foreground text-sm">{item.orderDate}</Text>

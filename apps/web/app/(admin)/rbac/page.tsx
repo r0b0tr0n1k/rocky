@@ -1,7 +1,6 @@
 "use client";
 
 import { Badge } from "@rocky/ui/components/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@rocky/ui/components/card";
 
 import {
   assignRoleToUserRequestSchema,
@@ -11,10 +10,12 @@ import {
 } from "@rocky/validators/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ActionDialog } from "#components/shared/action-dialog";
+import { ActionDialog, RowActionMenu } from "#components/shared/action-dialog";
 import { DataTable } from "#components/shared/data-table";
 import { ComboboxField, DateField } from "#components/shared/form-fields";
 import { PageHeader } from "#components/shared/page-header";
+import { RowDetailsDialog, type DetailField } from "#components/shared/row-details-dialog";
+import { TableCard, tableDensityClass, appendRowActions } from "#components/shared/table-card";
 import { useTRPC } from "#lib/trpc";
 import { usePermissions } from "#lib/permissions";
 
@@ -51,7 +52,7 @@ export default function RbacPage() {
     trpc.rbac.revokeRole.mutationOptions({ onSuccess: () => invalidate(trpc.rbac.listRoles.queryKey()) }),
   );
 
-  const roleColumns: ColumnDef<RoleResponse>[] = [
+  const roleColumns: ColumnDef<RoleResponse>[] = appendRowActions([
     { accessorKey: "name", header: "Name", enableSorting: false },
     {
       accessorKey: "description",
@@ -72,9 +73,11 @@ export default function RbacPage() {
       cell: ({ row }) =>
         row.original.isSystem ? <Badge variant="destructive">Yes</Badge> : <Badge variant="secondary">No</Badge>,
     },
-  ];
+  ], (row) => (
+    <RowActionMenu items={[{ type: "dialog", dialog: <RbacRoleDetails role={row} /> }]} />
+  ));
 
-  const permissionColumns: ColumnDef<PermissionResponse>[] = [
+  const permissionColumns: ColumnDef<PermissionResponse>[] = appendRowActions([
     { accessorKey: "resource", header: "Resource", enableSorting: false },
     { accessorKey: "action", header: "Action", enableSorting: false },
     {
@@ -84,7 +87,9 @@ export default function RbacPage() {
       cell: ({ row }) => row.original.description ?? "—",
     },
     { accessorKey: "scope", header: "Scope", enableSorting: false, cell: ({ row }) => row.original.scope ?? "—" },
-  ];
+  ], (row) => (
+    <RowActionMenu items={[{ type: "dialog", dialog: <RbacPermissionDetails permission={row} /> }]} />
+  ));
 
   return (
     <div className="flex flex-col gap-6">
@@ -165,41 +170,61 @@ export default function RbacPage() {
       </div>
 
       <div className="flex flex-col gap-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Roles</CardTitle>
-            <CardDescription>Role definitions and their permission assignments.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <DataTable
-              columns={roleColumns}
-              data={(roles.data ?? []) as RoleResponse[]}
-              total={(roles.data ?? []).length}
-              isLoading={roles.isLoading}
-              page={0}
-              pageSize={PAGE_SIZE}
-              bordered={false}
-            />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Permissions</CardTitle>
-            <CardDescription>Available permission codes across the system.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <DataTable
-              columns={permissionColumns}
-              data={(permissions.data ?? []) as PermissionResponse[]}
-              total={(permissions.data ?? []).length}
-              isLoading={permissions.isLoading}
-              page={0}
-              pageSize={PAGE_SIZE}
-              bordered={false}
-            />
-          </CardContent>
-        </Card>
+        <TableCard>
+          <div className="border-b px-4 py-3">
+            <h3 className="text-sm font-semibold">Roles</h3>
+            <p className="text-sm text-muted-foreground">Role definitions and their permission assignments.</p>
+          </div>
+          <DataTable
+            columns={roleColumns}
+            data={(roles.data ?? []) as RoleResponse[]}
+            total={(roles.data ?? []).length}
+            isLoading={roles.isLoading}
+            page={0}
+            pageSize={PAGE_SIZE}
+            bordered={false}
+            tableClassName={tableDensityClass}
+          />
+        </TableCard>
+        <TableCard>
+          <div className="border-b px-4 py-3">
+            <h3 className="text-sm font-semibold">Permissions</h3>
+            <p className="text-sm text-muted-foreground">Available permission codes across the system.</p>
+          </div>
+          <DataTable
+            columns={permissionColumns}
+            data={(permissions.data ?? []) as PermissionResponse[]}
+            total={(permissions.data ?? []).length}
+            isLoading={permissions.isLoading}
+            page={0}
+            pageSize={PAGE_SIZE}
+            bordered={false}
+            tableClassName={tableDensityClass}
+          />
+        </TableCard>
       </div>
     </div>
   );
+}
+
+function RbacRoleDetails({ role }: { role: RoleResponse }) {
+  const fields: DetailField[] = [
+    { label: "Name", value: role.name },
+    { label: "Description", value: role.description ?? "—" },
+    { label: "Priority", value: role.priority },
+    { label: "System", value: role.isSystem ? "Yes" : "No" },
+    { label: "Created", value: new Date(role.createdAt).toLocaleDateString() },
+  ];
+  return <RowDetailsDialog title={role.name} description="Role" fields={fields} />;
+}
+
+function RbacPermissionDetails({ permission }: { permission: PermissionResponse }) {
+  const fields: DetailField[] = [
+    { label: "Resource", value: permission.resource },
+    { label: "Action", value: permission.action },
+    { label: "Scope", value: permission.scope },
+    { label: "Description", value: permission.description ?? "—" },
+    { label: "Created", value: new Date(permission.createdAt).toLocaleDateString() },
+  ];
+  return <RowDetailsDialog title={`${permission.resource}:${permission.action}`} description="Permission" fields={fields} />;
 }

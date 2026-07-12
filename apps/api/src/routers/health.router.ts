@@ -9,6 +9,8 @@ import { createResultUnwrapper } from "@rocky/trpc/index.js";
 import {
   type CreateDiseaseRequest,
   createDiseaseRequestSchema,
+  type UpdateDiseaseRequest,
+  updateDiseaseRequestSchema,
   type CreateVaccineBatchRequest,
   createVaccineBatchRequestSchema,
   type CreateVaccineRequest,
@@ -74,6 +76,12 @@ export class HealthRouter {
   @Mutation({ input: createDiseaseRequestSchema, output: diseaseResponseSchema })
   async createDisease(@Input() input: CreateDiseaseRequest) {
     return unwrap(await this.healthService.createDisease(input));
+  }
+
+  @Mutation({ input: updateDiseaseRequestSchema, output: diseaseResponseSchema })
+  async updateDisease(@Input() input: UpdateDiseaseRequest) {
+    const { id, ...data } = input;
+    return unwrap(await this.healthService.updateDisease({ id, ...data }));
   }
 
   // -- Vaccine --
@@ -188,6 +196,7 @@ export class HealthRouter {
 type _verify_getDiseaseOutput = SubtypeGuillotine<z.output<typeof diseaseResponseSchema>, Awaited<ReturnType<HealthRouter["getDisease"]>>>;
 type _verify_listDiseasesOutput = SubtypeGuillotine<z.output<typeof diseaseListResponseSchema>, Awaited<ReturnType<HealthRouter["listDiseases"]>>>;
 type _verify_createDiseaseOutput = SubtypeGuillotine<z.output<typeof diseaseResponseSchema>, Awaited<ReturnType<HealthRouter["createDisease"]>>>;
+type _verify_updateDiseaseOutput = SubtypeGuillotine<z.output<typeof diseaseResponseSchema>, Awaited<ReturnType<HealthRouter["updateDisease"]>>>;
 type _verify_getVaccineOutput = SubtypeGuillotine<z.output<typeof vaccineResponseSchema>, Awaited<ReturnType<HealthRouter["getVaccine"]>>>;
 type _verify_listVaccinesOutput = SubtypeGuillotine<z.output<typeof vaccineListResponseSchema>, Awaited<ReturnType<HealthRouter["listVaccines"]>>>;
 type _verify_createVaccineOutput = SubtypeGuillotine<z.output<typeof vaccineResponseSchema>, Awaited<ReturnType<HealthRouter["createVaccine"]>>>;
@@ -207,7 +216,7 @@ type _verify_linkVaccineDiseaseOutput = SubtypeGuillotine<z.output<typeof vaccin
 type _verify_unlinkVaccineDiseaseOutput = SubtypeGuillotine<z.output<typeof vaccineDiseaseUnlinkResponseSchema>, Awaited<ReturnType<HealthRouter["unlinkVaccineDisease"]>>>;
 
 export type _HealthGuillotines = ActivateGuillotines<[
-  _verify_getDiseaseOutput, _verify_listDiseasesOutput, _verify_createDiseaseOutput, _verify_getVaccineOutput,
+  _verify_getDiseaseOutput, _verify_listDiseasesOutput, _verify_createDiseaseOutput, _verify_updateDiseaseOutput, _verify_getVaccineOutput,
   _verify_listVaccinesOutput, _verify_createVaccineOutput, _verify_createVaccineBatchOutput,
   _verify_getVaccinationOutput, _verify_listVaccinationsOutput, _verify_recordVaccinationOutput,
   _verify_getTreatmentOutput, _verify_listTreatmentsOutput, _verify_recordTreatmentOutput,

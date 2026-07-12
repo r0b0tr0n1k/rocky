@@ -13,7 +13,6 @@ import {
 } from "@rocky/ui/components/select";
 
 import { Badge } from "@rocky/ui/components/badge";
-import { Button } from "@rocky/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +32,7 @@ import { ComboboxField, SelectField, TextField } from "#components/shared/form-f
 import { PageHeader } from "#components/shared/page-header";
 import { Stepper } from "#components/shared/stepper";
 import { DataTable } from "#components/shared/data-table";
+import { TableCard, tableDensityClass } from "#components/shared/table-card";
 import { farmBookColumns } from "#components/farm-books/columns";
 import { useTRPC } from "#lib/trpc";
 
@@ -90,7 +90,24 @@ export default function FarmBooksPage() {
       <PageHeader
         title="Farm Books"
         description="Physical farm-book documents and their production lifecycle."
-        actions={
+      />
+
+      <Select value={farmId ?? "all"} onValueChange={(v) => setFarmId(v === "all" ? undefined : v)}>
+        <SelectTrigger className="w-[280px]">
+          <SelectValue placeholder="Select a farm…" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All farms</SelectItem>
+          {farmOptions.map((o) => (
+            <SelectItem key={o.value} value={o.value}>
+              {o.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <TableCard
+        action={
           <ActionDialog
             as="button"
             triggerLabel="New farm book"
@@ -110,22 +127,7 @@ export default function FarmBooksPage() {
             )}
           />
         }
-      />
-
-      <Select value={farmId ?? "all"} onValueChange={(v) => setFarmId(v === "all" ? undefined : v)}>
-        <SelectTrigger className="w-[280px]">
-          <SelectValue placeholder="Select a farm…" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All farms</SelectItem>
-          {farmOptions.map((o) => (
-            <SelectItem key={o.value} value={o.value}>
-              {o.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
+      >
       <DataTable
         columns={columns}
         data={rows}
@@ -134,7 +136,10 @@ export default function FarmBooksPage() {
         page={0}
         pageSize={Math.max(rows.length, 20)}
         onPageChange={() => {}}
+        bordered={false}
+        tableClassName={tableDensityClass}
       />
+      </TableCard>
 
       <Dialog
         open={selected !== null}
@@ -196,3 +201,4 @@ export default function FarmBooksPage() {
     </div>
   );
 }
+

@@ -14,11 +14,11 @@ function makeMocks(opts: { geofences?: Geo[]; declarations?: Array<{ id: string 
   const movementRepo = {
     findPastureDeclarationsByAnimalId: vi.fn().mockResolvedValue(opts.declarations ?? [{ id: "pd1" }]),
   } as never;
-  const iotRepo = {
-    findByPastureIds: vi.fn().mockResolvedValue(opts.geofences ?? []),
+  const geoRepo = {
+    findGeofencesByPastureIds: vi.fn().mockResolvedValue(opts.geofences ?? []),
   } as never;
   const ruleSet = { eudr: { enabled: true, deforestationCutoffDate: "2020-12-31" } } as never;
-  return { movementRepo, iotRepo, ruleSet };
+  return { movementRepo, geoRepo, ruleSet };
 }
 
 const CLEAR: Geo = {
@@ -32,17 +32,17 @@ const CLEAR: Geo = {
 
 describe("runEudrDueDiligence (WO-115)", () => {
   it("skips and is compliant when eudr.enabled is false", async () => {
-    const { movementRepo, iotRepo, ruleSet } = makeMocks({ geofences: [CLEAR] });
+    const { movementRepo, geoRepo, ruleSet } = makeMocks({ geofences: [CLEAR] });
     const ruleSetOff = { eudr: { enabled: false, deforestationCutoffDate: "2020-12-31" } } as never;
-    const res = await runEudrDueDiligence(movementRepo, iotRepo, ruleSetOff, "an-1");
+    const res = await runEudrDueDiligence(movementRepo, geoRepo, ruleSetOff, "an-1");
     expect(res.skipped).toBe(true);
     expect(res.compliant).toBe(true);
     expect(res.breaches).toHaveLength(0);
   });
 
   it("is compliant when every pasture polygon is deforestation-free before the cutoff", async () => {
-    const { movementRepo, iotRepo, ruleSet } = makeMocks({ geofences: [CLEAR] });
-    const res = await runEudrDueDiligence(movementRepo, iotRepo, ruleSet, "an-1");
+    const { movementRepo, geoRepo, ruleSet } = makeMocks({ geofences: [CLEAR] });
+    const res = await runEudrDueDiligence(movementRepo, geoRepo, ruleSet, "an-1");
     expect(res.compliant).toBe(true);
     expect(res.breaches).toHaveLength(0);
     expect(res.geofencesChecked).toBe(1);
@@ -50,39 +50,39 @@ describe("runEudrDueDiligence (WO-115)", () => {
 
   it("flags missing_polygon", async () => {
     const g = { ...CLEAR, polygon: null } as Geo;
-    const { movementRepo, iotRepo, ruleSet } = makeMocks({ geofences: [g] });
-    const res = await runEudrDueDiligence(movementRepo, iotRepo, ruleSet, "an-1");
+    const { movementRepo, geoRepo, ruleSet } = makeMocks({ geofences: [g] });
+    const res = await runEudrDueDiligence(movementRepo, geoRepo, ruleSet, "an-1");
     expect(res.compliant).toBe(false);
     expect((res.breaches[0] as EudrBreach).reason).toBe("missing_polygon");
   });
 
   it("flags missing_cadastral", async () => {
     const g = { ...CLEAR, cadastralReference: null } as Geo;
-    const { movementRepo, iotRepo, ruleSet } = makeMocks({ geofences: [g] });
-    const res = await runEudrDueDiligence(movementRepo, iotRepo, ruleSet, "an-1");
+    const { movementRepo, geoRepo, ruleSet } = makeMocks({ geofences: [g] });
+    const res = await runEudrDueDiligence(movementRepo, geoRepo, ruleSet, "an-1");
     expect(res.compliant).toBe(false);
     expect((res.breaches[0] as EudrBreach).reason).toBe("missing_cadastral");
   });
 
   it("flags no_deforestation_proof", async () => {
     const g = { ...CLEAR, deforestationFreeSince: null } as Geo;
-    const { movementRepo, iotRepo, ruleSet } = makeMocks({ geofences: [g] });
-    const res = await runEudrDueDiligence(movementRepo, iotRepo, ruleSet, "an-1");
+    const { movementRepo, geoRepo, ruleSet } = makeMocks({ geofences: [g] });
+    const res = await runEudrDueDiligence(movementRepo, geoRepo, ruleSet, "an-1");
     expect(res.compliant).toBe(false);
     expect((res.breaches[0] as EudrBreach).reason).toBe("no_deforestation_proof");
   });
 
   it("flags deforested_after_cutoff", async () => {
     const g = { ...CLEAR, deforestationFreeSince: new Date("2021-06-01") } as Geo;
-    const { movementRepo, iotRepo, ruleSet } = makeMocks({ geofences: [g] });
-    const res = await runEudrDueDiligence(movementRepo, iotRepo, ruleSet, "an-1");
+    const { movementRepo, geoRepo, ruleSet } = makeMocks({ geofences: [g] });
+    const res = await runEudrDueDiligence(movementRepo, geoRepo, ruleSet, "an-1");
     expect(res.compliant).toBe(false);
     expect((res.breaches[0] as EudrBreach).reason).toBe("deforested_after_cutoff");
   });
 
   it("is compliant when there are no pasture declarations", async () => {
-    const { movementRepo, iotRepo, ruleSet } = makeMocks({ declarations: [], geofences: [] });
-    const res = await runEudrDueDiligence(movementRepo, iotRepo, ruleSet, "an-1");
+    const { movementRepo, geoRepo, ruleSet } = makeMocks({ declarations: [], geofences: [] });
+    const res = await runEudrDueDiligence(movementRepo, geoRepo, ruleSet, "an-1");
     expect(res.compliant).toBe(true);
     expect(res.pasturesChecked).toBe(0);
   });

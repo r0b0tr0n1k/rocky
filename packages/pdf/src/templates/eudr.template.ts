@@ -12,7 +12,7 @@
 
 import type { AnimalRepository } from "@rocky/domains-animal";
 import type { FarmRepository } from "@rocky/domains-farm";
-import type { IotRepository } from "@rocky/domains-iot";
+import type { GeoRepository } from "@rocky/geo";
 import type { MovementRepository } from "@rocky/domains-movement";
 import { runEudrDueDiligence } from "@rocky/domains-movement";
 import type { SystemService } from "@rocky/domains-system";
@@ -37,7 +37,7 @@ export class EudrTemplate extends BaseDocumentTemplate<string, Record<string, un
 
   constructor(
     private readonly movementRepo: MovementRepository,
-    private readonly iotRepo: IotRepository,
+    private readonly geoRepo: GeoRepository,
     private readonly animalRepo: AnimalRepository,
     private readonly farmRepo: FarmRepository,
     private readonly system: SystemService,
@@ -67,7 +67,7 @@ export class EudrTemplate extends BaseDocumentTemplate<string, Record<string, un
 
     const result = await runEudrDueDiligence(
       this.movementRepo,
-      this.iotRepo,
+      this.geoRepo,
       ruleSet,
       animalId,
     );
@@ -75,7 +75,7 @@ export class EudrTemplate extends BaseDocumentTemplate<string, Record<string, un
     const declarations = await this.movementRepo.findPastureDeclarationsByAnimalId(animalId);
     const pastureIds = declarations.map((d: { id: string }) => d.id);
     const geofences = pastureIds.length
-      ? await this.iotRepo.findByPastureIds(pastureIds)
+      ? await this.geoRepo.findGeofencesByPastureIds(pastureIds)
       : [];
 
     return {

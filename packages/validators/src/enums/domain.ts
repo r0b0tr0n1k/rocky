@@ -48,7 +48,7 @@ import { EVENT_SOURCE_VALUES } from "@rocky/database/constants";
 import { FARM_BOOK_STATUS_VALUES } from "@rocky/database/constants";
 import { FARM_READ_ROLE_VALUES } from "@rocky/database/constants";
 import { FARM_TYPE_VALUES } from "@rocky/database/constants";
-import { FENCE_TYPE_VALUES } from "@rocky/database/constants";
+import { FENCE_TYPE_VALUES, SETTLEMENT_TYPE_VALUES } from "@rocky/database/constants";
 import { GEOFENCE_EVENT_SOURCE_VALUES } from "@rocky/database/constants";
 import { GEOFENCE_EVENT_TYPE_VALUES } from "@rocky/database/constants";
 import { HEALTH_RECORD_TYPE_VALUES } from "@rocky/database/constants";
@@ -258,6 +258,8 @@ const _satisfies_geofenceEventSourceSchema: z.ZodType<geofenceEventSourceType> =
 type _nodrift_geofenceEventSourceSchema = NoDrift<z.infer<typeof geofenceEventSourceSchema>, geofenceEventSourceType>;
 export const geofenceEventTypeSchema = zEnum(GEOFENCE_EVENT_TYPE_VALUES);
 export type geofenceEventTypeType = z.infer<typeof geofenceEventTypeSchema>;
+export const settlementTypeSchema = zEnum(SETTLEMENT_TYPE_VALUES);
+export type settlementTypeType = z.infer<typeof settlementTypeSchema>;
 const _satisfies_geofenceEventTypeSchema: z.ZodType<geofenceEventTypeType> = geofenceEventTypeSchema;
 type _nodrift_geofenceEventTypeSchema = NoDrift<z.infer<typeof geofenceEventTypeSchema>, geofenceEventTypeType>;
 export const healthRecordTypeSchema = zEnum(HEALTH_RECORD_TYPE_VALUES);

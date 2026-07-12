@@ -23,3 +23,4 @@ export { iotDevices } from "./iot-devices.js";
 export { sensorReadings } from "./sensor-readings.js";
 export { geofences } from "./geofences.js";
 export { animalGeofenceEvents } from "./animal-geofence-events.js";
+export { settlements } from "./settlements.js";

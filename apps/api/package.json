@@ -25,6 +25,7 @@
     "@rocky/auth": "workspace:*",
     "@rocky/authorization": "workspace:*",
     "@rocky/database": "workspace:*",
+    "@rocky/geo": "workspace:*",
     "@rocky/domains-animal": "workspace:*",
     "@rocky/domains-archive": "workspace:*",
     "@rocky/domains-audit": "workspace:*",

@@ -58,7 +58,10 @@ Both return **403 FORBIDDEN** (`MOVEMENT_DISEASE_ZONE_BREACHED`).
   zones seeded, every check returns `inProtectionZone:false` (no false blocks). The `geography` cast
   assumes SRID 4326 — a misconfigured `farms.location` SRID would corrupt distances.
 - **Maintenance:** If the disease-zone declaration workflow lands, it only needs to `INSERT` a
-  `disease_zone` geofence; the block lights up automatically.
+  `disease_zone` geofence; the block lights up automatically. The collection/declaration
+  mechanism — per-premises declaration (AHL 2016/429 Art.21-22), the Geo-owned
+  `declareDiseaseZone` service, the missing `geo.router.ts`, and the mandatory `polygon`
+  dual-write — is specified separately in **ADR-0080**.
 
 ## Validation
 

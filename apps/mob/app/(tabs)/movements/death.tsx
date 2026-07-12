@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
+import { Card, CardContent } from "@/components/ui/card";
 import { AnimalPicker } from "@/components/animals/animal-picker";
 import { FarmPicker } from "@/components/farms/farm-picker";
 import { onlineManager } from "@tanstack/react-query";
@@ -82,7 +83,8 @@ export default function DeathScreen() {
 
   return (
     <ScrollView className="flex-1 bg-background">
-      <View className="p-4 gap-4">
+    <Card className="m-4">
+      <CardContent className="gap-4 p-4">
         <FormField label="Animal" error={errors.animalId?.message} nativeID="animal">
           <View className="gap-2">
             {watch("animalId") ? (
@@ -144,7 +146,8 @@ export default function DeathScreen() {
         <Button onPress={onSubmit} disabled={isSubmitting || !canRecordDeath} size="lg">
           {isSubmitting ? <ActivityIndicator color="white" /> : <Text>Record Death</Text>}
         </Button>
-      </View>
+      </CardContent>
+      </Card>
     </ScrollView>
   );
 }

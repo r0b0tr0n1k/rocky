@@ -7,19 +7,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   createCorrectionRequestSchema,
   escalateCorrectionRequestSchema,
+  rejectCorrectionRequestSchema,
   resolveCorrectionRequestSchema,
   reviewCorrectionRequestSchema,
   type AnimalSummary,
   type CorrectionResponse,
   type FarmSummary,
+  type RejectCorrectionRequest,
 } from "@rocky/validators/api";
 import { CORRECTION_STATUS, CORRECTION_CASE_TYPE, DETECTION_SOURCE, type correctionStatusType, type detectionSourceType } from "@rocky/validators/enums";
 import { enumToOptions } from "#lib/options";
 import { correctionColumns } from "#components/corrections/columns";
 import { DataTable } from "#components/shared/data-table";
 import { PageHeader } from "#components/shared/page-header";
-import { Card, CardContent } from "@rocky/ui/components/card";
 import { ActionDialog } from "#components/shared/action-dialog";
+import { TableCard, tableDensityClass } from "#components/shared/table-card";
 import { ComboboxField, SelectField, TextareaField, TextField } from "#components/shared/form-fields";
 import { useTRPC } from "#lib/trpc";
 
@@ -40,6 +42,7 @@ export default function CorrectionsPage() {
   const review = useMutation(trpc.correction.review.mutationOptions({ onSuccess: invalidate }));
   const resolve = useMutation(trpc.correction.resolve.mutationOptions({ onSuccess: invalidate }));
   const escalate = useMutation(trpc.correction.escalate.mutationOptions({ onSuccess: invalidate }));
+  const reject = useMutation(trpc.correction.reject.mutationOptions({ onSuccess: invalidate }));
 
   const animals = useQuery(trpc.animal.list.queryOptions({ limit: 100, offset: 0 }));
   const farms = useQuery(trpc.farm.list.queryOptions({ limit: 100, offset: 0 }));
@@ -51,7 +54,25 @@ export default function CorrectionsPage() {
       <PageHeader
         title="Corrections"
         description="Error-correction cases: review, resolve, escalate."
-        actions={
+      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+        <Select value={status ?? "all"} onValueChange={(v) => { setStatus(v === "all" ? undefined : (v as correctionStatusType)); setPage(0); }}>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="All statuses" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            {Object.values(CORRECTION_STATUS).map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={source ?? "all"} onValueChange={(v) => { setSource(v === "all" ? undefined : (v as detectionSourceType)); setPage(0); }}>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="All sources" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All sources</SelectItem>
+            {Object.values(DETECTION_SOURCE).map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+      <TableCard
+        action={
           <ActionDialog
             as="button"
             triggerLabel="New correction"
@@ -72,37 +93,20 @@ export default function CorrectionsPage() {
             )}
           />
         }
-      />
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-        <Select value={status ?? "all"} onValueChange={(v) => { setStatus(v === "all" ? undefined : (v as correctionStatusType)); setPage(0); }}>
-          <SelectTrigger className="w-[200px]"><SelectValue placeholder="All statuses" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            {Object.values(CORRECTION_STATUS).map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={source ?? "all"} onValueChange={(v) => { setSource(v === "all" ? undefined : (v as detectionSourceType)); setPage(0); }}>
-          <SelectTrigger className="w-[200px]"><SelectValue placeholder="All sources" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All sources</SelectItem>
-            {Object.values(DETECTION_SOURCE).map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
-      <Card>
-        <CardContent className="p-0">
-          <DataTable
-            columns={correctionColumns({ review, resolve, escalate })}
-            data={rows}
-            total={total}
-            isLoading={listQuery.isLoading}
-            page={page}
-            pageSize={pageSize}
-            onPageChange={setPage}
-            bordered={false}
-          />
-        </CardContent>
-      </Card>
+      >
+        <DataTable
+          columns={correctionColumns({ review, resolve, escalate, reject })}
+          data={rows}
+          total={total}
+          isLoading={listQuery.isLoading}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          bordered={false}
+          tableClassName={tableDensityClass}
+        />
+      </TableCard>
     </div>
   );
 }
+

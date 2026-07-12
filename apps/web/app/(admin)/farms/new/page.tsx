@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { FarmCreateForm } from "#components/farms/farm-create-form";
 import { Button } from "@rocky/ui/components/button";
 import { PageHeader } from "#components/shared/page-header";
+import { Card, CardContent } from "@rocky/ui/components/card";
 
 export default function NewFarmPage() {
   const router = useRouter();
@@ -21,7 +22,11 @@ export default function NewFarmPage() {
           </Button>
         }
       />
-      <FarmCreateForm />
+      <Card>
+        <CardContent className="p-6">
+          <FarmCreateForm />
+        </CardContent>
+      </Card>
     </div>
   );
 }

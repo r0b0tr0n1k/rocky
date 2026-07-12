@@ -13,6 +13,7 @@ import {
 import type { AnimalSummary } from "@rocky/validators/api";
 import { Timeline, type TimelineItem } from "#components/shared/timeline";
 import { PageHeader } from "#components/shared/page-header";
+import { Card, CardContent } from "@rocky/ui/components/card";
 import { useTRPC } from "#lib/trpc";
 
 export default function MovementLineagePage() {
@@ -70,13 +71,17 @@ export default function MovementLineagePage() {
         </SelectContent>
       </Select>
 
-      {lineage.isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
-      ) : items.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No movements recorded for this animal.</p>
-      ) : (
-        <Timeline items={items} />
-      )}
+      <Card>
+        <CardContent className="p-6">
+          {lineage.isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : items.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No movements recorded for this animal.</p>
+          ) : (
+            <Timeline items={items} />
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

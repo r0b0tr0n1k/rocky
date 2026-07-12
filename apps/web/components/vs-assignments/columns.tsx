@@ -5,6 +5,7 @@ import { type ColumnDef } from "@tanstack/react-table";
 
 import { Badge } from "@rocky/ui/components/badge";
 import { RowActionMenu } from "#components/shared/action-dialog";
+import { RowDetailsDialog } from "#components/shared/row-details-dialog";
 import type { VsAssignmentResponse } from "@rocky/validators/api";
 
 export function vsAssignmentColumns({
@@ -44,7 +45,28 @@ export function vsAssignmentColumns({
       id: "actions",
       header: "",
       cell: ({ row }) => (
-        <RowActionMenu items={[{ type: "dialog", dialog: renderUnassign(row.original) }]} />
+        <RowActionMenu
+          items={[
+            { type: "dialog", dialog: renderUnassign(row.original) },
+            {
+              type: "dialog",
+              dialog: (
+                <RowDetailsDialog
+                  title="VS assignment"
+                  description="Veterinary-service assignment"
+                  fields={[
+                    { label: "Contract", value: row.original.contractId },
+                    { label: "Farm", value: row.original.farmId },
+                    { label: "Primary", value: row.original.isPrimary ? "Yes" : "No" },
+                    { label: "Start", value: new Date(row.original.startDate).toLocaleDateString() },
+                    { label: "End", value: row.original.endDate ? new Date(row.original.endDate).toLocaleDateString() : "—" },
+                    { label: "State", value: row.original.isActive ? "active" : "ended" },
+                  ]}
+                />
+              ),
+            },
+          ]}
+        />
       ),
     },
   ];

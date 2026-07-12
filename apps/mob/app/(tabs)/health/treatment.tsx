@@ -1,5 +1,6 @@
 import { View, ScrollView, Alert, Switch } from "react-native";
 import { Text } from "@/components/ui/text";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
@@ -108,7 +109,8 @@ export default function TreatmentScreen() {
 
   return (
     <ScrollView className="flex-1 bg-background">
-      <View className="p-4 gap-4">
+    <Card className="m-4">
+      <CardContent className="gap-4 p-4">
         <FormField label="Animal" error={errors.animalId?.message} nativeID="animal">
           <AnimalPicker onSelect={(a) => setValue("animalId", a.id, { shouldValidate: true })} />
         </FormField>
@@ -157,7 +159,8 @@ export default function TreatmentScreen() {
         <Button onPress={onSubmit} disabled={isSubmitting || !canWriteHealth} size="lg">
           <Text>Record Treatment</Text>
         </Button>
-      </View>
+      </CardContent>
+      </Card>
     </ScrollView>
   );
 }

@@ -1,7 +1,7 @@
 # PDF / Document Generation — PDF Bot
 
-**Scope:** `packages/pdf/` — document generation framework, YAML/XML intermediate output
-**Status:** Phase 1 complete — YAML output for 3 document types. PDF/A rendering deferred.
+**Scope:** `packages/pdf/` — document generation framework; PDF/A-3 hybrid output (Typst render + @e-invoice-eu embed) + PAdES signing (HSM) + QR (ear tags)
+**Status:** Phase 1 complete — YAML/XML intermediate for 3 document types. PDF/A rendering **activated** by **ADR-0082** (Typst + @e-invoice-eu library + PAdES via HSM).
 
 ## Overview
 
@@ -62,6 +62,7 @@ interface DocumentTemplate<TData, TModel> {
 4. No router changes needed — `document.generate({ type: "foo", ... })` works automatically
 
 **Template design rules:**
+
 - Plain classes, no `@Injectable()` or `@Inject()` — instantiated via `useFactory` in AppModule
 - Constructor receives domain repositories/services it needs
 - `mapToModel` may be async (returns `Promise<TModel>`)
@@ -102,7 +103,7 @@ Templates — provided via useFactory with injected repos/services:
 
 ## Remaining Work
 
-1. **PDF/A rendering engine** — replace `js-yaml` output with actual PDF. Candidates: `pdfmake`, `@react-pdf/renderer`, `puppeteer`-based HTML→PDF
+1. **PDF/A rendering engine** — DECIDED (ADR-0082): render with **Typst** (`typst-business-templates`, JSON→PDF, in-process via WASM/NAPI) and wrap with the **`@e-invoice-eu` library** (PDF/A-3 hybrid embed); PAdES-sign (HSM). Replaces the old `js-yaml`-only output for `format: "pdf"`.
 2. **PDF templates** — visual layout for each document type (inspection form, passport, movement declaration)
 3. **XML output format** — extend `YamlSerializer` to support XML alongside YAML
 4. **Model validation** — validate `mapToModel()` output against the YAML model schema before serialization

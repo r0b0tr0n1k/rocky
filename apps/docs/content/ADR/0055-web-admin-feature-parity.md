@@ -1,6 +1,6 @@
 # ADR-0055: Web Admin Feature Parity with Backend
 
-> The web admin is a list-only photograph of a living backend — **only 6 of 24 routers (~13% of 156 procedures) are fully actionable from the web today**. We ratify the program that makes every backend procedure an actionable web affordance.
+> The web admin has moved past list-only: **6 of 25 routers reach full CRUD** and **every backend router is now invoked by the web** (103/171 procedures, 60%). Remaining drift is *depth*, not *presence* — 14 routers are list-only and 4 are partial CRUD. We ratify the program that makes every backend procedure an actionable web affordance.
 
 | Key | Value |
 | --- | --- |
@@ -14,17 +14,22 @@
 
 ## Context
 
-The backend exposes **24 routers / 156 procedures** — the full Symbolic order of the domain
-(the generated `api-reference.mdx`, see ADR-0052). The web admin (`apps/web`, Admin Bot) invokes
-**20 routers** but is *uneven*:
+> **Re-measured 2026-07-12** from the live tree via `scripts/check-web-parity.mjs` (the ADR-0055
+> parity guardian). The backend now exposes **25 routers / 171 procedures** (the `geo` router and
+> +15 procedures landed after this ADR was written). The web admin (`apps/web`, Admin Bot) invokes
+> **all 25 routers** (`sync` is a read-only monitor). The unevenness is now *depth*, not *presence*:
 
-- **4 backend routers have no web page at all** — `farmBook`, `vsContract`, `vsAssignment`, `sync`.
-- **9 of 24 admin areas are list-only** — they render a table but have *no* create/edit forms
-  (confirmed by the absence of `*-create-form.tsx` components for `earTag`, `health`, `passport`,
-  `correction`, `iot`, `notification`, `rbac`, `systemParameters`, `document`).
-- The remainder are **partial CRUD** — pages exist with forms, but specific procedures are un-wired
-  (`inspection.runRiskAnalysis`, `archive.markDestroyed`, `movement` death/slaughter/import variants,
-  `organization` edit).
+- **0 backend routers lack a web page** — the 4 that were absent on 2026-07-11 (`farmBook`,
+  `vsContract`, `vsAssignment`, `sync`) now have list pages (Phase 1 landed); `sync` stays a
+  read-only monitor, not CRUD. `modules` (2 procs) is invoked but has no dedicated page (settings).
+- **14 of 25 admin areas are list-only** — they render a table but have *no* create/edit forms
+  (confirmed by the absence of form components for `earTag`, `health`, `passport`, `correction`,
+  `iot`, `notification`, `rbac`, `systemParameters`, `document`, `farmBook`, `vsAssignment`,
+  `vsContract`, `geo`).
+- **4 of 25 are partial CRUD** — pages exist with forms, but specific procedures are un-wired
+  (`archive.markDestroyed`/`archiveInspectionForm` retention, `device.assignUser`/`unblock`,
+  `movement` death/slaughter/import/pasture variants, `organization` edit). `inspection` reached
+  full CRUD — `runRiskAnalysis`, `schedule`, `complete`, `printForm` are all wired.
 
 The consequence: the admin can *view* the Symbolic ledger but cannot *act* on the Real of the record.
 For a regulatory veterinary system, view-only administration is a **fetish** — the photograph stands in
@@ -34,45 +39,46 @@ for the act.
 
 ```mermaid
 pie showData
-  title Web coverage of 24 backend routers (measured 2026-07-11)
-  "Absent — T0 (no page)" : 4
-  "List-only — T1 (no forms)" : 9
-  "Partial CRUD — T2" : 5
+  title Web coverage of 25 backend routers (re-measured 2026-07-12)
+  "Absent — T0 (invoked, no page)" : 1
+  "List-only — T1 (no forms)" : 14
+  "Partial CRUD — T2" : 4
   "Full CRUD — OK" : 6
 ```
 
-Only **6 / 24 routers (25%)** reach full CRUD; **13 / 24 (54%) are absent or list-only**. Of the
-156 backend procedures, roughly **13% are fully actionable from the web** today — the rest are
-un-wired Mutations or absent surfaces.
+**6 / 25 routers (24%)** reach full CRUD; **15 / 25 (60%) are absent or list-only** (T0 + T1). Of the
+171 backend procedures, **103 (60%) are invoked by the web** and **54 / 86 Mutations (63%) are wired**
+to an action; the rest are mobile-owned field operations or un-wired web affordances.
 
-### The 24-router coverage matrix
+### The 25-router coverage matrix (re-measured 2026-07-12)
 
 | Router | Procs | Web depth | Tier | Phase |
 | --- | --- | --- | --- | --- |
 | `animal` | 5 | CRUD ✓ | 🟢 OK | — |
-| `audit` | 1 | list ✓ (complete) | 🟢 OK | — |
+| `audit` | 1 | list ✓ (complete, read-only) | 🟢 OK | — |
 | `farm` | 4 | CRUD ✓ | 🟢 OK | — |
 | `subject` | 6 | CRUD ✓ | 🟢 OK | — |
 | `user` | 4 | CRUD ✓ | 🟢 OK | — |
-| `modules` | 2 | used, no page | 🟢 minor | — |
+| `inspection` | 8 | CRUD ✓ (risk analysis wired) | 🟢 OK | 2 |
+| `modules` | 2 | invoked, no page (settings) | 🔴 T0 | — |
 | `archive` | 7 | CRUD − (no retention actions) | 🟣 T2 | 3 |
-| `device` | 8 | CRUD − | 🟣 T2 | 3 |
-| `inspection` | 8 | CRUD − (no risk analysis) | 🟣 T2 | 2–3 |
-| `movement` | 15 | CRUD − (no death/slaughter/import) | 🟣 T2 | 2–3 |
+| `device` | 8 | CRUD − (no assign/unblock) | 🟣 T2 | 3 |
+| `movement` | 17 | CRUD − (no death/slaughter/import) | 🟣 T2 | 2–3 |
 | `organization` | 4 | list + new (no edit) | 🟣 T2 | 3 |
-| `correction` | 7 | list-only | 🟡 T1 | 3 |
+| `correction` | 7 | list-only (actions on list) | 🟡 T1 | 3 |
 | `document` | 2 | list-only | 🟡 T1 | 3 |
 | `earTag` | 17 | list-only | 🟡 T1 | 2 |
-| `health` | 20 | list-only | 🟡 T1 | 2 |
+| `farmBook` | 4 | list-only (page added) | 🟡 T1 | 1 |
+| `geo` | 11 | list-only (new router) | 🟡 T1 | 3 |
+| `health` | 21 | list-only (some mutations inline) | 🟡 T1 | 2 |
 | `iot` | 11 | list-only | 🟡 T1 | 3 |
 | `notification` | 4 | list-only | 🟡 T1 | 3 |
-| `passport` | 7 | list-only | 🟡 T1 | 2 |
+| `passport` | 7 | list-only (workflow unwired) | 🟡 T1 | 2 |
 | `rbac` | 6 | list-only | 🟡 T1 | 3 |
+| `sync` | 2 | list-only monitor (mobile-owned) | 🟡 T1 | 1 |
 | `systemParameters` | 2 | list-only | 🟡 T1 | 3 |
-| `farmBook` | 4 | **no page** | 🔴 T0 | 1 |
-| `sync` | 2 | **no page** (mobile-owned) | 🔴 T0 | 1 |
-| `vsAssignment` | 6 | **no page** | 🔴 T0 | 1 |
-| `vsContract` | 5 | **no page** | 🔴 T0 | 1 |
+| `vsAssignment` | 6 | list-only (page added) | 🟡 T1 | 1 |
+| `vsContract` | 5 | list-only (page added) | 🟡 T1 | 1 |
 
 Backend dependencies (ADR-0033 §D4): tRPC surface → ADR-0032; validators / Diamond Seal → ADR-0018 /
 ADR-0019; permission UI → ADR-0042 / ADR-0022; auth/session → ADR-0049; domain rules → ADR-0023 /
@@ -89,17 +95,18 @@ The pie above is the *current state*; the flowchart below is the *plan* that clo
 
 ```mermaid
 flowchart LR
-  subgraph T0["Tier 0 — no page (4 routers)"]
-    A1["farmBook"] A2["vsContract"] A3["vsAssignment"] A4["sync (monitor)"]
+  subgraph T0["Tier 0 — invoked, no page (1 router)"]
+    A1["modules"]
   end
-  subgraph T1["Tier 1 — list-only (9 routers)"]
-    B1["earTag 17"] B2["health 20"] B3["passport 7"] B4["correction 7"]
+  subgraph T1["Tier 1 — list-only (14 routers)"]
+    B1["earTag 17"] B2["health 21"] B3["passport 7"] B4["correction 7"]
     B5["iot 11"] B6["notification 4"] B7["rbac 6"] B8["systemParameters 2"] B9["document 2"]
+    B10["farmBook 4"] B11["vsContract 5"] B12["vsAssignment 6"] B13["sync 2"] B14["geo 11"]
   end
-  subgraph T2["Tier 2 — partial CRUD (5 routers)"]
-    C1["inspection 8"] C2["movement 15"] C3["archive 7"] C4["device 8"] C5["organization 4"]
+  subgraph T2["Tier 2 — partial CRUD (4 routers)"]
+    C1["archive 7"] C2["device 8"] C3["movement 17"] C4["organization 4"]
   end
-  P0["Phase 0: Scaffold + RBAC gate"] --> P1["Phase 1: Tier 0"]
+  P0["Phase 0: Scaffold + RBAC gate"] --> P1["Phase 1: Tier 0 presence (done)"]
   P1 --> P2["Phase 2: Tier 1 lifecycle"]
   P2 --> P3["Phase 3: Tier 1 + T2 deepen"]
   P3 --> P4["Phase 4: Polish + check:web-parity"]
@@ -110,9 +117,9 @@ flowchart LR
   classDef t1 fill:#FFD700,stroke:#333,stroke-width:2px,color:black
   classDef t2 fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
   classDef ph fill:#98FB98,stroke:#333,stroke-width:2px,color:black
-  class A1,A2,A3,A4 t0
-  class B1,B2,B3,B4,B5,B6,B7,B8,B9 t1
-  class C1,C2,C3,C4,C5 t2
+  class A1 t0
+  class B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13,B14 t1
+  class C1,C2,C3,C4 t2
   class P0,P1,P2,P3,P4 ph
 ```
 
@@ -180,17 +187,16 @@ Target state: web invokes all 24 routers (`sync` exempt as monitor); every Mutat
    `Permissions` (ADR-0050).
 5. **Silent gap** — adding a backend procedure with no web affordance and no `check:web-parity` guard.
 
-
 ## Decomposition (per-tier ADRs)
 
 ADR-0055 is the charter; the domain detail lives in per-tier ADRs so no single
 document becomes a 2000-line monolith (ADR-0055 §Anti-Patterns). Each plans every
 domain's frontend representation with a distinctive design signature.
 
-- **ADR-0056** — Web UI: Tier 0 (Presence) — `farmBook`, `vsContract`, `vsAssignment`, `sync` → Phase 1.
+- **ADR-0056** — Web UI: Tier 0 (Presence) — `farmBook`, `vsContract`, `vsAssignment`, `sync` → Phase 1 (**landed**: all four now have list pages; `sync` is a read-only monitor).
 - **ADR-0057** — Web UI: Tier 1 Lifecycle (Regulatory core) — `earTag`, `health`, `passport` → Phase 2.
-- **ADR-0058** — Web UI: Tier 1 Operational — `correction`, `iot`, `notification`, `rbac`, `systemParameters`, `document` → Phase 3.
-- **ADR-0059** — Web UI: Tier 2 Deepen — `archive`, `device`, `inspection`, `movement`, `organization` → Phase 3.
+- **ADR-0058** — Web UI: Tier 1 Operational — `correction`, `iot`, `notification`, `rbac`, `systemParameters`, `document`, `geo` → Phase 3.
+- **ADR-0059** — Web UI: Tier 2 Deepen — `archive`, `device`, `movement`, `organization` → Phase 3 (`inspection` promoted to OK).
 
 The 24-router coverage matrix above remains the index.
 

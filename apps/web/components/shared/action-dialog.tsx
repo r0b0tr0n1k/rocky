@@ -113,7 +113,8 @@ export function ActionDialog<TInput extends FieldValues>({
 
 export type RowMenuItem =
   | { type: "link"; label: string; icon?: IconComponent; href: string }
-  | { type: "dialog"; dialog: ReactNode };
+  | { type: "dialog"; dialog: ReactNode }
+  | { type: "action"; label: string; icon?: IconComponent; onClick: () => void };
 
 /** Kebab menu that hosts link actions and ActionDialog triggers. */
 export function RowActionMenu({ items, label = "Actions" }: { items: RowMenuItem[]; label?: string }) {
@@ -131,6 +132,11 @@ export function RowActionMenu({ items, label = "Actions" }: { items: RowMenuItem
           {items.map((item, i) =>
             item.type === "link" ? (
               <DropdownMenuItem key={item.label} onSelect={() => router.push(item.href)}>
+                {item.icon ? <item.icon data-icon="inline-start" /> : null}
+                {item.label}
+              </DropdownMenuItem>
+            ) : item.type === "action" ? (
+              <DropdownMenuItem key={item.label} onSelect={item.onClick}>
                 {item.icon ? <item.icon data-icon="inline-start" /> : null}
                 {item.label}
               </DropdownMenuItem>

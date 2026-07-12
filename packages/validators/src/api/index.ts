@@ -8,6 +8,7 @@ export * from "./diseaseZone.api.js";
 export * from "./ched.api.js";
 export * from "./eartags.api.js";
 export * from "./farms.api.js";
+export * from "./geo.api.js";
 export * from "./health.api.js";
 export * from "./holdings.api.js";
 export * from "./inspection.api.js";

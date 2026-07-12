@@ -91,6 +91,18 @@ export const recordSyncRequestSchema = z.strictObject({
   deviceId: z.uuid(),
 });
 
+export type UnblockDeviceRequest = z.infer<typeof unblockDeviceRequestSchema>;
+
+export const unblockDeviceRequestSchema = z.strictObject({
+  deviceId: z.uuid(),
+});
+
+export type RegisterFailedAttemptDeviceRequest = z.infer<typeof registerFailedAttemptDeviceRequestSchema>;
+
+export const registerFailedAttemptDeviceRequestSchema = z.strictObject({
+  deviceId: z.uuid(),
+});
+
 // ═══════════════════════════════════════════════════════════════════════════
 // LIST SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -119,8 +131,10 @@ type _drift_createPdaDevice = NoDriftSimple<z.infer<typeof createPdaDeviceReques
 type _drift_updatePdaDevice = NoDrift<z.infer<typeof updatePdaDeviceRequestSchema>, UpdatePdaDeviceRequest>;
 type _drift_pdaDeviceListResponse = NoDrift<z.infer<typeof pdaDeviceListResponseSchema>, PdaDeviceListResponse>;
 type _drift_pdaDeviceList = NoDrift<z.infer<typeof pdaDeviceListRequestSchema>, PdaDeviceListRequest>;
+type _drift_unblockDevice = NoDrift<z.infer<typeof unblockDeviceRequestSchema>, UnblockDeviceRequest>;
+type _drift_registerFailedAttemptDevice = NoDrift<z.infer<typeof registerFailedAttemptDeviceRequestSchema>, RegisterFailedAttemptDeviceRequest>;
 
 export type _PdaDeviceGuillotines = ActivateGuillotines<
   [_drift_pdaDeviceResponse, _drift_pdaDeviceSummary, _drift_createPdaDevice,
-   _drift_updatePdaDevice, _drift_pdaDeviceListResponse, _drift_pdaDeviceList]
+   _drift_updatePdaDevice, _drift_pdaDeviceListResponse, _drift_pdaDeviceList, _drift_unblockDevice, _drift_registerFailedAttemptDevice]
 >;

@@ -37,6 +37,7 @@ export { FARM_BOOK_STATUS, FARM_BOOK_STATUS_VALUES } from './farm-book-status.js
 export { FARM_READ_ROLE, FARM_READ_ROLE_VALUES } from './farm-read-roles.js';
 export { FARM_TYPE, FARM_TYPE_VALUES } from './farm-type.js';
 export { FENCE_TYPE, FENCE_TYPE_VALUES } from './fence-type.js';
+export { SETTLEMENT_TYPE, SETTLEMENT_TYPE_VALUES } from './settlement-type.js';
 export { GEOFENCE_EVENT_SOURCE, GEOFENCE_EVENT_SOURCE_VALUES } from './geofence-event-source.js';
 export { GEOFENCE_EVENT_TYPE, GEOFENCE_EVENT_TYPE_VALUES } from './geofence-event-type.js';
 export { HEALTH_RECORD_TYPE, HEALTH_RECORD_TYPE_VALUES } from './health-record-type.js';

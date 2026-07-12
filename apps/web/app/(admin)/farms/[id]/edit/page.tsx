@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { FarmEditForm } from "#components/farms/farm-edit-form";
 import { Button } from "@rocky/ui/components/button";
 import { PageHeader } from "#components/shared/page-header";
+import { Card, CardContent } from "@rocky/ui/components/card";
 
 export default function EditFarmPage() {
   const router = useRouter();
@@ -22,7 +23,11 @@ export default function EditFarmPage() {
           </Button>
         }
       />
-      <FarmEditForm id={params.id} />
+      <Card>
+        <CardContent className="p-6">
+          <FarmEditForm id={params.id} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

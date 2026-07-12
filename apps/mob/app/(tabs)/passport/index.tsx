@@ -18,7 +18,7 @@ export default function PassportListScreen() {
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() => router.push(`/passport/${item.id}`)}
-            className="flex-row items-center justify-between py-3 border-b border-border"
+            className="flex-row items-center justify-between p-3 mb-2 bg-card border border-border rounded-lg"
           >
             <View>
               <Text className="text-foreground font-medium">{item.passportNumber}</Text>

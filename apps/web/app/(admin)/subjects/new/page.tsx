@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { SubjectCreateForm } from "#components/subjects/subject-create-form";
 import { Button } from "@rocky/ui/components/button";
 import { PageHeader } from "#components/shared/page-header";
+import { Card, CardContent } from "@rocky/ui/components/card";
 
 export default function NewSubjectPage() {
   const router = useRouter();
@@ -21,7 +22,11 @@ export default function NewSubjectPage() {
           </Button>
         }
       />
-      <SubjectCreateForm />
+      <Card>
+        <CardContent className="p-6">
+          <SubjectCreateForm />
+        </CardContent>
+      </Card>
     </div>
   );
 }

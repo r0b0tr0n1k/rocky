@@ -27,20 +27,22 @@ export default function NotificationsScreen() {
         </CardContent>
       </Card>
 
-      <View className="gap-2">
-        <Text className="text-foreground text-sm font-medium">Mark as Read</Text>
-        <Input
-          placeholder="Notification ID"
-          value={notificationId}
-          onChangeText={setNotificationId}
-        />
-        <Button
-          onPress={() => markAsRead.mutate({ id: notificationId })}
-          disabled={!notificationId || markAsRead.isPending}
-        >
-          <Text>Mark as Read</Text>
-        </Button>
-      </View>
+      <Card>
+        <CardContent className="gap-2">
+          <Text className="text-foreground text-sm font-medium">Mark as Read</Text>
+          <Input
+            placeholder="Notification ID"
+            value={notificationId}
+            onChangeText={setNotificationId}
+          />
+          <Button
+            onPress={() => markAsRead.mutate({ id: notificationId })}
+            disabled={!notificationId || markAsRead.isPending}
+          >
+            <Text>Mark as Read</Text>
+          </Button>
+        </CardContent>
+      </Card>
     </View>
   );
 }

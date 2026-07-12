@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { InspectionCreateForm } from "#components/inspections/inspection-create-form";
 import { Button } from "@rocky/ui/components/button";
 import { PageHeader } from "#components/shared/page-header";
+import { Card, CardContent } from "@rocky/ui/components/card";
 
 export default function NewInspectionPage() {
   const router = useRouter();
@@ -21,7 +22,11 @@ export default function NewInspectionPage() {
           </Button>
         }
       />
-      <InspectionCreateForm />
+      <Card>
+        <CardContent className="p-6">
+          <InspectionCreateForm />
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { DeviceCreateForm } from "#components/devices/device-create-form";
 import { Button } from "@rocky/ui/components/button";
 import { PageHeader } from "#components/shared/page-header";
+import { Card, CardContent } from "@rocky/ui/components/card";
 
 export default function NewDevicePage() {
   const router = useRouter();
@@ -21,7 +22,11 @@ export default function NewDevicePage() {
           </Button>
         }
       />
-      <DeviceCreateForm />
+      <Card>
+        <CardContent className="p-6">
+          <DeviceCreateForm />
+        </CardContent>
+      </Card>
     </div>
   );
 }

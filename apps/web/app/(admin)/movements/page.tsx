@@ -7,6 +7,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@rocky/ui/components/button";
 import { DataTable } from "#components/shared/data-table";
 import { PageHeader } from "#components/shared/page-header";
+import { TableCard, tableDensityClass } from "#components/shared/table-card";
 import { movementColumns, type MovementResponse } from "#components/movements/columns";
 import { SORT_BY_MOVEMENT } from "@rocky/validators/enums";
 import type { AnimalSummary, FarmResponse } from "@rocky/validators/api";
@@ -57,23 +58,28 @@ export default function MovementsPage() {
       <PageHeader
         title="Movements"
         description="Livestock movements across farms and borders."
-        actions={
+      />
+      <TableCard
+        action={
           <Button onClick={() => router.push("/movements/new")}>
             <Plus /> Record movement
           </Button>
         }
-      />
-      <DataTable
-        columns={movementColumns({ animalLabel, farmLabel })}
-        data={rows}
-        total={total}
-        isLoading={listQuery.isLoading}
-        sort={sort}
-        onSortChange={setSort}
-        page={page}
-        pageSize={pageSize}
-        onPageChange={setPage}
-      />
+      >
+        <DataTable
+          columns={movementColumns({ animalLabel, farmLabel })}
+          data={rows}
+          total={total}
+          isLoading={listQuery.isLoading}
+          sort={sort}
+          onSortChange={setSort}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          bordered={false}
+          tableClassName={tableDensityClass}
+        />
+      </TableCard>
     </div>
   );
 }

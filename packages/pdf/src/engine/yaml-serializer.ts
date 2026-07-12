@@ -11,7 +11,7 @@ import { err, ok, type Result } from "neverthrow";
 import type { DocumentError } from "../errors/document.errors.js";
 import { DOCUMENT_ERRORS, documentErr } from "../errors/document.errors.js";
 
-export type DocumentFormat = "yaml" | "xml";
+export type DocumentFormat = "yaml" | "xml" | "pdf";
 
 /**
  * Serialize a document model object to YAML.
@@ -82,7 +82,7 @@ function escapeXml(text: string): string {
 }
 
 export function isFormatSupported(format: string): format is DocumentFormat {
-  return ["yaml", "xml"].includes(format);
+  return ["yaml", "xml", "pdf"].includes(format);
 }
 
 /**

@@ -28,6 +28,15 @@ export interface DataTableProps<TData> {
   onPageChange?: (page: number) => void;
   /** When false, drop the outer border (used when nested inside a Card). */
   bordered?: boolean;
+  /** Extra classes applied to the <table> (e.g. row density). */
+  tableClassName?: string;
+}
+
+type ColumnMeta = { width?: number; align?: "left" | "right" | "center" };
+
+function colMeta(col: unknown): ColumnMeta {
+  const def = (col as { columnDef?: { meta?: unknown } } | undefined)?.columnDef;
+  return (def?.meta as ColumnMeta) ?? {};
 }
 
 export function DataTable<TData>({
@@ -41,6 +50,7 @@ export function DataTable<TData>({
   pageSize = 20,
   onPageChange,
   bordered = true,
+  tableClassName,
 }: DataTableProps<TData>) {
   const table = useReactTable({
     data,
@@ -58,15 +68,26 @@ export function DataTable<TData>({
   return (
     <div className="flex flex-col gap-3">
       <div className={cn("rounded-md border", !bordered && "border-0 rounded-none")}>
-        <Table>
+        <Table className={tableClassName}>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>
                 {hg.headers.map((header) => {
                   const canSort = header.column.getCanSort();
                   const sorted = sort?.id === header.column.id ? sort.desc : null;
+                  const meta = colMeta(header);
+                  const alignCls =
+                    meta.align === "right"
+                      ? "text-right"
+                      : meta.align === "center"
+                        ? "text-center"
+                        : undefined;
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      style={meta.width ? { width: meta.width } : undefined}
+                      className={alignCls}
+                    >
                       {header.isPlaceholder ? null : canSort ? (
                         <button
                           type="button"
@@ -110,11 +131,24 @@ export function DataTable<TData>({
             ) : (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                {row.getVisibleCells().map((cell) => {
+                  const meta = colMeta(cell);
+                  const alignCls =
+                    meta.align === "right"
+                      ? "text-right"
+                      : meta.align === "center"
+                        ? "text-center"
+                        : undefined;
+                  return (
+                    <TableCell
+                      key={cell.id}
+                      style={meta.width ? { width: meta.width } : undefined}
+                      className={alignCls}
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
-                  ))}
+                  );
+                })}
                 </TableRow>
               ))
             )}

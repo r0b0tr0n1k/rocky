@@ -1,19 +1,21 @@
 /**
  * Disease-Zone Spatial Check (WO-119, AHL 2016/429 Art.21-22)
  *
- * A confirmed notifiable-disease premises is surrounded by a PROTECTION zone (3 km)
- * and a concentric SURVEILLANCE zone (10 km). Both radii are RuleSet-driven
- * (thresholds.protectionZoneKm / surveillanceZoneKm, ADR-0054). Disease zones are
- * geofences of type `disease_zone` whose polygon marks the infected premises.
+ * Canonical home of the disease-zone check, relocated here from the Movement
+ * domain per ADR-0078 (Geo owns the *where* of the registry). The check answers
+ * whether a source farm sits inside an active disease PROTECTION zone (3 km) or
+ * SURVEILLANCE zone (10 km) around a confirmed notifiable-disease premises.
  *
- * The check intersects the source farm's GPS location (farms.location, PostGIS point)
- * with each active disease-zone polygon via ST_DWithin (cast to geography so the radius
- * is in METRES). It is the spatial cousin of the EUDR overlay (WO-115): both are
- * regulatory guillotines that the movement gate and the CHED exporter (WO-121
- * imsoc.requireDiseaseClear) can reuse.
+ * Both radii are RuleSet-driven (thresholds.protectionZoneKm /
+ * surveillanceZoneKm, ADR-0054). Disease zones are geofences of type
+ * `disease_zone` whose polygon marks the infected premises. The check
+ * intersects the source farm's GPS location (farms.location, PostGIS point)
+ * with each active disease-zone polygon via ST_DWithin (cast to geography so the
+ * radius is in METRES). It is the spatial cousin of the EUDR overlay (WO-115):
+ * both are regulatory guillotines that the movement gate and the CHED exporter
+ * (WO-121 imsoc.requireDiseaseClear) reuse.
  */
 
-import type { IotRepository } from "@rocky/domains-iot";
 import type { RuleSet } from "@rocky/domains-system";
 
 export type DiseaseZoneHit = {
@@ -40,6 +42,16 @@ export type DiseaseZoneCheckResult = {
   surveillanceZones: DiseaseZoneHit[];
 };
 
+/** Minimal repo capability the check needs — satisfied by GeoRepository. */
+export interface DiseaseZoneQuery {
+  findActiveDiseaseZonesNearFarm(
+    farmId: string,
+    radiusMeters: number,
+  ): Promise<
+    Array<{ id: string; name: string; farmId: string | null; cadastralReference: string | null }>
+  >;
+}
+
 function toHit(row: {
   id: string;
   name: string;
@@ -59,7 +71,7 @@ function toHit(row: {
  * Returns skipped/compliant when disease-zone enforcement is disabled.
  */
 export async function runDiseaseZoneCheck(
-  iotRepo: IotRepository,
+  query: DiseaseZoneQuery,
   ruleSet: RuleSet,
   fromFarmId: string,
 ): Promise<DiseaseZoneCheckResult> {
@@ -81,10 +93,10 @@ export async function runDiseaseZoneCheck(
   }
 
   const protectionZones = fromFarmId
-    ? await iotRepo.findActiveDiseaseZonesNearFarm(fromFarmId, protectionZoneKm * 1000)
+    ? await query.findActiveDiseaseZonesNearFarm(fromFarmId, protectionZoneKm * 1000)
     : [];
   const surveillanceZones = fromFarmId
-    ? await iotRepo.findActiveDiseaseZonesNearFarm(fromFarmId, surveillanceZoneKm * 1000)
+    ? await query.findActiveDiseaseZonesNearFarm(fromFarmId, surveillanceZoneKm * 1000)
     : [];
 
   return {

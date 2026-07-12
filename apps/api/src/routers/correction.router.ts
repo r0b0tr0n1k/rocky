@@ -15,6 +15,8 @@ import {
   escalateCorrectionRequestSchema,
   type ResolveCorrectionRequest,
   resolveCorrectionRequestSchema,
+  type RejectCorrectionRequest,
+  rejectCorrectionRequestSchema,
   type ReviewCorrectionRequest,
   reviewCorrectionRequestSchema,
 } from "@rocky/validators/api/index.js";
@@ -73,8 +75,8 @@ export class CorrectionRouter {
     );
   }
 
-  @Mutation({ input: idParam, output: correctionResponseSchema })
-  async reject(@Input() input: { id: string }) {
+  @Mutation({ input: rejectCorrectionRequestSchema, output: correctionResponseSchema })
+  async reject(@Input() input: RejectCorrectionRequest) {
     return unwrap(await this.correctionService.reject(input.id));
   }
 }

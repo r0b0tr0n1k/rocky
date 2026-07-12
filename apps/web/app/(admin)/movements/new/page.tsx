@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { MovementCreateForm } from "#components/movements/movement-create-form";
 import { Button } from "@rocky/ui/components/button";
 import { PageHeader } from "#components/shared/page-header";
+import { Card, CardContent } from "@rocky/ui/components/card";
 
 export default function NewMovementPage() {
   const router = useRouter();
@@ -21,7 +22,11 @@ export default function NewMovementPage() {
           </Button>
         }
       />
-      <MovementCreateForm />
+      <Card>
+        <CardContent className="p-6">
+          <MovementCreateForm />
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -14,6 +14,7 @@ import {
 } from "@rocky/ui/components/select";
 import { DataTable } from "#components/shared/data-table";
 import { PageHeader } from "#components/shared/page-header";
+import { TableCard, tableDensityClass } from "#components/shared/table-card";
 import { inspectionColumns, type InspectionResponse } from "#components/inspections/columns";
 import { INSPECTION_STATUS, type inspectionStatusType } from "@rocky/validators/enums";
 import type { FarmResponse, UserSummary } from "@rocky/validators/api";
@@ -58,40 +59,47 @@ export default function InspectionsPage() {
       <PageHeader
         title="Inspections"
         description="On-spot inspections, risk analysis, and form generation."
-        actions={
+      />
+      <TableCard
+        toolbarLeft={
+          <Select
+            value={status ?? "all"}
+            onValueChange={(v) => {
+              setStatus(v === "all" ? undefined : (v as inspectionStatusType));
+              setPage(0);
+            }}
+          >
+            <SelectTrigger className="w-[220px]">
+              <SelectValue placeholder="All statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              {Object.values(INSPECTION_STATUS).map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        }
+        action={
           <Button onClick={() => router.push("/inspections/new")}>
             <Plus /> New inspection
           </Button>
         }
-      />
-      <Select
-        value={status ?? "all"}
-        onValueChange={(v) => {
-          setStatus(v === "all" ? undefined : (v as inspectionStatusType));
-          setPage(0);
-        }}
       >
-        <SelectTrigger className="w-[220px]">
-          <SelectValue placeholder="All statuses" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All statuses</SelectItem>
-          {Object.values(INSPECTION_STATUS).map((s) => (
-            <SelectItem key={s} value={s}>
-              {s}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <DataTable
-        columns={inspectionColumns({ farmLabel, inspectorLabel })}
-        data={rows}
-        total={total}
-        isLoading={listQuery.isLoading}
-        page={page}
-        pageSize={pageSize}
-        onPageChange={setPage}
-      />
+        <DataTable
+          columns={inspectionColumns({ farmLabel, inspectorLabel })}
+          data={rows}
+          total={total}
+          isLoading={listQuery.isLoading}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          bordered={false}
+          tableClassName={tableDensityClass}
+        />
+      </TableCard>
     </div>
   );
 }

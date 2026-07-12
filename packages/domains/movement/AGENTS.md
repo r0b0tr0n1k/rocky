@@ -109,6 +109,8 @@ MovementRouter (tRPC, 12 endpoints) → MovementService → MovementRepository (
 
 All slaughter, pasture, market, and import/export logic lives in the single `MovementRouter` and `MovementService` — no dedicated sub-routers.
 
+**Disease-zone check (WO-119 / ADR-0064):** the spatial block is delegated to `GeoService.runDiseaseZoneCheck` (Geo package) — see ADR-0078. `MovementService` no longer imports `IotRepository.findActiveDiseaseZonesNearFarm`; EUDR due-diligence (`runEudrDueDiligence`) still consumes `IotRepository` for pasture/geofence traversal.
+
 ## Error Codes (`movement.errors.ts`)
 
 | Code (key)            | String Value                         | When                                    |

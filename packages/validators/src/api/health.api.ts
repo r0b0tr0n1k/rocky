@@ -235,6 +235,20 @@ export const createDiseaseRequestSchema = diseasesInsertSchema
 
 export type CreateDiseaseRequest = z.infer<typeof createDiseaseRequestSchema>;
 
+/** Update an existing disease master record — partial patch of editable fields. */
+export const updateDiseaseRequestSchema = diseasesInsertSchema
+  .pick({
+    name: true,
+    notifiable: true,
+    description: true,
+    quarantineDays: true,
+  })
+  .partial()
+  .extend({ id: z.uuid() })
+  .strict();
+
+export type UpdateDiseaseRequest = z.infer<typeof updateDiseaseRequestSchema>;
+
 export const createVaccineRequestSchema = vaccinesInsertSchema
   .pick({
     name: true,

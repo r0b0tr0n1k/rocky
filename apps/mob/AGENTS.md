@@ -334,7 +334,10 @@ cd android && ./gradlew assembleRelease  # → android/app/build/outputs/apk/rel
   Validation Bot (`@rocky/validators`), Docs Bot (`apps/docs`).
 - Downstream: domain sweeps WO-094 (Livestock), WO-095 (Health), WO-096 (Inspections/Corrections),
   WO-097 (Infrastructure) bind their mutating actions to `useOfflineMutation`.
-
+- Enterprise UX (web ADR-0076 → mobile translation **ADR-0077**): contain data in the native
+  `components/ui/card` (`Card`/`CardContent`); tab screens set `headerShown: false` (no nav bar),
+  so the "Align actions" law expresses as a prominently top-placed primary CTA, **not** a nav
+  `headerRight`. Never import the web-only `@rocky/ui/components/card` into a `.tsx` screen.
 
 ## Cloud policy (EAS project) — special command only
 
@@ -346,17 +349,20 @@ authorized, but **only as a special, explicit command** — never in the normal 
 pushes via the Expo Push API using the project's access token. Without the project there is no push.
 
 **Allowed (cloud):**
+
 - `eas init` (done) — registered the project + `projectId`.
 - Explicit on-demand builds/submits via the `build:cloud:*` / `submit:*` scripts **only**.
 - Generating an Expo Push access token (`EXPO_ACCESS_TOKEN`) for the API server (WO-091 server emit).
 
 **Forbidden (normal procedure stays local):**
+
 - Cloud builds are NOT part of the dev loop. Normal dev = `pnpm dev` (`expo start -c`), local
   `build:android` (gradle), or `eas build --local` (free, local APK).
 - Never add a bare `eas build` / `eas submit` to a default or postinstall script.
 - iOS testing stays deferred (paid Apple program) — see "Native run".
 
 **Special cloud scripts:**
+
 - `build:cloud:android` → `eas build -p android --profile production` (EAS servers)
 - `build:cloud:ios` → `eas build -p ios --profile production` (EAS servers)
 - `build:cloud:preview` → `eas build --profile preview` (EAS servers, internal APK)
