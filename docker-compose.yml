@@ -5,6 +5,8 @@ services:
   db:
     container_name: rokidb
     image: postgis/postgis:18-3.6-alpine
+    # Local-dev DB only; external DB is used on deploy via DB_HOST in .env
+    profiles: [local-db]
     environment:
       - POSTGRES_USER=tbot
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -42,13 +44,13 @@ services:
       - PORT=8080
       - API_PORT=8080
       # Database — app + Postgres share the POSTGRES_PASSWORD secret
-      - PG_HOST=db
-      - PG_PORT=5432
+      - PG_HOST=${DB_HOST:-db}
+      - PG_PORT=${DB_PORT:-5432}
       - PG_USER=tbot
       - PG_PASS=${POSTGRES_PASSWORD}
       - PG_DB=tbot
       # packages/database reads DATABASE_URL directly (PG_* is not forwarded)
-      - DATABASE_URL=postgres://tbot:${POSTGRES_PASSWORD}@db:5432/tbot
+      - DATABASE_URL=postgres://tbot:${POSTGRES_PASSWORD}@${DB_HOST:-db}:${DB_PORT:-5432}/tbot
       # Auth
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - BASE_SERVICE_URL=http://api:8080
@@ -61,9 +63,6 @@ services:
       - ENVIRONMENT=production
     ports:
       - "8080:8080"
-    depends_on:
-      db:
-        condition: service_healthy
     restart: unless-stopped
     networks:
       - app-network
@@ -75,7 +74,7 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        # Inlined by Next.js at build time (browser). Override WEB_PUBLIC_API_URL on a VM
+        # Inlined at build time (browser). Set WEB_PUBLIC_API_URL for the VM
         - NEXT_PUBLIC_API_URL=${WEB_PUBLIC_API_URL:-http://localhost:8080}
     environment:
       - NODE_ENV=production
@@ -108,9 +107,6 @@ services:
       - STORE_PATH=/app
     networks:
       - app-network
-    depends_on:
-      db:
-        condition: service_healthy
     restart: unless-stopped
     profiles:
       - dev
