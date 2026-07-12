@@ -12,7 +12,7 @@
 | **Supersedes** | — |
 | **Superseded** | — |
 | **Source**     | User clarification (subprocessor position); GDPR Art 28(4); MK LPDP Art 28; ISO/IEC 27701:2025 B.5.2.1, B.2.2.1; ADR-0067 |
-| **Related**    | ADR-0067 (ISMS roadmap); ADR-0061 (GDPR spine); ADR-0072 (breach); ADR-0054 (regulatory) |
+| **Related**    | ADR-0067 (ISMS roadmap); ADR-0061 (GDPR spine); ADR-0072 (breach); ADR-0054 (regulatory); rocky-dpa.md (Art 28 DPA template); eu-b2b-procurement-pack.md |
 
 ## Context
 
@@ -31,6 +31,7 @@ data subject
 ```
 
 The law mandates the chain be contracted end-to-end:
+
 - **GDPR Art 28(4)** -- a processor may engage a subprocessor only with the controller's
   *prior specific or general written authorization*, and the subprocessor contract imposes
   the same data-protection obligations (Art 28(3)) downstream.
@@ -65,15 +66,18 @@ the chain by written contract before any personal data is processed.**
 ## Consequences
 
 ### Positive
+
 - Turns the four mandated clauses into an implementable procedure (register + DPA library).
 - Correctly locates accountability: the controller (VD) owns by-design; we own our link + our
   subprocessors. No false claim of being the controller.
 
 ### Negative / Cost
+
 - Organizational work: enumerate subprocessors, negotiate Art 28 DPAs (legal, not code).
 - Requires counsel review of each DPA (the mappings in ADR-0067 are unverified).
 
 ### Neutral
+
 - Sits beside (not inside) the enforcement code; complements ADR-0061 / 0072.
 
 ## Implementation

@@ -328,6 +328,14 @@ verification, and are exactly the enforcement-ahead-of-paperwork assets ADR-0067
   conformity claim. **ART_37 (DPO) and ART_82 (liability) are intentionally absent** (no normative
   mapping) — not fabricated.
 
+### 11.5 Phase-2 governance evidence pack (procurement)
+
+The enforcement-ahead code is the demonstrable 80%; the governance paperwork that converts it into
+a German/EU B2B signature is assembled in **`eu-b2b-procurement-pack.md`** — the DPA
+(`rocky-dpa.md`, Art 28), RoPA, DPIA, lawful-basis register, TOMs and breach SLA, mapped to
+ADR-0075 / 0068–0070 / 0072. Status: Draft (Phase 2, ADR-0067). Certification (Phase 3) is the
+tender-winner, not the floor.
+
 ---
 
 ## 9. Homework Disclaimer

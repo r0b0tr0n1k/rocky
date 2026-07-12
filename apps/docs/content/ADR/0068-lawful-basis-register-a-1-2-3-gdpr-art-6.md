@@ -12,7 +12,7 @@
 | **Supersedes** | — |
 | **Superseded** | — |
 | **Source**     | graphgrc-main analysis; `iso27701-2025-gap-analysis.md`; ADR-0067 (ISMS roadmap) |
-| **Related**    | ADR-0061; ADR-0067; ADR-0030; ADR-0054; compliance module |
+| **Related**    | ADR-0061; ADR-0067; ADR-0030; ADR-0054; compliance module; eu-b2b-procurement-pack.md |
 
 ## Context
 
@@ -36,12 +36,15 @@ not enforcement code -- Phase 2, expert review pending.
 ## Consequences
 
 ### Positive
+
 - Closes a named GAP from the ISMS gap register (ADR-0067 Decision P2 / gap doc G-entries); converts a "Planned" control into a documented, reviewable one.
 
 ### Negative / Cost
+
 - Governance-layer work, not code: it is a register / template / workflow, owned by people, not the pipeline. Requires expert (law + security) review before any conformity claim.
 
 ### Neutral
+
 - Sits alongside (not inside) the enforcement code; the compliance reference module (`packages/validators/src/compliance/gdpr-articles.ts`) is the canonical anchor it cites.
 
 ## Implementation

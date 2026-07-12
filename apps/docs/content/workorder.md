@@ -1459,3 +1459,13 @@ Per ADR-0055 charter + ADR-0056–0060, the web↔backend parity program advance
   ↔ AL Law 124 via `VALIDATED_CROSSWALK`); regulation→ADR map; GDPR-article→evidence table (0082 PAdES,
   0084 offline signed QR as Art 5(1)(f)/32 evidence). ADR-0084 tied into §8 corpus + ADR-0083.
 - Source: ADR-0082 / ADR-0084 / gap-analysis §11.
+
+### WO-151 — EU B2B procurement compliance pack (DPA + assembly) — Done ✅
+
+- Added `compliance/rocky-dpa.md` (ROCKY-DPA-001): fillable Art 28(3) DPA template (Rocky = processor /
+subprocessor), wired to ADR-0075 + rocky-processor-register / rocky-toms / rocky-breach-notification.
+- Added `compliance/eu-b2b-procurement-pack.md` (ROCKY-PROC-PACK-001): requirement→artifact map,
+  procurement readiness checklist, and the enforcement-ahead controls backing the Art 28(3)(c) security
+  clause (0006/0071/0007/0083/0082/0084). Operationalizes ADR-0067 Phase 2 + gap-analysis §11.
+- Registered both in `compliance/_meta.ts`; tied into gap-analysis §11.5 + ADR-0075/0068–0070 Related.
+- Source: ADR-0075 / 0068–0070 / 0072 / eu-b2b-procurement-pack.md.
