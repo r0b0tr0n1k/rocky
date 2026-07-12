@@ -107,5 +107,6 @@ All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 81
 | ADR-0081 | Accept-and-Flag Validation Doctrine (plausibility over rejection) |
 | ADR-0082 | PDF/A-3 Hybrid Container + PAdES Signing for Every Emitted Document |
 | ADR-0083 | Deployment Topology — Docker Compose, External DB & Cloudflare Access (DockFlare) |
+| ADR-0084 | Offline-verifiable Signed QR Credentials (ear tags, passport, movement) |
 
 > Generated from `apps/docs/content/ADR/*.md` first-heading titles. Regenerate after adding an ADR.

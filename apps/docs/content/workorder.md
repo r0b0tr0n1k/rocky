@@ -1452,3 +1452,10 @@ Per ADR-0055 charter + ADR-0056–0060, the web↔backend parity program advance
   Postgres + RLS (A.5.12/.15–.18), and the PAdES/PDF-A-3 signed-document feature (A.8.24/A.3.27–.30)
   as Phase-1 SoA evidence. ADR-0083 + ADR-0082 (pdf) tied into the corpus (§8).
 - Source: ADR-0083 / ADR-0082 / gap-analysis §10.
+
+### WO-150 — EU regulatory conformance logged as evidence (gap-analysis §11) — Done ✅
+
+- Added `compliance/iso27701-2025-gap-analysis.md` §11: EU-first legal spine (GDPR/EUDR/AHL ↔ MK LPDP
+  ↔ AL Law 124 via `VALIDATED_CROSSWALK`); regulation→ADR map; GDPR-article→evidence table (0082 PAdES,
+  0084 offline signed QR as Art 5(1)(f)/32 evidence). ADR-0084 tied into §8 corpus + ADR-0083.
+- Source: ADR-0082 / ADR-0084 / gap-analysis §11.

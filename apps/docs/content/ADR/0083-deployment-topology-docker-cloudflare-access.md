@@ -160,3 +160,5 @@ docker compose --profile local-db config            # db present only with profi
 - **ADR-0081** — Accept-and-Flag Validation Doctrine (validators consumed across the boundary).
 - **ADR-0082** — PDF/A-3 Hybrid Container + PAdES Signing (cryptographic, archive-grade documents;
   A.8.24 / A.3.27–.30 evidence — see gap-analysis §10.2).
+- **ADR-0084** — Offline-verifiable Signed QR Credentials (Ed25519; EU DCC / mDL / W3C VC paradigm);
+  offline sibling to the PAdES seal, reuses HSM key custody — GDPR Art 5(1)(f)/32 evidence (§11.3).

@@ -222,15 +222,10 @@ Better Auth et al. not formalised).
   runtime scaffolding (Cloudflare Access MFA / Service Token, tunnel-only ingress, non-root images,
   secrets handling, external Postgres + RLS) is logged as Phase-1 evidence in §10 of this register.
 - **ADR-0082** (PDF/A-3 Hybrid Container + PAdES Signing) — every emitted document is a cryptographically
-  signed, archive-grade artifact; the enforcement hook for A.3.27–.30 and a strong audit-story asset (§10.2).
-
----
-
-- **ADR-0083** (Deployment Topology — Docker Compose, External DB & Cloudflare Access) — the
-  runtime scaffolding (Cloudflare Access MFA / Service Token, tunnel-only ingress, non-root images,
-  secrets handling, external Postgres + RLS) is logged as Phase-1 evidence in §10 of this register.
-- **ADR-0082** (PDF/A-3 Hybrid Container + PAdES Signing) — every emitted document is a cryptographically
-  signed, archive-grade artifact; the enforcement hook for A.3.27–.30 and a strong audit-story asset (§10.2).
+signed, archive-grade artifact; the enforcement hook for A.3.27–.30 and a strong audit-story asset (§10.2).
+- **ADR-0084** (Offline-verifiable Signed QR Credentials) — self-contained Ed25519-signed QR (EU DCC /
+mDL / W3C VC paradigm) for offline gate verification; sibling to the PAdES seal, reuses the same HSM
+key custody. Enforcement hook for GDPR Art 5(1)(f)/32 (§11.3).
 
 ---
 
@@ -273,6 +268,65 @@ This is exactly the kind of _enforcement-ahead-of-paperwork_ asset ADR-0067 cele
   certification. Phase 2 (governance) + Phase 3 (audit, counsel) still required (§7).
 - The `api` image is Alpine (NestJS pure-JS; typst renders via WASM). `web`/`docs` stay glibc
   `slim` (Next.js `@parcel/watcher` has no musl prebuild). Documented in ADR-0083 Thin-image note.
+
+---
+
+---
+
+## 11. EU Regulatory Conformance (evidence added 2026-07-12)
+
+Rocky's legal spine is **EU-first**: GDPR (Reg. (EU) 2016/679) is the backbone, with the sector
+regulations **EUDR (Reg. (EU) 2023/1115)** and **AHL (Reg. (EU) 2016/429)**, and national
+transpositions **MK LPDP** (North Macedonia) + **AL Law 124** (Albania). `VALIDATED_CROSSWALK`
+(`packages/validators/src/compliance/gdpr-articles.ts`) ties all four together. This is the _binding_
+layer — ISO/IEC 27701 (§10) is voluntary and sits on top (per WO-141).
+
+### 11.1 EU regulation → ADR map
+
+| EU regulation | Subject | ADRs | Status |
+| --- | --- | --- | --- |
+| GDPR (Reg. (EU) 2016/679) | Data protection | 0061, 0068–0075, 0081, 0073/0074 | Enforcement MET; governance Phase 2 |
+| EUDR (Reg. (EU) 2023/1115) | Deforestation due-diligence | 0063, 0079 (forest overlay, WO-143) | Done |
+| AHL (Reg. (EU) 2016/429) | Animal health; disease zones + TRACES NT export (CHED-A/IMSOC) | 0064 (WO-119), 0062 (WO-121) | Done |
+| ISO/IEC 27701:2025 | Voluntary PIMS (not EU law) | 0067 | Roadmap (§10) |
+
+### 11.2 GDPR article → enforcement evidence
+
+| GDPR article | Requirement | Control / evidence | Status |
+| --- | --- | --- | --- |
+| Art 5(1)(f) | Integrity & confidentiality | RLS + RBAC (0006); mask/reveal-gate (0061); signed QR (0084) | MET |
+| Art 5(2) | Accountability | Tamper-evident audit log (0007/0066); **PAdES-LTV seal + RFC 3161 timestamp (0082)** — issuance date provable in court | MET |
+| Art 6 / 0081 | Lawful basis | Lawful-basis register (0068) | Phase 2 |
+| Art 30 | Records of processing | RoPA derived from `PII_FIELD_REGISTRY` (0070); signed documents are the record (0082) | Phase 2 / partial |
+| Art 32 | Security of processing | Crypto-at-rest (0071); Cloudflare Access (0083); **PAdES + offline signed QR (0082/0084)** | MET (design) |
+| Art 33–34 | Breach notification | Breach-notification workflow (0072) | Phase 2 |
+
+### 11.3 Cryptographic document evidence (the "brag" for EU auditors)
+
+Two complementary, court-grade features make every emitted artifact provable:
+
+- **ADR-0082 — PDF/A-3 Hybrid Container + PAdES Signing (Accepted).** Every document (passport,
+  movement, inspection, CHED) carries a **PAdES-LTV seal (ETSI EN 319 142)** plus an **RFC 3161
+  timestamp** — issuance date is _mathematically provable in court_. Key custody via an air-gapped
+  `HsmSigner`; the public key is the trust anchor. → GDPR Art 5(2)/32; ISO A.8.24 / A.3.27–.30.
+- **ADR-0084 — Offline-verifiable Signed QR Credentials (Proposed).** A self-contained signed-payload
+  QR (payload → hash → **Ed25519** sign → CBOR + base64url → QR) as a sibling to the PAdES seal, for
+  gates with no signal (farm yard, market, slaughterhouse, border). Follows the proven EU paradigm —
+  **EU DCC, mDL / ISO 18013-5, W3C VC** — and reuses the _same_ HSM key custody as 0082. → GDPR
+  Art 5(1)(f)/32; demonstrable alignment with EU credential standards.
+
+These close the _"who issued this, and when, provably"_ question for both online and offline EU
+verification, and are exactly the enforcement-ahead-of-paperwork assets ADR-0067 celebrates.
+
+### 11.4 Notes
+
+- **WO-141:** GDPR is _law_; ISO 27701 is _voluntary_. Do not architect mandatory compliance to the
+  standard — the binding obligations are GDPR/EUDR/AHL, and they are narrower.
+- Governance layer (lawful basis, DPIA, RoPA, DPO, breach, retention/erasure) is **Phase 2 / deferred**
+  (ADR-0067) — that is the actual EU-legal gap, not the code.
+- `VALIDATED_CROSSWALK` GDPR→ISO legs are machine-derived + unverified; counsel must review before any
+  conformity claim. **ART_37 (DPO) and ART_82 (liability) are intentionally absent** (no normative
+  mapping) — not fabricated.
 
 ---
 
