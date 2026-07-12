@@ -20,6 +20,16 @@ export interface RockyAuthClientOptions {
   /** Extra plugins (expoClient for mobile, etc.) */
   // biome-ignore lint/suspicious/noExplicitAny: better-auth plugins have complex union types
   plugins?: any[];
+  /**
+   * Forwarded to better-auth's createAuthClient. Used to inject edge-auth
+   * headers (e.g. Cloudflare Access Service Token) on every request so the
+   * client clears an Access shield without an interactive login (WO-144).
+   */
+  fetchOptions?: {
+    headers?: Record<string, string>;
+    // biome-ignore lint/suspicious/noExplicitAny: better-auth customFetch signature
+    customFetch?: (url: string, init: any) => Promise<Response>;
+  };
 }
 
 /**
@@ -34,6 +44,7 @@ export function createRockyAuthClient(options: RockyAuthClientOptions = {}) {
 
   return createAuthClient({
     baseURL,
+    fetchOptions: options.fetchOptions,
     plugins: [
       adminClient(),
       organizationClient({
