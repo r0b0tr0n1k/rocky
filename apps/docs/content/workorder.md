@@ -1403,3 +1403,44 @@ Per ADR-0055 charter + ADR-0056–0060, the web↔backend parity program advance
 - **Tier-2 deepen** on `inspections` / `passports` / `archive` / `corrections` (optional Stepper/Timeline polish).
 - **Pre-existing `pnpm --filter web check-types` errors** in `permissions-core.test.ts` + `packages/auth`
   (test/lib, out of parity scope).
+
+---
+
+## 8. Deployment Topology (ADR-0083)
+
+- **Why:** the monorepo only ran on a dev laptop; we need it on a VM behind a Zero-Trust shield with no
+  open ports, MFA on every service, and machine auth for the mobile app. Secrets must not bake into images.
+- **Source:** ADR-0083 (decision + topology + frontend↔backend boundary + package→container map).
+
+### WO-144 — Mobile Cloudflare Access Service Token auth — Done ✅
+
+- `packages/auth/src/client.ts` forwards `fetchOptions`; `apps/mob/lib/auth.ts` injects
+  `CF-Access-Client-Id` / `CF-Access-Client-Secret` (from `EXPO_PUBLIC_CF_*`) on every better-auth request;
+  the tRPC client already does the same. Mobile clears the Access shield as a machine — no interactive login.
+- Source: ADR-0083. Commit: `da963e1`.
+
+### WO-145 — Secret management (dev .env / prod Cloudflare Secrets Store) — Open (prod deferred)
+
+- Dev: gitignored `.env` (`chmod 600`) + encrypted VM disk. Prod (future): Cloudflare **Secrets Store**
+  - a fetch init container that writes `POSTGRES_PASSWORD` / `BETTER_AUTH_SECRET` into the containers.
+  No Cloudflare-as-vault now; the Service-Token plumbing already in place extends to it later.
+- Source: ADR-0083.
+
+### WO-146 — Docker-compose deployment topology — Done ✅
+
+- pnpm `10.24.0`→`11.10.0` in both Dockerfiles; `DATABASE_URL` on `api` (packages/database reads it
+  directly); `BETTER_AUTH_SECRET` from env; external DB via `DB_HOST`/`DB_PORT` (bundled `db` profiled
+  `local-db`); published ports removed; DockFlare labels + `cloudflare-net`; `ROCKY_DOMAIN` drives URLs.
+- Source: ADR-0083. Commits: `385550a`, `f103c25`, `fc0cfa9`.
+
+### WO-147 — Docs site container (apps/docs Dockerfile + compose service) — Done ✅
+
+- New `apps/docs/Dockerfile` (multi-stage, mirror web; no `NEXT_PUBLIC_API_URL`). Compose `docs` service
+  on `cloudflare-net`, `dockflare.access.policy=authenticate` (Cloudflare TOTP), `docs.<domain>` ingress.
+- Source: ADR-0083.
+
+### WO-148 — Frontend↔Backend boundary documentation — Done ✅
+
+- ADR-0083 documents the tRPC `AppRouter` surface, Zod wire format, `Result`→`TRPCError` boundary
+  (ADR-0066), server-only internals, drift guards, and the package→container closure per service.
+- Source: ADR-0083 / ADR-0050 / ADR-0066.

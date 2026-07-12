@@ -100,6 +100,22 @@ services:
       - app-network
       - cloudflare-net
 
+  # ── Nextra Docs Site ─────────────────────────────────────────
+  docs:
+    container_name: rocky-docs
+    build:
+      context: .
+      dockerfile: apps/docs/Dockerfile
+    labels:
+      - dockflare.enable=true
+      - dockflare.hostname=docs.${ROCKY_DOMAIN:-example.com}
+      - dockflare.service=http://docs:3002
+      - dockflare.access.policy=authenticate
+    restart: unless-stopped
+    networks:
+      - app-network
+      - cloudflare-net
+
   # ── Drizzle Studio (optional, dev only) ──────────────────────
   drizzle-studio:
     image: ghcr.io/drizzle-team/gateway:latest

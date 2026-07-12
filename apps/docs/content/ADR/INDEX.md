@@ -104,5 +104,8 @@ All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 81
 | ADR-0077 | Mobile Enterprise UX — Containment & Action Alignment on the PDA |
 | ADR-0078 | Geo Spatial Service — Extract `packages/geo` (cross-cutting, queried-for-geo-data) |
 | ADR-0080 | Disease-Zone Data Collection & Declaration Workflow (WO-119) |
+| ADR-0081 | Accept-and-Flag Validation Doctrine (plausibility over rejection) |
+| ADR-0082 | PDF/A-3 Hybrid Container + PAdES Signing for Every Emitted Document |
+| ADR-0083 | Deployment Topology — Docker Compose, External DB & Cloudflare Access (DockFlare) |
 
 > Generated from `apps/docs/content/ADR/*.md` first-heading titles. Regenerate after adding an ADR.
