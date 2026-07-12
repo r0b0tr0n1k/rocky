@@ -39,6 +39,11 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+    labels:
+      - dockflare.enable=true
+      - dockflare.hostname=api.${ROCKY_DOMAIN:-example.com}
+      - dockflare.service=http://api:8080
+      - dockflare.access.group=rocky-api
     environment:
       - NODE_ENV=production
       - PORT=8080
@@ -54,18 +59,17 @@ services:
       # Auth
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - BASE_SERVICE_URL=http://api:8080
-      - AUTH_BASE_URL=${AUTH_BASE_URL:-http://localhost:3000}
-      # CORS (web container + local dev); override CORS_ORIGINS on a VM
-      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://web:3000}
-      - TRUSTED_ORIGINS=${TRUSTED_ORIGINS:-http://localhost:3000,mobile://}
+      - AUTH_BASE_URL=${AUTH_BASE_URL:-https://admin.${ROCKY_DOMAIN:-example.com}}
+      # CORS: admin origin (browser). Override CORS_ORIGINS on a VM.
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://admin.${ROCKY_DOMAIN:-example.com}}
+      - TRUSTED_ORIGINS=${TRUSTED_ORIGINS:-https://admin.${ROCKY_DOMAIN:-example.com},mobile://}
       # App
       - VERSION=${VERSION:-production}
       - ENVIRONMENT=production
-    ports:
-      - "8080:8080"
     restart: unless-stopped
     networks:
       - app-network
+      - cloudflare-net
 
   # ── Next.js Admin Panel ──────────────────────────────────────
   web:
@@ -74,23 +78,27 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        # Inlined at build time (browser). Set WEB_PUBLIC_API_URL for the VM
-        - NEXT_PUBLIC_API_URL=${WEB_PUBLIC_API_URL:-http://localhost:8080}
+        # Inlined at build (browser). Defaults to the Cloudflare api domain.
+        - NEXT_PUBLIC_API_URL=${WEB_PUBLIC_API_URL:-https://api.${ROCKY_DOMAIN:-example.com}}
+    labels:
+      - dockflare.enable=true
+      - dockflare.hostname=admin.${ROCKY_DOMAIN:-example.com}
+      - dockflare.service=http://web:3000
+      - dockflare.access.policy=authenticate
     environment:
       - NODE_ENV=production
       # SSR: Next.js server calls API via Docker internal network (RUNTIME)
       - API_URL=http://api:8080
       # Auth secret (same as API, for server-side session validation)
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
-      # Public base URL of the auth server (override AUTH_BASE_URL on a VM)
-      - AUTH_BASE_URL=${AUTH_BASE_URL:-http://localhost:3000}
-    ports:
-      - "3000:3000"
+      # Public base URL of the auth server (Cloudflare admin domain)
+      - AUTH_BASE_URL=${AUTH_BASE_URL:-https://admin.${ROCKY_DOMAIN:-example.com}}
     depends_on:
       - api
     restart: unless-stopped
     networks:
       - app-network
+      - cloudflare-net
 
   # ── Drizzle Studio (optional, dev only) ──────────────────────
   drizzle-studio:
@@ -118,3 +126,6 @@ volumes:
 networks:
   app-network:
     driver: bridge
+  cloudflare-net:
+    name: cloudflare-net
+    external: true
