@@ -1444,3 +1444,11 @@ Per ADR-0055 charter + ADR-0056–0060, the web↔backend parity program advance
 - ADR-0083 documents the tRPC `AppRouter` surface, Zod wire format, `Result`→`TRPCError` boundary
   (ADR-0066), server-only internals, drift guards, and the package→container closure per service.
 - Source: ADR-0083 / ADR-0050 / ADR-0066.
+
+### WO-149 — Deployment controls logged as ISO 27701 / Annex A evidence — Done ✅
+
+- Added `compliance/iso27701-2025-gap-analysis.md` §10: maps Cloudflare Access (A.5.15–.18/A.8.5),
+  tunnel-only ingress (A.8.20/.22), non-root images (A.8.9/.10/.19), secrets (A.8.24), external
+  Postgres + RLS (A.5.12/.15–.18), and the PAdES/PDF-A-3 signed-document feature (A.8.24/A.3.27–.30)
+  as Phase-1 SoA evidence. ADR-0083 + ADR-0082 (pdf) tied into the corpus (§8).
+- Source: ADR-0083 / ADR-0082 / gap-analysis §10.

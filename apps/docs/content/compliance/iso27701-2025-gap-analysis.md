@@ -22,7 +22,7 @@ The two canonical control catalogs were re-evaluated against the Real of the fil
   new A.5/A.8). ISO 27701:2025 ships **115** controls across Tables A.1 (controllers),
   A.2 (processors), A.3 (shared) and B.1 (guidance). The Symbolic order is intact.
 - **Legal-framework mappings — ~45% EMPTY in BOTH.** 42/93 (27001) and 52/115 (27701)
-  controls carry empty `MK_LPDP` / `AL_LAW124` blocks. Some empties are *legitimate*
+  controls carry empty `MK_LPDP` / `AL_LAW124` blocks. Some empties are _legitimate_
   (no direct national-law article), but the proportion signals incomplete enrichment.
 - **`compliance_checklist` — BOILERPLATE.** Where present, the same six generic lines
   ("Procedures must be documented / implemented / reviewed …") repeat on every control,
@@ -51,7 +51,7 @@ once counsel confirms the mappings.
 
 ## 2. Methodology & Legend
 
-Each control below is mapped to Rocky's *actual* capability (from the codebase + AGENTS.md + the
+Each control below is mapped to Rocky's _actual_ capability (from the codebase + AGENTS.md + the
 ADR corpus). Status:
 
 - **MET** — enforced by running code today.
@@ -78,6 +78,7 @@ Our enforcement lacks the Imaginary commitment (the documented ISMS) and the cer
 ## 4. ISO/IEC 27001:2022 — Annex A Mapping
 
 ### A.5 Organisational Controls (37)
+
 | Clause | Requirement | Rocky | Status |
 | --- | --- | --- | --- |
 | A.5.1 | Policies for information security | `isms-policy.md` (ROCKY-ISMS-001, Adopted v1.0) | **MET** (Phase 1) |
@@ -89,11 +90,12 @@ Our enforcement lacks the Imaginary commitment (the documented ISMS) and the cer
 | A.5.24 / A.5.25 / A.5.26 / A.5.27 | Incident planning / assessment / response / learning | Audit via lifecycle events (ADR-0007); no formal breach-to-authority workflow | **PARTIAL** |
 | A.5.28 | Collection of evidence | Tamper-evident access log (ADR-0061 reveal-gate) | **MET** |
 | A.5.31 | Legal, statutory, regulatory | Regulatory framework (ADR-0054) + RuleSet (ADR-0030); not a maintained obligation register | **PARTIAL** |
-| A.5.33 / A.5.34 | Protection of records / Privacy & PII | Registry + masking + audit log; no approved PII-protection *policy* | **PARTIAL** |
+| A.5.33 / A.5.34 | Protection of records / Privacy & PII | Registry + masking + audit log; no approved PII-protection _policy_ | **PARTIAL** |
 | A.5.35 | Independent review | None | **GAP** |
 | A.5.37 | Documented operating procedures | AGENTS.md + Diamond Seal doctrine; not packaged as ISMS procedures | **PARTIAL** |
 
 ### A.6 People Controls (8)
+
 | Clause | Requirement | Rocky | Status |
 | --- | --- | --- | --- |
 | A.6.1 | Screening | HR layer absent | **GAP** |
@@ -102,10 +104,12 @@ Our enforcement lacks the Imaginary commitment (the documented ISMS) and the cer
 | A.6.2 / A.6.4 / A.6.5 / A.6.7 / A.6.8 | Terms / discipline / post-employment / remote / event reporting | Partial via Better Auth session/event logging | **PARTIAL** |
 
 ### A.7 Physical Controls (14)
+
 All physical perimeters, entry, offices, monitoring, equipment, secure disposal — **GAP** (org-level;
 required for certification, not expressible in application code).
 
 ### A.8 Technological Controls (34)
+
 | Clause | Requirement | Rocky | Status |
 | --- | --- | --- | --- |
 | A.8.2 / A.8.3 / A.8.4 / A.8.5 | Privileged access / access restriction / source-code access / secure auth | RLS + RBAC + Better Auth | **MET** |
@@ -121,6 +125,7 @@ required for certification, not expressible in application code).
 ## 5. ISO/IEC 27701:2025 — PIMS Mapping (the GDPR-adjacent layer)
 
 ### Table A.1 — Controls for PII **controllers** (31)
+
 | Ref | Requirement | Rocky | Status |
 | --- | --- | --- | --- |
 | A.1.2.2 | Identify & document purpose | Reveal-gate captures `purpose`; no documented purpose register | **PARTIAL** |
@@ -139,11 +144,13 @@ required for certification, not expressible in application code).
 | A.1.5.2 / .3 / .4 / .5 | Transfer basis / countries / transfer & disclosure records | Domestic (MK/AL) data; crosswalk maps Art.44; no transfer mechanism | **GAP** |
 
 ### Table A.2 — Controls for PII **processors** (7)
+
 Customer agreement, org purposes, marketing use, infringing instruction, customer obligations, records,
-comply with principal obligations — **GAP** (Rocky is a *controller*; processor agreements with
+comply with principal obligations — **GAP** (Rocky is a _controller_; processor agreements with
 Better Auth et al. not formalised).
 
 ### Table A.3 — Controls for controllers **and** processors (27)
+
 | Ref | Requirement | Rocky | Status |
 | --- | --- | --- | --- |
 | A.3.5 / .6 | Classification / labelling of information | `PII_FIELD_REGISTRY` categories | **MET** |
@@ -186,11 +193,11 @@ Better Auth et al. not formalised).
 
 ## 7. Phased Roadmap
 
-- **Phase 1 — Harvest the code we already have (weeks, not months).** Document the ISMS *around*
+- **Phase 1 — Harvest the code we already have (weeks, not months).** Document the ISMS _around_
   the enforcement that exists: RLS, RBAC, `PII_FIELD_REGISTRY`, mask/reveal-gate, tamper-evident
   log, Result sovereignty, Diamond Seal. These already satisfy A.5.9/.12/.13, A.5.15–.18, A.5.28,
   A.8.2–.5/.11/.15/.16, A.3.5/.6/.8/.9/.14/.23–.26, A.3.27–.30. Write the procedures that
-  *describe* this reality. Lowest cost, highest visible gain.
+  _describe_ this reality. Lowest cost, highest visible gain.
 - **Phase 2 — The governance layer (the real work).** G1–G10: policies, lawful basis, DPIA,
   RoPA, DPO, training, supplier agreements, crypto-at-rest, breach workflow, enforced retention/erasure.
   This is where ADR-0061 Phase 2, ADR-0066, and the `VALIDATED_CROSSWALK` compliance module
@@ -211,6 +218,61 @@ Better Auth et al. not formalised).
   validated GDPR <-> MK LPDP <-> AL Law 124 equivalences. The per-control `gdprMapping` inside
   `iso27701_2025.json` is the richer source to populate the deferred `iso27701?` field — **once
   reviewed by counsel**. That single edit would give every PIMS control its GDPR article anchor.
+- **ADR-0083** (Deployment Topology — Docker Compose, External DB & Cloudflare Access) — the
+  runtime scaffolding (Cloudflare Access MFA / Service Token, tunnel-only ingress, non-root images,
+  secrets handling, external Postgres + RLS) is logged as Phase-1 evidence in §10 of this register.
+- **ADR-0082** (PDF/A-3 Hybrid Container + PAdES Signing) — every emitted document is a cryptographically
+  signed, archive-grade artifact; the enforcement hook for A.3.27–.30 and a strong audit-story asset (§10.2).
+
+---
+
+- **ADR-0083** (Deployment Topology — Docker Compose, External DB & Cloudflare Access) — the
+  runtime scaffolding (Cloudflare Access MFA / Service Token, tunnel-only ingress, non-root images,
+  secrets handling, external Postgres + RLS) is logged as Phase-1 evidence in §10 of this register.
+- **ADR-0082** (PDF/A-3 Hybrid Container + PAdES Signing) — every emitted document is a cryptographically
+  signed, archive-grade artifact; the enforcement hook for A.3.27–.30 and a strong audit-story asset (§10.2).
+
+---
+
+## 10. Runtime / Deployment Controls (evidence added 2026-07-12)
+
+The deployment scaffolding built for the VM (Docker Compose + Cloudflare Access / DockFlare +
+external Postgres) is itself a set of _technological controls_ that map onto Annex A / PIMS. These are
+recorded here as **Phase-1 evidence** (they describe controls already running) and feed the SoA
+(`rocky-soa.md`). Clause mappings are engineering leads — counsel must still confirm (see §9).
+
+### 10.1 Control → clause map
+
+| Control (evidence) | ISO/IEC 27001:2022 | ISO/IEC 27701:2025 | Status | Source |
+| --- | --- | --- | --- | --- |
+| Cloudflare Access: Zero-Trust + TOTP on `web`/`docs`; Service Token + authenticated group on `api` (mobile clears the shield as a machine) | A.5.15, A.5.16, A.5.17, A.5.18, A.8.5 | A.3.5, A.3.6, A.3.8 | MET | ADR-0083; `fc0cfa9`, `da963e1` |
+| Tunnel-only ingress, no published ports; `cloudflare-net` segregation | A.8.20, A.8.22 | A.3.13 | MET | ADR-0083; `docker-compose.yml` |
+| Non-root runtime containers; minimal multi-stage images (`api` on `node:24-alpine`, `web`/`docs` on `node:24-slim`) | A.8.9, A.8.10, A.8.19 | — | MET | `9ba4e31` |
+| Secrets: gitignored `.env` (dev, `chmod 600`) + encrypted VM disk; Cloudflare Secrets Store + fetch init container (prod, deferred) | A.8.24, A.5.32, A.5.33 | A.3.26 | MET (dev) / Open (prod) | ADR-0083; WO-145 |
+| External Postgres/PostGIS + Row-Level Security (`pgPolicy`) enforced at the DB | A.5.12, A.5.15–.18, A.5.33 | A.3.14 | MET | `f103c25`; ADR-0003 (Execution RLS stage), ADR-0007 (audit) |
+| Documented deployment topology + frontend↔backend boundary | A.5.8, A.5.10 | A.3.13 | MET | ADR-0083 |
+
+### 10.2 Cryptographic document feature (the "brag")
+
+`ADR-0082 — PDF/A-3 Hybrid Container + PAdES Signing` makes every emitted document
+(passports, movements, inspections, CHED) a **cryptographically signed, archive-grade artifact**:
+
+- **PAdES signing** (per-document digital signature) → A.8.24 (use of cryptography),
+  A.3.27–.30 (evidence collection / integrity / non-repudiation).
+- **PDF/A-3 hybrid container** (embedded machine-readable source + human-readable render,
+  long-term archival format) → A.8.3 (retention), A.1.4.8 (PII retention), A.3.14 (integrity).
+- **Tamper-evident, verifiable by veraPDF/CI** → A.5.28 (info-sec event evidence), A.8.15/.16.
+
+Status: **designed / in progress (WO-050)** — the signature + archival container is the enforcement
+hook for A.3.27–.30 and a strong auditor story (signed, archive-grade, machine-verifiable documents).
+This is exactly the kind of _enforcement-ahead-of-paperwork_ asset ADR-0067 celebrates.
+
+### 10.3 Notes
+
+- These are engineering controls; they support the SoA but do **not** by themselves constitute
+  certification. Phase 2 (governance) + Phase 3 (audit, counsel) still required (§7).
+- The `api` image is Alpine (NestJS pure-JS; typst renders via WASM). `web`/`docs` stay glibc
+  `slim` (Next.js `@parcel/watcher` has no musl prebuild). Documented in ADR-0083 Thin-image note.
 
 ---
 

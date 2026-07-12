@@ -104,6 +104,10 @@ flowchart LR
 - **Files:** `docker-compose.yml` (api/web/docs + `cloudflare-net`), `apps/api/Dockerfile`,
   `apps/web/Dockerfile`, `apps/docs/Dockerfile` (new), `apps/mob/lib/auth.ts` (Service Token),
   `packages/auth/src/client.ts` (`fetchOptions` forward), `.env.example`.
+- **Compliance evidence:** the deployment controls map onto ISO 27001 Annex A / ISO 27701 PIMS in
+  `apps/docs/content/compliance/iso27701-2025-gap-analysis.md` §10 — Cloudflare Access → A.5.15–.18 /
+  A.8.5; tunnel-only ingress → A.8.20/.22; non-root images → A.8.9/.10/.19; secrets → A.8.24; external
+  Postgres + RLS → A.5.12/.15–.18; PAdES / PDF-A-3 signed documents → A.8.24 / A.3.27–.30. Feeds the SoA.
 - **Package → container closure** (resolved by `pnpm install -r --filter <svc>...`):
   - `api`: `@rocky/api` + `@rocky/auth`, `@rocky/validators`, `@rocky/trpc`, `@rocky/database`,
     `@rocky/authorization`, `@rocky/execution`, `@rocky/domains-*`, `@rocky/pdf`,
@@ -154,3 +158,5 @@ docker compose --profile local-db config            # db present only with profi
 - **ADR-0066** — Error Sovereignty (Result → TRPCError at the boundary).
 - **ADR-0021** — Auth/session (better-auth).
 - **ADR-0081** — Accept-and-Flag Validation Doctrine (validators consumed across the boundary).
+- **ADR-0082** — PDF/A-3 Hybrid Container + PAdES Signing (cryptographic, archive-grade documents;
+  A.8.24 / A.3.27–.30 evidence — see gap-analysis §10.2).
