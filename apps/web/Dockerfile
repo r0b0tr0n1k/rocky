@@ -10,7 +10,7 @@
 #   docker run -e API_URL=http://api:8080 -p 3000:3000 rocky-web
 
 FROM node:24.14.0-slim AS deps
-RUN corepack enable && corepack prepare pnpm@10.24.0 --activate
+RUN corepack enable && corepack prepare pnpm@11.10.0 --activate
 WORKDIR /app
 
 # root manifests

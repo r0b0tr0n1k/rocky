@@ -6,16 +6,13 @@ services:
     container_name: rokidb
     image: postgis/postgis:18-3.6-alpine
     environment:
-      - NODE_ENV=${NODE_ENV:-production}
-      - DB_USER=tbot
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=tbot
       - POSTGRES_USER=tbot
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=tbot
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
     ports:
       - "5432:5432"
     healthcheck:
@@ -44,19 +41,21 @@ services:
       - NODE_ENV=production
       - PORT=8080
       - API_PORT=8080
-      # Database
+      # Database — app + Postgres share the POSTGRES_PASSWORD secret
       - PG_HOST=db
       - PG_PORT=5432
       - PG_USER=tbot
-      - PG_PASS=${DB_PASSWORD}
+      - PG_PASS=${POSTGRES_PASSWORD}
       - PG_DB=tbot
+      # packages/database reads DATABASE_URL directly (PG_* is not forwarded)
+      - DATABASE_URL=postgres://tbot:${POSTGRES_PASSWORD}@db:5432/tbot
       # Auth
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - BASE_SERVICE_URL=http://api:8080
-      - AUTH_BASE_URL=http://localhost:3000
-      # CORS (web container + local dev)
-      - CORS_ORIGINS=http://localhost:3000,http://web:3000
-      - TRUSTED_ORIGINS=http://localhost:3000,mobile://
+      - AUTH_BASE_URL=${AUTH_BASE_URL:-http://localhost:3000}
+      # CORS (web container + local dev); override CORS_ORIGINS on a VM
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://web:3000}
+      - TRUSTED_ORIGINS=${TRUSTED_ORIGINS:-http://localhost:3000,mobile://}
       # App
       - VERSION=${VERSION:-production}
       - ENVIRONMENT=production
@@ -76,14 +75,16 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        # Inlined by Next.js at BUILD time for browser use
-        - NEXT_PUBLIC_API_URL=http://localhost:8080
+        # Inlined by Next.js at build time (browser). Override WEB_PUBLIC_API_URL on a VM
+        - NEXT_PUBLIC_API_URL=${WEB_PUBLIC_API_URL:-http://localhost:8080}
     environment:
       - NODE_ENV=production
       # SSR: Next.js server calls API via Docker internal network (RUNTIME)
       - API_URL=http://api:8080
       # Auth secret (same as API, for server-side session validation)
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      # Public base URL of the auth server (override AUTH_BASE_URL on a VM)
+      - AUTH_BASE_URL=${AUTH_BASE_URL:-http://localhost:3000}
     ports:
       - "3000:3000"
     depends_on:

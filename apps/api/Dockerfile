@@ -1,5 +1,5 @@
 FROM node:24.14.0-slim AS deps
-RUN corepack enable && corepack prepare pnpm@10.24.0 --activate
+RUN corepack enable && corepack prepare pnpm@11.10.0 --activate
 WORKDIR /app
 # root manifests
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
