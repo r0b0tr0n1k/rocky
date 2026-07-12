@@ -1,0 +1,28 @@
+# Build-context exclusions — keep local cruft and secrets out of the image.
+# NOTE: do NOT exclude *.md — apps/docs content is Markdown and is part of the
+# Nextra build. Do NOT exclude packages/ or apps/ source (needed to build).
+
+node_modules
+**/node_modules
+dist
+**/dist
+.next
+**/.next
+.git
+.github
+.env
+.env.*
+coverage
+**/coverage
+**/__tests__
+**/*.spec.ts
+**/*.test.ts
+**/*.tsbuildinfo
+**/*.log
+Dockerfile
+docker-compose.yml
+docker-compose*.yml
+.dockerignore
+.vscode
+.idea
+.DS_Store

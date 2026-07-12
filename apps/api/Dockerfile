@@ -1,33 +1,34 @@
-FROM node:24.14.0-slim AS deps
-# glibc base required: native deps (e.g. @parcel/watcher) ship no musl prebuilds, so Alpine breaks Next.js builds.
+FROM node:24-alpine AS deps
+# glibc NOT required: the API is NestJS (pure JS). @rocky/pdf renders via the
+# typst.ts WASM compiler (libc-agnostic), so Alpine/musl is fine here — unlike
+# the Next.js web/docs images, which need glibc for @parcel/watcher prebuilds.
 RUN corepack enable && corepack prepare pnpm@11.10.0 --activate
 WORKDIR /app
-# root manifests
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
-# only the manifests to maximize install cache
+# all workspace manifests so pnpm can resolve the full graph
 COPY packages ./packages
-COPY apps/api/package.json ./apps/api/package.json
-# install only the API workspace and its deps
+COPY apps ./apps
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm install -r --filter @rocky/api... --frozen-lockfile
 
 # ---- build
 FROM deps AS build
-# copy sources now (deps stage already has manifests and node_modules)
 COPY apps/api ./apps/api
-# build only API and its deps
 RUN pnpm -r --filter @rocky/api... build
+# drop devDependencies from node_modules (drizzle-kit, tsx, typescript, vitest, @nestjs/cli, ...)
+RUN pnpm -r prune --prod
 
-# ---- runtime
-FROM node:24.14.0-slim AS runtime
-# Install curl for health check
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# ---- runtime (Alpine, prod deps only, non-root)
+FROM node:24-alpine AS runtime
+RUN apk add --no-cache curl
 WORKDIR /app
 ENV NODE_ENV=production
-# copy built app and dependencies
-COPY --from=deps /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=build /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/packages ./packages
 COPY --from=build /app/apps/api ./apps/api
+# run as non-root
+RUN addgroup -S nodejs && adduser -S appuser -G nodejs && chown -R appuser:nodejs /app
+USER appuser
 WORKDIR /app/apps/api
-CMD ["npm", "start"]
+CMD ["node", "dist/main"]

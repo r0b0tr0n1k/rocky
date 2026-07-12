@@ -116,13 +116,18 @@ flowchart LR
 
 ## Thin-image note
 
-- Base is `node:24.14.0-slim` (Debian, **not** alpine). Multi-stage (deps → build → runtime) keeps the
-  runtime to slim + built app + `node_modules`.
-- Not alpine: `node:24-alpine` would shrink the base ~30–50 MB but risks musl breakage for any native
-  dep; test before switching.
-- The runtime layer currently copies the full `node_modules` (incl. devDeps like `drizzle-kit` / `tsx`).
-  A `--prod` install in the runtime stage would drop those (migrations run externally, so not needed at
-  runtime). Future optimization, not required for the VM.
+- **Per-service base image (the Nest/Next split):** the `api` image is **`node:24-alpine`**
+  (NestJS is pure JS; `@rocky/pdf` renders via the `typst.ts` **WASM** compiler, which is libc-agnostic,
+  so musl is safe). The `web` and `docs` images stay on **`node:24.14.0-slim`** (glibc) because Next.js
+  pulls `@parcel/watcher`, which ships **no musl prebuild** — Alpine breaks the Next.js build.
+- **DevDeps are dropped at runtime** via `pnpm -r prune --prod` in the build stage (the pnpm equivalent
+  of `npm prune --omit=dev`); the runtime copies only the pruned `node_modules`. Removes `drizzle-kit`,
+  `tsx`, `typescript`, `vitest`, `@nestjs/cli`, etc. from the shipped image.
+- **Non-root runtime user** (`addgroup`/`adduser` + `chown` + `USER`) on all three images.
+- **`.dockerignore`** at repo root keeps local `node_modules`/`.git`/`.env` out of the build context
+  (and secrets out of the image).
+- Multi-stage (deps → build → runtime) keeps each runtime to base + built app + pruned `node_modules`.
+  The remaining lever for `api` is the Alpine base; `web`/`docs` keep glibc for `@parcel/watcher`.
 
 ## Verification (Definition of Done)
 
