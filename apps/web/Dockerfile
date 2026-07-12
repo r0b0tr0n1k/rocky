@@ -9,6 +9,7 @@
 #
 #   docker run -e API_URL=http://api:8080 -p 3000:3000 rocky-web
 
+# glibc base required: native deps (e.g. @parcel/watcher) ship no musl prebuilds, so Alpine breaks Next.js builds.
 FROM node:24.14.0-slim AS deps
 RUN corepack enable && corepack prepare pnpm@11.10.0 --activate
 WORKDIR /app

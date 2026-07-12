@@ -1,4 +1,5 @@
 FROM node:24.14.0-slim AS deps
+# glibc base required: native deps (e.g. @parcel/watcher) ship no musl prebuilds, so Alpine breaks Next.js builds.
 RUN corepack enable && corepack prepare pnpm@11.10.0 --activate
 WORKDIR /app
 # root manifests

@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1.7
 # Docs (Nextra) — multi-stage, mirror apps/web. Docs does not use NEXT_PUBLIC_API_URL.
+# glibc base required: native deps (e.g. @parcel/watcher) ship no musl prebuilds, so Alpine breaks Next.js builds.
 FROM node:24.14.0-slim AS deps
 RUN corepack enable && corepack prepare pnpm@11.10.0 --activate
 WORKDIR /app
