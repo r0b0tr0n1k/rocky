@@ -24,7 +24,8 @@
     "check:adrs": "node scripts/check-adrs.mjs",
     "check:md-links": "node scripts/check-md-links.mjs",
     "check:agents": "node scripts/check-agents.mjs",
-    "ci:checks": "pnpm generate:trpc && pnpm check:trpc-boundary && pnpm check:adrs && pnpm check:md-links && pnpm check:agents && pnpm check:web-parity && pnpm test",
+    "check:pdfa": "pnpm --filter @rocky/pdf check:pdfa",
+    "ci:checks": "pnpm generate:trpc && pnpm check:trpc-boundary && pnpm check:adrs && pnpm check:md-links && pnpm check:agents && pnpm check:pdfa && pnpm check:web-parity && pnpm test",
     "gen:api-reference": "node scripts/generate-api-reference.mjs"
   },
   "devDependencies": {

@@ -95,11 +95,12 @@ Every architecture and documentation decision in this repo is governed by two AD
 
 ### Guardians (enforcement) — `pnpm ci:checks`
 
-`generate:trpc` → `check:trpc-boundary` → `check:adrs` → `check:md-links` → `check:agents` → `check:web-parity` → `test`.
+`generate:trpc` → `check:trpc-boundary` → `check:adrs` → `check:md-links` → `check:agents` → `check:pdfa` → `check:web-parity` → `test`.
 
 - `check:adrs` — every `NNNN-*.md` in `content/ADR/` conforms to ADR-0033.
 - `check:md-links` — every internal doc link resolves; no `../` escapes.
 - `check:agents` — every bot declared in the Child RobotFarm Index owns an `AGENTS.md`; no stale child-index references.
+- `check:pdfa` — `@rocky/pdf` emits a PDF/A-3 **and** PAdES-signed artifact (structurally asserts `/EmbeddedFile` + `/AF` + `pdfaid:part=3` + `OutputIntent` + `/Sig` + `/ByteRange`; `verapdf` is the heavy CI gate via `pnpm verify:pdfa`).
 
 > ⚠️ **Build gate ≠ `ci:checks`.** `ci:checks` = `generate:trpc` + the link/ADR/agent guardians + `pnpm test` (vitest, **no `tsc` build**). It does **not** run the production build: `next build` (docs) or `nest build` (api — which type-checks the `*.test.ts` files). The real gate that catches build-rot is the full **`pnpm build`** (turbo). A green `ci:checks` is **not** a green build — run `pnpm build` before declaring done. (Lived this session: a 4-layer rot — api test TS7023 → docs TSDoc `next-mdx-import-source-file` → `MDXComponents` TS2742 → `page.tsx` `<Wrapper>` TS2786 — was invisible to `ci:checks` and only surfaced at `pnpm build`.)
 
@@ -175,7 +176,7 @@ Every meaningful change requires a RobotFarm pass: update the owning `AGENTS.md`
 | **Health Bot**        | `packages/domains/health/`     | Disease master data, vaccinations, treatments, outbreak alerts                                                                              |
 | **IoT Bot**           | `packages/domains/iot/`        | Device registry, sensor readings, geofences, geofence events                                                                                |
 | **Geo Bot**           | `packages/geo/`              | Spatial query/reference service: geofences, disease zones, animal geofence events; disease-zone declaration (ADR-0080)                                                                                |
-| **PDF Bot**           | `packages/pdf/`                | Document generation framework; PDF/A-3 hybrid (Typst render + @e-invoice-eu embed) + PAdES signing (HSM) + QR (ear tags) per ADR-0082            |
+| **PDF Bot**           | `packages/pdf/`                | Document generation framework; PDF/A-3 hybrid (Typst render → `@cantoo/pdf-lib` wrap) + PAdES signing (HSM / local p12) + QR (ear tags) per ADR-0082            |
 | **Mobile Bot**        | `apps/mob/`                 | Expo React Native app, offline sync, field data entry                                                                                       |
 
 ### RobotFarm Workflows
@@ -241,7 +242,7 @@ Every meaningful change requires a RobotFarm pass: update the owning `AGENTS.md`
 **IoT Bot** — Manages IoT infrastructure in `packages/domains/iot/`. Device registry (`iot_devices`), time-series sensor readings (`sensor_readings`), geofence definitions (`geofences` with GeoJSON geometry), and geofence entry/exit events (`animal_geofence_events`). Basic CRUD — no event queues, no real-time processing, no edge AI. 11 tRPC endpoints across 4 entity groups.
 **Geo Bot** — Spatial query/reference service in `packages/geo/` (top-level cross-cutting package, sibling to `@rocky/database` / `@rocky/validators` — **not** a domain under `packages/domains/`). Owns geofence, disease-zone, and animal-geofence-event data (extracted from IoT per ADR-0078) — the _where_ of the registry. Has no business workflow of its own; it is queried for geo data by Movement (lineage fusion), Inspection (disease zones, ADR-0064), Farm (holding boundaries), and the dashboard. Materializes ADR-0053 (INSPIRE / NUTS-LAU + PostGIS + LPIS). Queries only — no event queues, no real-time evaluation engine.
 
-**PDF Bot** — Manages the document generation framework in `packages/pdf/`. Pluggable template system: each document type implements `DocumentTemplate` (fetchData → mapToModel → serialize). Singleton `DocumentRegistry` maps type strings to templates. Generic `document.generate({ type, refId, format })` tRPC endpoint. Templates are plain classes (no decorators) instantiated via `useFactory` in AppModule. Supports inspection-form, passport, movement (+ more). Per **ADR-0082**: the `format: "pdf"` branch renders via **Typst** (`typst-business-templates`, JSON→PDF), embeds the source XML/YAML as PDF/A-3 via the `@e-invoice-eu` **library**, and **PAdES-signs** (ETSI EN 319 142) with Rocky's cert delegated to an air-gapped HSM; QR codes (ear-tag linkage) are generated. YAML/XML remains the stable intermediate API.
+**PDF Bot** — Manages the document generation framework in `packages/pdf/`. Pluggable template system: each document type implements `DocumentTemplate` (fetchData → mapToModel → serialize). Singleton `DocumentRegistry` maps type strings to templates. Generic `document.generate({ type, refId, format })` tRPC endpoint. Templates are plain classes (no decorators) instantiated via `useFactory` in AppModule. Supports inspection-form, passport, movement (+ more). Per **ADR-0082**: the `format: "pdf"` branch renders via **Typst** (`@myriaddreamin/typst.ts` prebuilt WASM; JSON model → `.typ` → PDF), wraps the visual into **PDF/A-3** (source YAML embedded as an associated file + XMP `pdfaid:part=3` + sRGB OutputIntent) using `@cantoo/pdf-lib` (replicating the `@e-invoice-eu` Factur-X mechanism, without taking the vendored lib as a dependency), and **PAdES-signs** (ETSI EN 319 142) — production delegates the seal to an air-gapped HSM (`HsmSigner`); `Pkcs12Signer` covers local/dev. QR codes (ear-tag linkage) are a planned follow-up. YAML/XML remains the stable intermediate API.
 
 ### Context Boundaries
 

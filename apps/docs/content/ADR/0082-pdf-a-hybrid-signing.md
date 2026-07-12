@@ -398,6 +398,23 @@ npx pdfcpu validate -mode strict sample.pdf
 5. **Relying on an implicit, unpinned `mk` pipeline** — pin pandoc version + the
    PDF/A profile as a committed, reproducible script.
 
+## Status
+
+Accepted and implemented (2026-07). The full pipeline lands in `packages/pdf`:
+
+- Typst WASM render (`@myriaddreamin/typst.ts`) → `wrapPdfA3` (`@cantoo/pdf-lib`) → PAdES seal.
+- **PAdES-LTV** is implemented in `Pkcs12Signer` (forge-built detached CMS +
+  `signatureTimeStampToken` / `revocationInfoArchival` unsigned attributes via
+  ASN.1 surgery — forge cannot emit `unsignedAttrs`) and delegated to the air-gapped
+  HSM via `HsmSigner` for production. `TimestampAuthority` (`HttpTsaClient` prod,
+  `FakeTimestampAuthority` dev) drives the RFC 3161 timestamp.
+- **QR codes**: standalone ear-tag artifact via `generateQrPng`/`generateQrSvg`
+  (`qrcode`) — implemented + tested. On-document QR is blocked by the prebuilt WASM
+  sandbox (no native `qrcode()`, `image()` cannot read injected vfs files); revisited
+  on WASM upgrade / local font vendoring.
+- `check:pdfa` (PDF/A-3 + PAdES + LTV structural assertions) is wired into root
+  `ci:checks`; `verify:pdfa` emits a real signed sample and runs `verapdf` when installed.
+
 ## Related ADRs
 
 - **ADR-0009** — Document Generation framework (YAML/XML stable API; PDF deferred).

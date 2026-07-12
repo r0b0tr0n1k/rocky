@@ -38,7 +38,7 @@ describe("DocumentService.generate — pdf branch", () => {
     expect(isFormatSupported("pdf")).toBe(true);
   });
 
-  it("renders a Typst PDF (base64) for format: 'pdf'", async () => {
+  it("renders a Typst PDF/A-3 hybrid (base64) for format: 'pdf'", async () => {
     const service = new DocumentService();
     const result = await service.generate({ type: FAKE_TYPE, refId: "x", format: "pdf" });
 
@@ -50,6 +50,35 @@ describe("DocumentService.generate — pdf branch", () => {
       const pdf = Buffer.from(r.content, "base64");
       expect(pdfHeader(pdf)).toBe("%PDF-");
       expect(pdf.length).toBeGreaterThan(0);
+
+      const text = pdf.toString("latin1");
+      // PDF/A-3 hybrid contract: embedded source + AF + XMP pdfaid + OutputIntent
+      expect(text).toContain("/EmbeddedFile");
+      expect(text).toContain("/AF");
+      expect(text).toContain("pdfaid:part");
+      expect(text).toContain(">3<");
+      expect(text).toContain("OutputIntent");
+      // No signer configured in this test → left unsigned (NoOp default).
+      expect(text).not.toContain("/Sig");
+    }
+  }, 120_000);
+
+  it("applies the configured signer to the wrapped PDF/A-3 buffer", async () => {
+    const service = new DocumentService();
+    let sealed = false;
+    service.useSigner({
+      name: "marker",
+      async sign(input) {
+        sealed = true;
+        return Buffer.concat([Buffer.from(input), Buffer.from("SEALED-BY-" + this.name)]);
+      },
+    });
+    const result = await service.generate({ type: FAKE_TYPE, refId: "x", format: "pdf" });
+    expect(result.isOk()).toBe(true);
+    if (result.isOk()) {
+      const pdf = Buffer.from(result.value.content, "base64");
+      expect(sealed).toBe(true);
+      expect(pdf.toString("latin1")).toContain("SEALED-BY-marker");
     }
   }, 120_000);
 

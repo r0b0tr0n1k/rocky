@@ -10,10 +10,10 @@
     ]
   },
   "scripts": {
-    "dev": "expo start -c",
-    "web": "expo start -c --web",
-    "android": "expo start -c --android",
-    "ios": "expo start -c --ios",
+    "dev": "NODE_OPTIONS=--max-old-space-size=8192 expo start -c",
+    "web": "NODE_OPTIONS=--max-old-space-size=8192 expo start -c --web",
+    "android": "NODE_OPTIONS=--max-old-space-size=8192 expo start -c --android",
+    "ios": "NODE_OPTIONS=--max-old-space-size=8192 expo start -c --ios",
     "build:android": "npx expo prebuild -p android --clean && cd android && ./gradlew assembleRelease",
     "build:android:debug": "npx expo prebuild -p android --clean && cd android && ./gradlew assembleDebug",
     "clean": "rm -rf .expo node_modules",

@@ -24,3 +24,11 @@ export type { DocumentGenerateInput, DocumentResponse } from "./services/documen
 // Errors
 export { DocumentError, DOCUMENT_ERRORS, documentErr } from "./errors/document.errors.js";
 export type { DocumentErrorCode } from "./errors/document.errors.js";
+
+// QR (ear-tag linkage artifact)
+export { generateQrPng, generateQrSvg } from "./engine/qr.js";
+
+// Sign stage (PAdES / LTV)
+export { type PdfSigner, NoOpSigner, Pkcs12Signer, HsmSigner } from "./sign/index.js";
+export type { Pkcs12SignerOptions, HsmSignerOptions } from "./sign/index.js";
+export { type TimestampAuthority, FakeTimestampAuthority, HttpTsaClient } from "./sign/timestamp.js";

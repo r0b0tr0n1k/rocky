@@ -2,7 +2,7 @@
 
 > ⚠️ **AUTO-GENERATED** from `apps/api/src/routers/*.router.ts` via `pnpm gen:api-reference`. Do not edit by hand — re-run the generator when routers change.
 
-The Rocky API is a **tRPC** layer generated from NestJS routers (`@Router` / `@Query` / `@Mutation`) by `nestjs-trpc generate` into `packages/trpc/src/generated/server.ts`. It currently exposes **25 routers / 173 procedures**. The NoDrift ideology holds at the boundary: the client `AppRouter` type *is* the contract, so drift is impossible by construction (enforced by `check:trpc-boundary` in `ci:checks`).
+The Rocky API is a **tRPC** layer generated from NestJS routers (`@Router` / `@Query` / `@Mutation`) by `nestjs-trpc generate` into `packages/trpc/src/generated/server.ts`. It currently exposes **25 routers / 174 procedures**. The NoDrift ideology holds at the boundary: the client `AppRouter` type *is* the contract, so drift is impossible by construction (enforced by `check:trpc-boundary` in `ci:checks`).
 
 ## Where the surface lives
 
@@ -25,7 +25,7 @@ Nextra’s `<TSDoc>` component turns TS types into property / parameter / return
 - [earTag](#eartag) — 18 procedures
 - [farm](#farm) — 4 procedures
 - [farmBook](#farmbook) — 4 procedures
-- [geo](#geo) — 17 procedures
+- [geo](#geo) — 18 procedures
 - [health](#health) — 21 procedures
 - [inspection](#inspection) — 8 procedures
 - [iot](#iot) — 6 procedures
@@ -164,6 +164,7 @@ Nextra’s `<TSDoc>` component turns TS types into property / parameter / return
 | `staticMapUrl` | Query | `z.object({ mode: z.enum(["centered", "bounded", "automatic"]), center: z.array(z.number()).length(2).optional(), zoom: z.number().optional(), bbox: z.array(z.number()).optional(), width: z.number().optional(), height: z.number().optional(), hiDPI: z.boolean().optional(), style: z.string().optional(), path: z.array(z.array(z.number())).optional(), marker: z.array(z.tuple([z.number(), z.number(), z.string()])).optional(), pathStrokeColor: z.string().optional(), })` | `z.string()` |
 | `geolocation` | Query | `z.object({})` | `geolocationSchema` |
 | `assessDeforestation` | Query | `z.object({ geofenceId: z.uuid(), cutoffYear: z.number().int() })` | `deforestationAssessmentSchema` |
+| `forestLayer` | Query | `z.object({ farmId: z.uuid(), cutoffYear: z.number().int().optional() })` | `forestLayerResponseSchema` |
 
 ## health
 

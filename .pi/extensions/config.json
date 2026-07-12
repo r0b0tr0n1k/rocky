@@ -1,0 +1,8 @@
+{
+  "global": 70,
+  "models": {
+    "tencent/hy3:free": 65,
+    "gpt-5.2*": 75,
+    "gpt-5.3*": 75
+  }
+}

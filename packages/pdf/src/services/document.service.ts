@@ -13,6 +13,7 @@
  */
 
 import { Injectable } from "@nestjs/common";
+import { AFRelationship } from "@cantoo/pdf-lib";
 import { err, ok, type Result } from "neverthrow";
 import { DocumentRegistry } from "../engine/document-registry.js";
 import {
@@ -24,6 +25,8 @@ import {
 import { DOCUMENT_ERRORS, documentErr, DocumentError } from "../errors/document.errors.js";
 import { buildDocumentModelInputs, GENERIC_DOCUMENT_TYPST } from "../engine/typst-document.template.js";
 import { renderTypst } from "../engine/typst-renderer.js";
+import { wrapPdfA3 } from "../engine/pdfa3.js";
+import { NoOpSigner, type PdfSigner } from "../sign/index.js";
 
 export interface DocumentGenerateInput {
   type: string;
@@ -43,6 +46,17 @@ export interface DocumentResponse {
 
 @Injectable()
 export class DocumentService {
+  /**
+   * The universal sign stage (ADR-0082 §2). Defaults to `NoOpSigner` so local
+   * development and deterministic tests stay unsigned; production wires a real
+   * seal via `useSigner(new HsmSigner(...))` or `new Pkcs12Signer(...)`.
+   */
+  private signer: PdfSigner = new NoOpSigner();
+
+  /** Replace the active signer (e.g. with `HsmSigner` at bootstrap). */
+  useSigner(signer: PdfSigner): void {
+    this.signer = signer;
+  }
   /**
    * Generate a document of the specified type.
    *
@@ -94,10 +108,14 @@ export class DocumentService {
     //    yaml | xml  → text intermediate (stable API, ADR-0009)
     //    pdf        → Typst visual render → base64 PDF (PDF/A-3 + PAdES applied
     //                 downstream by the @e-invoice-eu wrapper + HSM signer)
+    // The YAML intermediate is the canonical source (ADR-0009). It is returned
+    // directly for yaml/xml formats and embedded into the PDF/A-3 hybrid below.
+    const yamlResult = serializeToYaml(model);
+
     if (format === "pdf") {
       const inputs = buildDocumentModelInputs(model, {
         title: template.name,
-        subtitle: `${template.type} v${template.modelVersion}`,
+        subtitle: `${template.type} · v${template.modelVersion}`,
       });
       let pdf: Uint8Array;
       try {
@@ -110,6 +128,50 @@ export class DocumentService {
           }),
         );
       }
+
+      // Wrap as PDF/A-3 (embed the source YAML as an associated file) and then
+      // seal with the configured signer (PAdES). The signer is the universal
+      // sign stage (ADR-0082 §2); the default NoOpSigner keeps non-prod
+      // deterministic, but production must wire HsmSigner/Pkcs12Signer so no
+      // unsigned PDF ever egresses.
+      const sourceBytes = new TextEncoder().encode(
+        yamlResult.isOk() ? yamlResult.value : "",
+      );
+      let sealed: Uint8Array;
+      try {
+        const pdfa3 = await wrapPdfA3({
+          pdf,
+          attachments: [
+            {
+              filename: `${type}.yaml`,
+              buffer: sourceBytes,
+              mimeType: "application/yaml",
+              description: `${template.name} source (ADR-0009 intermediate)`,
+              afRelationship: AFRelationship.Alternative,
+            },
+          ],
+          meta: {
+            title: template.name,
+            subject: `${template.name} · ${refId}`,
+            author: "Rocky",
+            creator: "Rocky PDF Service",
+            producer: "Rocky PDF Service",
+            keywords: [template.type, "PDF/A-3"],
+            language: "en",
+            documentId: refId,
+            conformance: "B",
+          },
+        });
+        sealed = await this.signer.sign(pdfa3);
+      } catch (sealError) {
+        return err(
+          documentErr(DOCUMENT_ERRORS.SERIALIZATION_FAILED, {
+            message: sealError instanceof Error ? sealError.message : "PDF/A-3 wrap or PAdES sign failed",
+            type,
+          }),
+        );
+      }
+
       return ok({
         documentType: type,
         documentName: template.name,
@@ -117,11 +179,11 @@ export class DocumentService {
         modelPath: template.modelPath,
         generatedAt: new Date().toISOString(),
         format: "pdf",
-        content: Buffer.from(pdf).toString("base64"),
+        content: Buffer.from(sealed).toString("base64"),
       });
     }
 
-    const serialized = format === "xml" ? serializeToXml(model) : serializeToYaml(model);
+    const serialized = format === "xml" ? serializeToXml(model) : yamlResult;
     if (serialized.isErr()) {
       return err(serialized.error);
     }
