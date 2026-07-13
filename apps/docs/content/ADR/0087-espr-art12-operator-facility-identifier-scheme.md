@@ -176,6 +176,7 @@ User authorised the GLN build — WO-155 Phase 2 is no longer deferred to the ba
 
 ## Sources
 
+- `docs/reference/procurement-gs1-business-case.md` — **Companion (non-technical):** business case for procurement / agency leadership explaining why the GS1 company prefix is purchased and what it gains.
 - `docs/reference/OJ_L_202401781_EN_TXT.pdf` — Reg (EU) 2024/1781 (ESPR), OJ L 28.6.2024, Art 1(2)(e), Art 2(29)–(33), Art 10(1)(c), Art 12, Annex III, Art 18(5).
 - `docs/reference/04_Quick_Guide_UniqueLabeling.by_.ISOIEC15459-r220823-neu.pdf` — ISO/IEC 15459 CIN/IAC hierarchy; covers locations/facilities.
 - `docs/reference/4293749249.pdf` — ГОСТ ISO/IEC 15459-1—2016 (national adoption of 15459-1:2014).
