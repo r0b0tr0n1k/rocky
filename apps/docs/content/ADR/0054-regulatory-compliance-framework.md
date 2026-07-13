@@ -8,7 +8,7 @@
 | **Source**     | EUDR 2023/1115; USDA APHIS ADT; FDA FSMA §204; EU 2019/6 (Vet Med/AMR); EC 1/2005 (Transport Welfare); EC 178/2002 (General Food Law); GDPR |
 | **Supersedes** | None |
 | **Superseded** | None |
-| **Related**    | ADR-0030 (RuleSet — every threshold is a jurisdiction param, NOT a constant); ADR-0053 (geo foundation); ADR-0023 (traceability); ADR-0085 (traceability rules engine, 2021/520); rocky-withdrawal-recall-procedure.md (Art 19); iso27701-2025-gap-analysis.md §12 |
+| **Related**    | ADR-0030 (RuleSet — every threshold is a jurisdiction param, NOT a constant); ADR-0053 (geo foundation); ADR-0023 (traceability); ADR-0085 (traceability rules engine, 2021/520); rocky-withdrawal-recall-procedure.md (Art 19); ADR-0062 (IMSOC / CHED-A, 2019/1715); iso27701-2025-gap-analysis.md §12 |
 
 > _sniffs_ When you track biological life, movement, and meat, you are not writing CRUD. You are writing
 > **Digital International Law**. The cow is a regulated financial asset, a pandemic vector, an ecological

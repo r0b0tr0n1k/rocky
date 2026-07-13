@@ -378,6 +378,43 @@ Reg 178 Art 18 → operationalised by:
 
 ---
 
+## 13. EU IMSOC Regulation (Reg (EU) 2019/1715) — official-controls IT backbone (evidence added 2026-07-12)
+
+Commission Implementing Reg (EU) 2019/1715 is the **IMSOC Regulation** — the IT/operational
+backbone for EU official controls. It implements the **RASFF** (Art 50 of Reg 178/2002, §12), the
+eofficial-controls regime (Reg (EU) 2017/625), **AHL** (Reg (EU) 2016/429 — ADIS), and plant health
+(Reg (EU) 2016/2031 — EUROPHYT). Its four components are **iRASFF, ADIS, EUROPHYT, TRACES**. Rocky
+does not _host_ IMSOC (that is the competent authority's system) but **feeds** it: it emits CHED-A
+for TRACES NT, raises the signals that become iRASFF alerts, and signs documents to IMSOC-grade
+standards. ADR-0062 already implements CHED-A generation to Accepted status.
+
+### 13.1 Article → domain / ADR map
+
+| IMSOC 2019/1715 article | Requirement | Rocky coverage | Status |
+| --- | --- | --- | --- |
+| Art 40/41 — CHED-A + electronic format | Common Health Entry Document for animals; electronic CHED signed/sealed | ADR-0062 (CHED-A generation, TRACES NT XML, precondition guillotine) + Movement/Passport | MET (ADR-0062 Accepted) |
+| Art 38–42 — e-signature / e-seal / e-timestamp | Advanced/qualified e-signature + e-seal + qualified e-timestamp | ADR-0082 (PAdES-LTV + RFC 3161) + ADR-0084 (offline signed QR) | MET (design) |
+| Art 17/20/22 — iRASFF alerts | Alert within 48h, border-rejection, follow-up | Inspection (risk analysis, flagFarmForInspection) + Health (notifiable disease → flag) + ROCKY-WDRW-001 (withdrawal/recall) | Partial (alert signals distributed; recall procedure drafted) |
+| Art 10/11 — Data protection | Personal data per GDPR 2016/679 + Dir 2016/680 + Reg 2018/1725; joint controllership; 3rd-country partial access excludes PII | ADR-0061 (GDPR) + rocky-dpa.md (Art 28 DPA) + rocky-international-transfer-assessment.md + ADR-0062 D7/D8 (CHED GDPR dialectic) | MET (tooling) / Phase 2 |
+| Art 26/29a/34/42 — Storage | Personal data max 10 years | Archive/Retention (ADR-0061, rocky-retention-schedule.md) | MET (design) |
+| Art 28/46 — Contingency | Offline templates ("produced during contingency") | ADR-0084 (offline verifiable signed QR at no-signal gates) | MET (design) |
+
+### 13.2 Notes
+
+- **The signing stack is IMSOC-grade.** IMSOC demands advanced/qualified e-signature + e-seal +
+  qualified e-timestamp (Art 38–42). ADR-0082 (PAdES-LTV seal + RFC 3161 timestamp) and ADR-0084
+  (offline Ed25519 signed QR) are exactly that — the cryptographic document features are not just
+  GDPR Art 5(2)/32 evidence (§11.3) but **IMSOC-compliant signature mechanisms**.
+- **Rocky feeds, not hosts, IMSOC.** It emits CHED-A (ADR-0062) and raises alert signals
+  (Inspection/Health) that the competent authority submits to iRASFF/TRACES; it does not operate the
+  RASFF/ADIS/EUROPHYT networks itself.
+- Already well-referenced in the corpus: ADR-0054 (R9), ADR-0061, ADR-0062, and
+  `regulatory-verification-report.md` all cite 2019/1715. This section consolidates it into the
+  evidence spine.
+- Procedures are Draft (Phase 2, ADR-0067); clause mappings engineering leads — counsel review (§9).
+
+---
+
 ## 9. Homework Disclaimer
 
 This is engineering self-education, not legal advice. The standards were read from `graphgrc-main/`

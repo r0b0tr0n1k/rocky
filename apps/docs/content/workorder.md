@@ -1477,3 +1477,9 @@ subprocessor), wired to ADR-0075 + rocky-processor-register / rocky-toms / rocky
 - Added `compliance/rocky-withdrawal-recall-procedure.md` (ROCKY-WDRW-001): Art 19 withdrawal/recall workflow, mirroring the breach-notification procedure; honest implementation-status table.
 - ADR-0054 Related: linked ADR-0085 + procedure + gap-analysis §12. `_meta.ts`: registered the procedure.
 - Source: ADR-0054 (R6) / ADR-0085 / 0062 / 0063 / 0064 / rocky-withdrawal-recall-procedure.md.
+
+### WO-153 — EU IMSOC Regulation (Reg (EU) 2019/1715) evidence (gap-analysis §13) — Done ✅
+
+- Added `compliance/iso27701-2025-gap-analysis.md` §13: IMSOC 2019/1715 article→domain/ADR map (CHED-A Art 40/41 → ADR-0062; e-signature/seal/timestamp Art 38–42 → ADR-0082/0084; iRASFF alerts Art 17/20/22 → Inspection/Health + ROCKY-WDRW-001; data protection Art 10/11 → ADR-0061/DPA/transfer; 10-yr storage Art 26/42 → Archive; contingency Art 28/46 → ADR-0084). Notes the signing stack is IMSOC-grade and Rocky feeds (not hosts) IMSOC.
+- ADR-0062 Related: linked ADR-0082 (PAdES), ADR-0084 (offline QR), ROCKY-WDRW-001, gap-analysis §13. ADR-0054 Related: linked ADR-0062 (IMSOC/CHED-A).
+- Source: ADR-0062 / 0082 / 0084 / 0061 / 0054 / rocky-withdrawal-recall-procedure.md.

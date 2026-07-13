@@ -11,7 +11,7 @@
 | **Source** | IMSOC Reg (EU) 2019/1715; TRACES NT; CHED-A (Common Health Entry Document — Animals); ADR-0054 R9; ADR-0061 (GDPR); ADR-0030 (RuleSet) |
 | **Supersedes** | None |
 | **Superseded** | None |
-| **Related** | ADR-0054 (regulatory framework, strike 9 / R9); ADR-0061 (GDPR — CHED as lawful PII disclosure); ADR-0030 (RuleSet); PDF Bot `packages/pdf`; Movement domain; ADR-0009 (document-generation architecture — CHED as a PDF/document template) |
+| **Related** | ADR-0054 (regulatory framework, strike 9 / R9); ADR-0061 (GDPR — CHED as lawful PII disclosure); ADR-0030 (RuleSet); PDF Bot `packages/pdf`; Movement domain; ADR-0009 (document-generation architecture — CHED as a PDF/document template); ADR-0082 (PAdES signing — IMSOC e-seal/timestamp); ADR-0084 (offline signed QR — IMSOC contingency); rocky-withdrawal-recall-procedure.md (iRASFF alert → recall); iso27701-2025-gap-analysis.md §13 |
 
 ## Context
 
@@ -109,6 +109,7 @@ PDF Bot charter).
 ### D6 — Validators (NoDrift)
 
 `packages/validators/src/api/ched.api.ts`:
+
 - `generateChedRequestSchema` — wraps the generic request but constrains `type` to the literal
   `"ched-a"` (defends against typos / wrong-doc generation).
 - `chedModelSchema` — the CHED-A data model (consignment / origin / destination / animals / health /
