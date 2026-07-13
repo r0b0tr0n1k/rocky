@@ -181,3 +181,4 @@ in the ESPR mapping (ADR-0086 Art 12).
 - **ADR-0082** — PDF/A-3 + PAdES seal (unchanged).
 - **ADR-0054** — Regulatory Framework (operator/facility source data).
 - **ADR-0063** — EUDR DDS (the export gate the credential satisfies).
+- **Explanation** — [Animal-ID ↔ ESPR DPP](/animal-id-and-espr-dpp) (ear tag / signed QR / registry layering vs the DPP model).

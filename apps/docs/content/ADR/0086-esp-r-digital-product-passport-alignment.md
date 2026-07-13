@@ -106,6 +106,7 @@ However:
 - `eudr-due-diligence.ts` (ADR-0063) = the export gate the signed QR must satisfy.
 - Primary source: `docs/reference/OJ_L_202401781_EN_TXT.pdf` (OJ L 28.6.2024); article→Rocky mapping in §Decision and gap-analysis §15 verified against the text.
 - See gap-analysis **§15** (ESPR study) and **WO-155** (borrow + Phase 2).
+- Layering of ear tag / signed QR / passport registry vs the ESPR DPP model: [Animal-ID ↔ ESPR DPP](/animal-id-and-espr-dpp).
 
 ## Status
 
