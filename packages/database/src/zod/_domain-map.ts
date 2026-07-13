@@ -72,6 +72,10 @@ export const DOMAIN_TABLE_MAP = {
         "hd/treatments.ts",
         "hd/lab-tests.ts",
         "hd/vaccine-diseases.ts",
+        "hd/species-groups.ts",
+        "hd/disease-species-applicability.ts",
+        "hd/disease-events.ts",
+        "hd/disease-event-procedures.ts",
     ],
     auth: [
         "auth/user.ts",

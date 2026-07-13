@@ -31,7 +31,7 @@ function geofenceToFeature(g: GeofenceResponse): GeoMapFeature | null {
 export default function GeoPage() {
 	const trpc = useTRPC();
 	const queryClient = useQueryClient();
-	const farms = useQuery(trpc.farm.list.queryOptions({ limit: 200 }));
+	const farms = useQuery(trpc.farm.list.queryOptions({ limit: 100 }));
 	const [farmId, setFarmId] = React.useState<string>("");
 	const [selectedId, setSelectedId] = React.useState<string | null>(null);
 	const [drawMode, setDrawMode] = React.useState(false);
