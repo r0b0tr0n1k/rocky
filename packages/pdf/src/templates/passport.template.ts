@@ -14,6 +14,8 @@ import type { MovementRepository } from "@rocky/domains-movement";
 import type { HealthRepository } from "@rocky/domains-health";
 import { type Result, err, ok } from "neverthrow";
 import { BaseDocumentTemplate } from "../engine/document-template.js";
+import type { CredentialSeed } from "../credential/credential.js";
+import { glnFromId } from "../credential/gs1.js";
 import { DOCUMENT_ERRORS, documentErr, type DocumentError } from "../errors/document.errors.js";
 
 export class PassportTemplate extends BaseDocumentTemplate<string, Record<string, unknown>> {
@@ -175,5 +177,27 @@ export class PassportTemplate extends BaseDocumentTemplate<string, Record<string
         },
       },
     };
+  }
+
+  /**
+   * Credential seed (ADR-0084) — the minimal facts stamped into the offline
+   * verifiable QR: the passport subject + holding farm. Species is fixed
+   * (bovine) for this cattle registry.
+   */
+  async mapToCredential(refId: string): Promise<Result<CredentialSeed, DocumentError>> {
+    const passport = await this.passportRepo.findById(refId);
+    if (!passport) {
+      return err(documentErr(DOCUMENT_ERRORS.FETCH_FAILED, { reason: "Passport not found", passportId: refId }));
+    }
+    // Interim: operator/facility GLNs derived from the holding until a real GS1
+    // company prefix is allocated (ADR-0087 §Phase 0). Field shape is load-bearing.
+    const facilityId = passport.farmId ? glnFromId(passport.farmId) : undefined;
+    return ok({
+      sub: passport.id,
+      farmId: passport.farmId ?? undefined,
+      species: "bovine",
+      facilityId,
+      operatorId: facilityId,
+    });
   }
 }

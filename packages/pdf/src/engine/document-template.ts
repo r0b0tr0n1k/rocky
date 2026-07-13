@@ -14,6 +14,7 @@
 
 import type { Result } from "neverthrow";
 import type { DocumentError } from "../errors/document.errors.js";
+import type { CredentialSeed } from "../credential/credential.js";
 import type { DocumentFormat } from "./yaml-serializer.js";
 
 export interface DocumentTemplate<TData = unknown, TModel extends Record<string, unknown> = Record<string, unknown>> {
@@ -43,6 +44,14 @@ export interface DocumentTemplate<TData = unknown, TModel extends Record<string,
    * Should be a pure function — no side effects. Can be async for complex transformations.
    */
   mapToModel(data: TData): TModel | Promise<TModel>;
+
+  /**
+   * Produce the minimal credential seed (ADR-0084) for an offline-verifiable
+   * signed-QR. Optional: templates that implement it gain a self-contained
+   * verifiable QR (embedded on the PDF and served via `document.credential`).
+   * Returns `null` when the entity has no meaningful credential (e.g. CHED).
+   */
+  mapToCredential?(refId: string): Promise<Result<CredentialSeed, DocumentError>>;
 }
 
 /**

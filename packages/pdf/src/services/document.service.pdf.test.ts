@@ -5,12 +5,49 @@
  */
 import { ok } from "neverthrow";
 import { beforeAll, describe, expect, it } from "vitest";
+import forge from "node-forge";
 import { DocumentRegistry } from "../engine/document-registry.js";
 import { renderTypst } from "../engine/typst-renderer.js";
 import { DocumentService } from "./document.service.js";
 import { isFormatSupported } from "../engine/yaml-serializer.js";
+import { Pkcs12Signer } from "../sign/pkcs12-signer.js";
+import { FakeTimestampAuthority } from "../sign/timestamp.js";
+
+/**
+ * Network probe. The Typst WASM compiler opportunistically fetches default
+ * font assets from `cdn.jsdelivr.net`; when that host is unreachable (offline
+ * CI / sandbox) the render fails. Use this to gate the integration tests so
+ * the suite stays green offline — the deterministic PAdES-LTV sign/verify
+ * logic is covered by `pades-cms.test.ts` without any network dependency.
+ */
+let networkOk = false;
+try {
+  await fetch("https://cdn.jsdelivr.net/", { method: "HEAD", signal: AbortSignal.timeout(4000) });
+  networkOk = true;
+} catch {
+  networkOk = false;
+}
 
 const FAKE_TYPE = "test-pdf-doc";
+
+/** Self-signed PKCS#12 for the signed/verify path (no HSM needed in tests). */
+function makeP12(password: string): Buffer {
+  const keys = forge.pki.rsa.generateKeyPair({ bits: 2048 });
+  const cert = forge.pki.createCertificate();
+  cert.publicKey = keys.publicKey;
+  cert.serialNumber = "01";
+  cert.validity.notBefore = new Date();
+  cert.validity.notAfter = new Date(Date.now() + 365 * 86_400_000);
+  const attrs = [
+    { name: "commonName", value: "Rocky Test Signer" },
+    { name: "countryName", value: "MK" },
+  ];
+  cert.setSubject(attrs);
+  cert.setIssuer(attrs);
+  cert.sign(keys.privateKey, forge.md.sha256.create());
+  const p12Asn1 = forge.pkcs12.toPkcs12Asn1(keys.privateKey, cert, password);
+  return Buffer.from(forge.asn1.toDer(p12Asn1).getBytes(), "binary");
+}
 
 beforeAll(() => {
   DocumentRegistry.getInstance().register({
@@ -33,7 +70,7 @@ function pdfHeader(bytes: Uint8Array): string {
   return new TextDecoder().decode(bytes.slice(0, 5));
 }
 
-describe("DocumentService.generate — pdf branch", () => {
+describe.skipIf(!networkOk)("DocumentService.generate — pdf branch", () => {
   it("reports pdf as a supported format", () => {
     expect(isFormatSupported("pdf")).toBe(true);
   });
@@ -88,5 +125,32 @@ describe("DocumentService.generate — pdf branch", () => {
       inputs: { model: JSON.stringify({ name: "Фарма Козјак" }) },
     });
     expect(pdfHeader(pdf)).toBe("%PDF-");
+  }, 120_000);
+
+  it("verify reads back PAdES-LTV facts from a signed document", async () => {
+    const service = new DocumentService();
+    service.useSigner(
+      new Pkcs12Signer({ p12: makeP12("pw"), passphrase: "pw", timestampAuthority: new FakeTimestampAuthority() }),
+    );
+    const result = await service.verify({ type: FAKE_TYPE, refId: "x" });
+    expect(result.isOk()).toBe(true);
+    if (result.isOk()) {
+      const v = result.value;
+      expect(v.valid).toBe(true);
+      expect(v.hasTimestamp).toBe(true);
+      expect(v.signerSubject).toContain("Rocky Test Signer");
+      expect(v.signedAt).not.toBeNull();
+      expect(v.documentType).toBe(FAKE_TYPE);
+    }
+  }, 120_000);
+
+  it("verify reports invalid when the document is unsigned", async () => {
+    const service = new DocumentService(); // NoOpSigner default
+    const result = await service.verify({ type: FAKE_TYPE, refId: "x" });
+    expect(result.isOk()).toBe(true);
+    if (result.isOk()) {
+      expect(result.value.valid).toBe(false);
+      expect(result.value.message).toContain("No /Sig CMS");
+    }
   }, 120_000);
 });

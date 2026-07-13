@@ -7,9 +7,10 @@
 
 import { Module } from "@nestjs/common";
 import { DocumentService } from "./services/document.service.js";
+import { CredentialService } from "./services/credential.service.js";
 
 @Module({
-  providers: [DocumentService],
-  exports: [DocumentService],
+  providers: [CredentialService, DocumentService],
+  exports: [CredentialService, DocumentService],
 })
 export class PdfModule {}

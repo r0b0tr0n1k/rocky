@@ -45,6 +45,7 @@ export {
   generateKeyPair,
 } from "./credential/credential.js";
 export type { CredentialPayload, CredentialEnvelope, CredentialVerifyResult, CredentialSeed } from "./credential/credential.js";
+export { glnFromId, glnCheckDigit, isValidGln } from "./credential/gs1.js";
 
 // Credential service (server-side sign/verify orchestration — ADR-0084)
 export { CredentialService } from "./services/credential.service.js";

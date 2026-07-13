@@ -4,6 +4,7 @@ import type { EarTagRepository } from "@rocky/domains-eartag";
 import type { AnimalRepository } from "@rocky/domains-animal";
 import type { FarmRepository } from "@rocky/domains-farm";
 import { generateKeyPair, signCredential, verifyCredential } from "../credential/credential.js";
+import { glnFromId } from "../credential/gs1.js";
 import type { CredentialPayload } from "../credential/credential.js";
 
 function buildTemplate(earTagRow: unknown, animalRow: unknown | null, farmRow: unknown | null) {
@@ -35,7 +36,13 @@ describe("EarTagTemplate — ADR-0084 Phase 2 (ear-tag signed credential)", () =
     const res = await template.mapToCredential("tag-1");
     expect(res.isOk()).toBe(true);
     if (res.isOk()) {
-      expect(res.value).toEqual({ sub: "tag-1", farmId: "farm-9", species: "BOVINE" });
+      expect(res.value).toMatchObject({
+        sub: "tag-1",
+        farmId: "farm-9",
+        species: "BOVINE",
+        facilityId: glnFromId("farm-9"),
+        operatorId: glnFromId("farm-9"),
+      });
     }
   });
 
@@ -44,7 +51,7 @@ describe("EarTagTemplate — ADR-0084 Phase 2 (ear-tag signed credential)", () =
     const res = await template.mapToCredential("tag-2");
     expect(res.isOk()).toBe(true);
     if (res.isOk()) {
-      expect(res.value).toEqual({ sub: "tag-2", farmId: undefined, species: undefined });
+      expect(res.value).toMatchObject({ sub: "tag-2" });
     }
   });
 

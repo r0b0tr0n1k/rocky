@@ -1,12 +1,13 @@
 import { PDFDocument } from "@cantoo/pdf-lib";
 import forge from "node-forge";
 import { describe, expect, it, vi } from "vitest";
-import { buildPadesCms, embedCms, prepareSignature, type RevocationData } from "./pades-cms.js";
+import { buildPadesCms, embedCms, extractSignature, prepareSignature, type RevocationData } from "./pades-cms.js";
 import {
   FakeTimestampAuthority,
   HttpTsaClient,
   SIGNATURE_TIMESTAMP_OID,
 } from "./timestamp.js";
+import { Pkcs12Signer } from "./pkcs12-signer.js";
 import { wrapPdfA3 } from "../engine/pdfa3.js";
 
 const A = forge.asn1;
@@ -149,6 +150,33 @@ describe("buildPadesCms + unsigned attributes (LTV)", () => {
     const { pdf, signedContent } = prepareSignature(Buffer.from(await wrappedVisual()), 32768);
     const cms = await buildPadesCms({ p12, passphrase: "password", content: signedContent });
     expect(getUnsignedAttrs(extractCms(embedCms(pdf, cms)))).toBeNull();
+  });
+});
+
+describe("extractSignature (read-back / verify)", () => {
+  it("reads back PAdES-LTV facts from a signed PDF/A-3 (no Typst needed)", async () => {
+    const visual = await wrappedVisual();
+    const signed = await new Pkcs12Signer({
+      p12,
+      passphrase: "password",
+      timestampAuthority: new FakeTimestampAuthority(),
+    }).sign(visual);
+
+    const info = extractSignature(signed);
+    expect(info.valid).toBe(true);
+    expect(info.hasTimestamp).toBe(true);
+    expect(info.signerSubject).toContain("Rocky Test Signer");
+    expect(info.serialNumber).not.toBeNull();
+    expect(info.algorithm).toBe("sha256");
+    expect(info.signedAt).not.toBeNull();
+    expect(info.message).toBe("CMS parsed");
+  });
+
+  it("reports invalid when no /Sig CMS is present", async () => {
+    const unsigned = await wrappedVisual();
+    const unsignedInfo = extractSignature(unsigned);
+    expect(unsignedInfo.valid).toBe(false);
+    expect(unsignedInfo.message).toContain("No /Sig CMS");
   });
 });
 

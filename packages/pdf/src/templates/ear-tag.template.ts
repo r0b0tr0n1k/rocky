@@ -15,6 +15,7 @@ import { type Result, err, ok } from "neverthrow";
 import { BaseDocumentTemplate } from "../engine/document-template.js";
 import type { CredentialSeed } from "../credential/credential.js";
 import { DOCUMENT_ERRORS, documentErr, type DocumentError } from "../errors/document.errors.js";
+import { glnFromId } from "../credential/gs1.js";
 
 export class EarTagTemplate extends BaseDocumentTemplate<string, Record<string, unknown>> {
   readonly type = "ear-tag";
@@ -96,10 +97,15 @@ export class EarTagTemplate extends BaseDocumentTemplate<string, Record<string, 
     }
 
     const animal = tag.animalId ? await this.animalRepo.findById(tag.animalId) : null;
+    const facilityId = animal?.currentFarmId ? glnFromId(animal.currentFarmId) : undefined;
+    // Interim: operator GLN derived from the holding until a real GS1 company
+    // prefix is allocated (ADR-0087 §Phase 0). The field shape is load-bearing.
     return ok({
       sub: tag.id,
       farmId: animal?.currentFarmId ?? undefined,
       species: animal?.species ?? undefined,
+      facilityId,
+      operatorId: facilityId,
     });
   }
 }

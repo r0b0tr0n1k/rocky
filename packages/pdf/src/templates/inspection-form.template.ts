@@ -11,6 +11,7 @@
 import type { InspectionService } from "@rocky/domains-inspection";
 import { err, ok, type Result } from "neverthrow";
 import { BaseDocumentTemplate } from "../engine/document-template.js";
+import type { CredentialSeed } from "../credential/credential.js";
 import { DOCUMENT_ERRORS, documentErr, type DocumentError } from "../errors/document.errors.js";
 
 interface PrintFormInput {
@@ -129,5 +130,21 @@ export class InspectionFormTemplate extends BaseDocumentTemplate<PrintFormInput,
         },
       },
     };
+  }
+
+  /**
+   * Credential seed (ADR-0084) — inspection subject + farm. Species is fixed
+   * (bovine) for this cattle registry.
+   */
+  async mapToCredential(refId: string): Promise<Result<CredentialSeed, DocumentError>> {
+    const result = await this.inspectionService.generateInspectionForm({ inspectionId: refId });
+    if (result.isErr()) {
+      return err(documentErr(DOCUMENT_ERRORS.FETCH_FAILED, { reason: result.error.message, context: result.error.context }));
+    }
+    return ok({
+      sub: refId,
+      farmId: result.value.farm.farmId ?? undefined,
+      species: "bovine",
+    });
   }
 }

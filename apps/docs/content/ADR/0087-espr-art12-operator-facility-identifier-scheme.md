@@ -170,6 +170,10 @@ capital. The signed-QR carrier (ADR-0084) and PAdES seal (ADR-0082) are unchange
 operator/facility identifier *shape* is pinned to GS1, closing the last PARTIAL in the ESPR
 mapping (ADR-0086 Art 12).
 
+### Implementation progress (2026-07-13)
+
+User authorised the GLN build — WO-155 Phase 2 is no longer deferred to the backlog. `CredentialSeed` / `CredentialPayload` (ADR-0084) now carry typed `operatorId` / `facilityId` (GS1 GLN keys), populated by the passport / movement / ear-tag templates. A `glnFromId` / `isValidGln` / `glnCheckDigit` utility (`packages/pdf/src/credential/gs1.ts`) derives a deterministic, valid 13-digit GLN (GS1 mod-10 check digit) from a source id and is pinned by a NoDrift unit test. **Phase 0 (real GS1 company-prefix allocation + per-holding/operator GLN backfill) remains a data task** — until then the derivation is the interim mapping (documented in code); the GLN field shape and check-digit math are load-bearing today.
+
 ## Sources
 
 - `docs/reference/OJ_L_202401781_EN_TXT.pdf` — Reg (EU) 2024/1781 (ESPR), OJ L 28.6.2024, Art 1(2)(e), Art 2(29)–(33), Art 10(1)(c), Art 12, Annex III, Art 18(5).

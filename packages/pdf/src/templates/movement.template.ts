@@ -12,6 +12,8 @@ import type { FarmRepository } from "@rocky/domains-farm";
 import type { MovementRepository } from "@rocky/domains-movement";
 import { err, ok, type Result } from "neverthrow";
 import { BaseDocumentTemplate } from "../engine/document-template.js";
+import type { CredentialSeed } from "../credential/credential.js";
+import { glnFromId } from "../credential/gs1.js";
 import { DOCUMENT_ERRORS, documentErr, type DocumentError } from "../errors/document.errors.js";
 
 export class MovementTemplate extends BaseDocumentTemplate<string, Record<string, unknown>> {
@@ -146,5 +148,27 @@ export class MovementTemplate extends BaseDocumentTemplate<string, Record<string
         },
       },
     };
+  }
+
+  /**
+   * Credential seed (ADR-0084) — movement subject + departure farm. Species is
+   * fixed (bovine) for this cattle registry.
+   */
+  async mapToCredential(refId: string): Promise<Result<CredentialSeed, DocumentError>> {
+    const movement = await this.movementRepo.findById(refId);
+    if (!movement) {
+      return err(documentErr(DOCUMENT_ERRORS.FETCH_FAILED, { reason: "Movement not found", movementId: refId }));
+    }
+    // Interim: operator/facility GLNs derived from the departure holding until a
+    // real GS1 company prefix is allocated (ADR-0087 §Phase 0). Field shape is
+    // load-bearing.
+    const facilityId = movement.fromFarmId ? glnFromId(movement.fromFarmId) : undefined;
+    return ok({
+      sub: movement.id,
+      farmId: movement.fromFarmId ?? undefined,
+      species: "bovine",
+      facilityId,
+      operatorId: facilityId,
+    });
   }
 }

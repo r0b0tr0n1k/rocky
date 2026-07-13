@@ -1,4 +1,4 @@
-import { toBuffer, toString } from "qrcode";
+import { toBuffer, toString, toDataURL } from "qrcode";
 
 /**
  * QR code generation for physical artifacts (ear-tag linkage, document
@@ -48,6 +48,19 @@ export async function generateQrSvg(
   const merged = { ...DEFAULTS, ...opts };
   return toString(text, {
     type: "svg",
+    margin: merged.margin,
+    width: merged.width,
+    errorCorrectionLevel: merged.errorCorrectionLevel,
+  });
+}
+
+/** Generate a QR code as a data URL (PNG) — ready for `<img src>` / mobile display. */
+export async function generateQrDataUrl(
+  text: string,
+  opts: QrOptions = {},
+): Promise<string> {
+  const merged = { ...DEFAULTS, ...opts };
+  return toDataURL(text, {
     margin: merged.margin,
     width: merged.width,
     errorCorrectionLevel: merged.errorCorrectionLevel,
