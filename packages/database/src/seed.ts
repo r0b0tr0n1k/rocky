@@ -19,6 +19,7 @@ import { VACCINE_TYPE } from "./constants/vaccine-type.js";
 import { db } from "./index.js";
 import { permissions, rolePermissions, roles } from "./schema/sm/rbac.js";
 import { diseases } from "./schema/hd/diseases.js";
+import { labTests } from "./schema/hd/lab-tests.js";
 import { vaccines } from "./schema/hd/vaccines.js";
 import { vaccineDiseases } from "./schema/hd/vaccine-diseases.js";
 import { eventSubscriptions } from "./schema/events/event-subscriptions.js";
@@ -29,6 +30,12 @@ import { organizations } from "./schema/sm/organizations.js";
 import { modules, systemParameters } from "./schema/sm/modules.js";
 import { states, zipCodes, addresses } from "./schema/hk/addresses.js";
 import { farms } from "./schema/hk/farms.js";
+import { subjects } from "./schema/hk/subjects.js";
+import { farmSubjects } from "./schema/hk/farm-subjects.js";
+import { animals } from "./schema/an/animals.js";
+import { movements } from "./schema/an/movements.js";
+import { sanitaryInspections } from "./schema/an/sanitary-inspections.js";
+import { outboxEvents } from "./schema/sm/outbox-events.js";
 import { USER_STATUS } from "./constants/user-status.js";
 import { LANGUAGE } from "./constants/language.js";
 import { ORG_TYPE } from "./constants/org-type.js";
@@ -36,8 +43,18 @@ import { FARM_TYPE } from "./constants/farm-type.js";
 import { DATA_SOURCE } from "./constants/data-source.js";
 import { VERIFICATION_STATUS } from "./constants/verification-status.js";
 import { PERMISSION_SCOPE } from "./constants/permission-scope.js";
+import { ANIMAL_STATUS } from "./constants/animal-status.js";
 import { DISEASE_CATEGORY } from "./constants/disease-category.js";
 import { CONTROL_MEASURES } from "./constants/control-measures.js";
+import { SEX } from "./constants/sex.js";
+import { MOVEMENT_TYPE } from "./constants/movement-type.js";
+import { SUBJECT_ROLE } from "./constants/subject-role.js";
+import { TEST_TYPE } from "./constants/test-type.js";
+import { TEST_RESULT } from "./constants/test-result.js";
+import { SAMPLE_STATUS } from "./constants/sample-status.js";
+import { SANITARY_DECISION } from "./constants/sanitary-decision.js";
+import { OUTBOX_AGGREGATE_TYPE } from "./constants/outbox-aggregate-type.js";
+import { OUTBOX_EVENT_STATUS } from "./constants/outbox-event-status.js";
 
 // ── Permission Definitions ─────────────────────────────────────
 // Each entry: { resource, action, description, scope }
@@ -623,7 +640,7 @@ async function seed() {
       .values({ name: "Test City", zipCode: "1000", stateId: state!.id })
       .returning();
 
-    const [addr] = await tx
+    await tx
       .insert(addresses)
       .values({ city: "Test City", street: "Test Street", houseNumber: "1", zipCodeId: zip!.id })
       .returning();
@@ -701,8 +718,6 @@ async function seed() {
     await db.transaction(async (tx) => {
       await tx.execute(sql`SET LOCAL "app.current_role" = 'SUPER_ADMIN'`);
 
-      const stateRow = await tx.select().from(states).limit(1);
-      const zipRow = await tx.select().from(zipCodes).limit(1);
       const addrRow = await tx.select().from(addresses).limit(1);
 
       const [farm] = await tx
@@ -732,6 +747,228 @@ async function seed() {
 
   console.log("  ℹ Test accounts: admin@test.com, vet@test.com, farmer@test.com, staff@test.com");
   console.log("  ℹ Password for all: test123456");
+
+  // ═══════════════════════════════════════════════════════════════
+  // 7. Seed Veterinary & Sanitary test data (ADR-0089/0090/0091/0092)
+  //    Fake data so the new disease-category, lab-test and sanitary
+  //    inspection features can be exercised end-to-end, including the
+  //    ADR-0092 Category-A zone-of-alienation trigger.
+  // ═══════════════════════════════════════════════════════════════
+  console.log("🌱 Seeding veterinary & sanitary test data...");
+
+  try {
+    await db.transaction(async (tx) => {
+      await tx.execute(sql`SET LOCAL "app.current_role" = 'SUPER_ADMIN'`);
+
+      const [addr] = await tx.select().from(addresses).limit(1);
+      if (!addr) throw new Error("No address available for farm seeding");
+
+      // 7a. Establishments: a slaughterhouse + two neighbouring origin farms.
+      //     Origin farm #1 carries GPS so the ADR-0092 zone can be drawn.
+      const [slaughterhouse] = await tx
+        .insert(farms)
+        .values({
+          farmId: "200000001",
+          addressId: addr.id,
+          name: "Skopje Slaughterhouse",
+          type: FARM_TYPE.SLAUGHTERHOUSE,
+          verificationStatus: VERIFICATION_STATUS.APPROVED,
+          dataSource: DATA_SOURCE.MOBILE,
+          isActive: true,
+        })
+        .returning();
+
+      const [originFarm1] = await tx
+        .insert(farms)
+        .values({
+          farmId: "200000002",
+          addressId: addr.id,
+          name: "Green Valley Farm",
+          type: FARM_TYPE.FARM,
+          verificationStatus: VERIFICATION_STATUS.APPROVED,
+          dataSource: DATA_SOURCE.MOBILE,
+          isActive: true,
+          location: sql`ST_SetSRID(ST_MakePoint(21.4254, 41.9952), 4326)`,
+        })
+        .returning();
+
+      const [originFarm2] = await tx
+        .insert(farms)
+        .values({
+          farmId: "200000003",
+          addressId: addr.id,
+          name: "Blue Hills Farm",
+          type: FARM_TYPE.FARM,
+          verificationStatus: VERIFICATION_STATUS.APPROVED,
+          dataSource: DATA_SOURCE.MOBILE,
+          isActive: true,
+          location: sql`ST_SetSRID(ST_MakePoint(21.4310, 41.9990), 4326)`,
+        })
+        .returning();
+
+      // 7b. Subjects: a sanitary inspector + a keeper (bound to origin farm #1).
+      const [inspector] = await tx
+        .insert(subjects)
+        .values({ shortName: "Sanitary Inspector", isActive: true })
+        .returning();
+
+      const [keeper] = await tx
+        .insert(subjects)
+        .values({ shortName: "Green Valley Keeper", isActive: true })
+        .returning();
+
+      await tx.insert(farmSubjects).values({
+        farmId: originFarm1!.id,
+        subjectId: keeper!.id,
+        role: SUBJECT_ROLE.KEEPER,
+      });
+
+      // 7c. Animals on the origin farms.
+      const [animal1] = await tx
+        .insert(animals)
+        .values({
+          earTagNumber: "10000001",
+          birthDate: "2024-03-15",
+          sex: SEX.FEMALE,
+          currentFarmId: originFarm1!.id,
+          status: ANIMAL_STATUS.ALIVE,
+        })
+        .returning();
+      const [animal2] = await tx
+        .insert(animals)
+        .values({
+          earTagNumber: "10000002",
+          birthDate: "2024-03-15",
+          sex: SEX.MALE,
+          currentFarmId: originFarm1!.id,
+          status: ANIMAL_STATUS.ALIVE,
+        })
+        .returning();
+      const [animal3] = await tx
+        .insert(animals)
+        .values({
+          earTagNumber: "10000003",
+          birthDate: "2024-03-15",
+          sex: SEX.FEMALE,
+          currentFarmId: originFarm2!.id,
+          status: ANIMAL_STATUS.ALIVE,
+        })
+        .returning();
+      const a1 = animal1!.id;
+      const a2 = animal2!.id;
+      const a3 = animal3!.id;
+
+      // 7d. Movements: one to the slaughterhouse (gates a sanitary inspection)
+      //     + one regular transfer that the ADR-0092 zone will block.
+      const [slaughterMovement] = await tx
+        .insert(movements)
+        .values({
+          animalId: a1,
+          fromFarmId: originFarm1!.id,
+          toFarmId: slaughterhouse!.id,
+          type: MOVEMENT_TYPE.SLAUGHTERHOUSE,
+          movementDate: "2026-07-10",
+        })
+        .returning();
+
+      await tx.insert(movements).values({
+        animalId: a3,
+        fromFarmId: originFarm2!.id,
+        toFarmId: originFarm1!.id,
+        type: MOVEMENT_TYPE.TRANSFER,
+        movementDate: "2026-07-12",
+      });
+
+      // 7e. Lab tests — incl. a POSITIVE Category A (Anthrax) on an origin-farm
+      //     animal, which fires the ADR-0092 zone-of-alienation automation.
+      const anthraxId = diseaseLookup.get("Anthrax")!;
+      const fmdId = diseaseLookup.get("Foot and Mouth Disease")!;
+      const mastitisId = diseaseLookup.get("Mastitis")!;
+
+      const [anthraxTest] = await tx
+        .insert(labTests)
+        .values({
+          animalId: a1,
+          farmId: originFarm1!.id,
+          diseaseId: anthraxId,
+          testType: TEST_TYPE.PCR,
+          testMethod: "qPCR",
+          result: TEST_RESULT.POSITIVE,
+          interpretation: "CATEGORY A positive — triggers zone lockdown",
+          labName: "State Veterinary Lab",
+          labSampleId: "SMP-001",
+          sampleStatus: SAMPLE_STATUS.COMPLETED,
+          sampleDate: "2026-07-09",
+          resultDate: "2026-07-11",
+        })
+        .returning();
+
+      await tx.insert(labTests).values([
+        {
+          animalId: a2,
+          farmId: originFarm1!.id,
+          diseaseId: fmdId,
+          testType: TEST_TYPE.ELISA,
+          result: TEST_RESULT.NEGATIVE,
+          sampleStatus: SAMPLE_STATUS.COMPLETED,
+          sampleDate: "2026-07-09",
+          resultDate: "2026-07-11",
+        },
+        {
+          animalId: a3,
+          farmId: originFarm2!.id,
+          diseaseId: mastitisId,
+          testType: TEST_TYPE.CULTURE,
+          result: TEST_RESULT.POSITIVE,
+          sampleStatus: SAMPLE_STATUS.COMPLETED,
+          sampleDate: "2026-07-10",
+          resultDate: "2026-07-12",
+        },
+      ]);
+
+      // 7e2. Outbox event so the ADR-0092 Zone-of-Alienation handler fires on the
+      //      next OutboxProcessorJob run (declares the 3km/10km disease zone).
+      await tx.insert(outboxEvents).values({
+        type: "lab_test.completed",
+        aggregateType: OUTBOX_AGGREGATE_TYPE.LAB_TEST,
+        aggregateId: anthraxTest!.id,
+        payload: {
+          labTestId: anthraxTest!.id,
+          animalId: a1,
+          farmId: originFarm1!.id,
+          diseaseId: anthraxId,
+          testType: TEST_TYPE.PCR,
+          result: TEST_RESULT.POSITIVE,
+          resultNumeric: null,
+          resultUnit: null,
+          interpretation: "CATEGORY A positive — triggers zone lockdown",
+          certificateRef: null,
+        },
+        status: OUTBOX_EVENT_STATUS.PENDING,
+      });
+
+      // 7f. Sanitary inspections (ante-/post-mortem) at the slaughterhouse.
+      await tx.insert(sanitaryInspections).values({
+        movementId: slaughterMovement!.id,
+        farmId: slaughterhouse!.id,
+        inspectorSubjectId: inspector!.id,
+        anteMortemDecision: SANITARY_DECISION.PASSED,
+        anteMortemAt: new Date("2026-07-10T08:00:00Z"),
+        postMortemDecision: SANITARY_DECISION.PASSED,
+        postMortemAt: new Date("2026-07-10T09:30:00Z"),
+      });
+
+      console.log(
+        `  ✓ Vet/Sanitary test data: 3 farms (1 slaughterhouse), 2 subjects, 3 animals, 2 movements, 3 lab tests (1 Category-A positive), 1 sanitary inspection, 1 outbox event`,
+      );
+    });
+  } catch (e: any) {
+    if (e.cause?.code === "42P01") {
+      console.warn(`  ⚠ veterinary/sanitary tables not found - skipping test data`);
+    } else {
+      throw e;
+    }
+  }
 
   console.log("✅ Seed complete.");
 }
