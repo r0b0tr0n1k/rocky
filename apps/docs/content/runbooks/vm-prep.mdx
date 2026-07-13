@@ -1,0 +1,146 @@
+---
+title: VM Prep & Domain
+sidebarTitle: VM Prep
+---
+
+# VM Prep & Domain
+
+How to stand Rocky up on a **remote VM** and what the domain actually requires. Read this
+before you `docker compose up` on the VM — most of the domain anxiety is a fetish.
+
+## The one fact that dissolves the confusion
+
+The repo's ingress is **DockFlare** (Cloudflare Tunnel). Every service in
+`docker-compose.yml` carries `dockflare.*` labels and hangs off the external
+`cloudflare-net` network. So:
+
+- `ROCKY_DOMAIN` drives the hostnames: `api.<domain>`, `admin.<domain>`,
+  `docs.<domain>`. Set `ROCKY_DOMAIN=rocky.techno.party` → the app lives at
+  `api.rocky.techno.party` / `admin.rocky.techno.party` / `docs.rocky.techno.party`.
+- **Cloudflare precondition (the only real one):** the *registered domain* (here
+  `techno.party`) must be a **Cloudflare zone you control** (NS at CF + a CF
+  token for DockFlare). Once that zone exists, subdomain *depth* is unlimited —
+  `api.rocky.techno.party` (fourth-level) is fine for DNS **and** Tunnel.
+- **Misconception to drop:** CF free does **not** limit subdomain depth. It limits
+  which name you can register as a *zone* — a registered domain (`techno.party`)
+  yes, a subdomain (`rocky.techno.party`) **no** (that needs Enterprise subdomain
+  delegation). So you manage `techno.party` as the zone; everything below it is
+  just DNS/Tunnel config.
+
+If you do **not** own `techno.party` (only `rocky.techno.party` was delegated to
+you), you cannot add `techno.party` as a zone yourself. Then either (a) have the
+owner add the zone + create the subdomain records for you, (b) register your own
+domain (e.g. `rocky.dev`) and use that as `ROCKY_DOMAIN`, or (c) accept
+Enterprise subdomain delegation.
+
+## You do NOT need a domain to test the backend
+
+This is the calming truth — *waves hands frantically*. The Veterinary & Sanitary
+smoke test (seed + watch the [ADR-0092](/ADR/0092-zone-of-alienation-automation)
+zone draw) needs only:
+
+- a **PostGIS** database,
+- `./scripts/db-recreate.sh` (schema + seed),
+- the **API running** (the `OutboxProcessorJob` polls every 5s),
+- `psql` to watch the zone.
+
+No public hostname. The `db` container already publishes `5432`. So: stand up the
+VM, run DB + API, do the seed + zone test **without touching DNS/Cloudflare**.
+Defer the `rocky.techno.party` / DockFlare decision until the web admin
+([ADR-0093](/ADR/0093-dual-dashboards-vet-vs-epidemiologist)) goes live — that is
+the first thing that actually needs a browser-reachable hostname.
+
+## Prep checklist
+
+```mermaid
+flowchart TD
+  A["📋 Repo root .env<br/>ROCKY_DOMAIN · DB_HOST · POSTGRES_PASSWORD · BETTER_AUTH_SECRET"] --> B["🐘 PostGIS DB<br/>(bundled postgis/postgis, or external + CREATE EXTENSION postgis)"]
+  B --> C["📝 packages/database/.env<br/>DATABASE_URL"]
+  C --> D["♻️ ./scripts/db-recreate.sh<br/>(schema + seed incl. Vet data)"]
+  D --> E["🚀 docker compose up -d api<br/>(OutboxProcessorJob every 5s)"]
+  E --> F["🔍 psql verify zone<br/>(see Vet/Sanitary Smoke Test)"]
+  F --> G(["✅ Backend testable — no domain needed"])
+  G -.-> H["🌐 Later: DockFlare + rocky.techno.party<br/>when web admin (ADR-0093) goes live"]
+  classDef step fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+  classDef ok fill:#98FB98,stroke:#333,stroke-width:2px,color:black
+  classDef later fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+  class A,B,C,D,E,F step
+  class G ok
+  class H later
+```
+
+### 1. Repo root `.env` (the four mandatory vars)
+
+```
+ROCKY_DOMAIN=rocky.techno.party      # or your own domain
+DB_HOST=db                            # or your external PostGIS host
+POSTGRES_PASSWORD=<strong>
+BETTER_AUTH_SECRET=$(openssl rand -base64 32)
+```
+
+See `.env.example` for the full set (DockFlare CF token, optional `CORS_ORIGINS` /
+`TRUSTED_ORIGINS` / `AUTH_BASE_URL` overrides — all derive from `ROCKY_DOMAIN`).
+
+### 2. PostGIS — non-negotiable
+
+`GeoService.declareDiseaseZone` and the seed's `ST_MakePoint` call PostGIS at
+runtime. The bundled `db` is `postgis/postgis:18-3.6-alpine` (extension
+pre-enabled) — start it with `docker compose --profile local-db up -d db`. If you
+use an **external** DB, you must `CREATE EXTENSION postgis;` yourself or the zone
+draw dies.
+
+### 3. `packages/database/.env`
+
+`db-recreate.sh` reads `DATABASE_URL` from here (not the root `.env`):
+
+```
+DATABASE_URL=postgresql://tbot:<pw>@<db-host>:5432/tbot
+```
+
+### 4. Schema + seed
+
+```bash
+./scripts/db-recreate.sh            # wipes -> regenerates schema -> fixes RLS -> seeds
+# or, schema already applied:
+./scripts/db-recreate.sh --seed-only
+```
+
+The seed includes the Veterinary & Sanitary fake data + a `lab_test.completed`
+outbox event (see [Veterinary & Sanitary Smoke Test](/runbooks/veterinary-sanitary-smoke-test)).
+
+### 5. Start the API
+
+```bash
+docker compose up -d api
+```
+
+`OutboxProcessorJob` consumes the seeded event within ~5s and auto-draws the
+3 km / 10 km disease zone.
+
+### 6. Verify (no domain needed)
+
+Run the [Veterinary & Sanitary Smoke Test](/runbooks/veterinary-sanitary-smoke-test)
+— `psql` against the DB (`docker compose exec db psql -U tbot -d tbot`).
+
+## If you skip DockFlare (no ingress)
+
+`docker-compose.yml` references the external `cloudflare-net` network. If you do
+not run DockFlare, either `docker network create cloudflare-net` so
+`docker compose up api` does not error, or strip the `dockflare.*` labels / network
+from the services. The backend test still runs; you just reach it via the VM's
+internal network / `psql`, not a public hostname.
+
+## Latent gap — remember, don't fix yet
+
+`apps/api/src/auth/auth.ts` sets **no** `crossSubDomain` and **no** cookie
+`domain`. When the web admin (`admin.rocky.techno.party`) later reads the session
+set by `api.rocky.techno.party`, server-side auth will break — Better Auth must
+scope the cookie to `.rocky.techno.party` with `crossSubDomain: true`. This is
+gated behind [ADR-0093](/ADR/0093-dual-dashboards-vet-vs-epidemiologist)
+(frontend deferred), so flag it, don't fix it now.
+
+## Related
+
+- [DB Recreate & RLS](/runbooks/db-recreate)
+- [Veterinary & Sanitary Smoke Test](/runbooks/veterinary-sanitary-smoke-test)
+- [Deploy (EAS)](/runbooks/deploy)
