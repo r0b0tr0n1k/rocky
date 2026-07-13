@@ -8,7 +8,7 @@
 | **Source**     | EUDR 2023/1115; USDA APHIS ADT; FDA FSMA §204; EU 2019/6 (Vet Med/AMR); EC 1/2005 (Transport Welfare); EC 178/2002 (General Food Law); GDPR |
 | **Supersedes** | None |
 | **Superseded** | None |
-| **Related**    | ADR-0030 (RuleSet — every threshold is a jurisdiction param, NOT a constant); ADR-0053 (geo foundation); ADR-0023 (traceability) |
+| **Related**    | ADR-0030 (RuleSet — every threshold is a jurisdiction param, NOT a constant); ADR-0053 (geo foundation); ADR-0023 (traceability); ADR-0085 (traceability rules engine, 2021/520); rocky-withdrawal-recall-procedure.md (Art 19); iso27701-2025-gap-analysis.md §12 |
 
 > _sniffs_ When you track biological life, movement, and meat, you are not writing CRUD. You are writing
 > **Digital International Law**. The cow is a regulated financial asset, a pandemic vector, an ecological
@@ -59,7 +59,6 @@ overridable per jurisdiction). The disease-zone intersection (strike 1's spatial
 
 - Schema fields largely exist; this ADR is mostly **logic + RuleSet params + API**, matching the user's "write the validation logic in validators and domains."
 
-
 ## Evidence Register — VERIFIED (primary sources attached)
 
 > _sniffs_ Every row below is now **VERIFIED** — backed by `regulatory-verification-report.md` (author's
@@ -84,6 +83,7 @@ overridable per jurisdiction). The disease-zone intersection (strike 1's spatial
 | **R10 GDPR public-health exception** | Art.17(3)(b) (legal obligation) + Art.17(3)(c) (public health) DEFEAT Art.17 erasure; pseudonymize only after retention | GDPR Art.17(3)(b)/(c) (+6(1)(c)/9(2)(i)); report §R7/R10 | VERIFIED |
 
 ### Corrigenda (post-verification)
+
 - **R5 corrected:** earlier draft asserted "8 h max standard." Verified species-specific: adult cattle 14 h+14 h, unweaned 9 h+9 h. WO-114 must branch on species/life-stage, not a single constant.
 - **R4 enriched:** cascade multipliers are RuleSet params (`amr.cascadeMeat=2`, `amr.minWithdrawalMeatDays=28`, `amr.cascadeMilk=4`, `amr.minWithdrawalMilkDays=7`, `amr.cascadeAquatic=3`, `amr.minWithdrawalAquaticDegreeDays=500`).
 - **R8 hardened:** 7/20 is a hardcoded EU floor (Art.42 + Art.14). WO-120 rejects any RuleSet with `taggingDays > 20` or `notificationDays > 7` when `euAligned`.

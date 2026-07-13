@@ -1469,3 +1469,11 @@ subprocessor), wired to ADR-0075 + rocky-processor-register / rocky-toms / rocky
   clause (0006/0071/0007/0083/0082/0084). Operationalizes ADR-0067 Phase 2 + gap-analysis §11.
 - Registered both in `compliance/_meta.ts`; tied into gap-analysis §11.5 + ADR-0075/0068–0070 Related.
 - Source: ADR-0075 / 0068–0070 / 0072 / eu-b2b-procurement-pack.md.
+
+### WO-152 — EU General Food Law (Reg 178/2002) evidence + withdrawal/recall procedure — Done ✅
+
+- Committed + indexed **ADR-0085** (Traceability Rules Engine, Implementing Reg (EU) 2021/520) — was untracked / missing from INDEX.
+- gap-analysis **§12**: Reg 178/2002 article→domain/ADR map (Art 18 traceability, 19 withdrawal/recall, 17 operator, 14/15 safety) + implementing-children chain (2021/520 → AHL → TRACES → EUDR). Notes ADR-0054 R6 already VERIFIED Art 18.
+- Added `compliance/rocky-withdrawal-recall-procedure.md` (ROCKY-WDRW-001): Art 19 withdrawal/recall workflow, mirroring the breach-notification procedure; honest implementation-status table.
+- ADR-0054 Related: linked ADR-0085 + procedure + gap-analysis §12. `_meta.ts`: registered the procedure.
+- Source: ADR-0054 (R6) / ADR-0085 / 0062 / 0063 / 0064 / rocky-withdrawal-recall-procedure.md.

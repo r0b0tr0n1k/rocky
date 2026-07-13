@@ -338,6 +338,46 @@ tender-winner, not the floor.
 
 ---
 
+## 12. EU General Food Law (Reg 178/2002) — traceability & withdrawal (evidence added 2026-07-12)
+
+Reg. (EC) 178/2002 is the **foundational General Food Law** — the legal bedrock of Rocky's
+core domain (food-producing-animal traceability), more directly than GDPR. Its principles are
+_exactly_ what Rocky implements; they are already **VERIFIED** in ADR-0054's Evidence Register
+(R6 — Art 18 one-step-back/forward). This section documents that existing, verified spine and
+names the implementing children.
+
+### 12.1 Article → domain / ADR map
+
+| Reg 178/2002 article | Requirement | Rocky coverage | Status |
+| --- | --- | --- | --- |
+| Art 18 — Traceability | Track food/feed/animals one step back + forward | Lineage Graph (`movements` + `animal_parents`), ADR-0054 R6; bovine rules via ADR-0085 (Implementing Reg (EU) 2021/520) | MET (VERIFIED) |
+| Art 19 — Withdrawal/recall | Withdraw unsafe food; inform authority + consumers | Passport `SEIZED`, Movement death, Health flags, Notification; first-class procedure `rocky-withdrawal-recall-procedure.md` | Partial → procedure drafted |
+| Art 17 — Operator responsibility | Food-business operator ensures compliance | Farm keeper mgmt + `farm_subjects` RBAC (operator = farmer/authority) | MET (tooling) |
+| Art 14 / 15 — Food/feed safety | Unsafe if injurious/unfit | Health (vaccination/treatment/disease), Inspection, Passport seizure | MET |
+
+### 12.2 Implementing children (the chain)
+
+Reg 178 Art 18 → operationalised by:
+
+- **Commission Implementing Reg (EU) 2021/520** (bovine/terrestrial traceability) — ADR-0085
+  (transmission window, tag-before-move, dual-code, numeric code), toggleable per jurisdiction.
+- **AHL Reg (EU) 2016/429** (animal health) — disease zones (ADR-0064).
+- **TRACES NT** export (CHED-A / IMSOC) — ADR-0062 (the EU animal-movement/traceability system).
+- **EUDR Reg (EU) 2023/1115** (deforestation due-diligence) — ADR-0063 (cattle supply chain).
+
+### 12.3 Notes
+
+- This is **documentation of existing, verified capability**, not new engineering (ADR-0054 R6
+  already VERIFIED Art 18). The only net-new artifact here is the **withdrawal/recall procedure**
+  (Art 19), previously distributed and unnamed.
+- Liability stays with the **food business operator** (Art 17/21); Rocky is the enabler/processor.
+  Scope excludes private domestic use (Art 1(3)); commercial farms/authorities + EU-export (Art 11/12)
+  are in.
+- Procedures are Draft (Phase 2, ADR-0067). Clause mappings are engineering leads — counsel review
+  before any conformity claim (§9).
+
+---
+
 ## 9. Homework Disclaimer
 
 This is engineering self-education, not legal advice. The standards were read from `graphgrc-main/`

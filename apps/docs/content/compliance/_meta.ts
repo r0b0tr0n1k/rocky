@@ -10,6 +10,7 @@ export default {
   "rocky-processor-register": { title: "Processor / Sub-processor Register" },
   "rocky-dsr-procedure": { title: "Data Subject Rights (DSR) Procedure" },
   "rocky-toms": { title: "Technical & Organizational Measures (TOMs)" },
+  "rocky-withdrawal-recall-procedure": { title: "Withdrawal & Recall Procedure (Art 19)" },
   "rocky-cookie-notice": { title: "Cookie & Tracking Notice" },
   "rocky-dpa": { title: "Data Processing Agreement (DPA) — Art 28" },
   "rocky-retention-schedule": { title: "Retention Schedule" },
