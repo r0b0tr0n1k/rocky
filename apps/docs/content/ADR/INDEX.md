@@ -109,5 +109,7 @@ All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 81
 | ADR-0083 | Deployment Topology — Docker Compose, External DB & Cloudflare Access (DockFlare) |
 | ADR-0084 | Offline-verifiable Signed QR Credentials (ear tags, passport, movement) |
 | ADR-0085 | Traceability Rules Engine (Implementing Reg (EU) 2021/520) |
+| ADR-0086 | ESPR 2024/1781 — Digital Product Passport Alignment (DPP paradigm adopted; live animals out of scope) |
+| ADR-0087 | ESPR Art 12 Operator/Facility Identifier Scheme (ISO/IEC 15459 / GS1 GLN; closes Art 12 PARTIAL) |
 
 > Generated from `apps/docs/content/ADR/*.md` first-heading titles. Regenerate after adding an ADR.

@@ -459,8 +459,7 @@ asserted. The real gaps are **not** the cattle leg:
 
 Expose the **signed QR (ADR-0084) as the EUDR evidence token** a cattle exporter presents at the
 border — the DDS + pasture verdict travel with the animal, verifiable offline by any inspector.
-ADR-0084 already makes this possible; it is the natural bridge from "we comply" to "here is the
-proof".
+**ADOPTED (user directive "definitely borrow that"):** this _is_ the ESPR Digital Product Passport data carrier (ADR-0086 / §15) — the borrow is free because the design is already built (ADR-0084 Phase 1). The Phase-2 wiring (ear-tag document type + credential, status-list publisher + "last synced" UI, EUDR DDS emits the QR) is tracked in **WO-155**.
 
 ### 14.4 Notes
 
@@ -473,6 +472,55 @@ proof".
   assumption.
 - Clause mappings are engineering leads — counsel review before any conformity claim (§9).
 - Work order: **WO-154**.
+
+---
+
+## 15. ESPR (Reg (EU) 2024/1781) — Digital Product Passport alignment (evidence added 2026-07-12)
+
+Regulation (EU) 2024/1781 (the **Ecodesign for Sustainable Products Regulation**, ESPR) replaces
+Directive 2009/125/EC and, beyond ecodesign requirements, **mandates a Digital Product Passport
+(DPP)** (Chapter III, Arts 9–15). The study was prompted by the user directive to _borrow_ the
+EUDR.Supply DPP pattern — and shows the two are the same: the DPP is a _real EU mandate_, and
+Rocky's signed QR (ADR-0084) + PAdES (ADR-0082) passport already **is** an ESPR-style DPP. Full
+analysis in **ADR-0086**.
+
+**Primary source:** `docs/reference/OJ_L_202401781_EN_TXT.pdf` (Reg (EU) 2024/1781, OJ L 28.6.2024) · [EUR-Lex ELI](https://eur-lex.europa.eu/eli/reg/2024/1781/oj). Article→Rocky mapping below verified against the text.
+
+### 15.1 The borrow is free — DPP article → Rocky
+
+| ESPR article | Requirement | Rocky | Status |
+| --- | --- | --- | --- |
+| Art 9 — DPP available | Product only placed if DPP exists | `CredentialService` emits signed QR (ADR-0084) | MET |
+| Art 10(1)(a)(b) — QR data carrier + unique ID on product | QR physically on product/packaging/doc | Signed QR on passport PDF + ear-tag (ADR-0084 §7) | MET |
+| Art 10(1)(e) — no customer PII without consent | GDPR Art 6 | ADR-0061 + RBAC | MET |
+| Art 11 — interop, integrity, no lock-in | Open standards, authenticated data | Ed25519 signed QR + PAdES | MET |
+| Art 12 — unique operator/facility IDs (ISO 15459) | Trace actors/facilities | `farm_subjects` + geo polygon | PARTIAL |
+| Art 13 — Commission DPP registry + customs | Feeds, not hosts (cf. IMSOC §13) | Rocky emits passport/QR; EU operates registry | MET (pattern) |
+| Art 14 — public portal | Search/compare DPP data | web `/verify` + admin | PARTIAL |
+| Art 15 — customs verify unique ID at border | Verify vs registry | signed QR = EUDR export token (§14.3, WO-155) | PLANNED |
+| Art 7(5) — substances of concern tracking | Life-cycle substance tracking | Health + geo deforestation (ADR-0079) as impact analog | PARTIAL |
+
+### 15.2 Scope reality — live animals are excluded
+
+**ESPR does not regulate Rocky's core domain.** Art 1(2) excludes food (a), feed (b), and _living
+plants, animals and micro-organisms_ (e) from scope. So ESPR is **not a conformity obligation** for
+cattle. The value is the **paradigm**: the DPP is the EU's emerging cross-product passport standard,
+and Rocky's design is preemptively aligned. Downstream **animal-derived products need DPPs** —
+Annex VII lists leather apparel (4203) and footwear (6401–6405); leather and meat are animal-derived,
+and the cattle passport / signed QR is their natural data source. The border pattern (Art 15) is
+identical to the EUDR export-token borrow (§14.3) and the IMSOC "feeds, not hosts" seam (§13).
+
+### 15.3 Decision
+
+**Adopt the ESPR DPP paradigm** (user directive "definitely borrow that"). The signed QR (ADR-0084)
+is the ESPR data carrier; expose it as the EUDR evidence token at the border (WO-155, Phase 2). No
+new passport format — one shape serves EUDR, IMSOC/CHED-A, and the ESPR DPP.
+
+### 15.4 Notes
+
+- Documentation of existing, verified capability (ADR-0084/0082 built; ADR-0086 Accepted). ESPR is
+  _evidence_, not a new obligation.
+- Clause mappings engineering leads — counsel review (§9). Work order: **WO-155**.
 
 ---
 

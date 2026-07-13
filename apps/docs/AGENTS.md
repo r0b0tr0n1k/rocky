@@ -42,6 +42,11 @@ Docs follow the **Diátaxis** taxonomy (see [ADR-0052](content/ADR/0052-document
 - `content/reference/` — API reference (TSDoc) + catalogs (permissions / enums / errors)
 - `content/runbooks/` — operational procedures (DB recreate / deploy / env)
 
+### Repo-root source documents (outside `content/`)
+
+- `docs/old/` — legacy Macedonian (MK) veterinary-system specs (`.md` + sibling PDFs); referenced from ADRs by **inline-code path**, never as markdown links (see ADR-0023 / 0030).
+- `docs/reference/` — external **primary-source law, standards, and guidance** (e.g. ESPR Reg (EU) 2024/1781 at `docs/reference/OJ_L_202401781_EN_TXT.pdf`; ISO/IEC 15459 guides + GS1 DPP white papers at `docs/reference/`). Referenced from ADRs by **inline-code path** (so `check:md-links` stays green — a real markdown link to a file outside `content/` would resolve to a non-existent path and fail `ci:checks`); the live Official Journal text is linked via its EUR-Lex ELI as an external `https://` link (also skipped by the guardian).
+
 The root `_meta.ts` groups these via Nextra separators (Learn / Architecture / Build & Operate / Project).
 Every new doc is an asset (ADR-0033 D2); links are guarded by `check:md-links`.
 
