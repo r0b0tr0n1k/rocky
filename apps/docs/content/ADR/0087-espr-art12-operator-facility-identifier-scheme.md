@@ -79,10 +79,12 @@ Rocky's own gates but blocks the only reason Art 12 matters here: feeding a down
 operator must reference a standards-based operator/facility ID. Rejected.
 
 **Permitted but not chosen — self-issue a CIN under a national veterinary-authority IAC**
-(Art 12(2)(b)). Viable and avoids GS1 membership, but forks from the EU DPP ecosystem that is
-converging on GS1 (white paper) and forces Rocky to behave as an issuing agency. GS1 is chosen as
-the lower-friction, interoperable path; the self-issued CIN namespace remains the documented
-fallback if the authority cannot obtain a GS1 prefix.
+(Art 12(2)(b)). Viable in theory and a seductive assertion of state sovereignty, but **rejected
+for production EU trade**: it forks from the EU DPP ecosystem that converges on GS1, forces Rocky
+(or the authority) to *operate as an issuing agency*, and — decisively — downstream European IT
+systems parse **GS1 GLN**, not bespoke CINs. A self-issued CIN would be silently dropped at the
+border of the capitalist machine. GS1 is the firm choice; the CIN namespace survives only as a
+theoretical fallback if no GS1 prefix is obtainable.
 
 ## Options Evaluated
 
@@ -159,10 +161,14 @@ rg -n "farm_subjects|geo" packages/database/src
 
 ## Status
 
-**Accepted (2026-07-13)** by user directive. The decision is made; implementation is the WO-155
-Phase 2 identifier sub-task. The signed-QR carrier (ADR-0084) and PAdES seal (ADR-0082) are
-unchanged — only the operator/facility identifier *shape* is pinned to GS1, closing the last PARTIAL
-in the ESPR mapping (ADR-0086 Art 12).
+**Accepted (2026-07-13)** by user directive. The decision is made: **GS1 GLN is the firm
+standard** (the self-issued CIN is a theoretical fallback only). Implementation — the WO-155
+Phase 2 GLN mapping — is **deferred to the backlog** until a downstream animal-derived-product
+DPP (leather 4203 / footwear 6401–6405 / meat) actually demands it. Cattle are out of ESPR scope
+(Art 1(2)(e)), so nothing obliges the build earlier; the architecture is complete and waits for
+capital. The signed-QR carrier (ADR-0084) and PAdES seal (ADR-0082) are unchanged — only the
+operator/facility identifier *shape* is pinned to GS1, closing the last PARTIAL in the ESPR
+mapping (ADR-0086 Art 12).
 
 ## Sources
 
