@@ -1,15 +1,182 @@
 ---
-title: Environment Config
-sidebarTitle: Env Config
+title: Manage Environment Variables
+sidebarTitle: Env Vars
 ---
 
-# Environment Config
+# Manage Environment Variables
 
-## Variables (seed)
-| Var | Scope | Notes |
+Rocky runs in **two worlds** with two different env-loading models:
+
+1. **Dev on this PC** — `pnpm dev` (Turborepo) runs the api / web / mob / docs workspaces, each reading its **own** `.env` file.
+2. **Docker (compose)** — `docker compose up` auto-loads the **root** `.env` and injects vars into containers; the API container *derives* `DATABASE_URL` itself.
+
+The single rule that governs both: **every secret lives only in a local `.env`, never in git.** `.env.example` files are the template; `.env` files are the filled-in secret-bearing copies and are git-ignored.
+
+---
+
+## The two loading models (grounded)
+
+### Dev on this PC
+
+Each workspace loads env independently — there is **no single root `.env`** that feeds dev:
+
+| Workspace | How it loads `.env` | File it reads |
 | --- | --- | --- |
-| `DATABASE_URL` | `packages/database/.env` | dev DB `192.168.1.109:5432/tbot`; loaded via `dotenv/config` |
-| `EXPO_ACCESS_TOKEN` | `apps/api/.env` | enables server Expo push; absent → `sendExpoPush` no-ops |
-| `EXPO_PROJECT_ID` / `EXPO_PUBLIC_*` | `apps/mob/.env` | Expo project + public bundle id |
+| `apps/api` | `scripts/dev.mjs` runs `import "dotenv/config"` (dotenv), then `tsx --import dotenv/config` for `main.ts` | `apps/api/.env` |
+| `apps/web` | Next.js auto-loads `.env` from the app dir | `apps/web/.env` |
+| `apps/mob` | Expo auto-loads `.env`; only `EXPO_PUBLIC_*` are inlined (at **build** time) | `apps/mob/.env` |
+| `packages/database` | `seed.ts` / Drizzle Kit via `dotenv/config` | `packages/database/.env` |
 
-> Status: **seed** — confirm the real var names from `apps/*/.env.example` before trusting this table.
+`turbo.json` additionally declares a `globalPassThroughEnv` list (`PG_PORT`, `PG_HOST`, `PG_USER`, `PG_PASS`, `PG_DB`, `API_PORT`, `WEB_PORT`, `DOCS_PORT`, `LANDING_PORT`, `API_URL`, `WEB_URL`, `LANDING_URL`). Those vars, **if present in your shell environment**, are forwarded to every task. Use them for worktree/port overrides (see below) — they are not required for a normal single-machine dev.
+
+> `apps/api/src/config.ts` reads `PG_HOST`/`PG_USER`/`PG_PASS`/`PG_DB`/`PG_PORT`, `ENVIRONMENT`, `VERSION`, `NODE_ENV`, `BETTER_AUTH_SECRET`, `PORT`/`API_PORT`, `BASE_SERVICE_URL`, `CORS_ORIGINS`, `TRUSTED_ORIGINS`, `REQUEST_LOGGING` (plus the PDF-signer and credential-key vars). All of these come from `apps/api/.env` in dev.
+
+### Docker (compose)
+
+`docker-compose.yml` is launched from the repo root and **auto-loads `./.env`** for `${VAR}` interpolation (the compose file interpolates, not the apps). Inside the `api` service it **builds** the connection string itself:
+
+```
+DATABASE_URL=postgres://tbot:${POSTGRES_PASSWORD}@${DB_HOST:-db}:${DB_PORT:-5432}/tbot
+```
+
+So in compose you set `DB_HOST` / `DB_PORT` / `POSTGRES_PASSWORD` and let compose assemble `DATABASE_URL` — **do not set `DATABASE_URL` in the root `.env` for a compose deploy**, or you'll override the derived value and likely break it.
+
+The `web` image takes `NEXT_PUBLIC_API_URL` as a **build arg** (`docker-compose.yml` passes `--build-arg`), so it is frozen at image-build time. Everything else in `api`/`web` is a **runtime** env var injected by compose.
+
+---
+
+## The canonical file set
+
+| File | Purpose | Consumed by |
+| --- | --- | --- |
+| `.env` (root) | Compose secrets + local-dev tooling vars (Section 4) | `docker compose`, `scripts/setup-tunnel.sh` |
+| `.env.example` (root) | Template for the above | — (copy target) |
+| `apps/api/.env` | API runtime config (DB, auth, ports, signer, creds) | `apps/api` dev |
+| `apps/web/.env` | `API_URL`, `BETTER_AUTH_SECRET`, `NEXT_PUBLIC_*` | `apps/web` dev |
+| `apps/mob/.env` | `EXPO_PUBLIC_API_URL`, Cloudflare Access service token | `apps/mob` dev/build |
+| `packages/database/.env` | `DATABASE_URL` (Drizzle Kit + seed) | `packages/database` |
+
+---
+
+## Quick start — dev on this PC
+
+```bash
+# 1. API: copy the template, fill secrets
+cp apps/api/.env.example apps/api/.env
+#    set at minimum: ENVIRONMENT=dev, BETTER_AUTH_SECRET, PG_HOST/USER/PASS/DB
+
+# 2. Web admin
+cp apps/web/.env.example apps/web/.env
+
+# 3. Mobile
+cp apps/mob/.env.example apps/mob/.env
+
+# 4. Database (no .example ships — create it)
+#    packages/database/.env  ->  DATABASE_URL=postgres://tbot:<pw>@192.168.1.109:5432/tbot
+
+# 5. Run everything
+pnpm dev
+```
+
+Mandatory gotcha: `apps/api/src/config.ts` validates `ENVIRONMENT` against a zod enum (`dev|production|test|staging`) with **no default** — the API refuses to start unless `apps/api/.env` sets `ENVIRONMENT=dev`.
+
+Keep the dev DB host consistent: `packages/database/.env` `DATABASE_URL` and `apps/api/.env` `PG_HOST` must point at the **same** Postgres (the LAN box `192.168.1.109:5432/tbot` in this setup).
+
+---
+
+## Quick start — Docker (compose)
+
+```bash
+# 1. Root compose secrets
+cp .env.example .env
+#    MANDATORY for a VM deploy: ROCKY_DOMAIN, POSTGRES_PASSWORD,
+#    BETTER_AUTH_SECRET, TUNNEL_TOKEN  (DB_HOST defaults to 192.168.1.109)
+#    Everything else derives from ROCKY_DOMAIN — leave it alone unless you must override.
+
+# 2. Local Postgres in a container (single machine)
+docker compose --profile local-db up db
+
+# 3. Full stack (api + web + docs + cloudflared tunnel)
+docker compose up -d
+
+# 4. Optional Drizzle Studio (dev profile)
+docker compose --profile dev up drizzle-studio
+```
+
+The Cloudflare Tunnel token is generated into `.env` by the bootstrap script. It requires `CLOUDFLARE_API_TOKEN` **and** `CLOUDFLARE_ACCOUNT_ID` in the environment, and reads `ROCKY_DOMAIN` from `.env`:
+
+```bash
+CLOUDFLARE_API_TOKEN=<api-token> CLOUDFLARE_ACCOUNT_ID=<acct-id> \
+  ROCKY_DOMAIN=rocky.tehno.party \
+  bash scripts/setup-tunnel.sh
+```
+
+---
+
+## Secrets hygiene
+
+| Secret | Where it lives | Generate with |
+| --- | --- | --- |
+| `POSTGRES_PASSWORD` | root `.env` (compose) / `PG_PASS` + `DATABASE_URL` (dev) | random string |
+| `BETTER_AUTH_SECRET` | root `.env` + `apps/api/.env` + `apps/web/.env` | `openssl rand -base64 32` |
+| `TUNNEL_TOKEN` | root `.env` | `scripts/setup-tunnel.sh` |
+| `DRIZZLE_MASTER_PASS` | root `.env` | random string |
+| `NEXT_PUBLIC_MAPTILER_API_KEY` | `apps/web/.env` | MapTiler dashboard |
+| `EXPO_PUBLIC_CF_ACCESS_CLIENT_SECRET` | `apps/mob/.env` | Cloudflare Zero Trust |
+| PDF signer (`ROCKY_P12_PATH` / `ROCKY_HSM_*`) | `apps/api/.env` | see [Sign PDF documents](/runbooks/sign-pdf-documents) |
+| Credential key (`ROCKY_CRED_KEY` / `ROCKY_CRED_KEY_PATH`) | `apps/api/.env` | Ed25519 keypair |
+
+**Git safety:** root `.gitignore` ignores `.env`; `apps/web/.gitignore` ignores `.env*`; `apps/mob/.gitignore` ignores `.env*.local`. Verify before committing:
+
+```bash
+git status --ignored -- '.env' 'apps/**/.env*'
+# no .env should ever appear in `git status` as tracked
+```
+
+Never paste a real secret into an `.env.example` or into a doc/ADR.
+
+---
+
+## Worktree / port isolation (parallel dev)
+
+`turbo.json` passes `API_PORT` / `WEB_PORT` / `DOCS_PORT` / `LANDING_PORT` through to tasks. To run a second worktree on different ports, export them in your shell (or source a `.env.worktree`):
+
+```bash
+export API_PORT=8081 WEB_PORT=4001
+pnpm dev
+```
+
+`apps/api/.env.example` references a `scripts/with-worktree-env.sh` helper that is meant to source `.env.worktree` for you — that script is currently an **empty stub**. Until it is implemented, export the ports yourself as shown above.
+
+---
+
+## Build-time vs runtime (Docker)
+
+- **Build-time (frozen in the image):** `apps/web` `NEXT_PUBLIC_API_URL` (compose `--build-arg`). Change it → **rebuild** the web image (`docker compose build web`).
+- **Runtime (hot via compose env):** `api` `PG_*`, `BETTER_AUTH_*`, `CORS_ORIGINS`, `AUTH_*`, `web` `API_URL` / `BETTER_AUTH_SECRET`. Change → `docker compose up -d` (no rebuild).
+- **Mobile has no Dockerfile.** Expo builds are native; `EXPO_PUBLIC_*` are baked at `expo` build time and cannot be overridden by a `.env.worktree` afterward.
+
+---
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| API exits immediately in dev | `ENVIRONMENT` unset (zod enum, no default) | Set `ENVIRONMENT=dev` in `apps/api/.env` |
+| Dev connects to wrong DB | `packages/database/.env` `DATABASE_URL` ≠ `apps/api/.env` `PG_HOST` | Point both at the same host |
+| Compose API can't reach DB | `DATABASE_URL` set in root `.env` overrode the derived one | Remove `DATABASE_URL` from root `.env`; let compose build it |
+| Web shows stale API URL in Docker | `NEXT_PUBLIC_API_URL` is build-time | `docker compose build web` then `up -d` |
+| Mobile hits wrong API after IP change | `EXPO_PUBLIC_*` baked at build | Edit `apps/mob/.env`, restart Expo |
+| Cookie/session not shared web↔api | `AUTH_COOKIE_DOMAIN` / `AUTH_BASE_URL` / `CORS_ORIGINS` inconsistent | Align across `api` + `web` (derive from `ROCKY_DOMAIN`) |
+| `git status` shows a `.env` | File not ignored / wrong name | Ensure it's named exactly `.env` (root), `.env*` (web), `.env*.local` (mob) |
+
+---
+
+## Verification
+
+```bash
+# Internal doc links stay green (runs in pnpm ci:checks)
+pnpm check:md-links
+```
+
+Related: [DB Recreate & RLS](/runbooks/db-recreate) · [VM Prep & Domain](/runbooks/vm-prep) · [Deploy (EAS)](/runbooks/deploy) · [Sign PDF documents](/runbooks/sign-pdf-documents).

@@ -7,6 +7,18 @@
       "skillPath": "better-auth/best-practices/SKILL.md",
       "computedHash": "a4c830509e85557b59339d8d93a4e243e9e59c686e7678854d39230e12c2a6dc"
     },
+    "cloudflare-dns": {
+      "source": "julianobarbosa/claude-code-skills",
+      "sourceType": "github",
+      "skillPath": "skills/cloudflare-dns/SKILL.md",
+      "computedHash": "fc8323e16697c439e1ed0160297bcca0557931c3294635c371318acb99d68ea6"
+    },
+    "cloudflare-tunnel": {
+      "source": "vm0-ai/vm0-skills",
+      "sourceType": "github",
+      "skillPath": "cloudflare-tunnel/SKILL.md",
+      "computedHash": "0b3e7617cb0b083ca308aa60b20e6594f52966681ba595570589de36a2bf3d27"
+    },
     "create-auth-skill": {
       "source": "better-auth/skills",
       "sourceType": "github",

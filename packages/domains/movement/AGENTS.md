@@ -21,6 +21,42 @@ Handles all animal movements: departures, arrivals, deaths, slaughter, market tr
 | 20       | Import from 3rd Countries    | ✅ `importThirdCountry()` with re-tagging + new animal record creation            |
 | 21       | Export of Animals            | ✅ `exportAnimal()` with destination country tracking                             |
 
+## Traceability guards (Implementing Reg (EU) 2021/520 / 2021/963 — rules engine, ADR-0085)
+
+The traceability Articles live in the **traceability rules engine**
+(`packages/domains/system/src/traceability-rules.ts`): a named, toggleable
+registry (`RuleSet.traceabilityRules`) queried via `TraceabilityRuleEngine`.
+Each Article is one registry entry, `enabled` by default at its EU floor, and
+overridable per jurisdiction via `system_parameters` (`<RULE_ID>_ENABLED`,
+`<RULE_ID>_PARAM_<key>`). This is what lets an operator **choose what to
+apply** — across all five traceable species (bovine, ovine, caprine, porcine,
+equine).
+
+- **Art. 3 — transmission window:** a reportable movement (sale/purchase/import/
+  export/slaughter/market) whose `movementDate` is older than
+  `ART3_TRANSMISSION_WINDOW` param `transmissionDeadlineDays` (default 7) is
+  blocked (`MOVEMENT_TRANSMISSION_DEADLINE_EXCEEDED`), if the rule is enabled.
+- **Art. 13(4) — tag before move:** `create()` blocks a cross-farm departure
+  (`MOVEMENT_TAG_REQUIRED_BEFORE_MOVE`) when the animal has no `earTagNumber`,
+  if `ART13_TAG_BEFORE_MOVE` is enabled. This rule covers **all kept terrestrial
+  animals** (S.I. No. 254 of 2023 Reg. 17(6)/(7)).
+- **Per-species first-identification (tagging) — Art. 13/14/15 (2021/520) + Art. 21
+  (2021/963):** one toggleable rule per species with its own `taggingDays` EU
+  floor — `ART13_BOVINE_TAGGING` (20d), `ART14_OVINE_CAPRINE_TAGGING` (9 mo),
+  `ART15_PORCINE_TAGGING` (9 mo), `ART21_EQUINE_TAGGING` (12 mo). A jurisdiction
+  may re-tune any of them; `validateSovereignLimits` blocks loosening a floor.
+- **Art. 12 — numeric animal code:** enforced by the validators'
+  `makeEarTagSchema(format)` (from `RuleSetTag.format`); the `ART12_NUMERIC_CODE`
+  rule records the params (max length 12, numeric only) for visibility.
+- **Art. 19(4) — dual-code on replacement:** `requiresDualCodeRecording()` +
+  the `ART19_DUAL_CODE_ON_REPLACEMENT` rule are armed in the engine; enforcement
+  activates when the (future) ear-tag replacement service flow is built.
+
+**Regulatory grounding (ADR-0085):** EU Commission Reg (EU) 2021/520 (Art. 3,
+12, 13, 14, 15, 17, 19) + 2021/963 (equine) — quoted first — then the Irish
+national transposition **S.I. No. 254 of 2023** (Reg. 11(5), 12(6), 13(5),
+14(5), 17(2)/(6)/(7)).
+
 ## Service Methods
 
 `packages/domains/movement/src/services/movement.service.ts` — 14 methods:

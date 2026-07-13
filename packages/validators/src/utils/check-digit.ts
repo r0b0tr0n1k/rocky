@@ -101,10 +101,24 @@ export function validateEarTagCheckDigit(tag: string): boolean {
   return MK_EAR_TAG_CHECK_DIGIT_PROVIDER.validate(tag);
 }
 
-export const earTagSchema = z
-  .string()
-  .regex(/^\d{8}$/, "Ear tag must be exactly 8 digits")
-  .refine(validateEarTagCheckDigit, "Ear tag check digit is invalid");
+/** Format-driven ear-tag code schema (Implementing Reg (EU) 2021/520 Art. 12).
+ *  Derives the numeric length + check-digit rule from the jurisdiction's
+ *  `RuleSetTag.format`: `MK_8` = 8-digit MK national (with check digit),
+ *  `ISO_11784_15` = 15-digit ISO 11784/11785 electronic identifier (no check digit).
+ *  Defaults to `MK_8` so existing call sites are unaffected. */
+export function makeEarTagSchema(format: "MK_8" | "ISO_11784_15" = "MK_8"): z.ZodType<string> {
+  if (format === "ISO_11784_15") {
+    return z
+      .string()
+      .regex(/^\d{15}$/, "ISO 11784/11785 electronic identifier must be 15 digits");
+  }
+  return z
+    .string()
+    .regex(/^\d{8}$/, "Ear tag must be exactly 8 digits")
+    .refine(validateEarTagCheckDigit, "Ear tag check digit is invalid");
+}
+
+export const earTagSchema = makeEarTagSchema("MK_8");
 
 // ============================================================================
 // FARM ID CHECK DIGIT

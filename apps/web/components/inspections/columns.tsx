@@ -3,7 +3,7 @@
 import { format } from "date-fns";
 import type { ComponentProps } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { EyeIcon } from "lucide-react";
+import { EyeIcon, FileDown } from "lucide-react";
 
 import { Badge } from "@rocky/ui/components/badge";
 import { RowActions } from "#components/shared/row-actions";
@@ -84,7 +84,14 @@ export function inspectionColumns({
       enableSorting: false,
       cell: ({ row }) => (
         <RowActions
-          actions={[{ label: "View", icon: EyeIcon, href: `/inspections/${row.original.id}/edit` }]}
+          actions={[
+            { label: "View", icon: EyeIcon, href: `/inspections/${row.original.id}/edit` },
+            {
+              label: "Generate PDF",
+              icon: FileDown,
+              href: `/documents?type=inspection-form&refId=${row.original.id}`,
+            },
+          ]}
         />
       ),
     },

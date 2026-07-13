@@ -77,7 +77,33 @@ type FeatureCollection = {
 	}>;
 };
 
+function wktPolygonToRings(wkt: string): number[][][] | null {
+	// PostGIS default output: "SRID=4326;POLYGON((lng lat, lng lat, ...))"
+	const s = wkt.trim().replace(/^SRID=\d+;/i, "");
+	const m = s.match(/POLYGON\s*\(+.*\)+\s*$/is);
+	if (!m) return null;
+	const inner = m[0].replace(/^POLYGON\s*\(+/i, "").replace(/\s*\)+\s*$/, "");
+	const ringStrs = inner.match(/\([^()]*\)/g) ?? [inner];
+	const rings = ringStrs
+		.map((r) => r.replace(/^\(+|\s*\)+$/g, ""))
+		.map((r) =>
+			r
+				.split(/,\s*/)
+				.map((pair) => pair.trim().split(/\s+/).map(Number)),
+		)
+		.filter(
+			(ring) =>
+				ring.length >= 3 &&
+				ring.every((c) => c.length === 2 && c.every((n) => Number.isFinite(n))),
+		);
+	return rings.length ? rings : null;
+}
+
 function toPolygonCoordinates(geometry: unknown): number[][][] | null {
+	// PostGIS WKT string: "SRID=4326;POLYGON((lng lat, ...))"
+	if (typeof geometry === "string") {
+		return wktPolygonToRings(geometry);
+	}
 	// GeoJSON Polygon
 	if (
 		geometry &&

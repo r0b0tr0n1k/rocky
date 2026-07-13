@@ -47,7 +47,9 @@
     "@rocky/typescript-config": "workspace:*",
     "dotenv": "^17.4.2",
     "vite-tsconfig-paths": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "zod": "catalog:",
+    "typescript": "catalog:"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts"

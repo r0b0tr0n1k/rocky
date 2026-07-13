@@ -84,7 +84,7 @@ export function DataTable<TData>({
                         : undefined;
                   return (
                     <TableHead
-                      key={header.id}
+                      key={`${hg.id}-${header.index}`}
                       style={meta.width ? { width: meta.width } : undefined}
                       className={alignCls}
                     >

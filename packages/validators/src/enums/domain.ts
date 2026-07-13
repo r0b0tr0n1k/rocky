@@ -7,7 +7,7 @@
  *
  * DO NOT EDIT MANUALLY. Run: node scripts/regenerate-enums.mjs
  *
- * Generated: 2026-07-11T03:41:46.462Z
+ * Generated: 2026-07-13T07:45:28.803Z
  */
 
 import { zEnum } from "../_enum-helper.js";
@@ -27,6 +27,7 @@ import { BIRTH_NOTIFICATION_STATUS_VALUES } from "@rocky/database/constants";
 import { BIRTH_TYPE_VALUES } from "@rocky/database/constants";
 import { CONFLICT_RESOLUTION_STATUS_VALUES } from "@rocky/database/constants";
 import { CONTINGENT_TYPE_VALUES } from "@rocky/database/constants";
+import { CONTROL_MEASURES_VALUES } from "@rocky/database/constants";
 import { CORRECTION_CASE_TYPE_VALUES } from "@rocky/database/constants";
 import { CORRECTION_STATUS_VALUES } from "@rocky/database/constants";
 import { DATA_SOURCE_VALUES } from "@rocky/database/constants";
@@ -34,6 +35,7 @@ import { DEATH_CAUSE_VALUES } from "@rocky/database/constants";
 import { DELIVERY_METHOD_VALUES } from "@rocky/database/constants";
 import { DETECTION_SOURCE_VALUES } from "@rocky/database/constants";
 import { DEVICE_STATUS_VALUES } from "@rocky/database/constants";
+import { DISEASE_CATEGORY_VALUES } from "@rocky/database/constants";
 import { DISTRIBUTION_METHOD_VALUES } from "@rocky/database/constants";
 import { DUPLICATE_TYPE_VALUES } from "@rocky/database/constants";
 import { EARTAG_TRANSITION_STATUS_VALUES } from "@rocky/database/constants";
@@ -48,7 +50,7 @@ import { EVENT_SOURCE_VALUES } from "@rocky/database/constants";
 import { FARM_BOOK_STATUS_VALUES } from "@rocky/database/constants";
 import { FARM_READ_ROLE_VALUES } from "@rocky/database/constants";
 import { FARM_TYPE_VALUES } from "@rocky/database/constants";
-import { FENCE_TYPE_VALUES, SETTLEMENT_TYPE_VALUES } from "@rocky/database/constants";
+import { FENCE_TYPE_VALUES } from "@rocky/database/constants";
 import { GEOFENCE_EVENT_SOURCE_VALUES } from "@rocky/database/constants";
 import { GEOFENCE_EVENT_TYPE_VALUES } from "@rocky/database/constants";
 import { HEALTH_RECORD_TYPE_VALUES } from "@rocky/database/constants";
@@ -80,6 +82,9 @@ import { READING_TYPE_VALUES } from "@rocky/database/constants";
 import { REPRINT_REASON_VALUES } from "@rocky/database/constants";
 import { REPRINT_STATUS_VALUES } from "@rocky/database/constants";
 import { ROLE_PRIORITY_VALUES } from "@rocky/database/constants";
+import { SAMPLE_STATUS_VALUES } from "@rocky/database/constants";
+import { SANITARY_DECISION_VALUES } from "@rocky/database/constants";
+import { SETTLEMENT_TYPE_VALUES } from "@rocky/database/constants";
 import { SEVERITY_VALUES } from "@rocky/database/constants";
 import { SEX_VALUES } from "@rocky/database/constants";
 import { SORT_ANIMAL_BY_VALUES } from "@rocky/database/constants";
@@ -88,6 +93,7 @@ import { SORT_BY_FARM_VALUES } from "@rocky/database/constants";
 import { SORT_BY_MOVEMENT_VALUES } from "@rocky/database/constants";
 import { SORT_BY_USER_VALUES } from "@rocky/database/constants";
 import { SORT_ORDER_VALUES } from "@rocky/database/constants";
+import { SPECIES_VALUES } from "@rocky/database/constants";
 import { STATE_CODE_VALUES } from "@rocky/database/constants";
 import { SUBJECT_ROLE_VALUES } from "@rocky/database/constants";
 import { SYNC_ERROR_TYPE_VALUES } from "@rocky/database/constants";
@@ -106,7 +112,7 @@ import { VS_CONTRACT_STATUS_VALUES } from "@rocky/database/constants";
 import { WEIGHING_TYPE_VALUES } from "@rocky/database/constants";
 import { WRITE_ROLE_VALUES } from "@rocky/database/constants";
 
-// 91 enum schemas
+// 97 enum schemas
 
 export const adminRolesSchema = zEnum(ADMIN_ROLE_VALUES);
 export type adminRolesType = z.infer<typeof adminRolesSchema>;
@@ -160,6 +166,10 @@ export const contingentTypeSchema = zEnum(CONTINGENT_TYPE_VALUES);
 export type contingentTypeType = z.infer<typeof contingentTypeSchema>;
 const _satisfies_contingentTypeSchema: z.ZodType<contingentTypeType> = contingentTypeSchema;
 type _nodrift_contingentTypeSchema = NoDrift<z.infer<typeof contingentTypeSchema>, contingentTypeType>;
+export const controlMeasuresSchema = zEnum(CONTROL_MEASURES_VALUES);
+export type controlMeasuresType = z.infer<typeof controlMeasuresSchema>;
+const _satisfies_controlMeasuresSchema: z.ZodType<controlMeasuresType> = controlMeasuresSchema;
+type _nodrift_controlMeasuresSchema = NoDrift<z.infer<typeof controlMeasuresSchema>, controlMeasuresType>;
 export const correctionCaseTypeSchema = zEnum(CORRECTION_CASE_TYPE_VALUES);
 export type correctionCaseTypeType = z.infer<typeof correctionCaseTypeSchema>;
 const _satisfies_correctionCaseTypeSchema: z.ZodType<correctionCaseTypeType> = correctionCaseTypeSchema;
@@ -192,6 +202,10 @@ export const deviceTypeSchema = zEnum(IOT_DEVICE_TYPE_VALUES);
 export type deviceTypeType = z.infer<typeof deviceTypeSchema>;
 const _satisfies_deviceTypeSchema: z.ZodType<deviceTypeType> = deviceTypeSchema;
 type _nodrift_deviceTypeSchema = NoDrift<z.infer<typeof deviceTypeSchema>, deviceTypeType>;
+export const diseaseCategorySchema = zEnum(DISEASE_CATEGORY_VALUES);
+export type diseaseCategoryType = z.infer<typeof diseaseCategorySchema>;
+const _satisfies_diseaseCategorySchema: z.ZodType<diseaseCategoryType> = diseaseCategorySchema;
+type _nodrift_diseaseCategorySchema = NoDrift<z.infer<typeof diseaseCategorySchema>, diseaseCategoryType>;
 export const distributionMethodSchema = zEnum(DISTRIBUTION_METHOD_VALUES);
 export type distributionMethodType = z.infer<typeof distributionMethodSchema>;
 const _satisfies_distributionMethodSchema: z.ZodType<distributionMethodType> = distributionMethodSchema;
@@ -258,8 +272,6 @@ const _satisfies_geofenceEventSourceSchema: z.ZodType<geofenceEventSourceType> =
 type _nodrift_geofenceEventSourceSchema = NoDrift<z.infer<typeof geofenceEventSourceSchema>, geofenceEventSourceType>;
 export const geofenceEventTypeSchema = zEnum(GEOFENCE_EVENT_TYPE_VALUES);
 export type geofenceEventTypeType = z.infer<typeof geofenceEventTypeSchema>;
-export const settlementTypeSchema = zEnum(SETTLEMENT_TYPE_VALUES);
-export type settlementTypeType = z.infer<typeof settlementTypeSchema>;
 const _satisfies_geofenceEventTypeSchema: z.ZodType<geofenceEventTypeType> = geofenceEventTypeSchema;
 type _nodrift_geofenceEventTypeSchema = NoDrift<z.infer<typeof geofenceEventTypeSchema>, geofenceEventTypeType>;
 export const healthRecordTypeSchema = zEnum(HEALTH_RECORD_TYPE_VALUES);
@@ -374,6 +386,18 @@ export const rolePrioritySchema = zEnum(ROLE_PRIORITY_VALUES);
 export type rolePriorityType = z.infer<typeof rolePrioritySchema>;
 const _satisfies_rolePrioritySchema: z.ZodType<rolePriorityType> = rolePrioritySchema;
 type _nodrift_rolePrioritySchema = NoDrift<z.infer<typeof rolePrioritySchema>, rolePriorityType>;
+export const sampleStatusSchema = zEnum(SAMPLE_STATUS_VALUES);
+export type sampleStatusType = z.infer<typeof sampleStatusSchema>;
+const _satisfies_sampleStatusSchema: z.ZodType<sampleStatusType> = sampleStatusSchema;
+type _nodrift_sampleStatusSchema = NoDrift<z.infer<typeof sampleStatusSchema>, sampleStatusType>;
+export const sanitaryDecisionSchema = zEnum(SANITARY_DECISION_VALUES);
+export type sanitaryDecisionType = z.infer<typeof sanitaryDecisionSchema>;
+const _satisfies_sanitaryDecisionSchema: z.ZodType<sanitaryDecisionType> = sanitaryDecisionSchema;
+type _nodrift_sanitaryDecisionSchema = NoDrift<z.infer<typeof sanitaryDecisionSchema>, sanitaryDecisionType>;
+export const settlementTypeSchema = zEnum(SETTLEMENT_TYPE_VALUES);
+export type settlementTypeType = z.infer<typeof settlementTypeSchema>;
+const _satisfies_settlementTypeSchema: z.ZodType<settlementTypeType> = settlementTypeSchema;
+type _nodrift_settlementTypeSchema = NoDrift<z.infer<typeof settlementTypeSchema>, settlementTypeType>;
 export const severitySchema = zEnum(SEVERITY_VALUES);
 export type severityType = z.infer<typeof severitySchema>;
 const _satisfies_severitySchema: z.ZodType<severityType> = severitySchema;
@@ -406,6 +430,10 @@ export const sortOrderSchema = zEnum(SORT_ORDER_VALUES);
 export type sortOrderType = z.infer<typeof sortOrderSchema>;
 const _satisfies_sortOrderSchema: z.ZodType<sortOrderType> = sortOrderSchema;
 type _nodrift_sortOrderSchema = NoDrift<z.infer<typeof sortOrderSchema>, sortOrderType>;
+export const speciesSchema = zEnum(SPECIES_VALUES);
+export type speciesType = z.infer<typeof speciesSchema>;
+const _satisfies_speciesSchema: z.ZodType<speciesType> = speciesSchema;
+type _nodrift_speciesSchema = NoDrift<z.infer<typeof speciesSchema>, speciesType>;
 export const stateCodeSchema = zEnum(STATE_CODE_VALUES);
 export type stateCodeType = z.infer<typeof stateCodeSchema>;
 const _satisfies_stateCodeSchema: z.ZodType<stateCodeType> = stateCodeSchema;
@@ -475,7 +503,7 @@ export type writeRolesType = z.infer<typeof writeRolesSchema>;
 const _satisfies_writeRolesSchema: z.ZodType<writeRolesType> = writeRolesSchema;
 type _nodrift_writeRolesSchema = NoDrift<z.infer<typeof writeRolesSchema>, writeRolesType>;
 
-// ⚔️ Activate ALL 91 guillotine proofs
+// ⚔️ Activate ALL 97 guillotine proofs
 export type _Activate = ActivateGuillotines<[
   _nodrift_adminRolesSchema,
   _nodrift_administrationRouteSchema,
@@ -490,6 +518,7 @@ export type _Activate = ActivateGuillotines<[
   _nodrift_birthTypeSchema,
   _nodrift_conflictResolutionStatusSchema,
   _nodrift_contingentTypeSchema,
+  _nodrift_controlMeasuresSchema,
   _nodrift_correctionCaseTypeSchema,
   _nodrift_correctionStatusSchema,
   _nodrift_dataSourceSchema,
@@ -498,6 +527,7 @@ export type _Activate = ActivateGuillotines<[
   _nodrift_detectionSourceSchema,
   _nodrift_deviceStatusSchema,
   _nodrift_deviceTypeSchema,
+  _nodrift_diseaseCategorySchema,
   _nodrift_distributionMethodSchema,
   _nodrift_duplicateTypeSchema,
   _nodrift_earTagOrderStatusSchema,
@@ -543,6 +573,9 @@ export type _Activate = ActivateGuillotines<[
   _nodrift_reprintReasonSchema,
   _nodrift_reprintStatusSchema,
   _nodrift_rolePrioritySchema,
+  _nodrift_sampleStatusSchema,
+  _nodrift_sanitaryDecisionSchema,
+  _nodrift_settlementTypeSchema,
   _nodrift_severitySchema,
   _nodrift_sexSchema,
   _nodrift_sortAnimalBySchema,
@@ -551,6 +584,7 @@ export type _Activate = ActivateGuillotines<[
   _nodrift_sortByMovementSchema,
   _nodrift_sortByUserSchema,
   _nodrift_sortOrderSchema,
+  _nodrift_speciesSchema,
   _nodrift_stateCodeSchema,
   _nodrift_subjectRoleSchema,
   _nodrift_syncErrorTypeSchema,

@@ -1,0 +1,4 @@
+# Keeps apps/web/public in the repo so the web Dockerfile's
+# `COPY --from=build /app/apps/web/public ./apps/web/public` has a
+# source. The admin app currently references no static assets, so the
+# directory is empty; drop favicon.ico / images here when needed.

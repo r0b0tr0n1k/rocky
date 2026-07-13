@@ -1,0 +1,73 @@
+---
+title: Generate & verify a signed PDF document
+sidebarTitle: Signed PDF
+---
+
+# Generate & verify a signed PDF document
+
+Every Rocky document can be emitted as a **signed PDF/A-3** (PAdES, ETSI EN 319 142) so
+the issuance date is cryptographically provable. This is the `future.md` seal, realized
+by **ADR-0082**.
+
+## When
+
+You need a tamper-evident, court-provable copy of a document — an inspection form, a
+passport, a movement certificate, etc. — for archiving (ADR-0029) or for someone to verify
+offline by scanning its QR.
+
+## Generate a signed PDF
+
+**Via the web admin** — `/documents?type=inspection-form&refId=<id>`:
+
+- the page auto-generates the PDF, shows a **Download** button + inline preview, and a
+  **signature panel** with the seal facts.
+- inspection rows also have a **Generate PDF** kebab action that deep-links here.
+
+**Via tRPC** (`@rocky/trpc`):
+
+```ts
+const r = await trpc.document.generate.mutate({
+  type: "inspection-form",
+  refId: id,
+  format: "pdf",          // "yaml" | "xml" | "pdf"
+});
+// r.content is base64; r.format === "pdf"; decode → Uint8Array → save as .pdf
+```
+
+The `format: "pdf"` branch renders (Typst) → wraps PDF/A-3 → seals (PAdES-LTV) inside
+`DocumentService`. YAML/XML are still available for non-PDF consumers.
+
+> The seal only exists if a **signer is wired at API startup** (see
+> [Sign PDF documents](/runbooks/sign-pdf-documents)). With no signer configured the
+> document egresses **unsigned** and the signature panel / verify call will report it.
+
+## Verify a signature
+
+**Via the web admin** — `/verify`: enter the `type` + `refId` (or scan the document's QR,
+which points at `/verify?type=&refId=`), and read the signature facts. The page also
+renders a QR of the canonical verify URL.
+
+**Via tRPC**:
+
+```ts
+const v = await trpc.document.verify.query({ type: "inspection-form", refId: id });
+// v.valid, v.signerSubject, v.serialNumber, v.algorithm ("sha256"),
+// v.signedAt, v.hasTimestamp, v.timestampedAt, v.hasRevocation
+```
+
+`document.verify` re-derives the document and reads the PAdES CMS back out
+(`extractSignature`) — it does **not** do chain/trust validation (that is the external
+verifier's job, e.g. veraPDF / Adobe). `valid: true` means the CMS parses and the byte
+range is intact, not that the root is trusted.
+
+## Gotchas
+
+- `valid: false` usually means the document was emitted **unsigned** (no signer wired) or
+  the buffer was altered after sealing.
+- A **self-signed / dev** signer yields a cryptographically valid seal with an *untrusted
+  root* — fine for dev, not legal EUDR proof. Swap to the qualified cert + HSM (env only).
+- Without a reachable TSA the seal is **BES** (`hasTimestamp: false`). Set `ROCKY_TSA_URL`
+  for the LTV timestamp token.
+
+See the architecture decision in [ADR-0082](/ADR/0082-pdf-a-hybrid-signing) and the
+operator runbook [Sign PDF documents](/runbooks/sign-pdf-documents).

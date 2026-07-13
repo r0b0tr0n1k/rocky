@@ -216,7 +216,10 @@ standalone artifact for **ear-tag printing**: the physical cattle ear tag carrie
 that resolves back to the animal's canonical, signed record (passport / registration).
 This is the `future.md` "QR codes" mandate made concrete, and it closes the loop with the
 ear-tag domain (`packages/domains/eartag`) — scan the tag, land on the cryptographically
-sealed XML. The QR points *at* the key (the XML); it is not a substitute for it.
+sealed XML. The QR points *at* the key (the XML); it is not a substitute for it. This §5
+  describes the **locator** QR only (online resolve-and-verify). The self-contained
+  **signed-payload** QR for offline gates is specified separately in **ADR-0084** — do not
+  read this as the offline QR mandate being done.
 
 ```mermaid
 flowchart LR
@@ -365,6 +368,31 @@ of truth.
   - `@e-invoice-eu` already renders the invoice XML → PDF/A-3 hybrid; layer the
     Phase-2 sign stage on top.
 
+## Operations & Verification Loop
+
+A signed document is only useful if its seal can be read back. Two read paths exist:
+
+- **API — `document.verify({ type, refId })`** (`@Query`, `@Policy({ authenticated: true })`):
+  re-derives the document via the template, re-seals it deterministically, and reads the
+  PAdES CMS back out with `extractSignature()` → `DocumentVerifyResult`
+  (`valid`, `signerSubject`, `serialNumber`, `algorithm`, `signedAt`, `hasTimestamp`,
+  `timestampedAt`, `hasRevocation`). No PII beyond the doc id is returned. This is the
+  server side of the QR verification loop.
+- **Web — `/verify`**: enter type + refId (or scan the doc's QR, which points at
+  `/verify?type=&refId=`) and see the signature facts; it also renders a QR of the
+  canonical verify URL. `/documents` gained PDF download + inline preview + a signature
+  panel, and inspection rows gained a "Generate PDF" kebab action.
+
+**Signer bootstrap (`apps/api/src/pdf/signer-bootstrap.ts`).** At API startup
+`onModuleInit` calls `useSigner(createConfiguredSigner())`. Precedence:
+`ROCKY_HSM_URL` → `ROCKY_P12_PATH` → `NoOpSigner` (unsigned, warns). Production MUST set
+the HSM (key never leaves the appliance); the **interim** path is a local PKCS#12
+(`Pkcs12Signer` + optional `ROCKY_TSA_URL` RFC 3161 timestamp). A self-signed dev cert
+bundled to `apps/api/keys/dev-signing.p12` is generated for local/dev and is git-ignored;
+see `runbooks/sign-pdf-documents` for the exact `openssl` + env recipe. The dev cert
+produces a *cryptographically valid* PAdES-LTV seal, but with an **untrusted root** — for
+legal EUDR proof, swap to the qualified cert + HSM (no code change, just env).
+
 ## Verification (Definition of Done)
 
 ```bash
@@ -383,6 +411,10 @@ npx pdfcpu validate -mode strict sample.pdf
 
 # 4. Contract: document.generate({format:'pdf'}) returns a SIGNED pdf/a
 #    (assert %PDF header + /Sig + PDF/A XMP on the returned buffer)
+
+# 5. Verify loop: document.verify returns signature facts; /verify + /documents render them
+rg -n "extractSignature|document.verify" packages/pdf/src apps/api/src \
+  "apps/web/app/(admin)/verify" "apps/web/app/(admin)/documents"
 ```
 
 ## Anti-Patterns (do not repeat)
@@ -409,11 +441,17 @@ Accepted and implemented (2026-07). The full pipeline lands in `packages/pdf`:
   HSM via `HsmSigner` for production. `TimestampAuthority` (`HttpTsaClient` prod,
   `FakeTimestampAuthority` dev) drives the RFC 3161 timestamp.
 - **QR codes**: standalone ear-tag artifact via `generateQrPng`/`generateQrSvg`
-  (`qrcode`) — implemented + tested. On-document QR is blocked by the prebuilt WASM
-  sandbox (no native `qrcode()`, `image()` cannot read injected vfs files); revisited
-  on WASM upgrade / local font vendoring.
+  (`qrcode`) — implemented + tested. On-document QR is **unblocked, not a WASM-upgrade
+  wait**: render the QR to a PNG and embed it as a `@cantoo/pdf-lib` image XObject *after*
+  Typst and *before* the PAdES seal — see **ADR-0084 §7**.
 - `check:pdfa` (PDF/A-3 + PAdES + LTV structural assertions) is wired into root
   `ci:checks`; `verify:pdfa` emits a real signed sample and runs `verapdf` when installed.
+- **Verify loop**: `document.verify` re-derives + reads the PAdES seal
+  (`extractSignature` → `DocumentVerifyResult`); the web `/verify` page + `/documents`
+  signature panel close the QR verification loop.
+- **Signer bootstrap**: `createConfiguredSigner()` is wired at API startup
+  (`HSM → P12 → NoOp`). An interim self-signed dev cert in `apps/api/keys/`
+  (git-ignored) lets documents sign locally now; the qualified cert + HSM is an env swap.
 
 ## Related ADRs
 
@@ -423,4 +461,5 @@ Accepted and implemented (2026-07). The full pipeline lands in `packages/pdf`:
 - **ADR-0033** — ADR house standard (this document conforms).
 - **ADR-0052** — Documentation taxonomy (this is an ADR; the plan lives in §Implementation).
 - **WO-050** — PDF/A rendering + cryptographic seal (this ADR activates it).
+- **ADR-0084** — Offline-verifiable signed QR credentials (the self-contained signed-payload QR; this ADR covers the **locator** QR only).
 - **`docs/old/future.md`** — PDF/A digital archiving + cryptographic seal mandate.

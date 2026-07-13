@@ -21,6 +21,14 @@ export interface AuthConfig {
   baseURL: string;
   secret: string;
   trustedOrigins: string[];
+  /**
+   * Shared parent cookie domain for cross-subdomain sessions, e.g. `.rocky.company.com`.
+   * When set, Better Auth enables `crossSubDomainCookies` so the session cookie is
+   * visible across `api.`, `admin.`, and `docs.` subdomains (required for deployments
+   * where the app lives under a tertiary/subdomain, not the registered apex).
+   * Leave undefined for single-host / localhost dev (no cross-subdomain cookies).
+   */
+  cookieDomain?: string;
 }
 
 export type AuthResult = {
@@ -78,6 +86,13 @@ export class Auth {
       advanced: {
         cookiePrefix: "rocky",
         generateId: false,
+        // Cross-subdomain sessions: only when an explicit shared parent domain is
+        // configured (tertiary/subdomain deployments). Better Auth does NOT derive
+        // the parent from baseURL — it would otherwise pin the cookie to the raw
+        // api hostname and break sharing with admin./docs. subdomains.
+        ...(config.cookieDomain
+          ? { crossSubDomainCookies: { enabled: true, domain: config.cookieDomain } }
+          : {}),
       },
       emailAndPassword: {
         enabled: true,

@@ -89,6 +89,7 @@ export const navSections: NavSection[] = [
       { title: "Notifications", href: "/notifications", permission: "notification:read", icon: Bell },
       { title: "Archive", href: "/archive", permission: "archive:read", icon: Archive },
       { title: "Documents", href: "/documents", permission: "report:read", icon: FileText },
+      { title: "Verify document", href: "/verify", permission: "report:read", icon: ShieldCheck },
       { title: "Roles & Permissions", href: "/rbac", permission: "sm:roles:read", icon: ShieldCheck },
       { title: "Users", href: "/users", permission: "sm:users:read", icon: UserCog },
       { title: "Audit", href: "/audit", permission: "sm:audit:read", icon: ScrollText },

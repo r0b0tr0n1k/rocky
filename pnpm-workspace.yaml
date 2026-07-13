@@ -4,9 +4,10 @@ packages:
   - "apps/*"
 
 allowBuilds:
-  '@biomejs/biome': set this to true or false
+  "@biomejs/biome": set this to true or false
   "@swc/core": true
   "@tailwindcss/oxide": true
+  cbor-extract: true
   esbuild: true
   sharp: true
   unrs-resolver: true
@@ -15,6 +16,8 @@ catalog:
   "@biomejs/biome": 2.5.15
   "@better-auth/drizzle-adapter": ^1.7.0-rc.1
   "@better-auth/expo": ^1.7.0-rc.1
+  "@better-auth-ui/core": 1.6.27
+  "@better-auth-ui/react": 1.6.27
   "@thallesp/nestjs-better-auth": ^2.7.0,
   "@total-typescript/ts-reset": ^0.6.1,
   "@hookform/resolvers": ^5.4.0
@@ -140,6 +143,8 @@ minimumReleaseAgeExclude:
   - "@better-auth/core@1.7.0-rc.1"
   - "@better-auth/drizzle-adapter@1.7.0-rc.1"
   - "@better-auth/expo@1.7.0-rc.1"
+  - "@better-auth-ui/core@1.7.0-rc.1"
+  - "@better-auth-ui/react@1.7.0-rc.1"
   - "@better-auth/kysely-adapter@1.7.0-rc.1"
   - "@better-auth/memory-adapter@1.7.0-rc.1"
   - "@better-auth/mongo-adapter@1.7.0-rc.1"
@@ -170,7 +175,7 @@ onlyBuiltDependencies:
 overrides:
   zod: 4.4.3
   # Nextra 4.6.1 <Layout> requires `children: z.custom(...)`. Zod >=4.2 treats a
-  # MISSING required key as `expected nonoptional` *before* the custom check runs,
+  # MISSING required key → `expected nonoptional` before the custom zod check
   # so the docs theme crashes under the global 4.4.3 pin. Scope Nextra back to
   # the 4.1.x line (missing required z.custom key passes); rest stays on 4.4.3.
   "nextra>zod": 4.1.13

@@ -20,6 +20,7 @@ import type {
   movements as movementsTable,
 } from "@rocky/database";
 import type { SystemService } from "@rocky/domains-system";
+import { TraceabilityRuleEngine, EU_TRACEABILITY_FLOORS } from "@rocky/domains-system";
 import type { DiseaseZoneCheckResult, GeoRepository, GeoService } from "@rocky/geo";
 import { runEudrDueDiligence, type EudrDueDiligenceResult } from "./eudr-due-diligence.js";
 import {
@@ -183,6 +184,61 @@ export class MovementService {
         });
       }
 
+      // ── Art. 13(4) + Art. 3 (Implementing Reg (EU) 2021/520) ──
+      // Load the jurisdiction RuleSet once and reuse for the welfare block below.
+      const ruleSet = await this.system.getRuleSet();
+      if (ruleSet.isErr()) throw ruleSet.error;
+      const traceRules = ruleSet.value.traceabilityRules;
+
+      // ── Art. 13(4): tag before move ──
+      // A bovine may not leave its holding until identified. Enforced for real
+      // cross-farm departures when the Article rule is enabled for this jurisdiction.
+      const isDeparture = fromFarmId && toFarmId && fromFarmId !== toFarmId;
+      if (
+        TraceabilityRuleEngine.isEnabled(traceRules, "ART13_TAG_BEFORE_MOVE") &&
+        isDeparture &&
+        !animal.earTagNumber
+      ) {
+        throw new MovementError(MOVEMENT_ERRORS.TAG_REQUIRED_BEFORE_MOVE, {
+          animalId: input.animalId,
+        });
+      }
+
+      // ── Art. 3: transmission window (operator must report within N days) ──
+      // Applies to operator-reported movements (not birth/death backfill, which the
+      // WO-022 overdue-birth lock already covers). Toggle + deadline come from the
+      // traceability rules engine (`ART3_TRANSMISSION_WINDOW`), defaulting to the EU floor of 7.
+      const reportableTypes: ReadonlySet<string> = new Set([
+        MOVEMENT_TYPE.SALE,
+        MOVEMENT_TYPE.PURCHASE,
+        MOVEMENT_TYPE.IMPORT,
+        MOVEMENT_TYPE.EXPORT,
+        MOVEMENT_TYPE.SLAUGHTERHOUSE,
+        MOVEMENT_TYPE.HOME_SLAUGHTER,
+        MOVEMENT_TYPE.MARKET_SALE,
+        MOVEMENT_TYPE.MARKET_PURCHASE,
+      ]);
+      if (
+        TraceabilityRuleEngine.isEnabled(traceRules, "ART3_TRANSMISSION_WINDOW") &&
+        input.movementDate &&
+        reportableTypes.has(input.type ?? MOVEMENT_TYPE.SALE)
+      ) {
+        const latencyDays = daysBetween(new Date(input.movementDate), new Date());
+        const maxDays = TraceabilityRuleEngine.getParam(
+          traceRules,
+          "ART3_TRANSMISSION_WINDOW",
+          "transmissionDeadlineDays",
+          EU_TRACEABILITY_FLOORS.transmissionMaxDays,
+        );
+        if (latencyDays > maxDays) {
+          throw new MovementError(MOVEMENT_ERRORS.TRANSMISSION_DEADLINE_EXCEEDED, {
+            animalId: input.animalId,
+            latencyDays,
+            maxDays,
+          });
+        }
+      }
+
       // ── WO-113: AMR withdrawal guillotine (EU 2019/6, Art. 108) ──
       // A treated animal may not enter the food chain (slaughter) until its
       // withdrawal period has elapsed. 403 WITHDRAWAL_PERIOD_ACTIVE (mapped via
@@ -259,8 +315,6 @@ export class MovementService {
         MOVEMENT_TYPE.HOME_SLAUGHTER,
       ];
       if (transportTypes.includes(input.type ?? MOVEMENT_TYPE.SALE) && input.arrivalDate) {
-        const ruleSet = await this.system.getRuleSet();
-        if (ruleSet.isErr()) throw ruleSet.error;
         const w = ruleSet.value.welfare;
         const departure = new Date(input.movementDate);
         const arrival = new Date(input.arrivalDate);

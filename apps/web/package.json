@@ -12,8 +12,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@better-auth-ui/core": "^1.6.27",
-    "@better-auth-ui/react": "^1.6.27",
+    "@better-auth-ui/core": "catalog:",
+    "@better-auth-ui/react": "catalog:",
     "@hookform/resolvers": "catalog:",
     "@rocky/auth": "workspace:*",
     "@rocky/trpc": "workspace:*",
@@ -36,7 +36,8 @@
     "recharts": "3.8.0",
     "sonner": "catalog:",
     "superjson": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@rocky/typescript-config": "workspace:*",
@@ -47,6 +48,7 @@
     "@rocky/authorization": "workspace:*",
     "@rocky/testing": "workspace:*",
     "vite-tsconfig-paths": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "@types/qrcode": "^1.5.6"
   }
 }

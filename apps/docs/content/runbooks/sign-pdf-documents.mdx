@@ -1,0 +1,74 @@
+---
+title: Sign PDF documents (signer config)
+sidebarTitle: Sign PDFs
+---
+
+# Sign PDF documents (signer config)
+
+Every emitted `format: "pdf"` document is sealed by a **PAdES** signer wired at API
+startup (`apps/api/src/pdf/signer-bootstrap.ts` → `useSigner(createConfiguredSigner())`).
+This runbook covers the env contract and the interim dev-cert recipe. See
+[ADR-0082](/ADR/0082-pdf-a-hybrid-signing) for the decision and
+[Generate & verify a signed PDF](/how-to/generate-and-verify-signed-pdf) for usage.
+
+## Signer precedence
+
+`ROCKY_HSM_URL` → `ROCKY_P12_PATH` → `NoOpSigner` (unsigned, warns).
+
+| Var | Signer | Notes |
+| --- | --- | --- |
+| `ROCKY_HSM_URL` | `HsmSigner` (prod) | Air-gapped HSM; key never leaves the appliance. `https://` only. |
+| `ROCKY_HSM_TOKEN` | `HsmSigner` | Auth token for the HSM channel (optional). |
+| `ROCKY_HSM_TRUSTED_HOSTS` | `HsmSigner` | Comma list; SSRF allowlist for the HSM host. |
+| `ROCKY_P12_PATH` | `Pkcs12Signer` (interim/dev) | Path to a `.p12` (cert + key). |
+| `ROCKY_P12_PASS` | `Pkcs12Signer` | The `.p12` passphrase. |
+| `ROCKY_P12_SIGNATURE_LENGTH` | `Pkcs12Signer` | Byte-range reserve; `16384` (default too small once LTV is added). |
+| `ROCKY_TSA_URL` | LTV timestamp | RFC 3161 TSA endpoint (`https://`). |
+| `ROCKY_TSA_ALLOWED_HOSTS` | LTV timestamp | Comma list; SSRF allowlist for the TSA host. |
+
+> Production MUST set the HSM (`ROCKY_HSM_URL`). The `Pkcs12Signer` path is the
+> **interim** signer — real PAdES-LTV, anchored on a test cert (untrusted root).
+
+## Interim dev cert (local/dev only)
+
+Generate a self-signed cert + key, bundle to a `.p12`, and point the env at it. The
+`.p12` must **never be committed** (root `.gitignore` already ignores `*.p12` and
+`apps/api/keys/`).
+
+```bash
+# 1. self-signed cert + key (RSA-2048, 10y)
+openssl req -x509 -newkey rsa:2048 -keyout /tmp/dev.key -out /tmp/dev.crt \
+  -days 3650 -nodes -subj "/CN=Rocky Dev Signer" \
+  -addext "basicConstraints=CA:FALSE" \
+  -addext "keyUsage=digitalSignature,nonRepudiation" \
+  -addext "extendedKeyUsage=timeStamping,emailProtection"
+
+# 2. bundle to PKCS#12
+mkdir -p apps/api/keys
+openssl pkcs12 -export -inkey /tmp/dev.key -in /tmp/dev.crt \
+  -out apps/api/keys/dev-signing.p12 -passout pass:CHANGE_ME
+
+# 3. wire env (apps/api/.env, git-ignored)
+ROCKY_P12_PATH=apps/api/keys/dev-signing.p12
+ROCKY_P12_PASS=CHANGE_ME
+ROCKY_P12_SIGNATURE_LENGTH=16384
+# optional LTV timestamp:
+# ROCKY_TSA_URL=https://freetsa.org/tsr
+# ROCKY_TSA_ALLOWED_HOSTS=freetsa.org
+```
+
+Restart the API so it reads the new env; it will now seal docs instead of warning
+`NoOpSigner`. Confirm with `trpc.document.verify` (`valid: true`) or the `/verify` page.
+
+## Gotchas
+
+- **Unsigned egress** = a wrongly-missing signer. If `ROCKY_P12_PATH`/`ROCKY_HSM_URL`
+  are both absent, the API falls back to `NoOpSigner` (warns). Treat that log line as a
+  failure in any non-dev environment.
+- **`ROCKY_P12_SIGNATURE_LENGTH` too small** → the placeholder can't hold the LTV
+  timestamp CMS; the sign fails or truncates. Use `16384`+ when `ROCKY_TSA_URL` is set.
+- **TSA unreachable / not allowlisted** → signature is BES (`hasTimestamp: false`); LTV
+  requires the TSA host in `ROCKY_TSA_ALLOWED_HOSTS`.
+- **Dev cert = untrusted root.** External PAdES validators (veraPDF, Adobe) flag
+  "signer identity unverified". For legal EUDR proof, swap to the qualified cert + HSM —
+  **no code change**, just env.

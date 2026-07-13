@@ -70,3 +70,11 @@ apps/mob/trpc/server.ts
 _pagefind/
 graphgrc-main
 e-invoice-eu2
+
+# PDF signing keys (dev/test P12 — never commit)
+*.p12
+apps/api/keys/
+
+# ── DB reset backups (scripts/db-reset.sh) ──
+backups/
+*.dump

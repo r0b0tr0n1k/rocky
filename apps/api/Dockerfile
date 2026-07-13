@@ -8,22 +8,25 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 # all workspace manifests so pnpm can resolve the full graph
 COPY packages ./packages
 COPY apps ./apps
+# Harden pnpm for flaky/slow registries: long per-request timeout, many
+# retries, low concurrency (fewer simultaneous slow sockets = fewer drops).
+RUN printf 'fetch-timeout=1200000\nstore-dir=/pnpm/store\nfetch-retries=10\nfetch-retry-mintimeout=10000\nfetch-retry-maxtimeout=120000\nnetwork-concurrency=4\n' >> .npmrc
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    pnpm install -r --filter @rocky/api... --frozen-lockfile
+    for i in 1 2 3 4 5; do pnpm install --frozen-lockfile && break || sleep 15; done
 
 # ---- build
 FROM deps AS build
 COPY apps/api ./apps/api
 RUN pnpm -r --filter @rocky/api... build
 # drop devDependencies from node_modules (drizzle-kit, tsx, typescript, vitest, @nestjs/cli, ...)
-RUN pnpm -r prune --prod
+RUN CI=true pnpm install --prod --frozen-lockfile
 
 # ---- runtime (Alpine, prod deps only, non-root)
 FROM node:24-alpine AS runtime
 RUN apk add --no-cache curl
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=build /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+COPY --from=build /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml /app/.npmrc ./
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/packages ./packages
 COPY --from=build /app/apps/api ./apps/api

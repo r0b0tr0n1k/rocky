@@ -1,4 +1,13 @@
-version: "3.8"
+# ── Domain model ─────────────────────────────────────────────
+# ROCKY_DOMAIN is the TERTIARY root the app is served from, e.g.
+# rocky.tehno.party. Hosts become api./admin./docs.ROCKY_DOMAIN.
+#
+# ── Security model ──────────────────────────────────────────
+# No service exposes ports to the host. Every app container is
+# reachable ONLY via the Cloudflare Tunnel (cloudflared), which
+# joins the same bridge network and proxies by service name.
+# Configure public hostnames in Cloudflare Zero Trust Dashboard
+# > Networks > Tunnels > your-tunnel > Public Hostname.
 
 services:
   # ── PostgreSQL + PostGIS ───────────────────────────────────────
@@ -15,8 +24,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/initdb:/docker-entrypoint-initdb.d:ro
-    ports:
-      - "5432:5432"
+    # No ports: — DB is only reachable from within app-network.
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U tbot -d tbot"]
       interval: 10s
@@ -39,11 +47,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    labels:
-      - dockflare.enable=true
-      - dockflare.hostname=api.${ROCKY_DOMAIN:-example.com}
-      - dockflare.service=http://api:8080
-      - dockflare.access.group=rocky-api
+    # No ports: — reachable only via cloudflared tunnel.
     environment:
       - NODE_ENV=production
       - PORT=8080
@@ -58,18 +62,25 @@ services:
       - DATABASE_URL=postgres://tbot:${POSTGRES_PASSWORD}@${DB_HOST:-db}:${DB_PORT:-5432}/tbot
       # Auth
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      # Public API origin must be external https, not the internal docker host.
+      # Better Auth derives the cookie domain from this; on a tertiary domain
+      # (api.rocky.tehno.party) https is required for Secure shared cookies.
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-https://api.${ROCKY_DOMAIN:-rocky.tehno.party}}
+      # Internal server-to-server base URL (Next.js SSR -> API).
       - BASE_SERVICE_URL=http://api:8080
-      - AUTH_BASE_URL=${AUTH_BASE_URL:-https://admin.${ROCKY_DOMAIN:-example.com}}
+      # Shared parent cookie domain: api./admin./docs. share the session.
+      - AUTH_COOKIE_DOMAIN=${AUTH_COOKIE_DOMAIN:-.${ROCKY_DOMAIN:-rocky.tehno.party}}
+      # Admin/public origin the browser runs on (CSRF + CORS trust).
+      - AUTH_BASE_URL=${AUTH_BASE_URL:-https://admin.${ROCKY_DOMAIN:-rocky.tehno.party}}
       # CORS: admin origin (browser). Override CORS_ORIGINS on a VM.
-      - CORS_ORIGINS=${CORS_ORIGINS:-https://admin.${ROCKY_DOMAIN:-example.com}}
-      - TRUSTED_ORIGINS=${TRUSTED_ORIGINS:-https://admin.${ROCKY_DOMAIN:-example.com},mobile://}
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://admin.${ROCKY_DOMAIN:-rocky.tehno.party}}
+      - TRUSTED_ORIGINS=${TRUSTED_ORIGINS:-https://admin.${ROCKY_DOMAIN:-rocky.tehno.party},mobile://}
       # App
       - VERSION=${VERSION:-production}
       - ENVIRONMENT=production
     restart: unless-stopped
     networks:
       - app-network
-      - cloudflare-net
 
   # ── Next.js Admin Panel ──────────────────────────────────────
   web:
@@ -79,12 +90,8 @@ services:
       dockerfile: apps/web/Dockerfile
       args:
         # Inlined at build (browser). Defaults to the Cloudflare api domain.
-        - NEXT_PUBLIC_API_URL=${WEB_PUBLIC_API_URL:-https://api.${ROCKY_DOMAIN:-example.com}}
-    labels:
-      - dockflare.enable=true
-      - dockflare.hostname=admin.${ROCKY_DOMAIN:-example.com}
-      - dockflare.service=http://web:3000
-      - dockflare.access.policy=authenticate
+        - NEXT_PUBLIC_API_URL=${WEB_PUBLIC_API_URL:-https://api.${ROCKY_DOMAIN:-rocky.tehno.party}}
+    # No ports: — reachable only via cloudflared tunnel.
     environment:
       - NODE_ENV=production
       # SSR: Next.js server calls API via Docker internal network (RUNTIME)
@@ -92,13 +99,12 @@ services:
       # Auth secret (same as API, for server-side session validation)
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       # Public base URL of the auth server (Cloudflare admin domain)
-      - AUTH_BASE_URL=${AUTH_BASE_URL:-https://admin.${ROCKY_DOMAIN:-example.com}}
+      - AUTH_BASE_URL=${AUTH_BASE_URL:-https://admin.${ROCKY_DOMAIN:-rocky.tehno.party}}
     depends_on:
       - api
     restart: unless-stopped
     networks:
       - app-network
-      - cloudflare-net
 
   # ── Nextra Docs Site ─────────────────────────────────────────
   docs:
@@ -106,22 +112,35 @@ services:
     build:
       context: .
       dockerfile: apps/docs/Dockerfile
-    labels:
-      - dockflare.enable=true
-      - dockflare.hostname=docs.${ROCKY_DOMAIN:-example.com}
-      - dockflare.service=http://docs:3002
-      - dockflare.access.policy=authenticate
+    # No ports: — reachable only via cloudflared tunnel.
     restart: unless-stopped
     networks:
       - app-network
-      - cloudflare-net
+
+  # ── Cloudflare Tunnel ─────────────────────────────────────────
+  # Runs as a container on the same bridge network. No host ports
+  # are published — this is the ONLY ingress. The TUNNEL_TOKEN is
+  # obtained via the Cloudflare API (curl) and pasted into .env.
+  # See .env.example section 5 for the exact curl commands.
+  cloudflared:
+    container_name: cloudflared
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    networks:
+      - app-network
+    depends_on:
+      - api
+      - web
+      - docs
 
   # ── Drizzle Studio (optional, dev only) ──────────────────────
   drizzle-studio:
     image: ghcr.io/drizzle-team/gateway:latest
     container_name: drizzle-studio
-    ports:
-      - "4983:4983"
+    # No ports: — dev-only, no tunnel exposure needed.
     volumes:
       - drizzle-gateway-data:/app
     environment:
@@ -142,6 +161,3 @@ volumes:
 networks:
   app-network:
     driver: bridge
-  cloudflare-net:
-    name: cloudflare-net
-    external: true

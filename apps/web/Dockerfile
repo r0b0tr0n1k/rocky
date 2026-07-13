@@ -17,8 +17,9 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY packages ./packages
 COPY apps ./apps
+RUN printf 'fetch-timeout=1200000\nstore-dir=/pnpm/store\nfetch-retries=10\nfetch-retry-mintimeout=10000\nfetch-retry-maxtimeout=120000\nnetwork-concurrency=4\n' >> .npmrc
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    pnpm install -r --filter web... --frozen-lockfile
+    for i in 1 2 3 4 5; do pnpm install --frozen-lockfile && break || sleep 15; done
 
 # ---- build
 FROM deps AS build
@@ -27,19 +28,19 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 COPY apps/web ./apps/web
 RUN pnpm -r --filter web... build
 # drop devDependencies from node_modules
-RUN pnpm -r prune --prod
+RUN CI=true pnpm install --prod --frozen-lockfile
 
 # ---- runtime (prod deps only, non-root)
 FROM node:24.14.0-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=build /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+COPY --from=build /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml /app/.npmrc ./
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/packages ./packages
 COPY --from=build /app/apps/web ./apps/web
 COPY --from=build /app/apps/web/.next ./apps/web/.next
 COPY --from=build /app/apps/web/public ./apps/web/public
-RUN addgroup -S nodejs && adduser -S appuser -G nodejs && chown -R appuser:nodejs /app
+RUN addgroup --system nodejs && adduser --system --ingroup nodejs appuser && chown -R appuser:nodejs /app
 USER appuser
 WORKDIR /app/apps/web
 EXPOSE 3000

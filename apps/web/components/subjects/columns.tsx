@@ -46,7 +46,7 @@ export const subjectColumns: ColumnDef<SubjectSummary>[] = [
       ),
   },
   {
-    id: "actions",
+    id: "edit",
     header: () => <span className="sr-only">Actions</span>,
     enableSorting: false,
     cell: ({ row }) => (
