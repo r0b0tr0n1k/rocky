@@ -1339,6 +1339,7 @@ audited contractor (conflict of interest) — rejected.
 | WO-120 | Bovine I&R 7/20 as **non-overridable EU floor** (R8): harden WO-022 deadlines; clamp RuleSet `TAGGING_DAYS` >= EU min | 0054 / 0028 | P2 | Done ✅ |
 | WO-121 | IMSOC / CHED export compliance (R9): export movements emit CHED-compliant JSON/XML (TRACES NT) | 0054 / 0062 | P2 | ✅ Done |
 | WO-122 | GDPR public-health exception (R10): Art.6(1)(c)+9(2)(i) defeat erasure; protect audit_log | 0054 / 0061 | P2 | Draft |
+| WO-156 | Notification channel routing + SMS minimization (ADR-0094): policy-driven, security-tiered; per-category SMS suppression; ack-based fallback | 0094 | P1 | In progress ⏳ (ChannelRouter + tests ✅; ack field + worker + SMS client remain) |
 
 ---
 
@@ -1485,3 +1486,11 @@ subprocessor), wired to ADR-0075 + rocky-processor-register / rocky-toms / rocky
 - Added `compliance/iso27701-2025-gap-analysis.md` §13: IMSOC 2019/1715 article→domain/ADR map (CHED-A Art 40/41 → ADR-0062; e-signature/seal/timestamp Art 38–42 → ADR-0082/0084; iRASFF alerts Art 17/20/22 → Inspection/Health + ROCKY-WDRW-001; data protection Art 10/11 → ADR-0061/DPA/transfer; 10-yr storage Art 26/42 → Archive; contingency Art 28/46 → ADR-0084). Notes the signing stack is IMSOC-grade and Rocky feeds (not hosts) IMSOC.
 - ADR-0062 Related: linked ADR-0082 (PAdES), ADR-0084 (offline QR), ROCKY-WDRW-001, gap-analysis §13. ADR-0054 Related: linked ADR-0062 (IMSOC/CHED-A).
 - Source: ADR-0062 / 0082 / 0084 / 0061 / 0054 / rocky-withdrawal-recall-procedure.md.
+
+
+### WO-156 — Notification channel routing + SMS minimization (ADR-0094) — In progress ⏳
+
+- **ADR-0094** Accepted: the Notification domain owns channel selection from *intent* (not a caller-supplied `type`). Security-tiered: our app (push + in_app, Tier 0) is the secure default; email (Tier 1) for long/attachment; SMS (Tier 2) is a consent-gated, content-minimized last resort, per-category suppressible.
+- Slice 1 (done): pure, fully-testable `ChannelRouter.resolveChannels()` in `@rocky/domains-notification` + 14 tests (email routing, SMS primary for urgent/critical, ack-based SMS fallback, per-category suppression even when unreachable, minimization flag). Added `vitest.config.ts` + `test` script + `vitest` devDep.
+- Remaining: `acknowledgedAt` column + mobile `confirmDelivery`; delivery worker + fallback scanner (consult `resolveChannels`); real SMS client (Twilio/Vonage) — deferred ("at the end").
+- Source: ADR-0094.

@@ -46,3 +46,23 @@ Manages in-app notifications for users. Supports unread counts, send/mark-as-rea
 | Domain | Integration                                              |
 | ------ | -------------------------------------------------------- |
 | Animal | Birth notifications trigger `NotificationService.send()` |
+
+## Channel Routing (ADR-0094)
+
+Channel selection is **policy-driven and owned by this domain**, not by the caller. The
+caller passes *intent* (`priority`, `category`, `messageLength`, `hasAttachment`, `confirmed`,
+`smsEnabled`); `ChannelRouter.resolveChannels()` (`./services/channel-router.ts`) returns the
+channel plan. Security-tiered:
+
+- **Tier 0 (preferred):** our app — `push` + `in_app` (TLS, authenticated, in-boundary). Full content.
+- **Tier 1 (external, acceptable):** `email` — long body (>160 chars) or attachment (PDF).
+- **Tier 2 (last resort, minimal):** `sms` — plaintext/PII; consent-gated (`sms_enabled`),
+  **content-minimized** (pointer only, never the payload), and per-category suppressible.
+
+Rules: SMS as **primary** for `urgent`/`critical` when the category allows it + consent; SMS as
+**fallback** only when the app delivery report was NOT received within the confirm TTL
+(`confirmed === false && fallbackTtlExpired`) and the category allows fallback + consent.
+Per-category `CategorySmsPolicy { primary, fallback }` (default both true) lets some categories
+**never** use SMS — even when the user is unreachable (`smsSuppressed === true`). The function is
+pure and fully unit-tested (`channel-router.test.ts`, 14 tests); the real SMS transport is
+deferred (ADR-0094 §7).
