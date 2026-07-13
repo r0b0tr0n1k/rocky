@@ -38,6 +38,7 @@ export const DOMAIN_TABLE_MAP = {
     inspection: [
         "an/inspections.ts",
         "an/risk-analyses.ts",
+        "an/sanitary-inspections.ts",
     ],
     archive: [
         "an/archive-documents.ts",

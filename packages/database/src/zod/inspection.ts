@@ -3,6 +3,7 @@
 
 import { inspections } from "../schema/an/inspections.js";
 import { riskAnalyses, riskAnalysisResults } from "../schema/an/risk-analyses.js";
+import { sanitaryInspections } from "../schema/an/sanitary-inspections.js";
 import { createInsertSchema, createSelectSchema } from "./factory.js";
 
 export const inspectionsSelectSchema = createSelectSchema(inspections);
@@ -13,3 +14,6 @@ export const riskAnalysesInsertSchema = createInsertSchema(riskAnalyses);
 
 export const riskAnalysisResultsSelectSchema = createSelectSchema(riskAnalysisResults);
 export const riskAnalysisResultsInsertSchema = createInsertSchema(riskAnalysisResults);
+
+export const sanitaryInspectionsSelectSchema = createSelectSchema(sanitaryInspections);
+export const sanitaryInspectionsInsertSchema = createInsertSchema(sanitaryInspections);
