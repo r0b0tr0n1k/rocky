@@ -1339,7 +1339,7 @@ audited contractor (conflict of interest) — rejected.
 | WO-120 | Bovine I&R 7/20 as **non-overridable EU floor** (R8): harden WO-022 deadlines; clamp RuleSet `TAGGING_DAYS` >= EU min | 0054 / 0028 | P2 | Done ✅ |
 | WO-121 | IMSOC / CHED export compliance (R9): export movements emit CHED-compliant JSON/XML (TRACES NT) | 0054 / 0062 | P2 | ✅ Done |
 | WO-122 | GDPR public-health exception (R10): Art.6(1)(c)+9(2)(i) defeat erasure; protect audit_log | 0054 / 0061 | P2 | Draft |
-| WO-156 | Notification channel routing + SMS minimization (ADR-0094): policy-driven, security-tiered; per-category SMS suppression; ack-based fallback | 0094 | P1 | In progress ⏳ (ChannelRouter + tests ✅; ack field + worker + SMS client remain) |
+| WO-156 | Notification channel routing + SMS minimization (ADR-0094): policy-driven, security-tiered; per-category SMS suppression; ack-based fallback | 0094 | P1 | In progress ⏳ (ChannelRouter + tests ✅; ack field + confirmDelivery ✅; worker + SMS client remain) |
 
 ---
 

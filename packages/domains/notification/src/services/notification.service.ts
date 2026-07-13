@@ -165,6 +165,24 @@ export class NotificationService {
     }, toAppError)();
   }
 
+  /**
+   * Confirm delivery (app / push receipt). The mobile app reports that the
+   * push was received/displayed; we record `acknowledgedAt` (+ `deliveredAt`,
+   * status DELIVERED). This is the signal the delivery worker uses to decide
+   * whether to escalate an unreachable notification to SMS (ADR-0094 §5).
+   */
+  async confirmDelivery(input: { id: string; userId: string }): Promise<Result<Notification, Error>> {
+    return fromAsyncThrowable(async () => {
+      const row = await this.repo.updateById(input.id, input.userId, {
+        acknowledgedAt: new Date(),
+        deliveredAt: new Date(),
+        status: "DELIVERED",
+      });
+      if (!row) throw notificationErr(NOTIFICATION_ERRORS.NOT_FOUND, { id: input.id });
+      return row as Notification;
+    }, toAppError)();
+  }
+
   /** Get pending notifications for background worker */
   async getPending(limit = 100): Promise<Result<Notification[], Error>> {
     return fromAsyncThrowable(async () => {

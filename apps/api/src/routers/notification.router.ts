@@ -6,6 +6,8 @@ import { createResultUnwrapper } from "@rocky/trpc/index.js";
 import {
   type MarkAsReadInput,
   markAsReadSchema,
+  confirmDeliverySchema,
+  type ConfirmDeliveryInput,
   notificationOutputSchema,
   type SendNotificationInput,
   type RegisterDeviceInput,
@@ -95,6 +97,19 @@ export class NotificationRouter {
       }),
     );
   }
+  @Mutation({ input: confirmDeliverySchema.omit({ userId: true }), output: notificationOutputSchema })
+  async confirmDelivery(
+    @Input() input: Omit<ConfirmDeliveryInput, "userId">,
+    @Ctx() ctx: AppContext,
+  ): Promise<NotificationOutput> {
+    return unwrapResult(
+      await this.notificationService.confirmDelivery({
+        ...input,
+        userId: ctx.execution!.principal.id,
+      }),
+    );
+  }
+
   @Mutation({ input: registerDeviceSchema, output: z.object({ ok: z.literal(true) }) })
   async registerDevice(
     @Input() input: RegisterDeviceInput,
@@ -122,9 +137,14 @@ type _verify_markAsReadOutput = SubtypeGuillotine<
   z.output<typeof notificationOutputSchema>,
   Awaited<ReturnType<NotificationRouter["markAsRead"]>>
 >;
+type _verify_confirmDeliveryOutput = SubtypeGuillotine<
+  z.output<typeof notificationOutputSchema>,
+  Awaited<ReturnType<NotificationRouter["confirmDelivery"]>>
+>;
 
 export type _NotificationGuillotines = ActivateGuillotines<[
   _verify_unreadCountOutput,
   _verify_sendOutput,
-  _verify_markAsReadOutput
+  _verify_markAsReadOutput,
+  _verify_confirmDeliveryOutput
 ]>;

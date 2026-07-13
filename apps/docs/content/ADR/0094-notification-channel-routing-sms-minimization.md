@@ -121,9 +121,14 @@ masked in any audit output. SMS use requires **informed consent** (ADR-0068) giv
 
 **Implementation slices**
 
-1. **ADR-0094 + `ChannelRouter` (`resolveChannels`) pure module + exhaustive tests** — this increment.
-2. `acknowledgedAt` column + mobile `confirmDelivery`.
-3. Delivery worker + fallback scanner (consult `resolveChannels`).
-4. SMS client (provider) — deferred ("at the end").
+1. **ADR-0094 + `ChannelRouter` (`resolveChannels`) pure module + exhaustive tests** — ✅ DONE (committed 8269825).
+2. `acknowledgedAt` column + mobile `confirmDelivery` — ✅ DONE (this increment):
+   - `notifications.acknowledged_at` column + `idx_notifications_acknowledged` index (Drizzle + migration applied to `tbot`).
+   - `NotificationService.confirmDelivery({ id, userId })` — sets `acknowledgedAt` + `deliveredAt`, status `DELIVERED`.
+   - `notification.confirmDelivery` tRPC Mutation (`confirmDeliverySchema.omit({ userId: true })`); userId from `ctx.execution.principal`.
+   - `confirmDeliverySchema` + `ConfirmDeliveryInput` + NoDrift guillotine `_drift_confirmDelivery` / `_verify_confirmDeliveryOutput`.
+   - Service test (mocked repo) — 2 cases; notification suite 16/16 green.
+3. Delivery worker + fallback scanner (consult `resolveChannels`) — ⬜ pending (slice 3).
+4. SMS client (provider) — deferred ("at the end") ⬜.
 
 **RobotFarm pass:** Notification Bot AGENTS.md updated (routing policy + tiers); WO line added.

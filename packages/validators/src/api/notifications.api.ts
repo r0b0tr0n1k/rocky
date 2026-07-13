@@ -41,6 +41,7 @@ export interface NotificationResponse {
   scheduledAt: Date | null;
   sentAt: Date | null;
   deliveredAt: Date | null;
+  acknowledgedAt: Date | null;
   expiresAt: Date | null;
   attempts: number;
   lastError: string | null;
@@ -131,6 +132,7 @@ export const notificationResponseSchema = notificationsSelectSchema
     scheduledAt: z.coerce.date<string>().nullable(),
     sentAt: z.coerce.date<string>().nullable(),
     deliveredAt: z.coerce.date<string>().nullable(),
+    acknowledgedAt: z.coerce.date<string>().nullable(),
     expiresAt: z.coerce.date<string>().nullable(),
     type: notificationTypeSchema,
     category: notificationCategorySchema,
@@ -160,6 +162,16 @@ export const markAsReadSchema = z.strictObject({
   id: z.uuid(),
   userId: z.uuid(),
 }) satisfies z.ZodType<MarkAsReadInput>;
+
+export interface ConfirmDeliveryInput {
+  id: string;
+  userId: string;
+}
+
+export const confirmDeliverySchema = z.strictObject({
+  id: z.uuid(),
+  userId: z.uuid(),
+}) satisfies z.ZodType<ConfirmDeliveryInput>;
 
 export const notificationListRequestSchema = z.strictObject({
   userId: z.uuid().optional(),
@@ -231,6 +243,7 @@ export const createBatchNotificationsSchema = z.strictObject({
 type _drift_notificationResponse = NoDrift<z.infer<typeof notificationResponseSchema>, NotificationResponse>;
 type _drift_sendNotification = NoDriftSimple<z.infer<typeof sendNotificationSchema>, SendNotificationInput>;
 type _drift_markAsRead = NoDriftSimple<z.infer<typeof markAsReadSchema>, MarkAsReadInput>;
+type _drift_confirmDelivery = NoDriftSimple<z.infer<typeof confirmDeliverySchema>, ConfirmDeliveryInput>;
 type _drift_notificationList = NoDriftSimple<z.infer<typeof notificationListRequestSchema>, NotificationListRequest>;
 type _drift_markNotificationRead = NoDriftSimple<z.infer<typeof markNotificationReadRequestSchema>, MarkNotificationReadRequest>;
 type _drift_createNotification = NoDriftSimple<z.infer<typeof createNotificationSchema>, CreateNotificationInput>;
@@ -240,5 +253,5 @@ type _drift_createBatchNotifications = NoDriftSimple<z.infer<typeof createBatchN
 export type _NotificationsGuillotines = ActivateGuillotines<
   [_drift_notificationResponse, _drift_sendNotification, _drift_markAsRead,
    _drift_notificationList, _drift_markNotificationRead, _drift_createNotification,
-   _drift_listNotifications, _drift_createBatchNotifications]
+   _drift_listNotifications, _drift_createBatchNotifications, _drift_confirmDelivery]
 >;

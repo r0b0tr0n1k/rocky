@@ -53,6 +53,7 @@ export const notifications = pgTable(
     scheduledAt: timestamp("scheduled_at"),
     sentAt: timestamp("sent_at"),
     deliveredAt: timestamp("delivered_at"),
+    acknowledgedAt: timestamp("acknowledged_at"),
     expiresAt: timestamp("expires_at"),
 
     // Delivery tracking
@@ -80,6 +81,7 @@ export const notifications = pgTable(
     index("idx_notifications_priority").on(table.priority),
     index("idx_notifications_scheduled").on(table.scheduledAt),
     index("idx_notifications_created").on(table.createdAt),
+    index("idx_notifications_acknowledged").on(table.acknowledgedAt),
     pgPolicy("notification_access_policy", {
       as: "permissive",
       to: "public",

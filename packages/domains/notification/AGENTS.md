@@ -20,6 +20,7 @@ Manages in-app notifications for users. Supports unread counts, send/mark-as-rea
 | `send(input)`                        | Send notification (template + prefs)  | ✅      |
 | `list(input)`                        | List user's notifications             | ✅      |
 | `markAsRead(input)`                  | Mark notification as read             | ✅      |
+| `confirmDelivery(input)`             | Record app delivery report: sets `acknowledgedAt` + `deliveredAt`, status `DELIVERED` (ADR-0094 §5) | ✅ |
 | `getPending(limit)`                  | Get pending notifications (worker)    | ✅      |
 | `updateDeliveryStatus(id, status)`   | Update delivery status after attempt  | ✅      |
 | `getTemplate(code)`                  | Get notification template by code     | ✅      |
@@ -66,3 +67,11 @@ Per-category `CategorySmsPolicy { primary, fallback }` (default both true) lets 
 **never** use SMS — even when the user is unreachable (`smsSuppressed === true`). The function is
 pure and fully unit-tested (`channel-router.test.ts`, 14 tests); the real SMS transport is
 deferred (ADR-0094 §7).
+
+**Implementation slices (ADR-0094 §7):**
+- Slice 1 — `ChannelRouter` (`resolveChannels`) pure module + exhaustive tests ✅ (committed 8269825).
+- Slice 2 — `acknowledgedAt` column (Drizzle + migration applied to `tbot`) + `confirmDelivery` tRPC
+  Mutation + `NotificationService.confirmDelivery()` ✅ (this increment).
+- Slice 3 — delivery worker + fallback scanner (escalates to SMS only when `acknowledgedAt IS NULL`
+  past the confirm TTL) ⬜ pending.
+- Slice 4 — real SMS transport (Twilio/Vonage) deferred ("at the end").
