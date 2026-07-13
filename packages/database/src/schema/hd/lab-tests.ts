@@ -6,6 +6,8 @@
 import { boolean, date, index, numeric, pgPolicy, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { testResultPgEnum } from "../../schemas/enums/test-result.js";
 import { testTypePgEnum } from "../../schemas/enums/test-type.js";
+import { sampleStatusPgEnum } from "../../schemas/enums/sample-status.js";
+import { SAMPLE_STATUS } from "../../constants/sample-status.js";
 import { animals } from "../an/animals.js";
 import { farms } from "../hk/farms.js";
 import { adminAndVetWrite, rlsForFarmColumn } from "../rls-helpers.js";
@@ -41,6 +43,9 @@ export const labTests = pgTable(
     labName: varchar("lab_name", { length: 200 }),
     labSampleId: varchar("lab_sample_id", { length: 50 }),
 
+    // Chain-of-custody status (ADR-0091)
+    sampleStatus: sampleStatusPgEnum("sample_status").notNull().default(SAMPLE_STATUS.COMPLETED),
+
     // Dates
     sampleDate: date("sample_date").notNull(),
     resultDate: date("result_date").notNull(),
@@ -61,6 +66,7 @@ export const labTests = pgTable(
     index("idx_lab_tests_disease").on(table.diseaseId),
     index("idx_lab_tests_type").on(table.testType),
     index("idx_lab_tests_date").on(table.resultDate),
+    index("idx_lab_tests_sample_status").on(table.sampleStatus),
     pgPolicy("lab_test_access_policy", {
       as: "permissive",
       to: "public",

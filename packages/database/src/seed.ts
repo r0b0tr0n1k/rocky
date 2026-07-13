@@ -36,6 +36,8 @@ import { FARM_TYPE } from "./constants/farm-type.js";
 import { DATA_SOURCE } from "./constants/data-source.js";
 import { VERIFICATION_STATUS } from "./constants/verification-status.js";
 import { PERMISSION_SCOPE } from "./constants/permission-scope.js";
+import { DISEASE_CATEGORY } from "./constants/disease-category.js";
+import { CONTROL_MEASURES } from "./constants/control-measures.js";
 
 // ── Permission Definitions ─────────────────────────────────────
 // Each entry: { resource, action, description, scope }
@@ -480,22 +482,22 @@ async function seed() {
   console.log("🌱 Seeding health master data...");
 
   const DISEASE_DEFS = [
-    { name: "Anthrax", notifiable: true, description: "Bacillus anthracis — acute infectious disease in cattle" },
-    { name: "Bovine Brucellosis", notifiable: true, description: "Brucella abortus — causes abortions, highly contagious" },
-    { name: "Bovine Tuberculosis", notifiable: true, description: "Mycobacterium bovis — chronic respiratory disease, zoonotic" },
-    { name: "Foot and Mouth Disease", notifiable: true, description: "Highly contagious viral vesicular disease (Aphtovirus)" },
-    { name: "Rabies", notifiable: true, description: "Lyssavirus — fatal zoonotic neurological disease" },
-    { name: "Bovine Spongiform Encephalopathy", notifiable: true, description: "Prion disease — fatal neurodegenerative (BSE)" },
-    { name: "Lumpy Skin Disease", notifiable: true, description: "Capripoxvirus — nodular skin lesions, fever" },
-    { name: "Bluetongue", notifiable: true, description: "Orbivirus — vector-borne disease in ruminants" },
-    { name: "Bovine Viral Diarrhea", notifiable: true, description: "Pestivirus — BVD/MD, immunosuppressive" },
-    { name: "Infectious Bovine Rhinotracheitis", notifiable: true, description: "BoHV-1 — IBR/IPV respiratory and reproductive disease" },
-    { name: "Q Fever", notifiable: true, description: "Coxiella burnetii — zoonotic, causes abortions" },
-    { name: "Salmonellosis", notifiable: true, description: "Salmonella enterica — enteric infection, zoonotic" },
-    { name: "Mastitis", notifiable: false, description: "Bacterial udder infection — E. coli, Staph, Strep" },
-    { name: "Bovine Respiratory Disease Complex", notifiable: false, description: "Multifactorial BRDC — shipping fever complex" },
-    { name: "Coccidiosis", notifiable: false, description: "Eimeria spp. — protozoan enteritis in young calves" },
-    { name: "Blackleg", notifiable: false, description: "Clostridium chauvoei — gas gangrene in muscle" },
+    { name: "Anthrax", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_A, controlMeasures: CONTROL_MEASURES.STAMPING_OUT, description: "Bacillus anthracis — acute infectious disease in cattle" },
+    { name: "Bovine Brucellosis", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_B, controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME, description: "Brucella abortus — causes abortions, highly contagious" },
+    { name: "Bovine Tuberculosis", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_B, controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME, description: "Mycobacterium bovis — chronic respiratory disease, zoonotic" },
+    { name: "Foot and Mouth Disease", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_A, controlMeasures: CONTROL_MEASURES.STAMPING_OUT, description: "Highly contagious viral vesicular disease (Aphtovirus)" },
+    { name: "Rabies", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_A, controlMeasures: CONTROL_MEASURES.STAMPING_OUT, description: "Lyssavirus — fatal zoonotic neurological disease" },
+    { name: "Bovine Spongiform Encephalopathy", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_A, controlMeasures: CONTROL_MEASURES.STAMPING_OUT, description: "Prion disease — fatal neurodegenerative (BSE)" },
+    { name: "Lumpy Skin Disease", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_A, controlMeasures: CONTROL_MEASURES.STAMPING_OUT, description: "Capripoxvirus — nodular skin lesions, fever" },
+    { name: "Bluetongue", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_B, controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME, description: "Orbivirus — vector-borne disease in ruminants" },
+    { name: "Bovine Viral Diarrhea", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_C, controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME, description: "Pestivirus — BVD/MD, immunosuppressive" },
+    { name: "Infectious Bovine Rhinotracheitis", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_C, controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME, description: "BoHV-1 — IBR/IPV respiratory and reproductive disease" },
+    { name: "Q Fever", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_B, controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME, description: "Coxiella burnetii — zoonotic, causes abortions" },
+    { name: "Salmonellosis", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_B, controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME, description: "Salmonella enterica — enteric infection, zoonotic" },
+    { name: "Mastitis", notifiable: false, diseaseCategory: DISEASE_CATEGORY.CATEGORY_E, controlMeasures: CONTROL_MEASURES.SURVEILLANCE, description: "Bacterial udder infection — E. coli, Staph, Strep" },
+    { name: "Bovine Respiratory Disease Complex", notifiable: false, diseaseCategory: DISEASE_CATEGORY.CATEGORY_E, controlMeasures: CONTROL_MEASURES.SURVEILLANCE, description: "Multifactorial BRDC — shipping fever complex" },
+    { name: "Coccidiosis", notifiable: false, diseaseCategory: DISEASE_CATEGORY.CATEGORY_E, controlMeasures: CONTROL_MEASURES.SURVEILLANCE, description: "Eimeria spp. — protozoan enteritis in young calves" },
+    { name: "Blackleg", notifiable: false, diseaseCategory: DISEASE_CATEGORY.CATEGORY_E, controlMeasures: CONTROL_MEASURES.SURVEILLANCE, description: "Clostridium chauvoei — gas gangrene in muscle" },
   ];
 
   for (const def of DISEASE_DEFS) {
