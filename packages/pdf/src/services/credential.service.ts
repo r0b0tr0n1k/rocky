@@ -27,6 +27,11 @@ import {
   type CredentialPayload,
   type CredentialVerifyResult,
 } from "../credential/credential.js";
+import {
+  buildCredentialBatch,
+  type CredentialBatchEntry,
+  type CredentialBatchManifest,
+} from "../credential/batch.js";
 import { generateQrDataUrl, generateQrPng } from "../engine/qr.js";
 
 /** Ear-tag-class credentials are long-lived; ~10y. Distinct from status-list staleness (ADR-0084 §4). */
@@ -135,6 +140,37 @@ export class CredentialService {
     ]);
 
     return ok({ envelope, qrDataUrl, qrPng, payload });
+  }
+
+  /**
+   * Sign a batch of credentials in one session (ADR-0084 §6 — HSM bulk
+   * throughput). Reuses the configured signing key across every entry, then
+   * emits a digest-protected batch manifest so a gate operator can verify the
+   * whole set was produced together without round-tripping each envelope.
+   */
+  async signBatch(
+    inputs: { type: string; refId: string }[],
+  ): Promise<Result<CredentialBatchManifest, DocumentError>> {
+    if (!this.privateKey) {
+      return err(
+        documentErr(DOCUMENT_ERRORS.UNSUPPORTED_FORMAT, {
+          format: "credential-batch",
+          supportedFormats: ["configure ROCKY_CRED_KEY / dev cred key"],
+        }),
+      );
+    }
+    const entries: CredentialBatchEntry[] = [];
+    for (const input of inputs) {
+      const res = await this.generate(input);
+      if (res.isErr()) return err(res.error);
+      entries.push({
+        sub: res.value.payload.sub,
+        typ: input.type,
+        envelope: res.value.envelope,
+        qrDataUrl: res.value.qrDataUrl,
+      });
+    }
+    return ok(buildCredentialBatch(entries, { publisher: this.iss }));
   }
 
   /**

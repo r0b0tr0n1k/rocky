@@ -277,6 +277,33 @@ type _drift_documentStatusListResponse = NoDriftSimple<
   DocumentStatusListResponse
 >;
 
+
+export const credentialBatchRequestSchema = z.array(documentCredentialRequestSchema).min(1);
+export type CredentialBatchRequest = z.infer<typeof credentialBatchRequestSchema>;
+
+export const credentialBatchEntrySchema = z.strictObject({
+  sub: z.string(),
+  typ: z.string(),
+  envelope: z.string(),
+  qrDataUrl: z.string(),
+});
+
+export const credentialBatchResponseSchema = z.strictObject({
+  publisher: z.string(),
+  batchId: z.string(),
+  issuedAt: z.string(),
+  ttlSeconds: z.number(),
+  count: z.number(),
+  entries: z.array(credentialBatchEntrySchema),
+  digest: z.string(),
+});
+export type CredentialBatchResponse = z.infer<typeof credentialBatchResponseSchema>;
+
+type _drift_documentBatchResponse = NoDriftSimple<
+  z.infer<typeof credentialBatchResponseSchema>,
+  CredentialBatchResponse
+>;
+
 export type _DocumentGuillotines = ActivateGuillotines<
-  [ _drift_documentGenerateRequest, _drift_documentResponse, _drift_documentVerifyRequest, _drift_documentVerifyResponse, _drift_documentCredentialRequest, _drift_documentCredentialResponse, _drift_documentCredentialVerifyRequest, _drift_documentCredentialVerifyResponse, _drift_documentStatusListResponse ]
+  [ _drift_documentGenerateRequest, _drift_documentResponse, _drift_documentVerifyRequest, _drift_documentVerifyResponse, _drift_documentCredentialRequest, _drift_documentCredentialResponse, _drift_documentCredentialVerifyRequest, _drift_documentCredentialVerifyResponse, _drift_documentStatusListResponse, _drift_documentBatchResponse ]
 >;

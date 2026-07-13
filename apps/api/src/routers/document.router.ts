@@ -18,6 +18,8 @@ import {
   documentCredentialResponseSchema,
   documentCredentialVerifyRequestSchema,
   documentCredentialVerifyResponseSchema,
+  credentialBatchRequestSchema,
+  credentialBatchResponseSchema,
 } from "@rocky/validators/api/index.js";
 import { DOCUMENT_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
 import { documentStatusListResponseSchema } from "@rocky/validators/api/index.js";
@@ -82,6 +84,16 @@ export class DocumentRouter {
   }
 
   /**
+   * Sign a batch of credentials in one session (ADR-0084 §6 — HSM bulk
+   * throughput) and return the digest-protected batch manifest.
+   */
+  @Mutation({ input: credentialBatchRequestSchema, output: credentialBatchResponseSchema })
+  async credentialBatch(@Input() input: { type: string; refId: string }[]) {
+    const result = await this.documentService.credentialBatch(input);
+    return unwrap(result);
+  }
+
+  /**
    * Verify a raw credential QR string (scanned / pasted) against the pinned
    * public key. `valid` means the signature is intact — callers still consult
    * the credential status list to decide revoked / expired (ADR-0084 §4).
@@ -132,6 +144,10 @@ type _verify_credentialOutput = SubtypeGuillotine<
   z.output<typeof documentCredentialResponseSchema>,
   Awaited<ReturnType<DocumentRouter["credential"]>>
 >;
+type _verify_credentialBatchOutput = SubtypeGuillotine<
+  z.output<typeof credentialBatchResponseSchema>,
+  Awaited<ReturnType<DocumentRouter["credentialBatch"]>>
+>;
 type _verify_verifyCredentialOutput = SubtypeGuillotine<
   z.output<typeof documentCredentialVerifyResponseSchema>,
   Awaited<ReturnType<DocumentRouter["verifyCredential"]>>
@@ -147,5 +163,6 @@ export type _DocumentGuillotines = ActivateGuillotines<[
   _verify_verifyOutput,
   _verify_credentialOutput,
   _verify_verifyCredentialOutput,
-  _verify_statusListOutput
+  _verify_statusListOutput,
+  _verify_credentialBatchOutput
 ]>;

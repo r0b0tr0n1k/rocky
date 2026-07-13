@@ -28,6 +28,7 @@ import { renderTypst } from "../engine/typst-renderer.js";
 import { wrapPdfA3 } from "../engine/pdfa3.js";
 import { NoOpSigner, type PdfSigner, extractSignature, type SignatureInfo } from "../sign/index.js";
 import { CredentialService, type CredentialResponseView, type CredentialVerifyView } from "./credential.service.js";
+import { type CredentialBatchManifest } from "../credential/batch.js";
 import { embedQrPng } from "../engine/pdf-embed.js";
 
 export interface DocumentGenerateInput {
@@ -267,6 +268,17 @@ export class DocumentService {
    * `valid` means the signature is intact — callers still consult the credential
    * status list to decide revoked / expired.
    */
+  /**
+   * Produce a batch of offline-verifiable signed-QR credentials in one session
+   * (ADR-0084 §6 — HSM bulk throughput) and return the digest-protected batch
+   * manifest. Delegates to `CredentialService.signBatch`.
+   */
+  credentialBatch(
+    inputs: { type: string; refId: string }[],
+  ): Promise<Result<CredentialBatchManifest, DocumentError>> {
+    return this.credentialService.signBatch(inputs);
+  }
+
   verifyCredential(envelope: string): CredentialVerifyView {
     return this.credentialService.verify(envelope);
   }

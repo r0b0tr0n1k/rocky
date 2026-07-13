@@ -85,14 +85,14 @@ and the signed QR is embedded on the PDF via `embedQrPng` (ADR-0084 §7) before 
 seal. The QR lands at **version 13 / 69×69 modules** — dense enough that the barn
 print-scan is the real gate (see `credential.test.ts` + `credential.service.test.ts`).
 
-**Phase 2 (WO-155) in progress:** the `ear-tag` document type now implements
-`mapToCredential`, so `document.credential({ type: "ear-tag", refId })` issues a
-self-contained signed credential for a tag (subject = tag id; farm + species resolved from
-the applied animal). **GS1 GLN** operator/facility IDs (ADR-0087) are committed, and the
-**credential status-list publisher** (ADR-0084 §4) is implemented (`status-list.ts` + the
-API `CredentialStatusListService` + `document.statusList` procedure + the web "last
-synced" UI). **Remaining Phase 2 = EUDR DDS** linkage (ADR-0063) that emits/references the
-signed QR.
+**Phase 2 (WO-155) is DONE:** the `ear-tag` document type implements `mapToCredential`; the
+**EUDR DDS** (`eudr` template) embeds a `credentialReference` (ADR-0063 / ADR-0084 §14.3);
+**GS1 GLN** operator/facility IDs (ADR-0087) are committed; the **credential status-list
+publisher** (ADR-0084 §4: `status-list.ts` + API `CredentialStatusListService` +
+`document.statusList` + the web "last synced" UI) is implemented; and **HSM bulk-throughput
+batch signing** (ADR-0084 §6) is implemented via `CredentialService.signBatch` + the
+`document.credentialBatch` tRPC Mutation, which signs a batch of credentials in one session
+and returns a digest-protected `CredentialBatchManifest` (`batch.ts`).
 
 - `credential.ts` — `signCredential` (Ed25519 over canonical CBOR payload, base64url
   envelope) / `verifyCredential` (checks sig + `exp`; caller still checks the credential
@@ -101,6 +101,10 @@ signed QR.
 - `credential.service.ts` — `CredentialService`: `generate` (template `mapToCredential` →
   `CredentialSeed` → `CredentialPayload` → sign → envelope + QR data URL/PNG) and `verify`
   (raw envelope vs pinned key). Configured at bootstrap via `useKeyConfig`.
+- `batch.ts` — pure **credential batch manifest** model (ADR-0084 §6):
+  `buildCredentialBatch` (deterministic, digest-protected over the entry set). `CredentialService.signBatch`
+  collects signed entries and emits the manifest so a gate operator verifies a bulk-issued set
+  was produced in one session without round-tripping each envelope.
 - `status-list.ts` — pure CRL-style **credential status list** model (ADR-0084 §4):
   `buildCredentialStatusList` (deterministic, digest-protected), `passportStatusToCredentialStatus`
   (SEIZED→suspended, CANCELLED/ARCHIVED→revoked), `isStatusListStale`, `resolveStatus`.

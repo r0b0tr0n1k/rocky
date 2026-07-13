@@ -69,3 +69,11 @@ export type {
   CredentialStatusListEntry,
   BuildStatusListOptions,
 } from "./credential/status-list.js";
+
+// Credential batch manifest (ADR-0084 §6 — HSM bulk throughput).
+export { buildCredentialBatch } from "./credential/batch.js";
+export type {
+  CredentialBatchEntry,
+  CredentialBatchManifest,
+  BuildBatchOptions,
+} from "./credential/batch.js";

@@ -86,4 +86,36 @@ describe("CredentialService", () => {
     const out = await svc.generate({ type: "no-such-type", refId: "x" });
     expect(out.isErr()).toBe(true);
   });
+
+  it("signs a batch in one session and returns a digest-protected manifest (§6)", async () => {
+    const { privateKey, publicKey } = generateKeyPair();
+    const svc = new CredentialService();
+    svc.useKeyConfig({ privateKey, kid: "rocky-test", iss: "rocky:cattle", pinnedPublicKey: publicKey });
+
+    const batch = await svc.signBatch([
+      { type: "test-cred", refId: "b" },
+      { type: "test-cred", refId: "a" },
+    ]);
+    expect(batch.isOk()).toBe(true);
+    if (batch.isErr()) throw new Error("expected batch ok");
+    const m = batch.value;
+    expect(m.publisher).toBe("rocky:cattle");
+    expect(m.count).toBe(2);
+    // entries sorted by sub deterministically
+    expect(m.entries.map((e) => e.sub)).toEqual(["sub-a", "sub-b"]);
+    expect(m.digest).toMatch(/^[0-9a-f]{64}$/);
+
+    // verify each entry envelope is individually valid
+    for (const e of m.entries) {
+      expect(svc.verify(e.envelope).valid).toBe(true);
+    }
+  });
+
+  it("batch errors when an input type is unsupported", async () => {
+    const { privateKey, publicKey } = generateKeyPair();
+    const svc = new CredentialService();
+    svc.useKeyConfig({ privateKey, kid: "k", iss: "i", pinnedPublicKey: publicKey });
+    const batch = await svc.signBatch([{ type: "test-cred", refId: "a" }, { type: "nope", refId: "x" }]);
+    expect(batch.isErr()).toBe(true);
+  });
 });

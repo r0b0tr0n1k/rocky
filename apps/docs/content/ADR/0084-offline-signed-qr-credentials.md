@@ -118,13 +118,18 @@ mockup. **Decision:** the spike **MUST include print-and-scan at actual tag size
 this is load-bearing. Keep the payload minimal — `iss, sub, typ, iat, exp, kid` plus only
 the domain fields needed for the gate decision (e.g. `animalId, farmId, species`).
 
-### 6. HSM round-trip throughput for bulk signing
+### 6. HSM round-trip throughput for bulk signing (IMPLEMENTED)
 
 Ear tags may be signed **in bulk** (a farm tagging hundreds of animals in one sitting).
 Per-credential HSM calls can bottleneck on HSM latency. **Decision:** check expected batch
-sizes against measured HSM throughput **before** this is load-bearing. If needed, sign a
-**batch manifest** or reuse a single HSM session across the batch (recorded decision; not
-yet implemented). The interim P12 path has no such limit.
+sizes against measured HSM throughput **before** this is load-bearing. Implemented via
+`CredentialService.signBatch` + the `document.credentialBatch` tRPC Mutation (ADR-0084 §6):
+all credentials are signed in one in-memory-key session and returned as a digest-protected
+`CredentialBatchManifest` (`buildCredentialBatch` in `@rocky/pdf`). A gate operator verifies
+the whole set was produced together without round-tripping each envelope. The HSM-session-
+reuse optimisation (one HSM session across the batch instead of one per credential) lives
+inside the HSM signer path (future); the interim Ed25519 / P12 path already holds the key
+in memory, so batching is already a single session.
 
 ### 7. On-document QR via `@cantoo/pdf-lib`, not Typst
 
@@ -260,7 +265,7 @@ rg -n "last synced|stale|grace" apps/mob apps/web
 ## Status
 
 **Accepted (2026-07)** — Phase-0 spike validated the primitive (flipped Proposed →
-Accepted); **Phase 1 is now implemented**; Phase 2–3 remain.
+Accepted); **Phase 1 + Phase 2 implemented (2026-07)**; Phase 3 (PDF/A visual render) remains.
 
 **Spike results (2026-07):**
 
@@ -301,7 +306,7 @@ Accepted); **Phase 1 is now implemented**; Phase 2–3 remain.
   `ROCKY_CRED_PUBKEY` (no code change). 43 pdf tests pass (incl. credential.service +
   pdf-embed); API + web build green.
 
-**Phase 2 in progress (2026-07):** the ear-tag document type + `EarTagTemplate.mapToCredential`
+**Phase 2 implemented (2026-07):** the ear-tag document type + `EarTagTemplate.mapToCredential`
 are implemented — `document.credential({ type: "ear-tag", refId })` issues a self-contained
 signed ear-tag credential (subject = tag id; farm + species resolved from the applied
 animal). **GS1 GLN** operator/facility IDs (ADR-0087) are committed (af63281). The
@@ -313,11 +318,11 @@ web `/verify` page surfaces "status list last synced: X days ago" with a stale-w
 The **EUDR DDS linkage** (ADR-0063) is implemented: the `eudr` Due-Diligence
 Statement template embeds a `credentialReference` — the passport `sub` / `kid` / signed
 QR / envelope — so the DDS doubles as the EUDR export token (§14.3) that references the
-offline-verifiable signed credential. **Phase 2 is complete**; the only remaining item is the
-HSM bulk-throughput measurement (§6).
+offline-verifiable signed credential. **Phase 2 is complete** (ear-tag credential, GS1 GLN,
+status-list publisher, EUDR DDS reference, and the HSM bulk-throughput batch manifest are
+all implemented).
 
-**Not yet done (Phase 2–3):** the HSM bulk-throughput measurement (§6) (and the PDF/A
-visual render, WO-050).
+**Not yet done (Phase 3):** the PDF/A visual render (WO-050).
 
 ## Related ADRs
 
