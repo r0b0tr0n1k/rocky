@@ -415,6 +415,67 @@ standards. ADR-0062 already implements CHED-A generation to Accepted status.
 
 ---
 
+## 14. EUDR (Reg (EU) 2023/1115) — feature parity vs EUDR.Supply (evidence added 2026-07-12)
+
+Commission Reg (EU) 2023/1115 (EUDR) demands proof that cattle (CN 0102) originate from land
+**not deforested after 2020-12-31**, with a Due-Diligence Statement (DDS) and a cutoff-enforced
+export gate. A commercial comparator — **EUDR.Supply** (Morpheus.Network / Confidios Digital
+Product Passports) — sells a _horizontal_ EUDR SaaS (cattle + soy + cocoa + coffee + palm + wood)
+with a "tamper-proof Digital Product Passport" and "Trusted Credential Containers". This section
+scores Rocky against that comparator and records the **verified** build status (WO-154).
+
+### 14.1 Capability scorecard (Rocky vs EUDR.Supply)
+
+| EUDR.Supply claim | Rocky | Evidence |
+| --- | --- | --- |
+| Deforestation monitoring (satellite, time-stamped) | MET (partial) | `packages/geo/src/services/deforestation.service.ts` + **ADR-0079** (deforestation raster overlay, swappable map-provider seam) + geo/PostGIS/LPIS/INSPIRE (**ADR-0053**) |
+| Automated Due-Diligence Statement + block EU export | MET | `packages/domains/movement/src/services/eudr-due-diligence.ts` + **ADR-0063** (Accepted): Slaughter DDS overlays every pasture vs the 2020-12-31 cutoff and **blocks EU export if breached** |
+| Supply-chain mapping to origin | MET (cattle) | Lineage Graph, **ADR-0054 R6** (VERIFIED), **ADR-0085** |
+| Digital Product Passport / tamper-proof | MET — stronger | **ADR-0082** (PAdES-LTV + RFC 3161) + **ADR-0084** (signed offline QR = DPP-lite) |
+| Trusted Credential Container / time-stamped proof | MET | PAdES seal + signed-QR `iat`/`exp` + tamper-evident audit |
+| Post-gate traceability (after EU entry) | MET | Movement tracking + offline signed QR verifiable at any gate |
+| Risk assessment | PARTIAL | Inspection risk analysis (ADR-0028), disease zones (ADR-0064), geo deforestation overlay; EUDR-specific deforestation _scoring_ partial |
+| Supplier management (commodity certs) | PARTIAL | Farm/keeper mgmt (`farm_subjects`); commodity-trader cert mgmt not built |
+| Self-sovereign / granular data permissioning | GAP | RBAC only; no SSI / selective-disclosure |
+| Commodity scope (soy/cocoa/coffee/palm/wood) | GAP (by design) | Cattle-only (CN 0102); the _feed-commodity_ leg is not traced |
+| Automated submission to EU EUDR / TRACES system | PARTIAL | Generate CHED-A + DDS (ADR-0062/0063); submission is the competent authority's role (Rocky feeds, not hosts — §13) |
+
+### 14.2 Positioning — vertical vs horizontal
+
+Rocky is a **vertical livestock solution**; EUDR.Supply is a **horizontal commodity SaaS**. The
+cattle leg of EUDR (CN 0102) is **fully covered** by Rocky with **court-grade proof** — EUDR.Supply
+_markets_ "tamper-proof DPP / trusted credential container", but Rocky actually implements
+PAdES-LTV + RFC 3161 + Ed25519 signed QR (ADR-0082/0084), which is verifiable in court, not just
+asserted. The real gaps are **not** the cattle leg:
+
+1. **Scope** — the feed-commodity supply chain (soy fed to cattle, etc.) is out of domain. Design
+   choice, not a defect; a future integration could feed the same DDS.
+2. **Self-sovereign permissioning** — their SSI-style "permissioned sharing with unknown partners"
+   is not built; Rocky has RBAC, not data-level selective disclosure.
+3. **EU-system submission** — we _emit_ CHED-A + DDS; we do not operate TRACES / the EUDR
+   Information System (the authority's system — same "feeds, not hosts" boundary as §13).
+
+### 14.3 The one borrowable item
+
+Expose the **signed QR (ADR-0084) as the EUDR evidence token** a cattle exporter presents at the
+border — the DDS + pasture verdict travel with the animal, verifiable offline by any inspector.
+ADR-0084 already makes this possible; it is the natural bridge from "we comply" to "here is the
+proof".
+
+### 14.4 Notes
+
+- **Documentation of existing, verified capability** (ADR-0063 Accepted; `eudr-due-diligence.ts`,
+  `deforestation.service.ts`, `eudr.api.ts` all present in code). The DDS enforcement (export block)
+  and the deforestation overlay are **built**, not aspirational.
+- EUDR fits the **regulatory spine**: Reg 178/2002 Art 18 traceability (§12) → EUDR due-diligence
+  (ADR-0063) → CHED-A / TRACES (ADR-0062) → IMSOC (§13). The "deforestation monitoring" claim is
+  resolved by ADR-0079 (raster overlay seam), which supersedes ADR-0063's original "no raster"
+  assumption.
+- Clause mappings are engineering leads — counsel review before any conformity claim (§9).
+- Work order: **WO-154**.
+
+---
+
 ## 9. Homework Disclaimer
 
 This is engineering self-education, not legal advice. The standards were read from `graphgrc-main/`
