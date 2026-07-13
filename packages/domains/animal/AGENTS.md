@@ -2,7 +2,9 @@
 
 **Scope:** `packages/domains/animal/` — service, repository, errors
 **Source spec:** `docs/old/fs2.md` — Registration_MK (Registration and Movements)
-**Last verified:** 2026-07-05 — AGENTS.md aligned to actual code
+**Last verified:** 2026-07-13 — AGENTS.md aligned to actual code (species column + per-species tagging guard added)
+
+> 🆕 **Species attribute (2026-07-13):** `animals.species` is now a `NOT NULL` enum column (`species` pgEnum: `BOVINE|OVINE|CAPRINE|PORCINE|EQUINE`, default `BOVINE`) added via migration. It drives **per-species first-identification (tagging) deadlines** enforced in `AnimalService.create()` through the traceability-rules engine (ADR-0085). Rules enabled by default at EU floors; a sovereign `RuleSet` may NOT loosen a species floor (`validateSovereignLimits`).
 
 > ⚠️ **MovementService is NOT in this package.** It lives in `packages/domains/movement/`. The Animal domain exports `AnimalRepository` which MovementService imports for cross-table checks.
 
@@ -23,6 +25,7 @@ All schema tables exist (animals, ear_tags, movements, slaughter, pasture, birth
 | 4d | Calving gap >= CalvingPeriod (e.g. 120 days) | ✅ | `AnimalService.create()` — `findLastCalfByMother()` + gap check |
 | 5 | Mother not male, father not female | ✅ | `AnimalService.create()` — parent sex validation |
 | 6 | Birth date cannot be in the future | ✅ Zod | Already validated (same refinement as A.2) |
+| 7 | Per-species first-identification deadline — bovine ≤20d, ovine/caprine ≤9mo, porcine ≤9mo, equine ≤12mo of birth (or before leaving holding of birth) | ✅ | `AnimalService.create()` — `TraceabilityRuleEngine.isEnabled(speciesTagRuleId)` + `speciesTaggingMaxDays(species)` via `@rocky/domains-system` (ADR-0085); absent/overdue `taggingDate` → `TAGGING_DEADLINE_EXCEEDED` |
 
 ### Rule Group B: Death/Stillborn
 
@@ -112,6 +115,7 @@ Handled in `packages/domains/correction/`. See [Correction Bot AGENTS.md](../cor
 | `EAR_TAG_ALREADY_USED` | `ANIMAL_EAR_TAG_ALREADY_USED` |
 | `SELF_MOTHER` | `ANIMAL_SELF_MOTHER` |
 | `INVALID_PARENT_SEX` | `ANIMAL_INVALID_PARENT_SEX` |
+| `TAGGING_DEADLINE_EXCEEDED` | `ANIMAL_TAGGING_DEADLINE_EXCEEDED` |
 
 All mapped to TRPC errors in `packages/validators/src/errors/animal.errors.ts`.
 
@@ -137,6 +141,7 @@ All mapped to TRPC errors in `packages/validators/src/errors/animal.errors.ts`.
 | `arrivalCorrectionDays` | 2 | Rule D.3 | `movement.service.ts` |
 | `unregisteredDepartureFarmId` | `100000014` | Rule E.1 | `movement.service.ts` |
 | `unregisteredArrivalFarmId` | `100000027` | Rule E.2 | `movement.service.ts` |
+| species tagging floors (BOVINE 20d / OVINE 270d / CAPRINE 270d / PORCINE 270d / EQUINE 365d) | jurisdiction data | Rule A.7 | `SPECIES_TAGGING_DEADLINES` in `@rocky/domains-system` (ADR-0085) |
 
 ## Remaining Work
 

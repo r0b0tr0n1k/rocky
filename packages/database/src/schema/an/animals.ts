@@ -16,11 +16,13 @@ import {
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { ANIMAL_STATUS } from "../../constants/animal-status.js";
+import { SPECIES } from "../../constants/species.js";
 import { STATE_CODE } from "../../constants/state-code.js";
 import { animalStatusPgEnum } from "../../schemas/enums/animal-status.js";
 import { birthTypePgEnum } from "../../schemas/enums/birth-type.js";
 import { parentTypePgEnum } from "../../schemas/enums/parent-type.js";
 import { sexPgEnum } from "../../schemas/enums/sex.js";
+import { speciesPgEnum } from "../../schemas/enums/species.js";
 import { stateCodePgEnum } from "../../schemas/enums/state-code.js";
 import { farms } from "../hk/farms.js";
 import { adminAndVetWrite, rlsForFarmColumn } from "../rls-helpers.js";
@@ -40,6 +42,11 @@ export const animals = pgTable(
     breed: varchar("breed", { length: 50 }),
     birthType: birthTypePgEnum("birth_type"),
     birthWeight: integer("birth_weight"),
+
+    // Species (multi-species traceability, ADR-0085). Defaults to BOVINE as the
+    // existing/legacy herd is cattle; the per-species first-identification deadline
+    // is enforced by AnimalService via the traceability rules engine.
+    species: speciesPgEnum("species").notNull().default(SPECIES.BOVINE),
 
     // Parents
     motherId: uuid("mother_id"),

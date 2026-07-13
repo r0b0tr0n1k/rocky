@@ -3,6 +3,7 @@ import { AnimalService } from "./animal.service.js";
 import type { AnimalRepository } from "./animal.repository.js";
 import { ok } from "neverthrow";
 import type { SystemService } from "@rocky/domains-system";
+import { DEFAULT_TRACABILITY_RULES } from "@rocky/domains-system";
 import { AnimalFactory } from "@rocky/testing";
 import { ANIMAL_ERRORS } from "../errors/animal.errors.js";
 
@@ -50,6 +51,9 @@ describe("AnimalService", () => {
         // WO-118: ear-tag format config — was missing from the pre-WO-118 mock, causing tag.format to crash
         tag: { format: "MK_8", prefix: "807" },
         traceability: { maxDepth: 10, retentionYears: 2 },
+        // Per-species tagging rules disenabled in these mocks: they test mother/birth/calving
+        // rules, not the Art. 13/14/15/21 first-identification guillotine.
+        traceabilityRules: DEFAULT_TRACABILITY_RULES.map((r) => ({ ...r, enabled: false })),
         fsma: { cteExportFormat: "json", responseSlaHours: 24 },
         euAligned: true,
       })),

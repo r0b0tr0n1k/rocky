@@ -127,6 +127,10 @@ export interface RuleSet {
   tag: RuleSetTag;
   /** Traceability graph config (WO-116, R6 EC 178/2002). */
   traceability: RuleSetTraceability;
+  /** Named, toggleable traceability rules (ADR-0085, Implementing Reg (EU) 2021/520).
+   *  Each Article (Art. 3 / 12 / 13 / 19) is a registry entry the jurisdiction can
+   *  enable/disable or re-parameterise via `system_parameters`. */
+  traceabilityRules: TraceabilityRule[];
   /** FSMA 204 KDE export config (WO-116, R3). */
   fsma: RuleSetFsma;
   /** IMSOC / CHED-A config (WO-121, R9). */
@@ -150,14 +154,36 @@ export const WELFARE_DEFAULTS = {
 /** MK ISO 3166-1 numeric country code (North Macedonia). Used as the default ISO prefix for MK_8 tags. */
 export const MK_ISO_COUNTRY_CODE = "807" as const;
 
-/** WO-120 — EU sovereignty floors for bovine birth I&R (R8). Absolute MAXIMUMS:
- *  a RuleSet may be stricter (<=) but NEVER looser. Delegated Reg (EU) 2019/2035
- *  Art. 42 (tag <= 20 days of birth) + Implementing Reg (EU) 2021/520 Art. 14
- *  (notify births/deaths/movements <= 7 days). Named const — not inline. */
-export const EU_BIRTH_DEADLINES = {
-  taggingMaxDays: 20,
-  notificationMaxDays: 7,
-} as const;
+// ── Traceability rules engine (ADR-0085) ──
+// The four Implementing Reg (EU) 2021/520 Articles are a named, toggleable rule
+// registry so a jurisdiction can enable/disable or re-parameterise each one. The
+// symbols below are defined in `traceability-rules.ts`; re-exported here so existing
+// importers (tests, services) are unaffected.
+import {
+  EU_BIRTH_DEADLINES,
+  resolveTraceabilityRules,
+  SPECIES_TAGGING_DEADLINES,
+  SPECIES_TAGGING_RULE,
+  type TraceableSpecies,
+  type TraceabilityRule,
+} from "./traceability-rules.js";
+
+export {
+  EU_BIRTH_DEADLINES,
+  EU_TRACEABILITY_FLOORS,
+  isWithinTransmissionWindow,
+  requiresDualCodeRecording,
+  resolveTraceabilityRules,
+  TraceabilityRuleEngine,
+  DEFAULT_TRACABILITY_RULES,
+  SPECIES_TAGGING_DEADLINES,
+  SPECIES_TAGGING_RULE,
+  SPECIES_TRANSMISSION_DEADLINES,
+  speciesTaggingMaxDays,
+  type TraceableSpecies,
+  type TraceabilityRule,
+  type TraceabilityRuleId,
+} from "./traceability-rules.js";
 
 /** Minimal shape of a `system_parameters` row needed to build a RuleSet. */
 export interface RuleSetParamRow {
@@ -256,6 +282,7 @@ export function buildRuleSet(
       maxDepth: wParam("TRACEABILITY_MAX_DEPTH", 10),
       retentionYears: wParam("TRACEABILITY_RETENTION_YEARS", 2),
     },
+    traceabilityRules: resolveTraceabilityRules(rows),
     fsma: {
       cteExportFormat: byCode.get("FSMA_CTE_EXPORT_FORMAT")?.value ?? "json",
       responseSlaHours: wParam("FSMA_RESPONSE_SLA_HOURS", 24),
@@ -297,5 +324,20 @@ export function validateSovereignLimits(ruleSet: RuleSet): void {
     throw new Error(
       `Sovereign limit violated: notificationDays ${ruleSet.thresholds.notificationDays} > EU floor ${EU_BIRTH_DEADLINES.notificationMaxDays} (Implementing Reg (EU) 2021/520 Art. 14)`,
     );
+  }
+  // Per-species first-identification (tagging) floors (2021/520 Art. 13/14/15, 2021/963 Art. 21).
+  // A jurisdiction may be stricter (<=) but never loosen a species deadline.
+  for (const species of Object.keys(SPECIES_TAGGING_DEADLINES) as TraceableSpecies[]) {
+    const ruleId = SPECIES_TAGGING_RULE[species];
+    const rule = ruleSet.traceabilityRules.find((r) => r.id === ruleId);
+    if (!rule) continue;
+    const param = rule.params.taggingDays;
+    const floor = SPECIES_TAGGING_DEADLINES[species];
+    if (typeof param === "number" && param > floor) {
+      throw new Error(
+        `Sovereign limit violated: ${species} taggingDays ${param} > EU floor ${floor} ` +
+          `(Implementing Reg (EU) 2021/520 Art. 13/14/15, 2021/963 Art. 21)`,
+      );
+    }
   }
 }

@@ -54,6 +54,12 @@ rules engine — inside `@rocky/domains-system`:
 - **Enforcement wiring:**
   - **Art. 13(4)** + **Art. 3** → `MovementService.create` consults the engine
     (`ART13_TAG_BEFORE_MOVE`, `ART3_TRANSMISSION_WINDOW`) and blocks accordingly.
+  - **Per-species first-identification (Art. 13/14/15/21)** → `AnimalService.create`
+    resolves the species' tagging rule via `SPECIES_TAGGING_RULE[species]` and blocks when
+    the animal is older than `speciesTaggingMaxDays(species)` of birth with no in-window
+    `taggingDate` (`ANIMAL_TAGGING_DEADLINE_EXCEEDED`). `animals.species` is a `NOT NULL`
+    enum column (default `BOVINE`); the rule is armed in the engine and now enforced at the
+    animal layer (2026-07-13).
   - **Art. 12** → `makeEarTagSchema(format)` in `@rocky/validators` enforces the numeric
     code from `RuleSetTag.format` (`MK_8` 8-digit + check digit, `ISO_11784_15` 15-digit);
     the `ART12_NUMERIC_CODE` rule is registered for visibility/parameterisation.
@@ -68,9 +74,77 @@ graph TD
   RES --> RS[RuleSet.traceabilityRules]
   RS --> ENG[TraceabilityRuleEngine<br/>isEnabled / getParam]
   ENG --> M[MovementService.create<br/>Art.13(4) + Art.3 guards]
+  ENG --> A[AnimalService.create<br/>per-species tagging Art.13/14/15/21]
   ENG --> V[makeEarTagSchema<br/>Art.12 numeric code]
   ENG --> E[EarTag replacement<br/>Art.19(4) — armed]
 ```
+
+## Regulatory Sources (EU Commission → national transposition)
+
+Per the directive, the EU Commission regulation is quoted **first**, then the local
+(irish) government transposition.
+
+### 1. EU — Commission Implementing Regulation (EU) 2021/520
+
+*(traceability of kept bovine, ovine, caprine and porcine animals)*
+
+> **Art. 3 (Notification of movements)** — Operators shall transmit the information on each
+> movement of animals to the computerised database … *within 7 days following the day of the
+> movement*.
+>
+> **Art. 12 (Identification code)** — The unique identification code … shall consist of the
+> ISO 3166-1 alpha-2 or numeric country code … followed by the animal's own code, composed of
+> *numeric characters, the length of which shall not exceed 12 characters*.
+>
+> **Art. 13 (Bovine animals)** — (1) Bovine animals shall be identified … *within 20 days
+> following birth or before they leave the holding of birth, whichever is earlier*.
+>
+> **Art. 14 (Ovine and caprine animals)** — (1) Ovine and caprine animals shall be identified
+> *within 9 months following birth or before they leave the holding of birth, whichever is
+> earlier*.
+>
+> **Art. 15 (Porcine animals)** — (1) Porcine animals shall be identified *within 9 months
+> following birth or before they leave the holding of birth*.
+>
+> **Art. 17 (After entry into the Union)** — Animals shall be identified *within 20 days
+> following the day of entry*.
+>
+> **Art. 19 (Replacement)** — (1) … within *7 days* following the day on which the operator
+> observes that the means of identification is lost or has become illegible … (4) Where the
+> electronic identifier cannot reproduce the visual identification code, *both the visual
+> identification code and the electronic identifier's code shall be recorded*.
+
+Equine traceability is in **Commission Implementing Regulation (EU) 2021/963**: Art. 9
+(notification, 7 days), Art. 14 (30 days), Art. 21 (first identification *within 12 months of
+birth or before leaving the establishment of birth*).
+
+### 2. Ireland — S.I. No. 254 of 2023
+
+*European Union (Animal Identification and Tracing) Regulations 2023* (the local transposition
+that gives the above Articles force in Irish law)
+
+> **Reg. 11(2)(b)** — a person shall not contravene *Regulation 2021/520 in respect of the
+> traceability of kept bovine animals*.
+>
+> **Reg. 11(5)** — the applicable period set in the State: *(a) for Article 3, the deadline is
+> 7 days, and (b) for Article 13, the deadline is 20 days or on leaving the establishment of
+> birth, if that date is earlier*.
+>
+> **Reg. 12(6)** — ovine/caprine: *(a) for Article 3, the deadline is 7 days, and (b) for
+> Article 14, the deadline is 9 months or on leaving the establishment of birth, if that date is
+> earlier*.
+>
+> **Reg. 14(5)** — porcine: *(a) for Article 3, the deadline is 7 days, and (b) for Article 15,
+> the deadline is 9 months*.
+>
+> **Reg. 13(5)** — equine (under 2021/963): *(a)(i) Article 9 — 7 days; (a)(ii) Article 14 —
+> 30 days; (a)(v) Article 21 — 12 months*; and *(b) pursuant to Article 59(3)(b) of Regulation
+> 2019/2035 the deadline is 6 months from the date of birth*.
+>
+> **Reg. 17(2)** — replace a lost/illegible means of identification *within 7 days* (Art. 19).
+> **Reg. 17(6) & (7)** — a person shall not acquire, move, sell, supply, slaughter or export a
+> relevant animal *unless it is identified with approved means of identification* (applies to
+> all kept terrestrial animals — the basis for the cross-species `ART13_TAG_BEFORE_MOVE` rule).
 
 ## Consequences
 

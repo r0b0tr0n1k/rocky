@@ -101,6 +101,7 @@ export const createAnimalRequestSchema = animalsInsertSchema
     importCountry: true,
     importDate: true,
     isActive: true,
+    species: true,
   })
   .extend({
     earTagNumber: earTagSchema,

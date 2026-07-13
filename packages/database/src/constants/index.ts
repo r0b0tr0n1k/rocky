@@ -79,6 +79,7 @@ export { SORT_BY_MOVEMENT, SORT_BY_MOVEMENT_VALUES } from './sort-by-movement.js
 export { SORT_BY_USER, SORT_BY_USER_VALUES } from './sort-by-user.js';
 export { SORT_ORDER, SORT_ORDER_VALUES } from './sort-order.js';
 export { STATE_CODE, STATE_CODE_VALUES } from './state-code.js';
+export { SPECIES, SPECIES_VALUES } from './species.js';
 export { SUBJECT_ROLE, SUBJECT_ROLE_VALUES } from './subject-role.js';
 export { SYNC_ERROR_TYPE, SYNC_ERROR_TYPE_VALUES } from './sync-error-type.js';
 export { SYNC_RECORD_TYPE, SYNC_RECORD_TYPE_VALUES } from './sync-record-type.js';

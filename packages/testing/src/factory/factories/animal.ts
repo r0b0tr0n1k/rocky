@@ -12,6 +12,7 @@ import {
   BIRTH_TYPE_VALUES,
   SEX,
   SEX_VALUES,
+  SPECIES,
   STATE_CODE,
 } from "@rocky/database/constants";
 import { calculateEarTagCheckDigit } from "@rocky/validators";
@@ -37,6 +38,7 @@ export class AnimalFactory extends SchemaDataFactory<AnimalRecord> {
       fatherId: fatherId ?? null,
       currentFarmId,
       status: faker.helpers.arrayElement(ANIMAL_STATUS_VALUES),
+      species: SPECIES.BOVINE,
       isFirstTagging: faker.datatype.boolean({ probability: 0.3 }),
       taggingDate: faker.date.recent({ days: 30 }).toISOString().split("T")[0],
       imported: faker.datatype.boolean({ probability: 0.1 }),

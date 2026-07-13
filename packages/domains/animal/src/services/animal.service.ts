@@ -4,7 +4,7 @@
  * Orchestrates: validate → delegate to repository → return Result.
  */
 
-import { ANIMAL_STATUS, OUTBOX_AGGREGATE_TYPE, STATE_CODE } from "@rocky/database/constants";
+import { ANIMAL_STATUS, OUTBOX_AGGREGATE_TYPE, STATE_CODE, SPECIES } from "@rocky/database/constants";
 import { fromAsyncThrowable, type Result, toAppError } from "@rocky/domains-shared";
 import type { OutboxEventPublisher } from "@rocky/execution";
 import type {
@@ -18,6 +18,7 @@ import { animalResponseSchema, animalSummarySchema } from "@rocky/validators/api
 import { validateEarTagFormat } from "@rocky/validators/utils/check-digit";
 import { ANIMAL_ERRORS, AnimalError } from "../errors/animal.errors.js";
 import type { SystemService } from "@rocky/domains-system";
+import { TraceabilityRuleEngine, speciesTaggingMaxDays, SPECIES_TAGGING_RULE, type TraceableSpecies } from "@rocky/domains-system";
 import type { AnimalRepository } from "../repositories/animal.repository.js";
 import { randomUUID } from "node:crypto";
 
@@ -82,6 +83,29 @@ export class AnimalService {
           expectedFormat: tag.format,
           expectedPrefix: tag.prefix,
         });
+      }
+
+      // ── Per-species first-identification deadline (Art. 13/14/15/21, ADR-0085) ──
+      // An animal must be identified within N days of birth (or before leaving the
+      // holding of birth). N is species-specific (EU floor). Enforced here at
+      // registration: if the birth is older than the deadline and the species' tagging
+      // rule is enabled, reject — unless a taggingDate proves it was tagged in time.
+      const species = (input.species ?? SPECIES.BOVINE) as TraceableSpecies;
+      const speciesTagRuleId = SPECIES_TAGGING_RULE[species];
+      if (TraceabilityRuleEngine.isEnabled(ruleSet.value.traceabilityRules, speciesTagRuleId)) {
+        const deadlineDays = speciesTaggingMaxDays(species);
+        const birth = new Date(input.birthDate);
+        const tagging = input.taggingDate ? new Date(input.taggingDate) : new Date();
+        const ageDays = daysBetween(birth, tagging);
+        if (ageDays > deadlineDays) {
+          throw new AnimalError(ANIMAL_ERRORS.TAGGING_DEADLINE_EXCEEDED, {
+            species,
+            birthDate: input.birthDate,
+            taggingDate: input.taggingDate ?? null,
+            ageDays,
+            deadlineDays,
+          });
+        }
       }
 
       // ── Pre-generate animal ID for self-reference guard ──
