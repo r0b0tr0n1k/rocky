@@ -8,14 +8,21 @@
  *
  * The framework serializes to YAML/XML (stable API); for EUDR the statement is emitted
  * as XML for archival/LPIS interchange.
+ *
+ * ADR-0084 §14.3: the DDS is the EUDR export token. It references the animal's signed
+ * credential (the offline-verifiable QR) so a downstream operator can verify cattle
+ * provenance without a server call. The reference is embedded here, at generation time,
+ * via CredentialService — graceful when no passport/credential exists yet.
  */
 
 import type { AnimalRepository } from "@rocky/domains-animal";
 import type { FarmRepository } from "@rocky/domains-farm";
+import { PassportRepository } from "@rocky/domains-passport";
 import type { GeoRepository } from "@rocky/geo";
 import type { MovementRepository } from "@rocky/domains-movement";
 import { runEudrDueDiligence } from "@rocky/domains-movement";
 import type { SystemService } from "@rocky/domains-system";
+import { CredentialService } from "../services/credential.service.js";
 import { ok, err } from "neverthrow";
 import { BaseDocumentTemplate } from "../engine/document-template.js";
 import type { DocumentFormat } from "../engine/yaml-serializer.js";
@@ -41,6 +48,8 @@ export class EudrTemplate extends BaseDocumentTemplate<string, Record<string, un
     private readonly animalRepo: AnimalRepository,
     private readonly farmRepo: FarmRepository,
     private readonly system: SystemService,
+    private readonly passportRepo: PassportRepository,
+    private readonly credentialService: CredentialService,
   ) {
     super();
   }
@@ -78,6 +87,25 @@ export class EudrTemplate extends BaseDocumentTemplate<string, Record<string, un
       ? await this.geoRepo.findGeofencesByPastureIds(pastureIds)
       : [];
 
+    // ── ADR-0084 §14.3: reference the signed credential in the DDS (export token). ──
+    let credentialReference: Record<string, unknown> | null = null;
+    const passport = await this.passportRepo.findByAnimalId(animalId);
+    if (passport) {
+      const cred = await this.credentialService.generate({
+        type: "passport",
+        refId: passport.id,
+      });
+      if (cred.isOk()) {
+        credentialReference = {
+          type: "passport",
+          sub: passport.id,
+          kid: cred.value.payload.kid,
+          qrDataUrl: cred.value.qrDataUrl,
+          envelope: cred.value.envelope,
+        };
+      }
+    }
+
     return {
       documentType: "EUDR_DUE_DILIGENCE_STATEMENT",
       regulation: "EUDR 2023/1115",
@@ -106,6 +134,7 @@ export class EudrTemplate extends BaseDocumentTemplate<string, Record<string, un
         polygonPresent: Boolean(g.polygon),
       })),
       breaches: result.breaches,
+      credentialReference,
     };
   }
 }

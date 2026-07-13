@@ -310,10 +310,14 @@ pure `buildCredentialStatusList` model (passport SEIZED → suspended, CANCELLED
 revoked; movements have no revocation state yet), the API `CredentialStatusListService`
 sources passport state, and the new `document.statusList` tRPC procedure publishes it; the
 web `/verify` page surfaces "status list last synced: X days ago" with a stale-warning.
-**Remaining Phase 2 = the EUDR DDS linkage (ADR-0063)** that emits/references the signed QR.
+The **EUDR DDS linkage** (ADR-0063) is implemented: the `eudr` Due-Diligence
+Statement template embeds a `credentialReference` — the passport `sub` / `kid` / signed
+QR / envelope — so the DDS doubles as the EUDR export token (§14.3) that references the
+offline-verifiable signed credential. **Phase 2 is complete**; the only remaining item is the
+HSM bulk-throughput measurement (§6).
 
-**Not yet done (Phase 2–3):** the **EUDR DDS** linkage (ADR-0063) that emits/references the
-signed QR; and the HSM bulk-throughput measurement (§6).
+**Not yet done (Phase 2–3):** the HSM bulk-throughput measurement (§6) (and the PDF/A
+visual render, WO-050).
 
 ## Related ADRs
 

@@ -525,8 +525,10 @@ import { TrpcModule } from "./trpc/trpc.module.js";
         animalRepo: AnimalRepository,
         farmRepo: FarmRepository,
         system: SystemService,
-      ) => new EudrTemplate(movementRepo, geoRepo, animalRepo, farmRepo, system),
-      inject: [MovementRepository, GeoRepository, AnimalRepository, FarmRepository, SystemService],
+        passportRepo: PassportRepository,
+        credentialService: CredentialService,
+      ) => new EudrTemplate(movementRepo, geoRepo, animalRepo, farmRepo, system, passportRepo, credentialService),
+      inject: [MovementRepository, GeoRepository, AnimalRepository, FarmRepository, SystemService, PassportRepository, CredentialService],
     },
     {
       provide: EarTagTemplate,
