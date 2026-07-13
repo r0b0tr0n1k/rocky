@@ -111,5 +111,7 @@ All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 81
 | ADR-0085 | Traceability Rules Engine (Implementing Reg (EU) 2021/520) |
 | ADR-0086 | ESPR 2024/1781 — Digital Product Passport Alignment (DPP paradigm adopted; live animals out of scope) |
 | ADR-0087 | ESPR Art 12 Operator/Facility Identifier Scheme (ISO/IEC 15459 / GS1 GLN; closes Art 12 PARTIAL) |
+| ADR-0088 | Veterinary & Sanitary Module Expansion (EU Resource-Aligned Architecture) |
+| ADR-0089 | Disease Master Data: AHL Annex II Categories + WOAH WAHIS Codes |
 
 > Generated from `apps/docs/content/ADR/*.md` first-heading titles. Regenerate after adding an ADR.
