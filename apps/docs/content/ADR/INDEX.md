@@ -113,5 +113,9 @@ All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 81
 | ADR-0087 | ESPR Art 12 Operator/Facility Identifier Scheme (ISO/IEC 15459 / GS1 GLN; closes Art 12 PARTIAL) |
 | ADR-0088 | Veterinary & Sanitary Module Expansion (EU Resource-Aligned Architecture) |
 | ADR-0089 | Disease Master Data: AHL Annex II Categories + WOAH WAHIS Codes |
+| ADR-0090 | Sanitary Inspections (Ante/Post-Mortem) — OCR 2017/625 / 853/2004 / 1069/2009 |
+| ADR-0091 | Lab Test Chain-of-Custody Status + PDA/Lab Workflow |
+| ADR-0092 | Zone-of-Alienation Automation: LabTestCompletedEvent → Geofence Lockdown |
+| ADR-0093 | Dual Dashboards: Private Vet vs State Epidemiologist |
 
 > Generated from `apps/docs/content/ADR/*.md` first-heading titles. Regenerate after adding an ADR.
