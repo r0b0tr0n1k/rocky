@@ -15,23 +15,25 @@ The repo's ingress is **DockFlare** (Cloudflare Tunnel). Every service in
 `cloudflare-net` network. So:
 
 - `ROCKY_DOMAIN` drives the hostnames: `api.<domain>`, `admin.<domain>`,
-  `docs.<domain>`. Set `ROCKY_DOMAIN=rocky.techno.party` → the app lives at
-  `api.rocky.techno.party` / `admin.rocky.techno.party` / `docs.rocky.techno.party`.
-- **Cloudflare precondition (the only real one):** the *registered domain* (here
-  `techno.party`) must be a **Cloudflare zone you control** (NS at CF + a CF
-  token for DockFlare). Once that zone exists, subdomain *depth* is unlimited —
-  `api.rocky.techno.party` (fourth-level) is fine for DNS **and** Tunnel.
-- **Misconception to drop:** CF free does **not** limit subdomain depth. It limits
-  which name you can register as a *zone* — a registered domain (`techno.party`)
-  yes, a subdomain (`rocky.techno.party`) **no** (that needs Enterprise subdomain
-  delegation). So you manage `techno.party` as the zone; everything below it is
-  just DNS/Tunnel config.
+  `docs.<domain>`. Set `ROCKY_DOMAIN=techno.party` → the app lives at
+  `api.techno.party` / `admin.techno.party` / `docs.techno.party` — all
+  **tertiary (3-level)**, which is what this Cloudflare setup allows.
+- **Hard constraint — tertiary only:** this Cloudflare setup permits **only
+  third-level domains**. So `ROCKY_DOMAIN` MUST be the bare registered zone
+  (`techno.party`), never a sub-namespace like `rocky.techno.party` or
+  `mobile.techno.party` — those would make `api.rocky.techno.party` /
+  `api.mobile.techno.party` **fourth-level**, which is rejected. The compose
+  already templates `api.${ROCKY_DOMAIN}`, so `ROCKY_DOMAIN=techno.party` yields
+  the allowed tertiary hosts with no compose edit.
+- **Cloudflare precondition (the only real one):** the *registered domain*
+  (`techno.party`) must be a **Cloudflare zone you control** (NS at CF + a CF
+  token for DockFlare). You manage `techno.party` as the zone; `api.`/`admin.`/
+  `docs.` are just DNS/Tunnel records under it.
 
-If you do **not** own `techno.party` (only `rocky.techno.party` was delegated to
-you), you cannot add `techno.party` as a zone yourself. Then either (a) have the
-owner add the zone + create the subdomain records for you, (b) register your own
-domain (e.g. `rocky.dev`) and use that as `ROCKY_DOMAIN`, or (c) accept
-Enterprise subdomain delegation.
+If you do **not** own a registered domain you can add as a CF zone, you cannot
+Satisfy the tertiary-only rule with a delegated subdomain. Then either (a) register
+your own domain (e.g. `rocky.dev`) and use that as `ROCKY_DOMAIN`, or (b) have the
+zone owner add `techno.party` as a CF zone and share it with you.
 
 ## You do NOT need a domain to test the backend
 
@@ -46,7 +48,7 @@ zone draw) needs only:
 
 No public hostname. The `db` container already publishes `5432`. So: stand up the
 VM, run DB + API, do the seed + zone test **without touching DNS/Cloudflare**.
-Defer the `rocky.techno.party` / DockFlare decision until the web admin
+Defer the DockFlare / `techno.party` hostname decision until the web admin
 ([ADR-0093](/ADR/0093-dual-dashboards-vet-vs-epidemiologist)) goes live — that is
 the first thing that actually needs a browser-reachable hostname.
 
@@ -60,7 +62,7 @@ flowchart TD
   D --> E["🚀 docker compose up -d api<br/>(OutboxProcessorJob every 5s)"]
   E --> F["🔍 psql verify zone<br/>(see Vet/Sanitary Smoke Test)"]
   F --> G(["✅ Backend testable — no domain needed"])
-  G -.-> H["🌐 Later: DockFlare + rocky.techno.party<br/>when web admin (ADR-0093) goes live"]
+  G -.-> H["🌐 Later: DockFlare + techno.party hostnames<br/>when web admin (ADR-0093) goes live"]
   classDef step fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
   classDef ok fill:#98FB98,stroke:#333,stroke-width:2px,color:black
   classDef later fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
@@ -72,7 +74,7 @@ flowchart TD
 ### 1. Repo root `.env` (the four mandatory vars)
 
 ```
-ROCKY_DOMAIN=rocky.techno.party      # or your own domain
+ROCKY_DOMAIN=techno.party            # MUST be the bare zone — tertiary-only CF
 DB_HOST=db                            # or your external PostGIS host
 POSTGRES_PASSWORD=<strong>
 BETTER_AUTH_SECRET=$(openssl rand -base64 32)
@@ -133,9 +135,9 @@ internal network / `psql`, not a public hostname.
 ## Latent gap — remember, don't fix yet
 
 `apps/api/src/auth/auth.ts` sets **no** `crossSubDomain` and **no** cookie
-`domain`. When the web admin (`admin.rocky.techno.party`) later reads the session
-set by `api.rocky.techno.party`, server-side auth will break — Better Auth must
-scope the cookie to `.rocky.techno.party` with `crossSubDomain: true`. This is
+`domain`. When the web admin (`admin.techno.party`) later reads the session
+set by `api.techno.party`, server-side auth will break — Better Auth must
+scope the cookie to `.techno.party` with `crossSubDomain: true`. This is
 gated behind [ADR-0093](/ADR/0093-dual-dashboards-vet-vs-epidemiologist)
 (frontend deferred), so flag it, don't fix it now.
 
