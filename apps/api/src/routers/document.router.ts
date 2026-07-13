@@ -12,8 +12,16 @@ import { createResultUnwrapper } from "@rocky/trpc/index.js";
 import {
   documentGenerateRequestSchema,
   documentResponseSchema,
+  documentVerifyRequestSchema,
+  documentVerifyResponseSchema,
+  documentCredentialRequestSchema,
+  documentCredentialResponseSchema,
+  documentCredentialVerifyRequestSchema,
+  documentCredentialVerifyResponseSchema,
 } from "@rocky/validators/api/index.js";
 import { DOCUMENT_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
+import { documentStatusListResponseSchema } from "@rocky/validators/api/index.js";
+import { CredentialStatusListService } from "../pdf/status-list.service.js";
 import { Input, Mutation, Query, Router } from "nestjs-trpc";
 import { z } from "zod";
 import type { SubtypeGuillotine, ActivateGuillotines } from "@rocky/validators/utils";
@@ -32,6 +40,7 @@ export class DocumentRouter {
   constructor(
     @Inject(DocumentService) private readonly documentService: DocumentService,
     @Inject(ExecutionEventEmitter) private readonly eventEmitter: ExecutionEventEmitter,
+    @Inject(CredentialStatusListService) private readonly statusListService: CredentialStatusListService,
   ) { }
 
   /**
@@ -55,6 +64,33 @@ export class DocumentRouter {
     return unwrap(result);
   }
 
+  @Query({ input: documentVerifyRequestSchema, output: documentVerifyResponseSchema })
+  async verify(@Input() input: { type: string; refId: string }) {
+    const result = await this.documentService.verify(input);
+    return unwrap(result);
+  }
+
+  /**
+   * Build + sign an offline-verifiable credential QR for an entity (ADR-0084).
+   * Returns the wire envelope + a QR data URL; the same envelope is also
+   * embedded on the entity's PDF (on-document QR, ADR-0084 §7).
+   */
+  @Query({ input: documentCredentialRequestSchema, output: documentCredentialResponseSchema })
+  async credential(@Input() input: { type: string; refId: string }) {
+    const result = await this.documentService.credential(input);
+    return unwrap(result);
+  }
+
+  /**
+   * Verify a raw credential QR string (scanned / pasted) against the pinned
+   * public key. `valid` means the signature is intact — callers still consult
+   * the credential status list to decide revoked / expired (ADR-0084 §4).
+   */
+  @Query({ input: documentCredentialVerifyRequestSchema, output: documentCredentialVerifyResponseSchema })
+  async verifyCredential(@Input() input: { qr: string }) {
+    return this.documentService.verifyCredential(input.qr);
+  }
+
   /**
    * List all available document types.
    */
@@ -63,6 +99,17 @@ export class DocumentRouter {
     const { DocumentRegistry } = await import("@rocky/pdf/index.js");
     const registry = DocumentRegistry.getInstance();
     return registry.listTypes();
+  }
+
+  /**
+   * Current credential status list (ADR-0084 §4) — a CRL-style revocation
+   * list sourced from in-domain state machines (passport SEIZED / CANCELLED).
+   * The verifier surfaces `list.issuedAt` as "status list last synced".
+   */
+  @Query({ input: z.object({}).optional(), output: documentStatusListResponseSchema })
+  async statusList() {
+    const list = await this.statusListService.buildStatusList();
+    return { list, lastSyncedIso: list.issuedAt };
   }
 }
 
@@ -77,8 +124,28 @@ type _verify_listTypesOutput = SubtypeGuillotine<
   z.output<typeof listTypesSchema>,
   Awaited<ReturnType<DocumentRouter["listTypes"]>>
 >;
+type _verify_verifyOutput = SubtypeGuillotine<
+  z.output<typeof documentVerifyResponseSchema>,
+  Awaited<ReturnType<DocumentRouter["verify"]>>
+>;
+type _verify_credentialOutput = SubtypeGuillotine<
+  z.output<typeof documentCredentialResponseSchema>,
+  Awaited<ReturnType<DocumentRouter["credential"]>>
+>;
+type _verify_verifyCredentialOutput = SubtypeGuillotine<
+  z.output<typeof documentCredentialVerifyResponseSchema>,
+  Awaited<ReturnType<DocumentRouter["verifyCredential"]>>
+>;
+type _verify_statusListOutput = SubtypeGuillotine<
+  z.output<typeof documentStatusListResponseSchema>,
+  Awaited<ReturnType<DocumentRouter["statusList"]>>
+>;
 
 export type _DocumentGuillotines = ActivateGuillotines<[
   _verify_generateOutput,
-  _verify_listTypesOutput
+  _verify_listTypesOutput,
+  _verify_verifyOutput,
+  _verify_credentialOutput,
+  _verify_verifyCredentialOutput,
+  _verify_statusListOutput
 ]>;

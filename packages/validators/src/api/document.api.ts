@@ -240,6 +240,43 @@ type _drift_documentCredentialVerifyResponse = NoDriftSimple<
   DocumentCredentialVerifyResponse
 >;
 
+
+export const credentialStatusSchema = z.enum(["valid", "revoked", "suspended"]);
+export type CredentialStatus = z.infer<typeof credentialStatusSchema>;
+
+export const credentialStatusListEntrySchema = z.strictObject({
+  sub: z.string(),
+  typ: z.string(),
+  status: credentialStatusSchema,
+  reason: z.string().optional(),
+  updatedAt: z.string(),
+});
+
+export const credentialStatusListSchema = z.strictObject({
+  publisher: z.string(),
+  listId: z.string(),
+  issuedAt: z.string(),
+  ttlSeconds: z.number(),
+  entries: z.array(credentialStatusListEntrySchema),
+  digest: z.string(),
+});
+export type CredentialStatusList = z.infer<typeof credentialStatusListSchema>;
+
+/** Response: the current credential status list + when it was published (ADR-0084 §4). */
+export const documentStatusListResponseSchema = z.strictObject({
+  list: credentialStatusListSchema,
+  lastSyncedIso: z.string(),
+});
+export interface DocumentStatusListResponse {
+  list: CredentialStatusList;
+  lastSyncedIso: string;
+}
+
+type _drift_documentStatusListResponse = NoDriftSimple<
+  z.infer<typeof documentStatusListResponseSchema>,
+  DocumentStatusListResponse
+>;
+
 export type _DocumentGuillotines = ActivateGuillotines<
-  [ _drift_documentGenerateRequest, _drift_documentResponse, _drift_documentVerifyRequest, _drift_documentVerifyResponse, _drift_documentCredentialRequest, _drift_documentCredentialResponse, _drift_documentCredentialVerifyRequest, _drift_documentCredentialVerifyResponse ]
+  [ _drift_documentGenerateRequest, _drift_documentResponse, _drift_documentVerifyRequest, _drift_documentVerifyResponse, _drift_documentCredentialRequest, _drift_documentCredentialResponse, _drift_documentCredentialVerifyRequest, _drift_documentCredentialVerifyResponse, _drift_documentStatusListResponse ]
 >;

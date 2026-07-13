@@ -304,14 +304,16 @@ Accepted); **Phase 1 is now implemented**; Phase 2–3 remain.
 **Phase 2 in progress (2026-07):** the ear-tag document type + `EarTagTemplate.mapToCredential`
 are implemented — `document.credential({ type: "ear-tag", refId })` issues a self-contained
 signed ear-tag credential (subject = tag id; farm + species resolved from the applied
-animal). Remaining Phase 2 = the credential **status-list publisher** from passport/movement
-revocation states + the "last synced" UI (§4); **GS1 GLN** operator/facility IDs (ADR-0087);
-and the **EUDR DDS** linkage (ADR-0063).
+animal). **GS1 GLN** operator/facility IDs (ADR-0087) are committed (af63281). The
+**credential status-list publisher** (ADR-0084 §4) is implemented: `@rocky/pdf` carries the
+pure `buildCredentialStatusList` model (passport SEIZED → suspended, CANCELLED/ARCHIVED →
+revoked; movements have no revocation state yet), the API `CredentialStatusListService`
+sources passport state, and the new `document.statusList` tRPC procedure publishes it; the
+web `/verify` page surfaces "status list last synced: X days ago" with a stale-warning.
+**Remaining Phase 2 = the EUDR DDS linkage (ADR-0063)** that emits/references the signed QR.
 
-**Not yet done (Phase 2–3):** the credential status-list publisher from passport/movement
-revocation states + the "last synced" UI (§4); **GS1 GLN** operator/facility IDs (ADR-0087);
-the **EUDR DDS** linkage (ADR-0063) that emits/references the signed QR; and the HSM
-bulk-throughput measurement (§6).
+**Not yet done (Phase 2–3):** the **EUDR DDS** linkage (ADR-0063) that emits/references the
+signed QR; and the HSM bulk-throughput measurement (§6).
 
 ## Related ADRs
 

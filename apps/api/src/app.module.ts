@@ -94,6 +94,7 @@ import { DeviceRouter } from "./routers/device.router.js";
 import { IotRouter } from "./routers/iot.router.js";
 import { GeoRouter } from "./routers/geo.router.js";
 import { DocumentRouter } from "./routers/document.router.js";
+import { CredentialStatusListService } from "./pdf/status-list.service.js";
 import { EarTagRouter } from "./routers/eartag.router.js";
 import { FarmBookRouter } from "./routers/farm-book.router.js";
 import { FarmRouter } from "./routers/farm.router.js";
@@ -563,6 +564,7 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     ModulesRouter,
     SystemParametersRouter,
     DocumentRouter,
+    CredentialStatusListService,
     FarmBookRouter,
     FarmRouter,
     VsAssignmentRouter,

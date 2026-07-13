@@ -124,4 +124,17 @@ export class PassportRepository extends BaseRepository {
     ]);
     return { data, total: totalResult[0]?.count ?? 0 };
   }
+  async findAll(opts: { limit: number; offset: number }) {
+    const [data, totalResult] = await Promise.all([
+      this.client
+        .select()
+        .from(cattlePassportsTable)
+        .orderBy(desc(cattlePassportsTable.createdAt))
+        .limit(opts.limit)
+        .offset(opts.offset),
+      this.client.select({ count: sql<number>`count(*)::int` }).from(cattlePassportsTable),
+    ]);
+    return { data, total: totalResult[0]?.count ?? 0 };
+  }
+
 }

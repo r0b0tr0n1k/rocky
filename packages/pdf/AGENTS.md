@@ -88,9 +88,11 @@ print-scan is the real gate (see `credential.test.ts` + `credential.service.test
 **Phase 2 (WO-155) in progress:** the `ear-tag` document type now implements
 `mapToCredential`, so `document.credential({ type: "ear-tag", refId })` issues a
 self-contained signed credential for a tag (subject = tag id; farm + species resolved from
-the applied animal). Remaining Phase 2 = credential **status-list publisher** (from
-passport/movement revocation states) + **GS1 GLN** operator/facility IDs (ADR-0087) +
-**EUDR DDS** linkage (ADR-0063).
+the applied animal). **GS1 GLN** operator/facility IDs (ADR-0087) are committed, and the
+**credential status-list publisher** (ADR-0084 §4) is implemented (`status-list.ts` + the
+API `CredentialStatusListService` + `document.statusList` procedure + the web "last
+synced" UI). **Remaining Phase 2 = EUDR DDS** linkage (ADR-0063) that emits/references the
+signed QR.
 
 - `credential.ts` — `signCredential` (Ed25519 over canonical CBOR payload, base64url
   envelope) / `verifyCredential` (checks sig + `exp`; caller still checks the credential
@@ -99,6 +101,10 @@ passport/movement revocation states) + **GS1 GLN** operator/facility IDs (ADR-00
 - `credential.service.ts` — `CredentialService`: `generate` (template `mapToCredential` →
   `CredentialSeed` → `CredentialPayload` → sign → envelope + QR data URL/PNG) and `verify`
   (raw envelope vs pinned key). Configured at bootstrap via `useKeyConfig`.
+- `status-list.ts` — pure CRL-style **credential status list** model (ADR-0084 §4):
+  `buildCredentialStatusList` (deterministic, digest-protected), `passportStatusToCredentialStatus`
+  (SEIZED→suspended, CANCELLED/ARCHIVED→revoked), `isStatusListStale`, `resolveStatus`.
+  Sourcing (passport/movement state → entries) lives in the API `CredentialStatusListService`.
 - `engine/pdf-embed.ts` — `embedQrPng` stamps the credential QR onto a PDF page (image
   XObject) for the on-document QR.
 - Canonical CBOR (RFC 8949 §4.2) is pinned by a **golden-byte test** that fails the build
@@ -195,8 +201,8 @@ Templates — provided via useFactory with injected repos/services:
 5. **Invoice doc type** — Phase 4 per ADR-0082 (gated on billing landing)
 6. **On-document QR** — **done** via `embedQrPng` (ADR-0084 §7): the signed QR embeds as a
    PDF image XObject after the Typst render, before the PAdES seal.
-7. **Phase 2 (WO-155) remaining** — credential status-list publisher from passport/movement
-   revocation states + "last synced" UI (ADR-0084 §4); GS1 GLN operator/facility IDs
+7. **Phase 2 (WO-155) remaining** — EUDR DDS linkage (ADR-0063) that emits/references the
+   signed QR; HSM bulk-throughput measurement (ADR-0084 §6).
    (ADR-0087); EUDR DDS emits/references the signed QR (ADR-0063).
 
 ## QR Codes (ear-tag linkage)

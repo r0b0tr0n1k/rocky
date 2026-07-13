@@ -54,3 +54,18 @@ export type { CredentialOutput, CredentialResponseView, CredentialVerifyView, Cr
 // PDF image embedding (on-document credential QR — ADR-0084 §7)
 export { embedQrPng } from "./engine/pdf-embed.js";
 export type { EmbedQrOptions } from "./engine/pdf-embed.js";
+
+// Credential status list (ADR-0084 §4) — pure CRL-style publisher model.
+export {
+  buildCredentialStatusList,
+  passportStatusToCredentialStatus,
+  movementStateToCredentialStatus,
+  isStatusListStale,
+  resolveStatus,
+} from "./credential/status-list.js";
+export type {
+  CredentialStatus,
+  CredentialStatusList,
+  CredentialStatusListEntry,
+  BuildStatusListOptions,
+} from "./credential/status-list.js";
