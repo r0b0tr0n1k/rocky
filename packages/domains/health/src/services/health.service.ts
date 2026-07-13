@@ -352,6 +352,30 @@ export class HealthService {
       createdBy: input.createdBy,
     });
     if (!labTest) return err(new HealthError(HEALTH_ERRORS.INVALID_INPUT));
+
+    // ADR-0091/0092 — emit LabTestCompletedEvent so downstream handlers (e.g. the
+    // ADR-0092 Zone-of-Alienation automation) can react to a completed test.
+    if (this.outboxPublisher) {
+      await this.outboxPublisher.publish({
+        type: "lab_test.completed",
+        aggregateType: OUTBOX_AGGREGATE_TYPE.LAB_TEST,
+        aggregateId: labTest.id,
+        payload: {
+          labTestId: labTest.id,
+          animalId: input.animalId,
+          farmId: input.farmId,
+          diseaseId: input.diseaseId,
+          testType: input.testType,
+          result: input.result,
+          resultNumeric: input.resultNumeric?.toString() ?? null,
+          resultUnit: input.resultUnit ?? null,
+          interpretation: input.interpretation ?? null,
+          certificateRef: input.certificateRef ?? null,
+        },
+        createdBy: input.createdBy,
+      });
+    }
+
     return ok(labTestResponseSchema.parse(labTest));
   }
 

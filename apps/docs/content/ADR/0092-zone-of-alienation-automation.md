@@ -7,7 +7,7 @@
 
 | Key | Value |
 | --- | --- |
-| **Status** | Proposed |
+| **Status** | Accepted |
 | **Date** | 2026-07-13 |
 | **Author** | Architecture Review (user directive: expand Veterinary & Sanitary modules) |
 | **Supersedes** | None |
@@ -43,6 +43,21 @@ a positive Category A result does not yet draw the zones or freeze farms.
   exist (ADR-0064/0080).
 - Correct legal geometry: 3 km / 10 km per AHL Art 2(42)/(43).
 - Cost: one event-listener service + the zone-draw call; the freeze/block path is already built.
+
+## Implementation Status
+
+Implemented (2026-07-13) via the outbox pipeline (no new standalone service — the existing
+`OutboxEventHandlers` registry is the listener):
+
+- `apps/api/src/jobs/outbox-handlers.ts` — registers `lab_test.completed` → `handleLabTestCompleted`,
+  which gates on `DISEASE_CATEGORY.CATEGORY_A` + `TEST_RESULT.POSITIVE`, then calls
+  `GeoService.declareDiseaseZone(farmId, woahCode)` (the 3 km / 10 km draw, ADR-0078) and
+  `InspectionService.flagFarmForInspection(...)` for retroactive inspection.
+- `packages/domains/health/src/services/health.service.ts` — `recordLabTest` now publishes
+  `LabTestCompletedEvent` (`type: "lab_test.completed"`, `OUTBOX_AGGREGATE_TYPE.LAB_TEST`).
+- `packages/database/src/constants/outbox-aggregate-type.ts` — added `LAB_TEST` to the canonical enum.
+- The movement block (`runDiseaseZoneCheck`) already refuses movements out of the active zones,
+  so no farm-deactivation code was needed for the legal lockdown.
 
 ## Sources
 

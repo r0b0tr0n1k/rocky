@@ -12,6 +12,7 @@ export const OUTBOX_AGGREGATE_TYPE = {
 	FARM: "farm",
 	MOVEMENT: "movement",
 	TREATMENT: "treatment",
+	LAB_TEST: "lab_test",
 } as const;
 
 export const OUTBOX_AGGREGATE_TYPE_VALUES = createEnumValues([
@@ -19,4 +20,5 @@ export const OUTBOX_AGGREGATE_TYPE_VALUES = createEnumValues([
 	OUTBOX_AGGREGATE_TYPE.FARM,
 	OUTBOX_AGGREGATE_TYPE.MOVEMENT,
 	OUTBOX_AGGREGATE_TYPE.TREATMENT,
+	OUTBOX_AGGREGATE_TYPE.LAB_TEST,
 ] as const);
