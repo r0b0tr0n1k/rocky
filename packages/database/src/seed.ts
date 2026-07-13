@@ -19,6 +19,7 @@ import { VACCINE_TYPE } from "./constants/vaccine-type.js";
 import { db } from "./index.js";
 import { permissions, rolePermissions, roles } from "./schema/sm/rbac.js";
 import { diseases } from "./schema/hd/diseases.js";
+import { seedAhlReference } from "./seed/ahl-reference.js";
 import { labTests } from "./schema/hd/lab-tests.js";
 import { vaccines } from "./schema/hd/vaccines.js";
 import { vaccineDiseases } from "./schema/hd/vaccine-diseases.js";
@@ -518,8 +519,14 @@ async function seed() {
   ];
 
   for (const def of DISEASE_DEFS) {
-    await db.insert(diseases).values(def).onConflictDoNothing({ target: [diseases.name] });
+    await db
+      .insert(diseases)
+      .values({ ...def, diseaseCategories: [def.diseaseCategory] })
+      .onConflictDoNothing({ target: [diseases.name] });
   }
+
+  // AHL reference data (Reg (EU) 2018/1882) — ADR-0095 canonical EU seed
+  await seedAhlReference(db);
 
   const allDiseases = await db.select().from(diseases);
   const diseaseLookup = new Map(allDiseases.map((d: { name: string; id: string }) => [d.name, d.id]));

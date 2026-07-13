@@ -18,6 +18,10 @@ export const diseases = pgTable(
 
     // AHL Annex II tiering + international identity (ADR-0089)
     diseaseCategory: diseaseCategoryPgEnum("disease_category").notNull(),
+    // Full AHL category SET (e.g. {A,D,E}) — primary diseaseCategory is the most severe of this set (ADR-0095)
+    diseaseCategories: diseaseCategoryPgEnum("disease_categories").array().notNull(),
+    listedDisease: boolean("listed_disease").notNull().default(true),
+    legalBasis: varchar("legal_basis", { length: 120 }),
     woahCode: varchar("woah_code", { length: 50 }).unique(),
     euAnnexRef: varchar("eu_annex_ref", { length: 50 }),
     controlMeasures: controlMeasuresPgEnum("control_measures"),
@@ -35,6 +39,7 @@ export const diseases = pgTable(
   (table) => [
     index("idx_diseases_notifiable").on(table.notifiable),
     index("idx_diseases_category").on(table.diseaseCategory),
+    index("idx_diseases_listed").on(table.listedDisease),
     index("idx_diseases_woah").on(table.woahCode),
     pgPolicy("disease_access_policy", {
       as: "permissive",
