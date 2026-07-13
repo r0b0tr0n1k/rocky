@@ -16,19 +16,40 @@ export { PassportTemplate } from "./templates/passport.template.js";
 export { MovementTemplate } from "./templates/movement.template.js";
 export { ChedTemplate } from "./templates/ched.template.js";
 export { EudrTemplate } from "./templates/eudr.template.js";
+export { EarTagTemplate } from "./templates/ear-tag.template.js";
 
 // Services
 export { DocumentService } from "./services/document.service.js";
-export type { DocumentGenerateInput, DocumentResponse } from "./services/document.service.js";
+export type { DocumentGenerateInput, DocumentResponse, DocumentVerifyResult } from "./services/document.service.js";
 
 // Errors
 export { DocumentError, DOCUMENT_ERRORS, documentErr } from "./errors/document.errors.js";
 export type { DocumentErrorCode } from "./errors/document.errors.js";
 
 // QR (ear-tag linkage artifact)
-export { generateQrPng, generateQrSvg } from "./engine/qr.js";
+export { generateQrPng, generateQrSvg, generateQrDataUrl } from "./engine/qr.js";
 
 // Sign stage (PAdES / LTV)
-export { type PdfSigner, NoOpSigner, Pkcs12Signer, HsmSigner } from "./sign/index.js";
-export type { Pkcs12SignerOptions, HsmSignerOptions } from "./sign/index.js";
+export { type PdfSigner, NoOpSigner, Pkcs12Signer, HsmSigner, extractSignature } from "./sign/index.js";
+export type { Pkcs12SignerOptions, HsmSignerOptions, SignatureInfo } from "./sign/index.js";
 export { type TimestampAuthority, FakeTimestampAuthority, HttpTsaClient } from "./sign/timestamp.js";
+
+// Credential signer (offline-verifiable signed QR — ADR-0084)
+export {
+  signCredential,
+  verifyCredential,
+  encodePayload,
+  decodePayload,
+  decodeEnvelope,
+  encodeEnvelope,
+  generateKeyPair,
+} from "./credential/credential.js";
+export type { CredentialPayload, CredentialEnvelope, CredentialVerifyResult, CredentialSeed } from "./credential/credential.js";
+
+// Credential service (server-side sign/verify orchestration — ADR-0084)
+export { CredentialService } from "./services/credential.service.js";
+export type { CredentialOutput, CredentialResponseView, CredentialVerifyView, CredentialKeyConfig } from "./services/credential.service.js";
+
+// PDF image embedding (on-document credential QR — ADR-0084 §7)
+export { embedQrPng } from "./engine/pdf-embed.js";
+export type { EmbedQrOptions } from "./engine/pdf-embed.js";

@@ -259,8 +259,8 @@ rg -n "last synced|stale|grace" apps/mob apps/web
 
 ## Status
 
-**Accepted (2026-07)** — the Phase-0 spike validated the primitive, so this moves from
-Proposed to Accepted; Phase 1–3 implement to it.
+**Accepted (2026-07)** — Phase-0 spike validated the primitive (flipped Proposed →
+Accepted); **Phase 1 is now implemented**; Phase 2–3 remain.
 
 **Spike results (2026-07):**
 
@@ -280,6 +280,38 @@ Proposed to Accepted; Phase 1–3 implement to it.
 - **Trust-model decisions recorded** — algorithm support (Ed25519 vs P-256 if the HSM
   SKU lacks Ed25519), key-rotation grace, and the cert-revocation vs credential-status-list
   vocabulary are all in the Decision sections, not left as follow-ups.
+
+**Phase 1 implemented (2026-07):** the credential module is wired end-to-end.
+
+- `CredentialService` (sibling of `PdfSigner`) added to `@rocky/pdf`; signs with a
+  configured Ed25519 key and verifies against the pinned public key (ADR-0084 §1).
+- New tRPC procedures `document.credential` (build + sign + QR data URL) and
+  `document.verifyCredential` (verify a raw QR string offline) — both authenticated
+  (ADR-0084 §8); validators carry NoDrift guillotines for both.
+- `mapToCredential` added to the passport / movement / inspection-form templates (the
+  minimal `CredentialSeed`: subject + farm + species), so those documents produce
+  credentials.
+- On-document QR is embedded on the PDF during `DocumentService.generate` (passport /
+  movement / inspection-form) via `embedQrPng` (ADR-0084 §7), before the PDF/A-3 wrap +
+  PAdES seal.
+- The web `/verify` page accepts a raw scanned credential QR string (offline verify)
+  alongside the PAdES locator verify.
+- A dev Ed25519 key (`apps/api/keys/dev-cred-ed25519.json`, gitignored) is wired at API
+  bootstrap via `createConfiguredCredentialKey()`; production sets `ROCKY_CRED_KEY` +
+  `ROCKY_CRED_PUBKEY` (no code change). 43 pdf tests pass (incl. credential.service +
+  pdf-embed); API + web build green.
+
+**Phase 2 in progress (2026-07):** the ear-tag document type + `EarTagTemplate.mapToCredential`
+are implemented — `document.credential({ type: "ear-tag", refId })` issues a self-contained
+signed ear-tag credential (subject = tag id; farm + species resolved from the applied
+animal). Remaining Phase 2 = the credential **status-list publisher** from passport/movement
+revocation states + the "last synced" UI (§4); **GS1 GLN** operator/facility IDs (ADR-0087);
+and the **EUDR DDS** linkage (ADR-0063).
+
+**Not yet done (Phase 2–3):** the credential status-list publisher from passport/movement
+revocation states + the "last synced" UI (§4); **GS1 GLN** operator/facility IDs (ADR-0087);
+the **EUDR DDS** linkage (ADR-0063) that emits/references the signed QR; and the HSM
+bulk-throughput measurement (§6).
 
 ## Related ADRs
 

@@ -62,12 +62,16 @@ import { LoggerModule } from "@rocky/logger/index.js";
 import {
   PdfModule,
   DocumentRegistry,
+  DocumentService,
+  CredentialService,
   InspectionFormTemplate,
   PassportTemplate,
   MovementTemplate,
   ChedTemplate,
   EudrTemplate,
+  EarTagTemplate,
 } from "@rocky/pdf/index.js";
+import { createConfiguredCredentialKey, createConfiguredSigner } from "./pdf/signer-bootstrap.js";
 import { ClsModule } from "nestjs-cls";
 import { AuthCoreModule } from "./auth/auth-core.module.js";
 // ── Scheduled Jobs ─────────────────────────────────────────────────
@@ -523,6 +527,15 @@ import { TrpcModule } from "./trpc/trpc.module.js";
       ) => new EudrTemplate(movementRepo, geoRepo, animalRepo, farmRepo, system),
       inject: [MovementRepository, GeoRepository, AnimalRepository, FarmRepository, SystemService],
     },
+    {
+      provide: EarTagTemplate,
+      useFactory: (
+        earTagRepo: EarTagRepository,
+        animalRepo: AnimalRepository,
+        farmRepo: FarmRepository,
+      ) => new EarTagTemplate(earTagRepo, animalRepo, farmRepo),
+      inject: [EarTagRepository, AnimalRepository, FarmRepository],
+    },
 
     {
       provide: SyncRepository,
@@ -593,6 +606,12 @@ export class AppModule implements OnModuleInit {
     private readonly chedTemplate: ChedTemplate,
     @Inject(EudrTemplate)
     private readonly eudrTemplate: EudrTemplate,
+    @Inject(EarTagTemplate)
+    private readonly earTagTemplate: EarTagTemplate,
+    @Inject(DocumentService)
+    private readonly documentService: DocumentService,
+    @Inject(CredentialService)
+    private readonly credentialService: CredentialService,
   ) {}
 
   onModuleInit() {
@@ -602,5 +621,17 @@ export class AppModule implements OnModuleInit {
     registry.register(this.movementTemplate);
     registry.register(this.chedTemplate);
     registry.register(this.eudrTemplate);
+    registry.register(this.earTagTemplate);
+    // Wire the cryptographic seal (ADR-0082 §2): HSM / P12+TSA from env, or
+    // NoOpSigner (unsigned) when none is configured. The ExecutionPipeline
+    // already scopes the generation queries by RLS, so cross-farm documents
+    // cannot be produced.
+    this.documentService.useSigner(createConfiguredSigner());
+
+    // Wire the offline-verifiable signed-QR credential key (ADR-0084): Ed25519
+    // keypair from env / dev key file. Null when unconfigured — credentials
+    // are then disabled but the PAdES path above is unaffected.
+    const credKey = createConfiguredCredentialKey();
+    if (credKey) this.credentialService.useKeyConfig(credKey);
   }
 }
