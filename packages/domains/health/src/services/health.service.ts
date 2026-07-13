@@ -11,7 +11,7 @@ import type { AnimalRepository } from "@rocky/domains-animal";
 import type { HealthRepository } from "../repositories/health.repository.js";
 import { HealthError, HEALTH_ERRORS } from "../errors/health.errors.js";
 import type { SystemService } from "@rocky/domains-system";
-import { ANIMAL_STATUS, CORRECTION_CASE_TYPE, DETECTION_SOURCE, OUTBOX_AGGREGATE_TYPE, SUBJECT_ROLE } from "@rocky/database/constants";
+import { ANIMAL_STATUS, CORRECTION_CASE_TYPE, DETECTION_SOURCE, DISEASE_CATEGORY, OUTBOX_AGGREGATE_TYPE, SUBJECT_ROLE } from "@rocky/database/constants";
 import {
   diseaseResponseSchema,
   vaccineResponseSchema,
@@ -34,6 +34,7 @@ function daysBetween(a: Date, b: Date): number {
 
 export interface CreateDiseaseInput {
   name: string;
+  diseaseCategory?: string;
   notifiable?: boolean;
   description?: string | null;
 }
@@ -147,7 +148,8 @@ export class HealthService {
   }
 
   async createDisease(input: CreateDiseaseInput) {
-    const disease = await this.repo.createDisease({ name: input.name, notifiable: input.notifiable ?? false, description: input.description });
+    const diseaseCategory = input.diseaseCategory ?? (input.notifiable ? DISEASE_CATEGORY.CATEGORY_A : DISEASE_CATEGORY.CATEGORY_C);
+    const disease = await this.repo.createDisease({ name: input.name, diseaseCategory, diseaseCategories: [diseaseCategory], notifiable: input.notifiable ?? false, description: input.description });
     if (!disease) return err(new HealthError(HEALTH_ERRORS.INVALID_INPUT));
     return ok(diseaseResponseSchema.parse(disease));
   }
