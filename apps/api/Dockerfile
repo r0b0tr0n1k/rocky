@@ -18,20 +18,17 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
 FROM deps AS build
 COPY apps/api ./apps/api
 RUN pnpm -r --filter @rocky/api... build
-# drop devDependencies from node_modules (drizzle-kit, tsx, typescript, vitest, @nestjs/cli, ...)
-RUN CI=true pnpm install --prod --frozen-lockfile
+# pnpm deploy: standalone deployment with only @rocky/api's production deps
+# (no stale .pnpm store, no workspace package bloat, no symlinks)
+RUN pnpm deploy --filter=@rocky/api --prod --legacy /deploy
 
 # ---- runtime (Alpine, prod deps only, non-root)
 FROM node:24-alpine AS runtime
 RUN apk add --no-cache curl
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=build /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml /app/.npmrc ./
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/packages ./packages
-COPY --from=build /app/apps/api ./apps/api
+COPY --from=build /deploy ./
 # run as non-root
 RUN addgroup -S nodejs && adduser -S appuser -G nodejs && chown -R appuser:nodejs /app
 USER appuser
-WORKDIR /app/apps/api
 CMD ["node", "dist/main"]

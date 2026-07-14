@@ -27,21 +27,16 @@ ARG NEXT_PUBLIC_API_URL=http://localhost:8080
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 COPY apps/web ./apps/web
 RUN pnpm -r --filter web... build
-# drop devDependencies from node_modules
-RUN CI=true pnpm install --prod --frozen-lockfile
+# pnpm deploy: standalone deployment with only web's production deps
+# (no stale .pnpm store, no recharts/maplibre/expo/nestjs bloat)
+RUN pnpm deploy --filter=web --prod --legacy /deploy
 
 # ---- runtime (prod deps only, non-root)
 FROM node:24.14.0-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=build /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml /app/.npmrc ./
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/packages ./packages
-COPY --from=build /app/apps/web ./apps/web
-COPY --from=build /app/apps/web/.next ./apps/web/.next
-COPY --from=build /app/apps/web/public ./apps/web/public
+COPY --from=build /deploy ./
 RUN addgroup --system nodejs && adduser --system --ingroup nodejs appuser && chown -R appuser:nodejs /app
 USER appuser
-WORKDIR /app/apps/web
 EXPOSE 3000
 CMD ["npx", "next", "start"]

@@ -58,8 +58,6 @@ services:
       - PG_USER=tbot
       - PG_PASS=${POSTGRES_PASSWORD}
       - PG_DB=tbot
-      # packages/database reads DATABASE_URL directly (PG_* is not forwarded)
-      - DATABASE_URL=postgres://tbot:${POSTGRES_PASSWORD}@${DB_HOST:-db}:${DB_PORT:-5432}/tbot
       # Auth
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       # Public API origin must be external https, not the internal docker host.
@@ -137,10 +135,14 @@ services:
       - docs
 
   # ── Drizzle Studio (optional, dev only) ──────────────────────
+  # Exposed via the Cloudflare tunnel at studio.${ROCKY_DOMAIN} (no host
+  # port published). Bring up with:
+  #   docker compose --profile dev up -d drizzle-studio
   drizzle-studio:
     image: ghcr.io/drizzle-team/gateway:latest
     container_name: drizzle-studio
-    # No ports: — dev-only, no tunnel exposure needed.
+    # No host ports: reachable only via the cloudflared tunnel.
+    # Public at studio.${ROCKY_DOMAIN} (run with --profile dev).
     volumes:
       - drizzle-gateway-data:/app
     environment:
@@ -148,6 +150,9 @@ services:
       - MASTERPASS=${DRIZZLE_MASTER_PASS}
       - PORT=4983
       - STORE_PATH=/app
+      # Drizzle Gateway connects to Postgres via DATABASE_URL.
+      # Same DB_*/POSTGRES_PASSWORD source as the api service.
+      - DATABASE_URL=postgres://tbot:${POSTGRES_PASSWORD}@${DB_HOST:-db}:${DB_PORT:-5432}/tbot
     networks:
       - app-network
     restart: unless-stopped

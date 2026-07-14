@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@rocky/ui/globals.css";
+@import "./theme.css";
 @import "nextra-theme-docs/style.css";
 
 /* Typography: IBM Plex Sans (main) + IBM Plex Mono (code).
