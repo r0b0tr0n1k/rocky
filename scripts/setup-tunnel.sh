@@ -70,7 +70,7 @@ fi
 # ── 2. Validate required vars ──────────────────────────────────
 : "${CLOUDFLARE_API_TOKEN:?CLOUDFLARE_API_TOKEN is required (Cloudflare API token: Account>Tunnel:Edit + Zone>DNS:Edit)}"
 : "${CLOUDFLARE_ACCOUNT_ID:?CLOUDFLARE_ACCOUNT_ID is required (Cloudflare Dashboard › Overview)}"
-: "${ROCKY_DOMAIN:?ROCKY_DOMAIN is required (e.g. rocky.tehno.party)}"
+: "${ROCKY_DOMAIN:?ROCKY_DOMAIN is required (e.g. techno.party)}"
 
 TUNNEL_NAME="${TUNNEL_NAME:-rocky}"
 CF_API="https://api.cloudflare.com/client/v4"
@@ -111,7 +111,7 @@ curl -s --fail -X PUT -H "$AUTH" -H "Content-Type: application/json" \
 echo "✓ Ingress rules pushed."
 
 # ── 5. Resolve zone id, then create DNS CNAMEs ─────────────────
-# ROCKY_DOMAIN may be a subdomain (rocky.tehno.party); the Zone is the
+# ROCKY_DOMAIN may be a subdomain (techno.party); the Zone is the
 # registrable domain (tehno.party). Look the zone id up from the API.
 ZONE_NAME=$(echo "$ROCKY_DOMAIN" | awk -F. '{ if (NF>=3) print $(NF-1)"."$NF; else print $0 }')
 if [[ -z "${CLOUDFLARE_ZONE_ID:-}" ]]; then

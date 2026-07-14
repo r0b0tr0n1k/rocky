@@ -179,6 +179,27 @@ Every meaningful change requires a RobotFarm pass: update the owning `AGENTS.md`
 | **PDF Bot**           | `packages/pdf/`                | Document generation framework; PDF/A-3 hybrid (Typst render → `@cantoo/pdf-lib` wrap) + PAdES signing (HSM / local p12) + QR (ear tags) + verify endpoint + offline signed-QR credential per ADR-0084            |
 | **Mobile Bot**        | `apps/mob/`                 | Expo React Native app, offline sync, field data entry                                                                                       |
 
+### Role Folders — pi subagent scoping
+
+Every bot above owns an `AGENTS.md` in its `Scope`. pi auto-loads `AGENTS.md` from the session
+working directory **upward**, so a subagent booted inside a bot's folder is automatically scoped to
+that bot's contract — no duplicated instructions.
+
+**Pattern A — scope by `cwd` at spawn (relative paths resolve from the repo root):**
+
+```typescript
+subagent({ name: "Database Bot", cwd: "packages/database", agent: "worker", task: "..." });
+```
+
+**Pattern B — named role agents:** `.pi/agents/<bot>.md` (one per bot) each carry `cwd: <absolute scope>`
+and `spawning: false`, so `subagent({ agent: "database-bot", task: "..." })` activates the contract.
+
+> ⚠️ Agent-frontmatter `cwd` is resolved against the config dir (`~/.pi/agent`), **not** the repo root,
+> so it must be an **absolute** path. Spawn-param `cwd` (Pattern A) is relative to the repo root and
+> avoids this gotcha.
+
+> 📘 Operational guide: [Spawn a role-scoped subagent (Role Folders)](apps/docs/content/how-to/spawn-a-role-subagent.mdx) — patterns, per-role `.pi/skills`, the two `subagent` backends, and the `.pi/test/role-folders.test.ts` verification.
+
 ### RobotFarm Workflows
 
 **Adding a Feature** → Database Bot (schema) → Validation Bot (Zod) → API Bot (router) → Frontend Bot (client)
