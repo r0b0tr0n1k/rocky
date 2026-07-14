@@ -39,7 +39,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@better-auth/drizle-adapter": "catalog:",
+    "@better-auth/drizzle-adapter": "catalog:",
     "@biomejs/monorepo": "github:biomejs/biome",
     "tsx": "catalog:"
   }
