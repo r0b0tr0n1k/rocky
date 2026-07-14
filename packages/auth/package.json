@@ -3,14 +3,31 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "exports": {
-    ".": "./src/index.ts",
-    "./client": "./src/client.ts",
-    "./index.js": "./src/index.ts",
-    "./*": "./src/*"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "default": "./dist/client.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./*.js": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
   },
   "imports": {
-    "#/*": "./src/*"
+    "#/*": "./dist/*"
   },
   "scripts": {
     "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",

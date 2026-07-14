@@ -122,6 +122,7 @@ CLOUDFLARE_API_TOKEN=<api-token> CLOUDFLARE_ACCOUNT_ID=<acct-id> \
 | `TUNNEL_TOKEN` | root `.env` | `scripts/setup-tunnel.sh` |
 | `DRIZZLE_MASTER_PASS` | root `.env` | random string |
 | `NEXT_PUBLIC_MAPTILER_API_KEY` | `apps/web/.env` | MapTiler dashboard |
+| `MAPTILER_API_KEY` | api container (Docker) — bridged from `NEXT_PUBLIC_MAPTILER_API_KEY` in compose | same MapTiler key as above (see [troubleshooting](#troubleshooting)) |
 | `EXPO_PUBLIC_CF_ACCESS_CLIENT_SECRET` | `apps/mob/.env` | Cloudflare Zero Trust |
 | PDF signer (`ROCKY_P12_PATH` / `ROCKY_HSM_*`) | `apps/api/.env` | see [Sign PDF documents](/runbooks/sign-pdf-documents) |
 | Credential key (`ROCKY_CRED_KEY` / `ROCKY_CRED_KEY_PATH`) | `apps/api/.env` | Ed25519 keypair |
@@ -153,7 +154,7 @@ pnpm dev
 ## Build-time vs runtime (Docker)
 
 - **Build-time (frozen in the image):** `apps/web` `NEXT_PUBLIC_API_URL` (compose `--build-arg`). Change it → **rebuild** the web image (`docker compose build web`).
-- **Runtime (hot via compose env):** `api` `PG_*`, `BETTER_AUTH_*`, `CORS_ORIGINS`, `AUTH_*`, `web` `API_URL` / `BETTER_AUTH_SECRET`. Change → `docker compose up -d` (no rebuild).
+- **Runtime (hot via compose env):** `api` `PG_*`, `BETTER_AUTH_*`, `CORS_ORIGINS`, `AUTH_*`, `MAPTILER_API_KEY`, `web` `API_URL` / `BETTER_AUTH_SECRET`. Change → `docker compose up -d` (no rebuild).
 - **Mobile has no Dockerfile.** Expo builds are native; `EXPO_PUBLIC_*` are baked at `expo` build time and cannot be overridden by a `.env.worktree` afterward.
 
 ---
@@ -169,6 +170,7 @@ pnpm dev
 | Mobile hits wrong API after IP change | `EXPO_PUBLIC_*` baked at build | Edit `apps/mob/.env`, restart Expo |
 | Cookie/session not shared web↔api | `AUTH_COOKIE_DOMAIN` / `AUTH_BASE_URL` / `CORS_ORIGINS` inconsistent | Align across `api` + `web` (derive from `ROCKY_DOMAIN`) |
 | `git status` shows a `.env` | File not ignored / wrong name | Ensure it's named exactly `.env` (root), `.env*` (web), `.env*.local` (mob) |
+| api exits at boot: `GEO_MAP_PROVIDER_UNCONFIGURED` | `MAPTILER_API_KEY` unset in the api container (`@rocky/geo` `MapTilerMapService`) | Compose already bridges `MAPTILER_API_KEY=${NEXT_PUBLIC_MAPTILER_API_KEY}`; or set `MAPTILER_API_KEY` explicitly in root `.env` |
 
 ---
 

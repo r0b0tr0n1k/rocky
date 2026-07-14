@@ -76,6 +76,11 @@ services:
       # App
       - VERSION=${VERSION:-production}
       - ENVIRONMENT=production
+      # MapTiler key: api generates server-side static maps/geocoding. The
+      # single MapTiler key lives in .env as NEXT_PUBLIC_MAPTILER_API_KEY
+      # (also inlined into the web build); alias it here rather than
+      # duplicating the value as a second .env var.
+      - MAPTILER_API_KEY=${NEXT_PUBLIC_MAPTILER_API_KEY}
     restart: unless-stopped
     networks:
       - app-network
