@@ -16,8 +16,6 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@better-auth/drizzle-adapter": "https://pkg.pr.new/@better-auth/drizzle-adapter@9489",
-    "@better-auth/expo": "1.7.0-rc.1",
     "@nestjs/common": "catalog:",
     "@nestjs/core": "catalog:",
     "@nestjs/platform-express": "catalog:",

@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 # Docs (Nextra) — minimal image. Theme tokens inlined (no @rocky/ui dep).
 # glibc base required: Next.js uses @parcel/watcher (no musl prebuilds).
-FROM node:24.14.0-slim AS deps
+FROM node:slim AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 # Install the exact pnpm version pinned in package.json's "packageManager" field.
@@ -33,7 +33,7 @@ RUN rm -rf /deploy/.next && cp -r apps/docs/.next /deploy/.next
 RUN rm -rf /deploy/public && cp -r apps/docs/public /deploy/public 2>/dev/null || true
 
 # ---- runtime (prod deps only, non-root)
-FROM node:24.14.0-slim AS runtime
+FROM node:slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /deploy ./

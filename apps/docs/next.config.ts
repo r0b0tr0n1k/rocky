@@ -1,4 +1,4 @@
-import nextra from 'nextra'
+import nextra from "nextra";
 import { existsSync } from "node:fs";
 
 // Monorepo root = the directory containing pnpm-workspace.yaml, found by
@@ -23,11 +23,11 @@ const withNextra = nextra({
   // Nextra Docs Theme options
   defaultShowCopyCode: true,
   search: {
-    codeblocks: false
-  }
-})
+    codeblocks: false,
+  },
+});
 
 export default withNextra({
   reactStrictMode: true,
-  turbopack: { root: monorepoRoot }
-})
+  turbopack: { root: monorepoRoot },
+});

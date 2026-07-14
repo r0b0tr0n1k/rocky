@@ -24,9 +24,12 @@ const nextConfig = {
   allowedDevOrigins: ["http://localhost:3000"],
   // Workspace packages now ship compiled ESM + .d.ts to their dist/ (exports
   // point at ./dist/*). They are consumed as built JS at runtime; transpile here
-  // mainly for the source-only shadcn component library (@rocky/ui), with the
-  // others listed as a safety net for the Next/Turbopack transform.
-  transpilePackages: ["@rocky/ui", "@rocky/database", "@rocky/validators"],
+  // for the workspace packages that web imports at runtime — the shadcn UI
+  // library (@rocky/ui) and the Zod schemas/enums in @rocky/validators).
+  // @rocky/database was removed: web never imports it at runtime, so listing it
+  // here was a misleading no-op (and it is not a production dependency, so the
+  // Docker `--prod` deploy never shipped it anyway).
+  transpilePackages: ["@rocky/ui", "@rocky/validators"],
   turbopack: { root: monorepoRoot },
   typescript: { ignoreBuildErrors: true },
 

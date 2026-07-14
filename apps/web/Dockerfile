@@ -11,7 +11,7 @@
 
 # glibc base required: Next.js uses @parcel/watcher, which ships no musl
 # prebuilds, so Alpine breaks the build. Keep node:24-slim (glibc).
-FROM node:24.14.0-slim AS deps
+FROM node:slim AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 # Install the exact pnpm version pinned in package.json's "packageManager" field.
