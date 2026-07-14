@@ -2,9 +2,13 @@
 # Docs (Nextra) — minimal image. Theme tokens inlined (no @rocky/ui dep).
 # glibc base required: Next.js uses @parcel/watcher (no musl prebuilds).
 FROM node:24.14.0-slim AS deps
-RUN corepack enable && corepack prepare pnpm@11.10.0 --activate
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+# Install the exact pnpm version pinned in package.json's "packageManager" field.
+# Uses npm (always present) instead of corepack, which is absent from
+# node:24-slim / alpine images.
+RUN PNPM_VER=$(node -p "require('./package.json').packageManager.replace('pnpm@','').split('+')[0]" 2>/dev/null || echo 11.13.0) \
+    && for i in 1 2 3 4 5; do npm install -g "pnpm@${PNPM_VER}" && break || sleep 5; done
 COPY packages ./packages
 COPY apps ./apps
 COPY scripts ./scripts

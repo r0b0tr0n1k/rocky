@@ -2,10 +2,13 @@ FROM node:24-alpine AS deps
 # glibc NOT required: the API is NestJS (pure JS). @rocky/pdf renders via the
 # typst.ts WASM compiler (libc-agnostic), so Alpine/musl is fine here — unlike
 # the Next.js web/docs images, which need glibc for @parcel/watcher prebuilds.
-RUN corepack enable && corepack prepare pnpm@11.10.0 --activate
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
-# all workspace manifests so pnpm can resolve the full graph
+# Install the exact pnpm version pinned in package.json's "packageManager" field.
+# Uses npm (always present) instead of corepack, which is absent from
+# node:24-slim / alpine images.
+RUN PNPM_VER=$(node -p "require('./package.json').packageManager.replace('pnpm@','').split('+')[0]" 2>/dev/null || echo 11.13.0) \
+    && for i in 1 2 3 4 5; do npm install -g "pnpm@${PNPM_VER}" && break || sleep 5; done
 COPY packages ./packages
 COPY apps ./apps
 # Harden pnpm for flaky/slow registries: long per-request timeout, many

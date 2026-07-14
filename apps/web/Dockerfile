@@ -12,9 +12,13 @@
 # glibc base required: Next.js uses @parcel/watcher, which ships no musl
 # prebuilds, so Alpine breaks the build. Keep node:24-slim (glibc).
 FROM node:24.14.0-slim AS deps
-RUN corepack enable && corepack prepare pnpm@11.10.0 --activate
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+# Install the exact pnpm version pinned in package.json's "packageManager" field.
+# Uses npm (always present) instead of corepack, which is absent from
+# node:24-slim / alpine images.
+RUN PNPM_VER=$(node -p "require('./package.json').packageManager.replace('pnpm@','').split('+')[0]" 2>/dev/null || echo 11.13.0) \
+    && for i in 1 2 3 4 5; do npm install -g "pnpm@${PNPM_VER}" && break || sleep 5; done
 COPY packages ./packages
 COPY apps ./apps
 RUN printf 'fetch-timeout=1200000\nstore-dir=/pnpm/store\nfetch-retries=10\nfetch-retry-mintimeout=10000\nfetch-retry-maxtimeout=120000\nnetwork-concurrency=4\n' >> .npmrc
@@ -36,7 +40,7 @@ RUN rm -rf /deploy/.next && cp -r apps/web/.next /deploy/.next
 RUN rm -rf /deploy/public && cp -r apps/web/public /deploy/public 2>/dev/null || true
 
 # ---- runtime (prod deps only, non-root)
-FROM node:24.14.0-slim AS runtime
+FROM node:slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /deploy ./
