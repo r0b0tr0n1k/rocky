@@ -1,11 +1,23 @@
 import nextra from 'nextra'
+import { existsSync } from "node:fs";
 
-// Monorepo root = two path segments up from this app (apps/<app> -> repo root).
-// Derived from cwd (the app dir during next build/dev) so the build works
-// wherever the repo is mounted (local /home/goce/appz/rocky vs Docker /app).
-// No import.meta.url / node:path value-imports: those forced Next to emit a CJS
-// config that breaks under package.json "type": "module".
-const monorepoRoot = process.cwd().split("/").slice(0, -2).join("/")
+// Monorepo root = the directory containing pnpm-workspace.yaml, found by
+// walking up from cwd. In the Docker build cwd is /app (the repo root);
+// locally it is apps/docs (two levels below the root). This works in BOTH
+// layouts and avoids the empty-string root that broke `next build` in the
+// container. No import.meta.url / node:path default imports (those forced
+// Next to emit a CJS config that breaks under package.json "type": "module").
+function findMonorepoRoot(start: string): string {
+  let dir = start;
+  for (;;) {
+    if (existsSync(`${dir}/pnpm-workspace.yaml`)) return dir;
+    const parent = dir.replace(/\/[^/]*$/, "");
+    if (parent === dir) return start;
+    dir = parent;
+  }
+}
+
+const monorepoRoot = findMonorepoRoot(process.cwd());
 
 const withNextra = nextra({
   // Nextra Docs Theme options

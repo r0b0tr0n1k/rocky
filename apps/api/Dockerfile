@@ -21,6 +21,11 @@ RUN pnpm -r --filter @rocky/api... build
 # pnpm deploy: standalone deployment with only @rocky/api's production deps
 # (no stale .pnpm store, no workspace package bloat, no symlinks)
 RUN pnpm deploy --filter=@rocky/api --prod --legacy /deploy
+# The NestJS SWC build emits CommonJS (dist/main.js uses `exports`), but the api
+# package.json declares "type": "module". Without this override Node treats
+# dist/main.js as ESM and crashes with "exports is not defined". Pin the compiled
+# output folder to CommonJS so the entry runs as CJS.
+RUN printf '{"type":"commonjs"}\n' > /deploy/dist/package.json
 
 # ---- runtime (Alpine, prod deps only, non-root)
 FROM node:24-alpine AS runtime

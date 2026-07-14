@@ -16,34 +16,17 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
 FROM deps AS build
 COPY apps/docs ./apps/docs
 RUN pnpm -r --filter docs... build
-# pnpm deploy with --legacy pulls workspace-wide prod deps; prune the bloat
+# pnpm deploy: standalone deployment with docs' production deps.
 RUN pnpm deploy --filter=docs --prod --legacy /deploy
-RUN rm -rf /deploy/node_modules/.pnpm/@biomejs* \
-           /deploy/node_modules/.pnpm/expo-* \
-           /deploy/node_modules/.pnpm/hermes-* \
-           /deploy/node_modules/.pnpm/react-native* \
-           /deploy/node_modules/.pnpm/@react-native* \
-           /deploy/node_modules/.pnpm/drizzle-orm* \
-           /deploy/node_modules/.pnpm/@nestjs* \
-           /deploy/node_modules/.pnpm/maplibre* \
-           /deploy/node_modules/.pnpm/better-auth* \
-           /deploy/node_modules/.pnpm/@better-auth* \
-           /deploy/node_modules/.pnpm/@trpc* \
-           /deploy/node_modules/.pnpm/mermaid* \
-           /deploy/node_modules/.pnpm/@mermaid* \
-           /deploy/node_modules/.pnpm/mathjax* \
-           /deploy/node_modules/.pnpm/react-aria* \
-           /deploy/node_modules/.pnpm/esbuild* \
-           /deploy/node_modules/.pnpm/@esbuild* \
-           /deploy/node_modules/.pnpm/sharp* \
-           /deploy/node_modules/.pnpm/@img* \
-           /deploy/node_modules/.pnpm/@swc* \
-           /deploy/node_modules/.pnpm/@babel* \
-    && rm -rf /deploy/node_modules/@biomejs \
-              /deploy/node_modules/expo \
-              /deploy/node_modules/react-native \
-              /deploy/node_modules/drizzle-orm \
-              /deploy/node_modules/maplibre-gl
+# IMPORTANT: do NOT prune @swc/* or @babel/* here — Next.js requires
+# @swc/helpers at RUNTIME (`next start`). A prior aggressive rm removed it and
+# crashed with "Cannot find module '@swc/helpers/_/_interop_require_default'".
+# (The other rm targets — expo, react-native, drizzle, @nestjs, maplibre,
+# better-auth, trpc, mermaid — are not in docs' dependency tree anyway.)
+# pnpm deploy also EXCLUDES gitignored build output (.next, public), so copy
+# the prebuilt production build + static assets explicitly.
+RUN rm -rf /deploy/.next && cp -r apps/docs/.next /deploy/.next
+RUN rm -rf /deploy/public && cp -r apps/docs/public /deploy/public 2>/dev/null || true
 
 # ---- runtime (prod deps only, non-root)
 FROM node:24.14.0-slim AS runtime

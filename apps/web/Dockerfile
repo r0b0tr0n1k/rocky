@@ -30,6 +30,10 @@ RUN pnpm -r --filter web... build
 # pnpm deploy: standalone deployment with only web's production deps
 # (no stale .pnpm store, no recharts/maplibre/expo/nestjs bloat)
 RUN pnpm deploy --filter=web --prod --legacy /deploy
+# pnpm deploy EXCLUDES gitignored build output (.next). Copy the production
+# build + static assets explicitly so `next start` finds them at runtime.
+RUN rm -rf /deploy/.next && cp -r apps/web/.next /deploy/.next
+RUN rm -rf /deploy/public && cp -r apps/web/public /deploy/public 2>/dev/null || true
 
 # ---- runtime (prod deps only, non-root)
 FROM node:24.14.0-slim AS runtime
