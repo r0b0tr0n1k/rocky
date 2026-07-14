@@ -11,7 +11,7 @@
 
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
-import type { AnimalService } from "@rocky/domains-animal";
+import { AnimalService } from "@rocky/domains-animal";
 
 @Injectable()
 export class BirthDeadlineJob {
@@ -29,8 +29,6 @@ export class BirthDeadlineJob {
       return;
     }
 
-    this.logger.log(
-      `Birth deadline enforcement complete: ${result.value.overdueCount} notifications marked OVERDUE.`,
-    );
+    this.logger.log(`Birth deadline enforcement complete: ${result.value.overdueCount} notifications marked OVERDUE.`);
   }
 }

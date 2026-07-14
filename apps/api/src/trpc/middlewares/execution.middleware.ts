@@ -10,13 +10,9 @@
 
 import { Inject, Injectable } from "@nestjs/common";
 import { AUTH_INSTANCE, type Auth, AuthResolver } from "@rocky/auth";
-import type { PrincipalResolver } from "@rocky/authorization/index.js";
-import type {
-  ExecutionContext as ExecCtx,
-  ExecutionPipeline,
-  RequestContext,
-  RuntimeBuilder,
-} from "@rocky/execution/index.js";
+import { PrincipalResolver } from "@rocky/authorization/index.js";
+import type { ExecutionContext as ExecCtx, RequestContext } from "@rocky/execution/index.js";
+import { ExecutionPipeline, RuntimeBuilder } from "@rocky/execution/index.js";
 import type { AppContext } from "@rocky/trpc/context.js";
 import type { MiddlewareOptions, TRPCMiddleware } from "nestjs-trpc";
 

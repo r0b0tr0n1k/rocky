@@ -14,7 +14,7 @@ import { Cron } from "@nestjs/schedule";
 import { db } from "@rocky/database/index.js";
 import { outboxEvents } from "@rocky/database/schema/sm/index.js";
 import { and, eq, lt, sql } from "drizzle-orm";
-import type { OutboxEventHandlers } from "./outbox-handlers.js";
+import { OutboxEventHandlers } from "./outbox-handlers.js";
 
 export type OutboxEventHandler = (event: {
   type: string;
@@ -133,11 +133,11 @@ export class OutboxProcessorJob {
 
         return;
       } catch (error) {
-        const isConnection = error instanceof Error && (
-          error.message.includes("ECONNREFUSED") ||
-          error.message.includes("connection") ||
-          error.message.includes("ENOTFOUND")
-        );
+        const isConnection =
+          error instanceof Error &&
+          (error.message.includes("ECONNREFUSED") ||
+            error.message.includes("connection") ||
+            error.message.includes("ENOTFOUND"));
 
         if (isConnection && attempt < maxAttempts) {
           this.logger.warn(`Outbox DB connection failed (attempt ${attempt}/${maxAttempts}), retrying in 2s...`);

@@ -12,7 +12,7 @@
 
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
-import type { CorrectionService } from "@rocky/domains-correction";
+import { CorrectionService } from "@rocky/domains-correction";
 
 @Injectable()
 export class CorrectionConsistencyJob {

@@ -10,7 +10,7 @@
 
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
-import type { ArchiveService } from "@rocky/domains-archive";
+import { ArchiveService } from "@rocky/domains-archive";
 
 @Injectable()
 export class RetentionJob {

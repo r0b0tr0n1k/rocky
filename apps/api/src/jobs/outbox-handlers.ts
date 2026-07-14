@@ -9,11 +9,10 @@
 
 import { Injectable, Logger } from "@nestjs/common";
 import type { OutboxEventHandler } from "./outbox-processor.job.js";
-import type { InspectionService } from "@rocky/domains-inspection";
-import type { GeoService } from "@rocky/geo";
-import type { HealthService } from "@rocky/domains-health";
-import type { NotificationService } from "@rocky/domains-notification/index.js";
-import { SubscriptionResolver, EVENT_TYPE_IDS } from "@rocky/domains-notification/index.js";
+import { InspectionService } from "@rocky/domains-inspection";
+import { GeoService } from "@rocky/geo";
+import { HealthService } from "@rocky/domains-health";
+import { SubscriptionResolver, EVENT_TYPE_IDS, NotificationService } from "@rocky/domains-notification/index.js";
 import { DISEASE_CATEGORY, TEST_RESULT } from "@rocky/database/constants";
 
 @Injectable()

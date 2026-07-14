@@ -9,7 +9,7 @@
 
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
-import type { RiskAnalysisService } from "@rocky/domains-inspection";
+import { RiskAnalysisService } from "@rocky/domains-inspection";
 
 @Injectable()
 export class RiskAnalysisJob {

@@ -11,7 +11,7 @@
 
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
-import type { HealthService } from "@rocky/domains-health";
+import { HealthService } from "@rocky/domains-health";
 
 @Injectable()
 export class VaccineReconciliationJob {
