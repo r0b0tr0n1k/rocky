@@ -159,9 +159,9 @@ its status, and the evidence. Status is one of:
 
 **Statement of Applicability (SoA) — 158 normative controls**
 
-- **Implemented (code enforces today):** 31
+- **Implemented (code enforces today):** 33
 - **Partial (present, to be wrapped/formalised):** 14
-- **Planned (governance layer, ADR-0067 Phase 2):** 113
+- **Planned (governance layer, ADR-0067 Phase 2):** 111
 
 The distribution is the dialectical inverse of the typical failing organisation: Rocky has built the _Symbolic_ enforcement machinery (RLS, RBAC, a PII inventory, mask-by-default, tamper-evident logging, Result sovereignty) while the _Imaginary_ commitment (the documented ISMS, the trained workforce, the designated officer) and the certified _Real_ (the independent audit) remain Phase 2 work.
 
@@ -175,7 +175,7 @@ The distribution is the dialectical inverse of the typical failing organisation:
 | A.5.12 | Classification of information | Each PII field is assigned a category (direct / indirect / derived), effecting classification of personal information. | **IMPLEMENTED** | pii-field-registry.ts |
 | A.5.13 | Labelling of information | The registry's `type` field (name/contact/nationalId/geo/linkage/derived) labells each asset by sensitivity class. | **IMPLEMENTED** | pii-field-registry.ts |
 | A.5.14 | Information transfer | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
-| A.5.15 | Access control | Row-Level Security enforced via pgPolicy + the ExecutionPipeline RLSStage binds every query to the actor's farm/tenant scope. | **IMPLEMENTED** | packages/database (RLS policies); ADR-0006; packages/execution |
+| A.5.15 | Access control | Row-Level Security enforced via pgPolicy + the ExecutionPipeline RLSStage binds every query to the actor's farm/tenant scope; the geofence lockdown further restricts logical access on a positive lab result (ADR-0092). | **IMPLEMENTED** | packages/database (RLS policies); ADR-0006; packages/execution; ADR-0092 |
 | A.5.16 | Identity management | Better Auth resolves a canonical Principal (subject/role/admin) per session; identity is centralised, not per-app. | **IMPLEMENTED** | packages/auth; ADR-0021 |
 | A.5.17 | Authentication information | Better Auth issues signed session cookies; authentication material is managed, rotated and bound to the device. | **IMPLEMENTED** | packages/auth; ADR-0021 |
 | A.5.18 | Access rights | Authorization Bot: Principal + PolicyRegistry + PolicyEngine evaluate action/role/admin at every router boundary. | **IMPLEMENTED** | packages/authorization; ADR-0022 |
@@ -189,7 +189,7 @@ The distribution is the dialectical inverse of the typical failing organisation:
 | A.5.25 | Assessment and decision on information security events | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.5.26 | Response to information security incidents | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.5.27 | Learning from information security incidents | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
-| A.5.28 | Collection of evidence | The tamper-evident access log records actor (anonymised salted hash), table+entity reference, column, purpose, decision and an Ed25519 hash-chain over prior entries. | **IMPLEMENTED** | ADR-0061 reveal-gate; event-emitter |
+| A.5.28 | Collection of evidence | The tamper-evident access log records actor (anonymised salted hash), table+entity reference, column, purpose, decision and an Ed25519 hash-chain over prior entries; offline-verifiable signed-QR credentials (ADR-0084) add cryptographic authenticity/integrity of records. | **IMPLEMENTED** | ADR-0061 reveal-gate; event-emitter; ADR-0084 |
 | A.5.29 | Information security during disruption | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.5.3 | Segregation of duties | Technical SoD enforced by RBAC + Principal + PolicyEngine. | **IMPLEMENTED** | packages/authorization; ADR-0022 |
 | A.5.30 | ICT readiness for business continuity | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
@@ -255,11 +255,11 @@ The distribution is the dialectical inverse of the typical failing organisation:
 | A.8.18 | Use of privileged utility programs | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.8.19 | Installation of software on operational systems | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.8.2 | Privileged access rights | Privileged (admin/SUPER_ADMIN) and per-farm access are separated via RoleBot roles + RLS scoping. | **IMPLEMENTED** | packages/authorization; ADR-0022 |
-| A.8.20 | Networks security | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
+| A.8.20 | Networks security | Geofence lockdown auto-restricts movement on a positive CATEGORY_A lab result (ADR-0092). | **IMPLEMENTED** | ADR-0092; packages/geo |
 | A.8.21 | Security of network services | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
-| A.8.22 | Segregation of networks | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
+| A.8.22 | Segregation of networks | Logical zone/network segregation enforced by the geofence lockdown (movements are auto-blocked inside an active disease zone, ADR-0092). | **IMPLEMENTED** | ADR-0092; packages/geo |
 | A.8.23 | Web filtering | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
-| A.8.24 | Use of cryptography | Cryptography at rest (envelope encryption, off-server KEK) is designed but PAUSED pending key-custody decision. | **PLANNED** | ADR-0061 (Phase 2); ADR-0067 G5 |
+| A.8.24 | Use of cryptography | Cryptography at rest (envelope encryption, off-server KEK) is designed but PAUSED pending key-custody decision; signed-QR credentials (ADR-0084) provide authenticity/integrity in transit only — not at rest. | **PLANNED** | ADR-0061 (Phase 2); ADR-0067 G5; ADR-0084 |
 | A.8.25 | Secure development life cycle | Secure development is enforced by the Diamond Seal: every API schema claims a Dumb Zod, every router output is typed, NoDrift CI checks block schema drift. | **IMPLEMENTED** | packages/validators; ADR-0018/0019 |
 | A.8.26 | Application security requirements | Security requirements are expressed as Zod schemas and ADR contracts reviewed before merge. | **IMPLEMENTED** | ADR-0018; AGENTS.md |
 | A.8.27 | Secure system architecture and engineering principles | Secure architecture is the RobotFarm contract chain: every edit re-reads the owning AGENTS.md; RLS is the enforced isolation boundary. | **IMPLEMENTED** | AGENTS.md; packages/database RLS |
