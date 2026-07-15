@@ -6,7 +6,7 @@
 
 | Key            | Value                                                                  |
 | -------------- | ---------------------------------------------------------------------- |
-| **Status**     | Proposed                                                               |
+| **Status**     | Accepted                                                               |
 | **Date**       | 2026-07-11                                                             |
 | **Author**     | Architecture Review (Compliance homework)                                    |
 | **Supersedes** | — |
@@ -22,6 +22,7 @@ single, uncomfortable finding: **we are technically ahead of the standard on the
 enforce, and behind on the management-system layer certification actually demands.**
 
 What we already RUN (MET):
+
 - Row-Level Security via pgPolicy; RBAC + Principal + Policy engine (Authorization Bot).
 - An explicit PII inventory — `PII_FIELD_REGISTRY` (ADR-0061 D1), categorized `direct/indirect/derived`.
 - Mask-by-default + reveal-gate + tamper-evident access log (ADR-0061 D5).
@@ -29,6 +30,7 @@ What we already RUN (MET):
 - Audit via lifecycle events (ADR-0007); Diamond Seal SDLC (NoDrift).
 
 What is ABSENT (GAP) — the *governance* layer, not the code:
+
 - No documented ISMS policy / top-management commitment (A.5.1 / A.5.4).
 - No recorded lawful basis, consent management, DPIA (A.1.2.3 / .4-.6 / .2.5).
 - No RoPA register, DPO designation, awareness training, NDAs (A.1.2.9 / A.1.3 / A.6 / A.3.17).
@@ -66,14 +68,17 @@ run; build the governance we have deferred; certify only after expert review.**
 ## Consequences
 
 ### Positive
+
 - The hard part (enforcement) is done; Phase 1 is honest documentation of existing code.
 - A single typed source (`VALIDATED_CROSSWALK`) ties GDPR ↔ MK LPDP ↔ AL Law 124 ↔ ISO 27701.
 
 ### Negative / Cost
+
 - Phase 2 is genuine organizational work (policy, training, legal registers), not code.
 - Cryptography-at-rest needs a key-custody decision (Phase 2, G5).
 
 ### Neutral
+
 - `graphgrc-main` is **not** imported (its Go engine will not build here; its local
   `scf*.json` / `gdpr.json` are orphaned by its own generator). We took only the
   validated cross-walk + per-control GDPR mappings, as homework.
