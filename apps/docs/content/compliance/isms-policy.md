@@ -205,7 +205,7 @@ The distribution is the dialectical inverse of the typical failing organisation:
 | A.5.6 | Contact with special interest groups | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.5.7 | Threat intelligence | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.5.8 | Information security in project management | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
-| A.5.9 | Inventory of information and other associated assets | PII_FIELD_REGISTRY enumerates every personal-data column (PII portion IMPLEMENTED); the broader non-PII asset inventory is a later artifact (ADR-0101). | **PARTIAL** | packages/validators/src/pii/pii-field-registry.ts; ADR-0061 D1 |
+| A.5.9 | Inventory of information and other associated assets | PII_FIELD_REGISTRY enumerates every personal-data column (PII portion IMPLEMENTED); the non-PII asset inventory is now authored as ROCKY-AINV-001 (ADR-0101) and maintained as a living register. | **PARTIAL** | packages/validators/src/pii/pii-field-registry.ts; ADR-0061 D1; [rocky-non-pii-asset-inventory.md](./rocky-non-pii-asset-inventory.md) (ROCKY-AINV-001, ADR-0101) |
 
 ### A.6 - People Controls
 

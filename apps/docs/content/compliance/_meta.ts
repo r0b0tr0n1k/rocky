@@ -14,11 +14,12 @@ export default {
   "rocky-cookie-notice": { title: "Cookie & Tracking Notice" },
   "rocky-dpa": { title: "Data Processing Agreement (DPA) — Art 28" },
   "rocky-retention-schedule": { title: "Retention Schedule" },
+  "rocky-non-pii-asset-inventory": { title: "Non-PII Asset Inventory (ROCKY-AINV-001)" },
   "rocky-automated-decision-making": { title: "Automated Decision-Making & Profiling" },
   "rocky-international-transfer-assessment": { title: "International Transfer Assessment" },
   "rocky-risk-assessment": { title: "Information Security Risk Assessment" },
   "rocky-risk-treatment-plan": { title: "Risk Treatment Plan" },
   "rocky-internal-audit-procedure": { title: "Internal Audit Procedure" },
   "eu-b2b-procurement-pack": { title: "EU B2B Procurement Compliance Pack" },
-  "MACEDONIAN_LPDP": { title: "Macedonian LPDP + GDPR + ISO 27701 (MK)" },
-  } as const;
+  MACEDONIAN_LPDP: { title: "Macedonian LPDP + GDPR + ISO 27701 (MK)" },
+} as const;
