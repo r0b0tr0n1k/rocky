@@ -259,7 +259,7 @@ The distribution is the dialectical inverse of the typical failing organisation:
 | A.8.21 | Security of network services | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.8.22 | Segregation of networks | Logical zone/network segregation enforced by the geofence lockdown (movements are auto-blocked inside an active disease zone, ADR-0092). | **IMPLEMENTED** | ADR-0092; packages/geo |
 | A.8.23 | Web filtering | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
-| A.8.24 | Use of cryptography | Cryptography at rest (envelope encryption, off-server KEK) is designed but PAUSED pending key-custody decision; signed-QR credentials (ADR-0084) provide authenticity/integrity in transit only — not at rest. | **PLANNED** | ADR-0061 (Phase 2); ADR-0067 G5; ADR-0084 |
+| A.8.24 | Use of cryptography | Cryptography at rest (envelope encryption, off-server KEK) is designed but PAUSED pending key-custody decision — a **risk-accepted GAP** per ROCKY-CRYPTO-001 / ADR-0071 (owner: Execution Bot / Architecture Review; review 2026-Q4). Signed-QR credentials (ADR-0084) provide authenticity/integrity in transit only — not at rest. | **PLANNED** | ADR-0061 (Phase 2); ADR-0067 G5; ADR-0084; [rocky-cryptography-policy.md](./rocky-cryptography-policy.md) (ROCKY-CRYPTO-001, ADR-0071) |
 | A.8.25 | Secure development life cycle | Secure development is enforced by the Diamond Seal: every API schema claims a Dumb Zod, every router output is typed, NoDrift CI checks block schema drift. | **IMPLEMENTED** | packages/validators; ADR-0018/0019 |
 | A.8.26 | Application security requirements | Security requirements are expressed as Zod schemas and ADR contracts reviewed before merge. | **IMPLEMENTED** | ADR-0018; AGENTS.md |
 | A.8.27 | Secure system architecture and engineering principles | Secure architecture is the RobotFarm contract chain: every edit re-reads the owning AGENTS.md; RLS is the enforced isolation boundary. | **IMPLEMENTED** | AGENTS.md; packages/database RLS |
@@ -351,7 +351,7 @@ The distribution is the dialectical inverse of the typical failing organisation:
 | A.3.23 | Secure authentication | Authentication = Better Auth secure session. | **IMPLEMENTED** | packages/auth |
 | A.3.24 | Information backup | Backup via recreate script; formal SLA pending. | **PARTIAL** | scripts/db-recreate.sh |
 | A.3.25 | Logging | Logging = tamper-evident audit lifecycle events. | **IMPLEMENTED** | ADR-0007; ADR-0061 reveal-gate |
-| A.3.26 | Use of cryptography | Cryptography at rest paused (key custody). | **PLANNED** | ADR-0061 P2; ADR-0067 G5 |
+| A.3.26 | Use of cryptography | Cryptography at rest paused (key custody) — **risk-accepted GAP** per ROCKY-CRYPTO-001 / ADR-0071 (owner + 2026-Q4 review). | **PLANNED** | ADR-0061 P2; ADR-0067 G5; [rocky-cryptography-policy.md](./rocky-cryptography-policy.md) (ROCKY-CRYPTO-001, ADR-0071) |
 | A.3.27 | Secure development life cycle | Secure architecture = RobotFarm AGENTS.md contract chain. | **IMPLEMENTED** | AGENTS.md |
 | A.3.28 | Application security requirements | Application security = typed Zod + Result boundaries. | **IMPLEMENTED** | ADR-0018; ADR-0066 |
 | A.3.29 | Secure system architecture and engineering principles | Secure engineering = Diamond Seal NoDrift guillotine. | **IMPLEMENTED** | ADR-0011; packages/validators |
