@@ -16,6 +16,7 @@ export default {
   "rocky-retention-schedule": { title: "Retention Schedule" },
   "rocky-non-pii-asset-inventory": { title: "Non-PII Asset Inventory (ROCKY-AINV-001)" },
   "rocky-change-mgmt-procedure": { title: "Change & Config Mgmt (ROCKY-CHG-001)" },
+  "rocky-supplier-security-assessment": { title: "Supplier Security Assessment (ROCKY-SUP-001)" },
   "rocky-incident-response-plan": { title: "Incident Response Plan (ROCKY-IRP-001)" },
   "rocky-physical-controls-attestation": { title: "Physical Controls Attestation (ROCKY-PHY-001)" },
   "rocky-automated-decision-making": { title: "Automated Decision-Making & Profiling" },
