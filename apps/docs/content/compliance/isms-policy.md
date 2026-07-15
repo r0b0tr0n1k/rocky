@@ -160,8 +160,8 @@ its status, and the evidence. Status is one of:
 **Statement of Applicability (SoA) — 158 normative controls**
 
 - **Implemented (code enforces today):** 31
-- **Partial (present, to be wrapped/formalised):** 11
-- **Planned (governance layer, ADR-0067 Phase 2):** 116
+- **Partial (present, to be wrapped/formalised):** 14
+- **Planned (governance layer, ADR-0067 Phase 2):** 113
 
 The distribution is the dialectical inverse of the typical failing organisation: Rocky has built the _Symbolic_ enforcement machinery (RLS, RBAC, a PII inventory, mask-by-default, tamper-evident logging, Result sovereignty) while the _Imaginary_ commitment (the documented ISMS, the trained workforce, the designated officer) and the certified _Real_ (the independent audit) remain Phase 2 work.
 
@@ -169,7 +169,7 @@ The distribution is the dialectical inverse of the typical failing organisation:
 
 | Ref | Control | Rocky implementation | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| A.5.1 | Policies for information security | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
+| A.5.1 | Policies for information security | Policy adopted (this ROCKY-ISMS-001, Status: Adopted) but the full signed ISMS procedure set is a Phase 2 deliverable (ADR-0067). | **PARTIAL** | ADR-0067 Decision P2 |
 | A.5.10 | Acceptable use of information and other associated assets | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.5.11 | Return of assets | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.5.12 | Classification of information | Each PII field is assigned a category (direct / indirect / derived), effecting classification of personal information. | **IMPLEMENTED** | pii-field-registry.ts |
@@ -191,7 +191,7 @@ The distribution is the dialectical inverse of the typical failing organisation:
 | A.5.27 | Learning from information security incidents | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.5.28 | Collection of evidence | The tamper-evident access log records actor (anonymised salted hash), table+entity reference, column, purpose, decision and an Ed25519 hash-chain over prior entries. | **IMPLEMENTED** | ADR-0061 reveal-gate; event-emitter |
 | A.5.29 | Information security during disruption | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
-| A.5.3 | Segregation of duties | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
+| A.5.3 | Segregation of duties | Technical SoD enforced by RBAC + Principal + PolicyEngine. | **IMPLEMENTED** | packages/authorization; ADR-0022 |
 | A.5.30 | ICT readiness for business continuity | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.5.31 | Legal, statutory, regulatory and contractual requirements | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.5.32 | Intellectual property rights | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
@@ -200,12 +200,12 @@ The distribution is the dialectical inverse of the typical failing organisation:
 | A.5.35 | Independent review of information security | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.5.36 | Compliance with policies, rules and standards for information security | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.5.37 | Documented operating procedures | Operating procedures exist as AGENTS.md (RobotFarm contracts) and the Diamond Seal doctrine; they are not yet packaged as a signed ISMS procedure set. | **PARTIAL** | AGENTS.md; ADR-0011 |
-| A.5.4 | Management responsibilities | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
+| A.5.4 | Management responsibilities | Commitment declared in Article 3 (in advance of the ink); formal sign-off and named owner appointment are Phase 2 actions (ADR-0067 G1/G9), not yet recorded. | **PARTIAL** | ADR-0067 Decision P2 |
 | A.5.5 | Contact with authorities | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.5.6 | Contact with special interest groups | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.5.7 | Threat intelligence | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.5.8 | Information security in project management | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
-| A.5.9 | Inventory of information and other associated assets | PII_FIELD_REGISTRY enumerates every personal-data column (50+ fields across 20+ tables) as the formal information-asset inventory. | **IMPLEMENTED** | packages/validators/src/pii/pii-field-registry.ts; ADR-0061 D1 |
+| A.5.9 | Inventory of information and other associated assets | PII_FIELD_REGISTRY enumerates every personal-data column (PII portion IMPLEMENTED); the broader non-PII asset inventory is a later artifact (ADR-0101). | **PARTIAL** | packages/validators/src/pii/pii-field-registry.ts; ADR-0061 D1 |
 
 ### A.6 - People Controls
 
