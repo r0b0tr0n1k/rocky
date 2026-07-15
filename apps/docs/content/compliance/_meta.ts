@@ -29,4 +29,5 @@ export default {
   "rocky-internal-audit-procedure": { title: "Internal Audit Procedure" },
   "eu-b2b-procurement-pack": { title: "EU B2B Procurement Compliance Pack" },
   MACEDONIAN_LPDP: { title: "Macedonian LPDP + GDPR + ISO 27701 (MK)" },
+  "rocky-obligation-register": { title: "Obligation Register (ROCKY-OBL-001)" },
 } as const;
