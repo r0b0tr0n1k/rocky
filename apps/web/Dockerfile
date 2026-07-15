@@ -41,6 +41,9 @@ RUN rm -rf /deploy/public && cp -r apps/web/public /deploy/public 2>/dev/null ||
 
 # ---- runtime (prod deps only, non-root)
 FROM node:slim AS runtime
+# netcat for the TCP healthcheck (node:slim ships no nc/curl/wget)
+RUN apt-get update && apt-get install -y --no-install-recommends netcat-openbsd \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /deploy ./

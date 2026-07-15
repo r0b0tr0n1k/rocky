@@ -55,13 +55,10 @@ services:
       - PORT=8080
       - API_PORT=8080
       # Database — app + Postgres share the POSTGRES_PASSWORD secret
-      - PG_HOST=${DB_HOST:-db}
-      - PG_PORT=${DB_PORT:-5432}
-      - PG_USER=tbot
-      - PG_PASS=${POSTGRES_PASSWORD}
-      - PG_DB=tbot
-      # Drizzle ORM reads DATABASE_URL directly (packages/database/src/index.ts)
-      - DATABASE_URL=postgres://tbot:${POSTGRES_PASSWORD}@${DB_HOST:-db}:${DB_PORT:-5432}/tbot
+      # Single source of truth: Postgres understands ONE parameter — the
+      # connection string. Inherited verbatim from .env (dev: 192.168.1.109;
+      # prod: localhost or db). Single var, passed through verbatim.
+      - DATABASE_URL=${DATABASE_URL}
       # Auth
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       # Public API origin must be external https, not the internal docker host.
@@ -85,6 +82,13 @@ services:
       # (also inlined into the web build); alias it here rather than
       # duplicating the value as a second .env var.
       - MAPTILER_API_KEY=${NEXT_PUBLIC_MAPTILER_API_KEY}
+    # Liveness: api listens on 8080. Alpine ships nc; TCP-probe the port.
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     restart: unless-stopped
     networks:
       - app-network
@@ -109,7 +113,15 @@ services:
       # Public base URL of the auth server (Cloudflare admin domain)
       - AUTH_BASE_URL=${AUTH_BASE_URL:-https://admin.techno.party}
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    # Liveness: Next.js serves on 3000 (netcat added to the web image).
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     restart: unless-stopped
     networks:
       - app-network
@@ -138,9 +150,8 @@ services:
       - MASTERPASS=${DRIZZLE_MASTER_PASS}
       - PORT=4983
       - STORE_PATH=/app
-      # Drizzle Gateway connects to Postgres via DATABASE_URL.
-      # Same DB_*/POSTGRES_PASSWORD source as the api service.
-      - DATABASE_URL=postgres://tbot:${POSTGRES_PASSWORD}@${DB_HOST:-db}:${DB_PORT:-5432}/tbot
+      # Drizzle Gateway reads the SAME single DATABASE_URL as the api.
+      - DATABASE_URL=${DATABASE_URL}
     networks:
       - app-network
     restart: unless-stopped

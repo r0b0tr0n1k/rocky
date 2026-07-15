@@ -35,8 +35,20 @@ export { apiConfigSchema };
 
 // Port resolution: API_PORT (from .env.worktree) > PORT (from .env) > 8080
 const apiPort = Number(process.env.API_PORT || process.env.PORT || 8080);
-const pgPort = Number(process.env.PG_PORT || 5432);
 const webPort = process.env.WEB_PORT || "4000";
+// The DB connection is a SINGLE parameter: DATABASE_URL. Derive the config
+// object from it so there is exactly one source of truth (no PG_HOST/PG_PORT/
+// PG_USER/PG_PASS scattering — Postgres only understands the connection string).
+const databaseUrlRaw = process.env.DATABASE_URL;
+if (!databaseUrlRaw) {
+  throw new Error("DATABASE_URL is required");
+}
+let dbUrl: URL;
+try {
+  dbUrl = new URL(databaseUrlRaw);
+} catch {
+  throw new Error(`DATABASE_URL is not a valid connection string: ${databaseUrlRaw}`);
+}
 const baseServiceUrl = process.env.BASE_SERVICE_URL || `http://localhost:${apiPort}`;
 const webOrigin = `http://localhost:${webPort}`;
 
@@ -46,11 +58,11 @@ export const appConfig = apiConfigSchema.parse({
   env: process.env.ENVIRONMENT,
   requestLogging: process.env.REQUEST_LOGGING === "true",
   db: {
-    host: process.env.PG_HOST,
-    user: process.env.PG_USER,
-    password: process.env.PG_PASS,
-    name: process.env.PG_DB,
-    port: pgPort,
+    host: dbUrl.hostname,
+    user: decodeURIComponent(dbUrl.username),
+    password: decodeURIComponent(dbUrl.password),
+    name: dbUrl.pathname.replace(/^\//, ""),
+    port: dbUrl.port ? Number(dbUrl.port) : 5432,
   },
   baseServiceUrl,
   cors: {
