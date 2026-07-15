@@ -25,6 +25,16 @@ referenced. It is applicable to the architecture, documentation, and guardian la
 repository. It contains only statements of fact and cross-references; it does not establish new
 controls.
 
+## Conformity posture
+
+This map records engineering-standards *alignment* only. Rocky's governing conformity posture for
+information security and privacy is set by [ADR-0067](../ADR/0067-isms-posture-iso27001-27701-roadmap.md)
+and the canonical Statement of Applicability ([`isms-policy.md`](../compliance/isms-policy.md),
+ROCKY-ISMS-001). Rocky does **not** claim certification under ISO 9001 (quality management) or the
+Global Social Compliance Programme (GSCP); those regimes are out of scope for this document and for
+Rocky's conformity claim. References to quality-management or supply-chain-social-compliance
+standards in this map are informative orientation, not certified-QMS assertions.
+
 ## Standards map
 
 | ISO/IEC standard | Subject | Where referenced in Rocky's layer |
@@ -40,7 +50,7 @@ controls.
 | ISO/IEC/IEEE 14764 | Software maintenance | Maintenance/evolution discipline; change-mgmt procedure (A.8.32) |
 | ISO/IEC/IEEE 15939 | Measurement process | Engineering metrics; quality dashboards |
 | ISO/IEC 15504 / 330xx | Process assessment | Maturity reference for the guardian-gated workflow |
-| ISO 9001 / ISO/IEC/IEEE 90003 | Quality management | Quality-system orientation of the documentation guardians |
+| ISO 9001 / ISO/IEC/IEEE 90003 | Quality management | Conformity orientation only — the documentation guardians reflect a quality-management discipline; Rocky does not hold ISO 9001 certification. |
 | ISO/IEC 38500 | Governance of IT | `isms-policy.md` (ISMS governance, ADR-0067) |
 | ISO/IEC 20000-1 | IT service management | BCP/ICT readiness (A.5.29/.30); `runbooks/` |
 | ISO/IEC 27001 / 27002 | ISMS / controls | `isms-policy.md` (canonical SoA) |
