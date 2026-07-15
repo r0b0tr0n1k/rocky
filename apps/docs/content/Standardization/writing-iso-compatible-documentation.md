@@ -260,20 +260,87 @@ An Amendment:
 
 ## 10. Pre-publication checklist
 
-- [ ] Title has ≤3 elements, em-dash joined.
-- [ ] Reference number, edition, date, ICS present on cover.
-- [ ] Foreword = template + one committee paragraph; no requirements in it.
-- [ ] Introduction (if present) is informative only.
-- [ ] Clauses 1, 2, 3 present and in order.
-- [ ] Every `shall` is a real requirement; no `must`/`will` for requirements.
-- [ ] Every defined term appears in Clause 3 before first use.
-- [ ] All normative references dated/undated consistently with body citations.
-- [ ] Every table/figure numbered + titled; figures have a key.
-- [ ] Annexes labelled `(normative)` / `(informative)`; new annexes cited from body.
-- [ ] Bibliography lists only cited documents, numbered, inline-cited.
-- [ ] Notes numbered; default informative; normative notes marked.
-- [ ] No vague quantifiers, no "etc.", no synonyms for defined terms.
-- [ ] If amending: every change uses replace/add/delete/designate with exact before→after text and consistent cross-references.
+This checklist is an **attributed adaptation** of **ISO/IEC Directives, Part 2, Annex A (informative) — *Checklist for writers and editors of documents***, Table A.1. It is restructured and condensed for this repo and does **not** reproduce the copyrighted table. The authoritative exhaustive version is Table A.1 at the official Part 2 URL (<https://www.iso.org/sites/directives/current/part2/index.xhtml>). The [ISO/IEC software-engineering standards map](https://gist.github.com/michele-tn/3dbb072e663194d2c6392043daf327c4) (michele-tn) is a useful wider landscape for crosswalking controls.
+
+Run every document against these before publishing. Each group cites the relevant Part 2 clause.
+
+**Structure** (Clauses 6, 22)
+
+- [ ] Top-level structure is logical; subdivision is consistent.
+- [ ] No hanging paragraphs (an orphan line left after a list/table with no lead-in).
+
+**Plain language** (Clauses 4, 5)
+
+- [ ] Text is clear and concise; sentences are short (check punctuation).
+
+**Title** (Clause 11)
+
+- [ ] Runs general → particular and does not unintentionally narrow scope.
+- [ ] Has ≤3 elements, em-dash joined; multi-part titles are aligned.
+
+**Foreword** (Clause 12)
+
+- [ ] If a revision: includes a revision statement (amendments, corrigenda) and a list of changes vs the previous edition.
+- [ ] Any co-drafting organizations are acknowledged.
+- [ ] No `shall`/`should`/`may` (the Foreword is informative).
+
+**Introduction** (Clause 13)
+
+- [ ] Purely informative; describes content / why the document is needed.
+- [ ] No `shall` and no requirements of any kind.
+
+**Scope** (Clause 14)
+
+- [ ] States what the document does and where it applies; contains statements of fact only.
+
+**Normative references** (Clause 15)
+
+- [ ] Every listed reference is cited in the text such that its content forms a requirement.
+- [ ] Dated/undated usage is consistent with body citations; prefer ISO/IEC sources; references are publicly available.
+
+**Terms and definitions** (Clause 16)
+
+- [ ] Every listed term is actually used; every term used in a requirement is defined here (or in a cited normative reference) before first use.
+- [ ] Terms checked against the terminology databases (Electropedia, ISO/OBP) before inventing new ones.
+
+**Figures & tables** (Clauses 28, 29)
+
+- [ ] Each has a concise title and correct number; figures carry a key when needed; all are cross-referenced from the text.
+
+**Graphical symbols** (28.6.2)
+
+- [ ] Symbols are taken from the ISO/IEC symbol databases; new ones are registered, not improvised.
+
+**Annexes** (Clause 20)
+
+- [ ] Every annex is referenced from the body; its status (`normative`/`informative`) is stated in the body.
+
+**Bibliography** (Clause 21)
+
+- [ ] Formatted consistently; entries correct and complete.
+- [ ] No bibliography entry is actually a normative reference (belongs in Clause 2) and none duplicates Clause 2.
+
+**Drafting of provisions** (Clauses 4, 7)
+
+- [ ] `shall`/`should`/`may` do not appear in Foreword, Scope, notes, or examples.
+- [ ] `may`/`can` are used correctly; **`must` is absent** (external constraints are phrased as facts, not obligations).
+- [ ] No requirement specifies compliance with national/legal regulations as a document requirement.
+
+**Potential legal problems** (Clauses 30–32)
+
+- [ ] Copyright, trademark, and patent considerations reviewed.
+
+**Conformity assessment** (Clause 33)
+
+- [ ] No unintended conformity-assessment commitments introduced.
+
+**Cross-references** (Clause 10)
+
+- [ ] All cross-references are correct and use stable clause/annex numbers (never "above/below").
+
+**Common problems** (Annex B)
+
+- [ ] Symbols for variable quantities are correct and consistently formatted; a comma on the line is used as the decimal sign.
 
 ---
 
@@ -287,6 +354,16 @@ An Amendment:
 
 ---
 
+## 12. Adopting external standards verbatim
+
+When a standard is included **without modification**, keep the **exact ISO/IEC nomenclature** — do not paraphrase or "translate" defined terms. Part 2 permits identical text to be reproduced when a standard is adopted as-is; it is *paraphrasing* that causes terminology drift and non-conformance. The correct posture in this repo:
+
+1. **Preserve the exact terms.** If the source says *controller*, *process owner*, or *information security risk*, use those words — not local synonyms.
+2. **Attribute the source.** Mark the fragment `(normative)` / `(informative)` and cite the **source standard and year** (e.g. *ISO/IEC 27701:2025, Annex A*).
+3. **Wrap, don't renumber.** Keep the original clause/annex numbering and place the verbatim text inside the ISO-compatible skeleton (Foreword → Introduction → 1 Scope → 2 Normative references → 3 Terms → … → Bibliography) so it reads as a coherent document, not a loose extract.
+
+This is exactly the strategy behind `iso-27701-2025.md` and `iso-27001-2022.md`: their clause bodies are the verbatim control text from the source standards, adopted without change.
+
 ## Related guides
 
 - [Writing Technical Documents (RFC, ADR, Design Doc)](/how-to/writing-technical-documents) — the companion standard for *internal* engineering documents (RFC / ADR / Design Doc), written in the same controlled-language register.
@@ -299,6 +376,7 @@ This guide conforms to the editorial rules of **ISO/IEC Directives, Part 2** (9t
 ## Sources
 
 - **ISO/IEC Directives, Part 2** (9th ed., 2021) — *Principles and rules for the structure and drafting of ISO and IEC documents.* The authoritative rulebook this guide conforms to. Official text: <https://www.iso.org/sites/directives/current/part2/index.xhtml>.
+- [Complete ISO/IEC Standards Map for Software Engineering](https://gist.github.com/michele-tn/3dbb072e663194d2c6392043daf327c4) (michele-tn, GitHub Gist) — informative landscape of ISO/IEC software-engineering standards (27000/27001/27701, 12207/15288, 25010, 42010, 29119, 42001, …). Useful for crosswalking our controls to the wider standards ecosystem; it explains, it does not reproduce, copyrighted text.
 
 This guide is derived from the materials in `docs/old/iso/`:
 
