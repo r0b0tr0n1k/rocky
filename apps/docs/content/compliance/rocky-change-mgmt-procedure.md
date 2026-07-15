@@ -1,110 +1,86 @@
 ---
 title: Change & Configuration Management Procedure
-sidebarTitle: Change-Mgmt Procedure
+sidebarTitle: Change & Config Mgmt (ROCKY-CHG-001)
 ---
 
-# Change & Configuration Management Procedure — Rocky
+# Change & Configuration Management Procedure — ROCKY-CHG-001
 
-> _sniffs_ The mechanism already exists — typed Zod schemas, the Diamond Seal
-> NoDrift guillotine, the RobotFarm review contracts. What was missing was the
-> governance wrapper: who authorises a change, where the configuration register
-> lives, and how duties are segregated at sign-off. This procedure is that wrapper.
+> The enforcing mechanism already ships (Diamond Seal NoDrift, typed Zod, RobotFarm review
+> contracts). This procedure is the governance wrapper over it: who authorises a change, where the
+> configuration register lives, and how duties are segregated at sign-off.
 
 | Document field | Value |
 | --- | --- |
-| **Title** | Change & Configuration Management Procedure — Rocky |
+| **Title** | Change & Configuration Management Procedure — ROCKY-CHG-001 |
 | **Reference** | ROCKY-CHG-001 |
-| **Version** | 0.1.0-draft (governance wrapper; enforcing mechanism already present) |
-| **Status** | Draft — procedure authored; configuration register to be established |
-| **Owner** | Docs Bot, co-owned with Validators / Authorization Bots |
-| **Classification** | Internal — Reference |
-| **Next review** | On ADR-0102 acceptance; thereafter on each process change |
-| **Related** | ADR-0102 (governing, A.8.32 / A.8.9); ADR-0018 / ADR-0019 (Diamond Seal); ADR-0067 (ISMS roadmap); ADR-0061 (erasure/retention); [Statement of Applicability — ROCKY-ISMS-001](./isms-policy.md) (A.8.32, A.8.9) |
+| **Version** | 1.0.0 |
+| **Status** | Draft — governance wrapper over the existing enforcement |
+| **Owner** | Architecture Review (co-owned with Validators / Authorization Bots) |
+| **Classification** | Internal — Procedure |
+| **Next review** | On material change to the CI enforcement or the RobotFarm review chain |
+| **Related** | ADR-0102 (governing); ADR-0018 / ADR-0019 (Diamond Seal validators — enforcing mechanism); ADR-0022 (Authorization — SoD at runtime); ADR-0061 (PII erasure/retention); ADR-0067 (ISMS roadmap); [isms-policy.md](./isms-policy.md) (ROCKY-ISMS-001, controls A.8.32 / A.8.9) |
 
 ---
 
 ## 1. Purpose
 
-This procedure governs how changes to Rocky's information-processing systems and their configuration
-are authorised, recorded and reviewed, satisfying control **A.8.32** (Change management) and
-supporting **A.8.9** (Configuration management). It wraps the existing automated enforcement with an
-explicit governance layer.
+This procedure defines how changes to Rocky are authorised and how configuration is managed, so that
+Annex A controls **A.8.32** (Change management) and **A.8.9** (Configuration management) are defensible
+as PLANNED / PARTIAL with explicit, owned governance evidence.
 
 ## 2. Scope
 
-- **In scope:** changes to source code, schemas, configuration, deployment topology, and the
-  crosswalk/control mappings, across all `packages/*` and `apps/*`.
-- **Out of scope:** the automated schema-drift and contract checks themselves — those are enforced by
-  the Diamond Seal NoDrift mechanism (ADR-0018 / ADR-0019) and are cited here, not redefined.
+This procedure applies to all changes to the Rocky codebase, schema, infrastructure, and
+configuration across `apps/` and `packages/`. It governs the human authorisation and register
+discipline; the automated drift prevention is out of scope here (it is the mechanism, cited in §4).
 
-## 3. Terms and definitions
+## 3. Change-authorisation workflow
 
-- **change** — any modification to code, schema, configuration or deployment that alters a controlled
-  system.
-- **configuration item** — a version-controlled artifact whose state is tracked (schema, env
-  declarations, feature flags, crosswalk).
-- **change authorisation** — the recorded approval that permits a change to proceed to merge/deploy.
-- **segregation of duties (SoD)** — the principle that the author of a change shall not be its sole
-  approver.
-
-## 4. Normative references
-
-- ISO/IEC 27001:2022 — Annex A.8.32 (Change management), A.8.9 (Configuration management).
-- ADR-0102 — the governing decision for this procedure.
-- ADR-0018 / ADR-0019 — the Diamond Seal validators (the enforcing mechanism).
-- ADR-0067 — ISMS Posture roadmap (Phase 2 governance).
-
-## 5. Change-authorisation workflow
-
-Table 1 sets out the workflow. Each change shall follow it; the automated checks (Clause 6) are a
-gate that runs before authorisation is meaningful.
-
-| # | Step | Actor | Output |
+| Step | Actor | Action | Record |
 | --- | --- | --- | --- |
-| 1 | Propose change (branch + ADR/spec where required) | Author | Linked change request |
-| 2 | Automated checks pass (NoDrift, type-check, tRPC generate) | CI | Green pipeline |
-| 3 | Review & approve (reviewer ≠ author for privileged changes) | Reviewer / Approver | Recorded sign-off |
-| 4 | Merge & deploy | Release Bot | Versioned artifact |
-| 5 | Post-change verification & register update | Owner | Closed change record |
+| 1 | Author | Open change with stated intent and affected surfaces | PR description |
+| 2 | Validator Bot | Run NoDrift + type/lint gates (ADR-0018 / ADR-0019) | CI evidence |
+| 3 | Reviewer | Segregated review per RobotFarm `AGENTS.md` chain | Review approval |
+| 4 | Authoriser | Sign off where the change touches a security-relevant surface (auth, RLS, PII) | Sign-off recorded |
+| 5 | Merger | Merge only after steps 2–4 green | Merge commit |
 
-**Table 1 — Change-authorisation workflow**
+Emergency changes may compress steps 1–3 but shall be reviewed retrospectively within one business day.
 
-## 6. Enforcing mechanism (already implemented)
+## 4. Enforcing mechanism (cited, not redefined)
 
-The following are present today and shall be cited as the mechanism this procedure governs:
+The following already enforce configuration integrity and shall be cited by every assessment, not
+re-implemented:
 
-- **Diamond Seal NoDrift guillotine** (ADR-0018 / ADR-0019) blocks schema and contract drift in CI.
-- **Typed Zod schemas** on every API input/output are the configuration contract for the data layer.
-- **RobotFarm review contracts** (`AGENTS.md` chain) require re-reading the owning contract before an
-  edit, effecting segregated, documented review.
+- **Diamond Seal NoDrift guillotine** (ADR-0018 / ADR-0019) — blocks schema/contract drift at CI.
+- **Typed Zod schemas** — the data-layer configuration contract.
+- **RobotFarm `AGENTS.md` review chain** — segregated, documented review (the SoD control at author time).
 
-This procedure does not claim these mechanisms as "the procedure"; it is the governance wrapper around
-them.
+## 5. Configuration register
 
-## 7. Configuration register
+A central configuration register shall be established. Until it exists as a discrete artifact, the
+version-controlled source tree and the crosswalk (`VALIDATED_CROSSWALK`) are the **provisional register**.
+This procedure shall not claim a register that does not yet exist; the to-be-established register is a
+Phase 2 action tracked in ADR-0067.
 
-A central **configuration register** shall be established that records each configuration item, its
-owner, its current approved version, and the change that last modified it. Until that register exists
-as a discrete artifact, the version-controlled source (`packages/*`, `apps/*`, the crosswalk) is the
-provisional register. This document shall not claim a register that does not yet exist.
+## 6. Segregation of duties at sign-off
 
-## 8. Segregation of duties at sign-off
+Security-relevant changes (authentication, Row-Level Security, PII handling) require sign-off by an
+actor distinct from the author. Runtime SoD is reinforced by the Authorization layer (ADR-0022,
+Principal / PolicyEngine).
 
-For privileged or security-relevant changes, the approver shall be a different person from the author.
-The Authorization Bot (Principal / PolicyEngine, ADR-0022) enforces role-separated privileged access
-at runtime; this procedure extends the same principle to the change record.
+## 7. Records
 
-## 9. Relationship to the Statement of Applicability
+Change authorisation and sign-off records are retained with the version-controlled history and the
+audit log (ADR-0007). The assessment outcome feeds the Statement of Applicability evidence column for
+A.8.32 / A.8.9.
 
-Control **A.8.32** in ROCKY-ISMS-001 is recorded as **PLANNED**; this procedure is added as its
-evidence. Control **A.8.9** is recorded as **PARTIAL** and is supported by the Diamond Seal mechanism
-cited above. Neither status is flipped by this document; the procedure makes the PLANNED control
-defensible as governance-authored.
+## 8. Related controls
 
-## 10. Bibliography
+- A.8.32 — Change management (PLANNED, governance-authored).
+- A.8.9 — Configuration management (PARTIAL, register to be established).
+- A.8.25–.28 — Secure development (reinforced by the NoDrift CI).
 
-- ISO/IEC 27001:2022 — Information security management systems — Requirements.
-- ADR-0102 — Change & Configuration Management (governing).
-- ADR-0018 / ADR-0019 — Diamond Seal validators (enforcing mechanism).
-- ADR-0067 — ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap.
-- [Statement of Applicability — ROCKY-ISMS-001](./isms-policy.md).
+## Bibliography
+
+- ISO/IEC 27001:2022, Annex A.8.32, A.8.9.
+- ISO/IEC 27701:2025, Annex A.2.4 (change management for PII).
