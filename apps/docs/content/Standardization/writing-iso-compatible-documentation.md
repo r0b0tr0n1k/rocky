@@ -290,7 +290,13 @@ An Amendment:
 - [Writing Technical Documents (RFC, ADR, Design Doc)](/how-to/writing-technical-documents) — the companion standard for *internal* engineering documents (RFC / ADR / Design Doc), written in the same controlled-language register.
 - [Internal Standard Style](/Standardization/internal-standard-style) — the house style that both guides follow.
 
+## Conformance to ISO/IEC Directives, Part 2
+
+This guide conforms to the editorial rules of **ISO/IEC Directives, Part 2** (9th edition, 2021) — the authoritative rulebook for the structure and drafting of ISO and IEC documents. In particular, the fixed verbal forms in [§6.1](#61-modal-verbs--fixed-meanings) reproduce **Part 2, Clause 7** exactly: requirement = `shall`, recommendation = `should`, permission = `may`, possibility/capability = `can`. Part 2 also confirms that **negative permissions are no longer permitted**, which is why `must` is excluded. The full official text is published at <https://www.iso.org/sites/directives/current/part2/index.xhtml>.
+
 ## Sources
+
+- **ISO/IEC Directives, Part 2** (9th ed., 2021) — *Principles and rules for the structure and drafting of ISO and IEC documents.* The authoritative rulebook this guide conforms to. Official text: <https://www.iso.org/sites/directives/current/part2/index.xhtml>.
 
 This guide is derived from the materials in `docs/old/iso/`:
 

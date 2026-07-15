@@ -31,3 +31,4 @@ Use it for documents that read as a *standard*, *policy*, or *interface blueprin
 - `Standardization/documents/governance/policies/GOV-001_Supplier Security Policy.md` — internal policy house style.
 - `compliance/isms-policy.md` — regulation-style (Recitals / Articles) house policy.
 - `how-to/writing-technical-documents.mdx` — applying the house style to internal engineering docs (RFC / ADR / Design Doc).
+- [ISO/IEC Directives, Part 2](https://www.iso.org/sites/directives/current/part2/index.xhtml) — the authoritative editorial rulebook (9th ed., 2021); this house style conforms to it (verbal forms, normative/informative labelling).
