@@ -25,7 +25,7 @@ The two canonical control catalogs were re-evaluated against the Real of the fil
   controls carry empty `MK_LPDP` / `AL_LAW124` blocks. Some empties are _legitimate_
   (no direct national-law article), but the proportion signals incomplete enrichment.
 - **`compliance_checklist` — BOILERPLATE.** Where present, the same six generic lines
-  ("Procedures must be documented / implemented / reviewed …") repeat on every control,
+  ("Procedures shall be documented / implemented / reviewed …") repeat on every control,
   adding no per-control analytical value.
 - **`gdprMapping` — PRESENT and useful** (esp. 27701, which carries rich GDPR articles).
 - **Edition — current.** Both ISO/IEC 27001:2022 and ISO/IEC 27701:2025 are the latest
@@ -234,7 +234,7 @@ key custody. Enforcement hook for GDPR Art 5(1)(f)/32 (§11.3).
 The deployment scaffolding built for the VM (Docker Compose + Cloudflare Access / DockFlare +
 external Postgres) is itself a set of _technological controls_ that map onto Annex A / PIMS. These are
 recorded here as **Phase-1 evidence** (they describe controls already running) and feed the canonical
-SoA (`isms-policy.md`). Clause mappings are engineering leads — counsel must still confirm (see §9).
+SoA (`isms-policy.md`). Clause mappings are engineering leads — counsel shall still confirm (see §9).
 
 ### 10.1 Control → clause map
 
@@ -324,7 +324,7 @@ verification, and are exactly the enforcement-ahead-of-paperwork assets ADR-0067
   standard — the binding obligations are GDPR/EUDR/AHL, and they are narrower.
 - Governance layer (lawful basis, DPIA, RoPA, DPO, breach, retention/erasure) is **Phase 2 / deferred**
   (ADR-0067) — that is the actual EU-legal gap, not the code.
-- `VALIDATED_CROSSWALK` GDPR→ISO legs are machine-derived + unverified; counsel must review before any
+- `VALIDATED_CROSSWALK` GDPR→ISO legs are machine-derived + unverified; counsel shall review before any
   conformity claim. **ART_37 (DPO) and ART_82 (liability) are intentionally absent** (no normative
   mapping) — not fabricated.
 
@@ -530,5 +530,5 @@ This is engineering self-education, not legal advice. The standards were read fr
 JSON exports of uncertain provenance (the generator there will not even build on this machine, and its
 local `scf*.json` / `gdpr.json` are orphaned by its own code). The `gdprMapping` and
 `legal_framework_mappings` fields are machine-derived and only partially validated upstream. Before any
-conformity claim, a lawyer who speaks both technology and data-protection law must review the mappings.
+conformity claim, a lawyer who speaks both technology and data-protection law shall review the mappings.
 Until then: we have done the homework; we have not hired the examiner.

@@ -70,7 +70,7 @@ package, router, or ADR that proves implementation. Standards references are
 - **Evidence:** `packages/authorization` (principal, policies, permissions).
 - **Standards:** ISO 27001 A.5.15, A.8.2, A.8.3; GDPR Art 25 (data protection by
   design), Art 32.
-- **Notes:** Policy enforcement is explicit — router must carry `@RegisterPolicy`
+- **Notes:** Policy enforcement is explicit — router shall carry `@RegisterPolicy`
   for the engine to fire.
 
 ### 3. Row-level security / data isolation
@@ -81,7 +81,7 @@ package, router, or ADR that proves implementation. Standards references are
 - **Evidence:** `packages/database/src/schema/rls-helpers.ts`,
   `packages/database/src/schema/hk/farm-subjects.ts`.
 - **Standards:** ISO 27001 A.8.3, A.8.4; GDPR Art 32, Art 25.
-- **Notes:** Context must be injected before a query or RLS blocks it.
+- **Notes:** Context shall be injected before a query or RLS blocks it.
 
 ### 4. Audit logging
 
