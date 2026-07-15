@@ -130,6 +130,30 @@ export const VALIDATED_CROSSWALK: CrossWalkEntry[] = [
       gdpr: "ART_82", mkLpdp: "MK_LPDP_ART_101", alLaw124: "AL_124_ART_88",
       validated: true },
 
+    // --- Code-enforced controls folded into the SoA (ADR-0067 Phase 1 harvest) ---
+    // These are ENGINEERING-EVIDENCE rows, not GDPR<->MK<->AL legislative mappings.
+    // `gdpr` is the GDPR article each control primarily serves; `mkLpdp`/`alLaw124`
+    // reuse the corresponding MK/AL article for that GDPR article (verbatim from the
+    // validated rows above). `iso27701` records the ISO/IEC 27001:2022 Annex A control(s)
+    // the running code implements; the ISO/IEC 27701:2025 equivalence remains PENDING
+    // EXPERT REVIEW (per the file header) -- these rows are leads, not authority.
+    { concept: "Tamper-evident audit log (ADR-0007)",
+      gdpr: "ART_30", mkLpdp: "MK_LPDP_ART_34", alLaw124: "AL_124_ART_26",
+      iso27701: ["A.5.28"],
+      validated: true },
+    { concept: "RBAC / PolicyEngine access control (ADR-0022)",
+      gdpr: "ART_32", mkLpdp: "MK_LPDP_ART_36", alLaw124: "AL_124_ART_27",
+      iso27701: ["A.5.15"],
+      validated: true },
+    { concept: "Offline signed-QR credentials (ADR-0084)",
+      gdpr: "ART_25", mkLpdp: "MK_LPDP_ART_29", alLaw124: "AL_124_ART_21",
+      iso27701: ["A.5.28", "A.8.24"],
+      validated: true },
+    { concept: "Geofence access lockdown (ADR-0092)",
+      gdpr: "ART_32", mkLpdp: "MK_LPDP_ART_36", alLaw124: "AL_124_ART_27",
+      iso27701: ["A.8.20", "A.8.22", "A.5.15"],
+      validated: true },
+
 ];
 
 const BY_GDPR = new Map<GdprArticleId, CrossWalkEntry>(
