@@ -6,6 +6,10 @@ sidebarTitle: 27001:2022 (data)
 > **Canonical human-readable version:** [ISO/IEC 27001:2022](/Standardization/iso-27001-2022).
 > This file is the machine-readable (`JSON`-as-markdown) control source, kept for tooling.
 > Do not edit prose here — edit the wrapper above.
+> **Canonical crosswalk anchor:** `VALIDATED_CROSSWALK` in
+> `packages/validators/src/compliance/gdpr-articles.ts` is the single machine-checked source of truth
+> for the GDPR ↔ MK LPDP ↔ AL Law 124 ↔ ISO 27701 mappings (its `iso27701` field is populated but
+> **pending expert review** — treat as a lead, not authority).
 
 # iso27001_2022.json
 
@@ -560,7 +564,7 @@ sidebarTitle: 27001:2022 (data)
     - **gdprMapping**: (5)(2),(24)(1),(28)(1),(30)(1a-f,3-5),(37)(1a)
     - **keywords**:
       - a.5.31
-      -  contractual requirements
+      - contractual requirements
       - document communications
     - **key_points**:
       - Legal, statutory, regulatory and contractual requirements relevant to information security and the organization's approach to meet these requirements shall be identified, documented and kept up to date
@@ -641,7 +645,7 @@ sidebarTitle: 27001:2022 (data)
     - **gdprMapping**: (5)(1f),(32)(1a,b,2,4)
     - **keywords**:
       - a.5.34
-      -  contractual requirements
+      - contractual requirements
       - protect communications
     - **key_points**:
       - The organization shall identify and meet the requirements regarding the preservation of privacy and protection of PII according to applicable laws and regulations and contractual requirements
