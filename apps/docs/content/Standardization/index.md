@@ -1,4 +1,4 @@
-# ISO/IEC 27701:2025 — Privacy Information Management System
+# Rocky Standards & Compliance
 
 The following wrapper documents assemble the control and guidance fragments below into the ISO/IEC skeleton (Foreword, Scope, Normative references, Terms, Annexes, Bibliography):
 
