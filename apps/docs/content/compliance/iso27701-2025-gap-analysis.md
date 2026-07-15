@@ -77,9 +77,11 @@ Our enforcement lacks the Imaginary commitment (the documented ISMS) and the cer
 
 ## 4. ISO/IEC 27001:2022 — Annex A Mapping
 
+> **Status column sourced from ROCKY-ISMS-001 ([isms-policy.md](isms-policy.md)) on 2026-07-15; canonical verdicts live there.** The per-control capability below is a gap-analysis view; the authoritative Implemented / Partial / Planned verdict for every control is the Statement of Applicability in ROCKY-ISMS-001.
+
 ### A.5 Organisational Controls (37)
 
-| Clause | Requirement | Rocky | Status |
+| Clause | Requirement | Rocky | Status (per ROCKY-ISMS-001) |
 | --- | --- | --- | --- |
 | A.5.1 | Policies for information security | `isms-policy.md` (ROCKY-ISMS-001, Adopted v1.0) | **MET** (Phase 1) |
 | A.5.2 / A.5.3 | Roles & segregation of duties | RBAC + Principal + Policy engine exist technically; no documented InfoSec org | **PARTIAL** |
@@ -96,7 +98,7 @@ Our enforcement lacks the Imaginary commitment (the documented ISMS) and the cer
 
 ### A.6 People Controls (8)
 
-| Clause | Requirement | Rocky | Status |
+| Clause | Requirement | Rocky | Status (per ROCKY-ISMS-001) |
 | --- | --- | --- | --- |
 | A.6.1 | Screening | HR layer absent | **GAP** |
 | A.6.3 | Awareness, education, training | None for PII | **GAP** |
@@ -110,7 +112,7 @@ required for certification, not expressible in application code).
 
 ### A.8 Technological Controls (34)
 
-| Clause | Requirement | Rocky | Status |
+| Clause | Requirement | Rocky | Status (per ROCKY-ISMS-001) |
 | --- | --- | --- | --- |
 | A.8.2 / A.8.3 / A.8.4 / A.8.5 | Privileged access / access restriction / source-code access / secure auth | RLS + RBAC + Better Auth | **MET** |
 | A.8.11 | Data masking | Mask-by-default + reveal-gate (ADR-0061 D5) | **MET** |
