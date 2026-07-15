@@ -1,114 +1,95 @@
 ---
 title: Supplier / Processor Security Assessment Procedure
-sidebarTitle: Supplier Security Assessment
+sidebarTitle: Supplier Assessment (ROCKY-SUP-001)
 ---
 
 # Supplier / Processor Security Assessment Procedure — ROCKY-SUP-001
 
-> _sniffs_ The cow is identified by a third party's auth cloud, its credentials
-> minted off our servers. That is a supplier relationship — and ISO 27001 treats
-> it as a control, not an afterthought. This procedure is the governance wrapper
-> that turns "we use Better Auth" into "we assessed Better Auth".
+> The processor inventory and the data processing agreement already exist. What this procedure adds
+> is the governance discipline over them: who is assessed, how, and what residual risk we accept when
+> a supplier control is not yet implemented.
 
 | Document field | Value |
 | --- | --- |
 | **Title** | Supplier / Processor Security Assessment Procedure — ROCKY-SUP-001 |
 | **Reference** | ROCKY-SUP-001 |
-| **Version** | 0.1.0-draft (governance wrapper over existing processor inventory) |
-| **Status** | Draft — procedure authored; assessment records to be completed per cycle |
-| **Owner** | Docs Bot, co-owned with Authorization / Execution Bots |
-| **Classification** | Internal — Reference |
-| **Next review** | On completion of the first assessment cycle (see §6) |
-| **Related** | ADR-0098 (governing); ADR-0075 (processor / sub-processor management); ADR-0067 (ISMS roadmap); [isms-policy.md](./isms-policy.md) (ROCKY-ISMS-001, controls A.5.19–.23); [rocky-dpa.md](./rocky-dpa.md) (ROCKY-PROC-001); [rocky-processor-register.md](./rocky-processor-register.md) |
+| **Version** | 1.0.0 |
+| **Status** | Draft — governance wrapper over the existing processor inventory |
+| **Owner** | Architecture Review (co-owned with Authorization / Execution Bots) |
+| **Classification** | Internal — Procedure |
+| **Next review** | Annual, or on onboarding of a new critical supplier |
+| **Related** | ADR-0098 (governing); ADR-0075 (processor / sub-processor management — inventory source); ADR-0067 (ISMS roadmap); ADR-0071 (cryptography-at-rest, paused); ADR-0103 (physical controls provider attestation); [isms-policy.md](./isms-policy.md) (ROCKY-ISMS-001, controls A.5.19 / A.5.20 / A.5.21); [rocky-processor-register.md](./rocky-processor-register.md) (ROCKY-PROC-001, inventory); [rocky-dpa.md](./rocky-dpa.md) (ROCKY-DPA-001, contractual terms) |
 
 ---
 
 ## 1. Purpose
 
-This procedure specifies how Rocky shall identify, assess and monitor the information-security posture
-of suppliers and processors that handle, process or store Rocky information or personal data on its
-behalf. It gives effect to the controls in ISO/IEC 27001:2022 Annex A.5.19, A.5.20 and A.5.21.
+This procedure defines how Rocky assesses the information-security posture of the suppliers and
+processors it depends on, so that Annex A controls **A.5.19** (Information security in supplier
+relationships), **A.5.20** (Addressing information security within supplier agreements) and **A.5.21**
+(Managing information security in the ICT supply chain) are defensible as PLANNED with explicit, owned
+governance evidence.
 
 ## 2. Scope
 
-This procedure applies to all external parties that provide information-processing services to Rocky,
-including but not limited to:
+This procedure applies to every external party that processes Rocky information or personal data on
+Rocky's behalf, including but not limited to:
 
-- authentication / identity providers (for example Better Auth as a managed service);
-- cloud hosting and database infrastructure providers;
-- document-generation and signing subsystems (for example the PAdES signing HSM).
+- **Better Auth** — authentication / session provider (SaaS).
+- **The cloud host** — infrastructure (compute, storage, database).
+- **The PAdES signing HSM** — document signing authority.
 
-Out of scope: physical perimeters of the hosting provider, which are captured under the shared-responsibility attestation (ROCKY-PHY-001, ADR-0103). The legal obligations of processors are recorded separately in the processor register and the data processing agreements.
+It assesses; it does **not** re-contract. The contractual terms live in
+[rocky-dpa.md](./rocky-dpa.md) (ROCKY-DPA-001) and the inventory in
+[rocky-processor-register.md](./rocky-processor-register.md) (ROCKY-PROC-001).
 
-## 3. Terms and definitions
+## 3. Risk-tiered due-diligence model
 
-- **supplier** — an external party that supplies products or services to Rocky.
-- **processor** — a supplier that processes personal data on behalf of Rocky (GDPR Art 28).
-- **assessment** — the documented review of a supplier's security controls, certifications and contractual terms.
-- **residual risk** — the risk that remains after the supplier's controls are applied and accepted by Rocky.
+| Tier | Criteria | Assessment minimum | Cadence |
+| --- | --- | --- | --- |
+| **T1 — Critical** | Processes direct PII or holds signing keys (Better Auth, cloud host, HSM) | Written security questionnaire + evidence of independent attestation (SOC 2 Type II / ISO 27001 / ISO 27701) + sub-processor flow-down review | Annual |
+| **T2 — Significant** | Processes non-PII data or provides a security-relevant service | Written security questionnaire + attestation on file | Every 2 years |
+| **T3 — Low** | No access to Rocky data or systems | Recorded in the processor register; attestation not required | On change |
 
-## 4. Normative references
+## 4. Assessment content (minimum set)
 
-- ISO/IEC 27001:2022 — Annex A.5.19 (Information security in supplier relationships), A.5.20 (Addressing information security within supplier agreements), A.5.21 (Managing information security in the ICT supply chain).
-- ISO/IEC 27701:2025 — A.3.10 (Addressing information security within supplier agreements), A.2.2.x (processor obligations).
-- Regulation (EU) 2016/679 — Art 28 (processor obligations), Art 32 (security of processing).
-- ADR-0075 — Processor / sub-processor management.
-- ADR-0067 — Rocky ISMS roadmap (Phase 2 procedures).
+Each T1/T2 assessment shall record:
 
-## 5. Assessment procedure
+1. The supplier's role and the data categories it processes.
+2. The supplier's independent security attestations (with expiry dates).
+3. The sub-processors the supplier may engage, and whether Rocky's DPA flow-down covers them.
+4. The residual risks accepted because a control is not yet implemented, each with a **named owner**
+   and a **review date**.
+5. The assessment outcome (Accept / Accept-with-conditions / Reject).
 
-### 5.1 Identification
+## 5. Residual-risk acceptance
 
-Rocky shall maintain an inventory of suppliers and processors. The processor inventory already exists as [rocky-processor-register.md](./rocky-processor-register.md) and shall be the source of the supplier list for assessment.
+Where a supplier control is not yet implemented — for example cryptography at rest, which is **paused**
+per ADR-0071 — this procedure shall record the residual risk as **accepted only with a named owner and a
+review date**. It shall not assume acceptance. The acceptance is recorded in
+[isms-policy.md](./isms-policy.md) (ROCKY-ISMS-001, A.8.24 / A.3.26) and in
+[rocky-cryptography-policy.md](./rocky-cryptography-policy.md) (ROCKY-CRYPTO-001).
 
-### 5.2 Due-diligence tiers
+## 6. Roles and responsibilities
 
-Suppliers shall be assigned a tier based on the sensitivity of the data and the function they perform.
+- **Architecture Review** owns this procedure and chairs the annual T1 assessment.
+- **Authorization Bot** maintains the processor register (ADR-0075) and supplies the inventory input.
+- **Execution Bot** supplies evidence of the at-rest cryptography decision (ADR-0071) for T1 suppliers.
 
-| Tier | Trigger | Minimum assessment |
-| --- | --- | --- |
-| **T1 — Critical** | Processes or stores direct PII, or provides the authentication boundary | Written DPA (ROCKY-PROC-001); ISO 27001 / SOC 2 attestation; cryptography posture review |
-| **T2 — Material** | Hosts infrastructure or handles indirect/derived PII | Written DPA; attestation or self-assessment questionnaire |
-| **T3 — Standard** | Non-PII or commodity service | Contractual security clause; periodic re-confirmation |
+## 7. Records
 
-**Table 1 — Supplier due-diligence tiers**
+Assessment records are maintained as part of the processor register review and retained for the period
+defined in [rocky-retention-schedule.md](./rocky-retention-schedule.md). The assessment outcome feeds
+the Statement of Applicability evidence column for A.5.19 / A.5.20 / A.5.21.
 
-### 5.3 Assessment content
+## 8. Related controls
 
-For each supplier at T1 or T2, the assessment record shall capture at minimum:
-
-1. the data categories processed and the legal basis for transfer;
-2. the supplier's certifications (ISO 27001, SOC 2, or equivalent) and their validity;
-3. the contractual security obligations (the DPA and any supplier agreement);
-4. the cryptographic controls in transit and at rest (see ADR-0071 for the status of at-rest controls);
-5. the incident-notification commitments (GDPR Art 33/34 mirror).
-
-### 5.4 Acceptance and residual risk
-
-Where a supplier control is not yet implemented (for example cryptography at rest, paused per ADR-0071), the residual risk shall be recorded as accepted only with a named owner and a review date. Acceptance shall be documented in the assessment record, not assumed.
-
-### 5.5 Monitoring and review
-
-Each T1/T2 supplier shall be re-assessed at least annually, or upon a material change to the service or a reported incident. The assessment date and the next-review date shall be recorded.
-
-## 6. Records
-
-The assessment record for each supplier shall be retained alongside the processor register. A blank
-assessment template shall record: supplier identity, tier, data categories, certifications, DPA
-reference, residual-risk acceptance (owner + review date), assessment date, next-review date.
-
-## 7. Related documents
-
-- [Statement of Applicability — ROCKY-ISMS-001](./isms-policy.md) — controls A.5.19 (Information security in supplier relationships), A.5.20 (Addressing information security within supplier agreements), A.5.21 (Managing information security in the ICT supply chain).
-- [Data Processing Agreement — ROCKY-PROC-001](./rocky-dpa.md) — the Art 28 contractual terms.
-- [Processor / Sub-processor Register](./rocky-processor-register.md) — the supplier inventory source.
-- [Cryptography Policy](https://earendil-works.github.io/rocky-docs/ADR/0071-cryptography-at-rest-via-off-server-envelope-encryption-a-8-24-gdpr-art-32) (ADR-0071) — the at-rest control status referenced in §5.3(4).
+- A.5.19 / A.5.20 / A.5.21 — addressed by this procedure (PLANNED, governance-authored).
+- A.2.2.x / A.3.10 (ISO/IEC 27701:2025) — supplier / processor security.
+- A.7.* — physical controls, assessed via the provider attestation (ADR-0103).
 
 ## Bibliography
 
-- ISO/IEC 27001:2022 — Information security management systems — Requirements.
-- ISO/IEC 27701:2025 — Extension to ISO/IEC 27001 and ISO/IEC 27002 for privacy information management.
-- Regulation (EU) 2016/679 — General Data Protection Regulation (GDPR).
-- ADR-0075 — Processor / sub-processor management.
-- ADR-0098 — Supplier / Processor Security Assessment Procedure (governing ADR).
-- ADR-0067 — Rocky ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap.
+- ISO/IEC 27001:2022, Annex A.5.19, A.5.20, A.5.21.
+- ISO/IEC 27701:2025, Annex A.2.2, A.3.10.
+- GDPR Art. 28 (processor obligations) — given effect by [rocky-dpa.md](./rocky-dpa.md).
