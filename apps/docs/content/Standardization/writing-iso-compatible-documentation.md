@@ -34,6 +34,8 @@ standards, API contracts, and policy documents all benefit from the same discipl
 
 ---
 
+This discipline is strategic, not cosmetic: in **government tenders** the editorial rigour of the documents we present is itself evaluated, so ISO-grade consistency must be visibly present in every proposal and conformance statement we submit.
+
 ## 2. Choose the document type first
 
 ISO publishes several deliverable types. Pick the one that matches your intent — the
