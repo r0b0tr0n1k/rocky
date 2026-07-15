@@ -1,5 +1,6 @@
 ---
-document_title: "Rocky — As-Built Security & Privacy Controls Inventory"
+title: "Rocky — As-Built Security & Privacy Controls Inventory"
+sidebarTitle: "As-Built Controls Inventory"
 document_title_mk: "Роки — Инвентар на имплементирани контроли за безбедност и приватност"
 document_identifier: "ROCKY-INV-001"
 version_number: "0.1.0-draft"

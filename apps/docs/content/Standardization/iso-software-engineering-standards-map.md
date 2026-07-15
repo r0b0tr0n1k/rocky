@@ -14,7 +14,7 @@ sidebarTitle: SW Engineering ISO Map
 Rocky's conformity story is broader than information security and privacy. The engineering of the
 system is itself subject to an ISO/IEC body of knowledge covering lifecycle, architecture, quality,
 testing, maintenance, and secure development. This map summarises that ecosystem and records, for
-each standard, where it is referenced in Rocky's layer. It shall be read alongside
+each standard, where it is referenced in Rocky's layer. It is read alongside
 `apps/docs/content/explanation/system-architecture/index.mdx` (the C4/UML diagrams) and the
 `compliance/` posture docs.
 
@@ -23,7 +23,7 @@ each standard, where it is referenced in Rocky's layer. It shall be read alongsi
 This document describes which ISO/IEC engineering standards apply to Rocky and where each is
 referenced. It is applicable to the architecture, documentation, and guardian layers of the
 repository. It contains only statements of fact and cross-references; it does not establish new
-controls.
+controls. Table 1 lists each standard and the layer that references it; Figure 1 shows their relationships.
 
 ## Conformity posture
 
@@ -36,6 +36,8 @@ Rocky's conformity claim. References to quality-management or supply-chain-socia
 standards in this map are informative orientation, not certified-QMS assertions.
 
 ## Standards map
+
+**Table 1 — Standards map**
 
 | ISO/IEC standard | Subject | Where referenced in Rocky's layer |
 | --- | --- | --- |

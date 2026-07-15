@@ -37,8 +37,8 @@ data, and it states how that register is maintained.
   data) and the associated assets that store or process them (servers, containers, datastores,
   repositories, CI runners).
 - **Out of scope:** personal-data assets. Those are inventoried authoritatively by the
-  `PII_FIELD_REGISTRY` and reported under ROCKY-INV-001 / ADR-0061. This document shall not
-  duplicate that register; it shall reference it.
+  `PII_FIELD_REGISTRY` and reported under ROCKY-INV-001 / ADR-0061. This document does not
+  duplicate that register; it references it.
 
 ## 3. Terms and definitions
 

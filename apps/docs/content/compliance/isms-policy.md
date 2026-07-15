@@ -142,7 +142,8 @@ on request.
 ## Article 4 — Control objectives and implementation
 
 The control objectives and the implemented mechanisms are set out in the
-Statement of Applicability below, which comprises:
+Statement of Applicability below, which comprises the PIMS extension
+(Table A.1, Table A.2 and Table A.3) and:
 
 - **Annex A** — ISO/IEC 27001:2022, Annex A (93 controls across
   Organisational, People, Physical and Technological blocks); and

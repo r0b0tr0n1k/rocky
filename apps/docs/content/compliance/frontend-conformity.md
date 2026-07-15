@@ -1,5 +1,6 @@
 ---
-document_title: "Rocky — Frontend Conformity Posture"
+title: "Rocky — Frontend Conformity Posture"
+sidebarTitle: "Frontend Conformity Posture"
 document_title_mk: "Роки — Позиција на усогласеност на корисничкиот интерфејс"
 document_identifier: "ROCKY-FE-001"
 version_number: "0.1.0-draft"
@@ -41,6 +42,10 @@ status: "DRAFT — POSTURE ONLY"
 
 ## How this fits the documentation stack
 
+The posture papers relate as set out in Table 1.
+
+**Table 1 — How this fits the documentation stack**
+
 | Document | Role | Status |
 | --- | --- | --- |
 | `isms-policy.md` (ROCKY-ISMS-001) | Canonical SoA — spine | Adopted |
@@ -67,13 +72,17 @@ status: "DRAFT — POSTURE ONLY"
 ## Control mapping
 
 Status vocabulary: **IMPLEMENTED** (shipped, evidenced) · **PARTIAL** (present
-but incomplete) · **PLANNED** (gap, scheduled in a Wave).
+but incomplete) · **PLANNED** (gap, scheduled in a Wave) · **EXEMPT** (not applicable / exempt per cited paper; outside the SoA scheme).
+
+Table 2 maps each obligation to its status, evidence and remediation Wave.
+
+**Table 2 — Control mapping**
 
 | # | Obligation | Standard anchor | Status | Evidence | Wave |
 | --- | --- | --- | --- | --- | --- |
 | F-01 | UI access control / RBAC gating | A.5.15 / .16 / .18 | IMPLEMENTED | `lib/permissions.tsx`, mob tabs | — (maintain) |
 | F-02 | Security headers / CSP | A.8.23 / .26 / .28; ISO 27034; GDPR 32 | PLANNED | none in `next.config.ts` | 0 |
-| F-03 | Cookie / consent management | GDPR 7; ePrivacy; ISO 27701 6.3.x | N/A (exempt — ROCKY-COOK-001) | `rocky-cookie-notice.md`; honest disclosure added to admin shell (no consent banner) | 1 |
+| F-03 | Cookie / consent management | GDPR 7; ePrivacy; ISO 27701 6.3.x | EXEMPT | `rocky-cookie-notice.md`; honest disclosure added to admin shell (no consent banner) | 1 |
 | F-04 | DSR / erasure / access request UI | GDPR 12, 15–22; ISO 27701 | PLANNED | `rocky-dsr-procedure.md` (unwired) | 1 |
 | F-05 | Privacy notice + data minimization | GDPR 12–14, 25; A.5.34 | PARTIAL | notice exists; no form cues | 1 |
 | F-06 | Semantic landmarks + skip-link | WCAG 1.3.1 / 2.4.1; ISO 9241-210 | PLANNED | browser-verified gap | 2 |

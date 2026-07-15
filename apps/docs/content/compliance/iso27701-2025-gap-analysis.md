@@ -1,3 +1,8 @@
+---
+title: "ISO 27701:2025 & ISO 27001:2022 — Compliance Gap Analysis (Rocky)"
+sidebarTitle: "ISO 27701/27001 Gap Analysis"
+---
+
 # ISO 27701:2025 & ISO 27001:2022 — Compliance Gap Analysis (Rocky)
 
 > _sniffs_ The cow is already tagged, chipped, and access-controlled. What the auditor wants
@@ -125,6 +130,8 @@ required for certification, not expressible in application code).
 ---
 
 ## 5. ISO/IEC 27701:2025 — PIMS Mapping (the GDPR-adjacent layer)
+
+The PIMS controls are mapped in Table A.1 (controllers), Table A.2 (processors) and Table A.3 (controllers and processors).
 
 ### Table A.1 — Controls for PII **controllers** (31)
 
