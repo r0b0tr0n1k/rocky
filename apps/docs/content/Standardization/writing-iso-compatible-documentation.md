@@ -364,6 +364,19 @@ When a standard is included **without modification**, keep the **exact ISO/IEC n
 
 This is exactly the strategy behind `iso-27701-2025.md` and `iso-27001-2022.md`: their clause bodies are the verbatim control text from the source standards, adopted without change.
 
+## 13. Copyright and compliance posture
+
+Standards publishers assert copyright on the *text* of their standards. This repo's stance is deliberately clean and fully legal:
+
+- **We may claim conformance.** Stating that our system is *GDPR-compliant* or *designed to ISO/IEC 27001 / 27701* is a factual claim about our own product, not a reproduction of the standard.
+- **We may cite standard identifiers.** Numbers and titles such as `ISO/IEC 27001:2022` are facts, not copyrightable expression, and are referenced freely throughout these docs.
+- **We do not copy the protected text.** The body of any proprietary standard (and of ISO/IEC Directives, Part 2) is never pasted into the repo. We cite the official/source URL and link informative secondary material (e.g. the standards-map gist) instead.
+- **Verbatim adoption is attributed, not concealed.** Where external text is included without change (§12), it is marked and sourced — and only where the source permits identical reproduction.
+
+One necessary distinction: **ISO/IEC standards are copyrighted (do not copy), whereas legislation such as Regulation (EU) 2016/679 (GDPR) is public-domain law and may be reproduced** — which is exactly why `gdrp.md` includes the verbatim regulation text while the ISO wrappers contain only our own skeleton around attributed, source-permitted excerpts.
+
+This keeps the documentation perfectly legal while still letting the ISO discipline be *visible* in every deliverable.
+
 ## Related guides
 
 - [Writing Technical Documents (RFC, ADR, Design Doc)](/how-to/writing-technical-documents) — the companion standard for *internal* engineering documents (RFC / ADR / Design Doc), written in the same controlled-language register.
