@@ -224,7 +224,7 @@ The distribution is the dialectical inverse of the typical failing organisation:
 
 | Ref | Control | Rocky implementation | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| A.7.1 | Physical security perimeters | Logical access to assets is secured (RLS/RBAC); physical perimeters are the responsibility of the hosting/cloud provider and are out of Rocky's direct control. | **PARTIAL** | Hosting provider SoW; ADR-0003 |
+| A.7.1 | Physical security perimeters | Logical access to assets is secured (RLS/RBAC); physical perimeters are the responsibility of the hosting/cloud provider under a shared-responsibility model (ROCKY-PHY-001, ADR-0103); the provider attestation is to be obtained. | **PARTIAL** | Hosting provider SoW; ADR-0003; [rocky-physical-controls-attestation.md](./rocky-physical-controls-attestation.md) (ROCKY-PHY-001, ADR-0103) |
 | A.7.10 | Storage media | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.7.11 | Supporting utilities | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.7.12 | Cabling security | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |

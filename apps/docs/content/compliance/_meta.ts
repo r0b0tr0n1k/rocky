@@ -17,6 +17,7 @@ export default {
   "rocky-non-pii-asset-inventory": { title: "Non-PII Asset Inventory (ROCKY-AINV-001)" },
   "rocky-change-mgmt-procedure": { title: "Change & Config Mgmt (ROCKY-CHG-001)" },
   "rocky-incident-response-plan": { title: "Incident Response Plan (ROCKY-IRP-001)" },
+  "rocky-physical-controls-attestation": { title: "Physical Controls Attestation (ROCKY-PHY-001)" },
   "rocky-automated-decision-making": { title: "Automated Decision-Making & Profiling" },
   "rocky-international-transfer-assessment": { title: "International Transfer Assessment" },
   "rocky-risk-assessment": { title: "Information Security Risk Assessment" },
