@@ -1,3 +1,8 @@
+---
+title: Information Security & Privacy Management System (ISMS / PIMS) — Rocky
+sidebarTitle: ISMS/PIMS Policy
+---
+
 # Information Security & Privacy Management System (ISMS / PIMS) — Rocky
 
 > _sniffs_ The cow is already tagged, chipped, access-controlled, and tamper-evidently
@@ -17,6 +22,20 @@
 | **Related** | ADR-0061 (GDPR erasure/retention); ADR-0066 (Error Sovereignty); ADR-0030 (RuleSet); ADR-0054 (Regulatory); ADR-0007 (audit); ADR-0067 (ISMS roadmap); `apps/docs/content/compliance/iso27701-2025-gap-analysis.md` |
 
 ---
+
+## Normative references
+
+- ISO/IEC 27001:2022 — _Information security management systems — Requirements_. Governs the ISMS controls (Annex A.5–A.8).
+- ISO/IEC 27701:2025 — _Extension to ISO/IEC 27001 and ISO/IEC 27002 for privacy information management_. Governs the PIMS controls (Annex A.1–A.3).
+- Regulation (EU) 2016/679 (GDPR) — informative legal baseline for the personal-data controls.
+- ADR-0067 — Rocky ISMS roadmap (Phase 2 procedures).
+
+## Terms and definitions
+
+- **ISMS** — Information Security Management System: the managed set of policies, controls and procedures (Annex A.5–A.8).
+- **PIMS** — Privacy Information Management System: the privacy extension (Annex A.1–A.3).
+- **control objective** — the outcome a control is intended to achieve.
+- **PLANNED / IMPLEMENTED / PARTIAL** — the enforcement status of a control in the Rocky codebase (see the status column of each Annex table).
 
 ## Recitals
 
@@ -144,8 +163,7 @@ its status, and the evidence. Status is one of:
 - **Partial (present, to be wrapped/formalised):** 11
 - **Planned (governance layer, ADR-0067 Phase 2):** 116
 
-The distribution is the dialectical inverse of the typical failing organisation: Rocky has built the *Symbolic* enforcement machinery (RLS, RBAC, a PII inventory, mask-by-default, tamper-evident logging, Result sovereignty) while the *Imaginary* commitment (the documented ISMS, the trained workforce, the designated officer) and the certified *Real* (the independent audit) remain Phase 2 work.
-
+The distribution is the dialectical inverse of the typical failing organisation: Rocky has built the _Symbolic_ enforcement machinery (RLS, RBAC, a PII inventory, mask-by-default, tamper-evident logging, Result sovereignty) while the _Imaginary_ commitment (the documented ISMS, the trained workforce, the designated officer) and the certified _Real_ (the independent audit) remain Phase 2 work.
 
 ### A.5 - Organizational Controls
 
@@ -339,3 +357,12 @@ The distribution is the dialectical inverse of the typical failing organisation:
 | A.3.29 | Secure system architecture and engineering principles | Secure engineering = Diamond Seal NoDrift guillotine. | **IMPLEMENTED** | ADR-0011; packages/validators |
 | A.3.30 | Outsourced development | Outsourced development (Better Auth SaaS) is used; a formal supplier security assessment is pending. | **PARTIAL** | ADR-0067 G7 |
 | A.3.31 | Test information | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
+
+## Bibliography
+
+- ISO/IEC 27000:2022 — Information security management systems — Overview and vocabulary.
+- ISO/IEC 27001:2022 — Information security management systems — Requirements.
+- ISO/IEC 27002:2022 — Information security controls.
+- ISO/IEC 27701:2025 — Extension to ISO/IEC 27001 and ISO/IEC 27002 for privacy information management.
+- Regulation (EU) 2016/679 — General Data Protection Regulation (GDPR).
+- ADR-0067 — Rocky ISMS roadmap.

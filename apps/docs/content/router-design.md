@@ -1,3 +1,8 @@
+---
+title: Router Design — Canonical Blueprint
+sidebarTitle: Router Design
+---
+
 # Router Design — Canonical Blueprint
 
 > *Adapted from the Diamond Seal `@repo/*` doctrine to the Rocky `@rocky/*` monorepo — package scope `@repo/*` → `@rocky/*` and tooling `bun` → `pnpm`. Example entities are illustrative.*
@@ -5,6 +10,25 @@
 This is the **canonical blueprint** for tRPC routers — the "what right looks like" companion to [Router Patterns & Anti-Patterns](./router-patterns.md) (the exhaustive list) and [Result Monad & Error Sovereignty](./result-monad-and-error-sovereignty.md) (the error model). Read this first; reach for the others when something breaks.
 
 ---
+
+## 1. Scope
+
+This blueprint specifies the canonical structure and obligations of tRPC routers in the Rocky `@rocky/*` monorepo. It is the "what right looks like" companion to [Router Patterns & Anti-Patterns](./router-patterns.md) and [Result Monad & Error Sovereignty](./result-monad-and-error-sovereignty.md). It does not cover domain service internals, schema design, or frontend consumption.
+
+## 2. Normative references
+
+- ADR-0018 — Frontend/backend contract (typed boundaries).
+- ADR-0022 — Error Sovereignty / Result Monad doctrine.
+- ADR-0032 — tRPC output schema (TS6059 orphan `@Output` rule).
+- ADR-0066 — Error Sovereignty (domain `Result<T,E>`, no `result.data`).
+- [Router Patterns & Anti-Patterns](./router-patterns.md) — exhaustive pattern/anti-pattern catalogue (informative).
+
+## 3. Terms and definitions
+
+- **router** — the Layer-5 Diplomat translating between the frontend (tRPC procedures) and the domain (services returning `Result<T,E>`).
+- **query / mutation** — the two procedure kinds a router exposes.
+- **policy** — the `@Policy()` / `@Public()` decorator that gates a procedure (see Authorization Bot).
+- **principal** — the canonical runtime actor (see Authorization Bot).
 
 ## The Contract (Diamond Seal Layer 5)
 
@@ -24,6 +48,7 @@ The Router **does not think, decide, or contain business logic.** Every deviatio
 ---
 
 ## Canonical Blueprint
+
 ```mermaid
 flowchart TB
   CL["👤 Client<br/>(web / mobile)"] --> TR["🌐 tRPC Transport<br/>(superjson)"]
@@ -40,7 +65,6 @@ flowchart TB
   class RT,SVC,REPO svc
   class POL,DB sec
 ```
-
 
 Every router file MUST look like this. Deviations require a written exception.
 

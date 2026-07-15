@@ -1,6 +1,28 @@
+---
+title: Router Patterns & Anti-Patterns
+sidebarTitle: Router Patterns
+---
+
 > *Adapted from the Diamond Seal `@repo/*` doctrine to the Rocky `@rocky/*` monorepo — package scope `@repo/*` → `@rocky/*` and tooling `bun` → `pnpm`. Example entities (`rides`, `hr`, `telephony`, …) are illustrative; substitute your real `@rocky/domains-*` package.*
 
 # Router Patterns & Anti-Patterns
+
+## 1. Scope
+
+This catalogue documents the required patterns and forbidden anti-patterns for tRPC routers in the Rocky `@rocky/*` monorepo. It is the exhaustive companion to [Router Design — Canonical Blueprint](./router-design.md) (the "what right looks like" spec) and [Result Monad & Error Sovereignty](./result-monad-and-error-sovereignty.md). Patterns (P1–P10) are normative; anti-patterns (AP0–AP19) are forbidden.
+
+## 2. Normative references
+
+- [Router Design — Canonical Blueprint](./router-design.md) — the canonical router contract (normative).
+- ADR-0032 — tRPC output schema (TS6059 orphan `@Output` rule).
+- ADR-0066 — Error Sovereignty (domain `Result<T,E>`).
+
+## 3. Terms and definitions
+
+- **pattern** — a required, normative router construction.
+- **anti-pattern** — a forbidden construction that causes build or runtime failure.
+- **`@Output` / `@Input`** — nestjs-trpc decorators that must be exported for generation.
+- **unwrapper** — the `createResultUnwrapper()` that maps domain `E` to `TRPCError`.
 
 ## Overview
 
