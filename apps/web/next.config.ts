@@ -19,6 +19,12 @@ function findMonorepoRoot(start: string): string {
 
 const monorepoRoot = findMonorepoRoot(process.cwd());
 
+// Security baseline (ADR-0105 / ROCKY-FE-001 F-02): ISO 27001 A.8.23/.26/.28,
+// ISO 27034 application security, GDPR Art 32. Pragmatic for the dev/HMR path
+// ('unsafe-inline' + 'unsafe-eval' needed by Turbopack HMR); production should
+// move to a per-request nonce and drop 'unsafe-eval' (tracked as hardening).
+const CONTENT_SECURITY_POLICY = `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' ws://localhost:3001 wss://localhost:3001 http://localhost:8080 https://localhost:8080; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   allowedDevOrigins: ["http://localhost:3000"],
@@ -50,6 +56,22 @@ const nextConfig = {
       { source: "/trpc/:path*", destination: `${apiUrl}/trpc/:path*` },
       // better-auth endpoints (sign-in, sign-up, session, etc.)
       { source: "/api/auth/:path*", destination: `${apiUrl}/api/auth/:path*` },
+    ];
+  },
+
+  headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: CONTENT_SECURITY_POLICY },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+        ],
+      },
     ];
   },
 };
