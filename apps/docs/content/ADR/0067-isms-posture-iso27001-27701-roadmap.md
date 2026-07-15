@@ -1,18 +1,18 @@
-# ADR-0067: ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap
+# ADR-0067: ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap
 
 > The cow is already tagged, chipped, and row-level-secured. What the auditor wants next is
 > the **paper** that says we meant to. Rocky built the enforcement before the policy — the
 > dialectical inverse of the usual failing org. This ADR makes that inversion a plan, not a shame.
 
-| Key            | Value                                                                  |
-| -------------- | ---------------------------------------------------------------------- |
-| **Status**     | Accepted                                                               |
-| **Date**       | 2026-07-11                                                             |
-| **Author**     | Architecture Review (Compliance homework)                                    |
-| **Supersedes** | — |
-| **Superseded** | — |
+| Key            | Value                                                                                                                                                                          |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Status**     | Accepted                                                                                                                                                                       |
+| **Date**       | 2026-07-11                                                                                                                                                                     |
+| **Author**     | Architecture Review (Compliance homework)                                                                                                                                      |
+| **Supersedes** | —                                                                                                                                                                              |
+| **Superseded** | —                                                                                                                                                                              |
 | **Source**     | Gap analysis `apps/docs/content/compliance/iso27701-2025-gap-analysis.md` (8d4fe99); `graphgrc-main/iso27001.json` (93 Annex A), `graphgrc-main/iso27701_2025.json` (115 PIMS) |
-| **Related**    | ADR-0061 (GDPR erasure/retention); ADR-0066 (Error Sovereignty); ADR-0030 (RuleSet); ADR-0054 (Regulatory); ADR-0007 (audit); ADR-0003 (execution) |
+| **Related**    | ADR-0061 (GDPR erasure/retention); ADR-0066 (Error Sovereignty); ADR-0030 (RuleSet); ADR-0054 (Regulatory); ADR-0007 (audit); ADR-0003 (execution)                             |
 
 ## Context
 
@@ -64,6 +64,8 @@ run; build the governance we have deferred; certify only after expert review.**
    field is now populated from `iso27701_2025.json` `gdprMapping` (14/15 articles mapped;
    ART_37 DPO and ART_82 liability have *no normative mapping in source* and are left absent,
    not fabricated). These mappings are **machine-derived and unverified** — reference only.
+
+5. **Jurisdiction scope — AL Law 124 is recognised but deferred from the current claim.** The system operates in North Macedonia and the Republic of Albania; the `VALIDATED_CROSSWALK` retains the `alLaw124` field for future use. The **operational conformity claim is evidenced for MK LPDP only**; AL Law 124 is carried into this repository from a separate project and is **not** part of Rocky's Phase-1 / Phase-2 conformity assessment. Evidencing AL Law 124 (a dedicated controls mapping and legal review) is a later-phase action, not a gap to be closed now. No AL-Law-124-specific document is created by this roadmap.
 
 ## Consequences
 

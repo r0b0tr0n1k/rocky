@@ -125,7 +125,9 @@ processed therein. Out of direct scope for Phase 1: physical perimeters
 (with Better Auth and analogous processors), and international-transfer
 safeguards (the data is domestic to North Macedonia and Albania). These
 are recorded as Planned in the Statement of Applicability and scheduled
-under ADR-0067 Phase 2 / Phase 3.
+under ADR-0067 Phase 2 / Phase 3. The current conformity assessment is evidenced for
+the Republic of North Macedonia (MK LPDP); evidencing of AL Law 124 is deferred to a
+later phase per ADR-0067 Decision 5.
 
 ## Article 3 — Leadership commitment
 
