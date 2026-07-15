@@ -1,4 +1,35 @@
-﻿General Data Protection Regulation (GDPR) - full text
+---
+title: Regulation (EU) 2016/679 — General Data Protection Regulation (GDPR)
+sidebarTitle: GDPR (EU 2016/679)
+---
+
+# Regulation (EU) 2016/679 — General Data Protection Regulation (GDPR)
+
+> **Document:** Regulation (EU) 2016/679 &nbsp;•&nbsp; **Date:** 27 April 2016 &nbsp;•&nbsp; **Official source:** [EUR-Lex CELEX:32016R0679](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016R0679)
+
+This is the full text of the GDPR, presented with a stable navigation wrapper. The GDPR is a
+European Union **regulation** (not an ISO/IEC standard); its Recitals and Articles retain their
+original numbering. Editorial discipline follows `docs/iso-writing-guide.md` where applicable
+(mandatory clauses, normative/informative labelling, controlled language).
+
+## Scope
+
+This Regulation lays down rules on the protection of natural persons with regard to the processing of personal data and rules on the free movement of such data (Article 1). It does not apply to matters outside the scope of EU law or to processing by a natural person in the course of a purely personal or household activity (Article 2).
+
+## Normative references
+
+- Treaty on the Functioning of the European Union, Article 16 (legal basis)
+- Directive 95/46/EC (repealed by this Regulation)
+
+## Terms and definitions
+
+- **personal data**: any information relating to an identified or identifiable natural person (Article 4(1)).
+- **processing**: any operation performed on personal data, whether or not by automated means (Article 4(2)).
+- **controller**: the natural or legal person that determines the purposes and means of processing (Article 4(7)).
+- **processor**: the natural or legal person that processes personal data on behalf of the controller (Article 4(8)).
+
+## Recitals and Articles
+
 
 REGULATION (EU) 2016/679 OF THE EUROPEAN PARLIAMENT AND OF THE COUNCIL
 

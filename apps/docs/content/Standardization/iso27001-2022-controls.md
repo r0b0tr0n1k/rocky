@@ -1,3 +1,12 @@
+---
+title: ISO/IEC 27001:2022 — Machine-readable control source
+sidebarTitle: 27001:2022 (data)
+---
+
+> **Canonical human-readable version:** [ISO/IEC 27001:2022](/Standardization/iso-27001-2022).
+> This file is the machine-readable (`JSON`-as-markdown) control source, kept for tooling.
+> Do not edit prose here — edit the wrapper above.
+
 # iso27001_2022.json
 
 - **standard**: ISO/IEC 27001:2022
