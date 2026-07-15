@@ -30,3 +30,4 @@ Use it for documents that read as a *standard*, *policy*, or *interface blueprin
 - `Standardization/iso-27701-2025.md` — full ISO/IEC wrapper skeleton.
 - `Standardization/documents/governance/policies/GOV-001_Supplier Security Policy.md` — internal policy house style.
 - `compliance/isms-policy.md` — regulation-style (Recitals / Articles) house policy.
+- `how-to/writing-technical-documents.mdx` — applying the house style to internal engineering docs (RFC / ADR / Design Doc).

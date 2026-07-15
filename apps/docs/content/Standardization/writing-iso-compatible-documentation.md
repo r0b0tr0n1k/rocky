@@ -285,6 +285,11 @@ An Amendment:
 
 ---
 
+## Related guides
+
+- [Writing Technical Documents (RFC, ADR, Design Doc)](/how-to/writing-technical-documents) — the companion standard for *internal* engineering documents (RFC / ADR / Design Doc), written in the same controlled-language register.
+- [Internal Standard Style](/Standardization/internal-standard-style) — the house style that both guides follow.
+
 ## Sources
 
 This guide is derived from the materials in `docs/old/iso/`:

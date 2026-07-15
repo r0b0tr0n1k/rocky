@@ -1,0 +1,492 @@
+---
+title: Writing Technical Documents (RFC, ADR, Design Doc)
+sidebarTitle: Writing Tech Docs
+---
+
+# Writing Technical Documents (RFC, ADR, Design Doc)
+
+> **Reference:** ROCKY-DOC-STD-001 &nbsp;•&nbsp; **Edition:** 1.0 &nbsp;•&nbsp; **Status:** Adopted (internal) &nbsp;•&nbsp; **ICS:** 01.110 (documentation)
+
+## Introduction
+
+Engineers shall spend the majority of their non-coding time on design discussion, code review, and documentation; measured coding time is typically 30–40% of the working week. In global engineering organizations, the ability to write clear technical documents in English is a decisive factor in career progression. Organizations such as Google, Meta, Uber, and Stripe maintain a documented culture in which engineers record technical proposals and obtain team consensus **before** any code is written.
+
+This document specifies the structure, controlled language, and templates for the three primary internal engineering document types: **RFC** (Request for Comments), **ADR** (Architecture Decision Record), and **Design Doc**. Clause 4 classifies them; Annexes A–C provide normative templates; Clause 6 provides the controlled vocabulary. Conformance supports auditability and interoperability with the external standards referenced in Clause 2 (ISO/IEC 27001, ISO/IEC 27701, Regulation (EU) 2016/679).
+
+> **Scope note.** This document governs *internal* engineering documents. Formal standards (ISO/IEC publications, regulations) follow a distinct discipline — see [Writing ISO-Compatible Documentation](/Standardization/writing-iso-compatible-documentation). Both follow the house [Internal Standard Style](/Standardization/internal-standard-style).
+
+## 1. Scope
+
+This document specifies requirements and provides guidance for the preparation of RFC, ADR, and Design Doc engineering documents within the organization. It applies to all engineers proposing changes, recording decisions, or designing systems.
+
+This document does not prescribe tooling, storage format beyond Markdown, or the cadence of review meetings. It does not override the binding ADR house format ([ADR-0033](/ADR/0033-frontend-mobile-adr-standard)).
+
+## 2. Normative references
+
+The following documents are referred to in the text in such a way that some or all of their content constitutes requirements of this document.
+
+- [ADR-0033](/ADR/0033-frontend-mobile-adr-standard) — Frontend/Mobile ADR standard (binding house format for ADRs).
+- [ADR-0052](/ADR/0052-documentation-architecture) — Documentation architecture (Diátaxis taxonomy; places ADRs as the *Decisions* section).
+- [Writing ISO-Compatible Documentation](/Standardization/writing-iso-compatible-documentation) — discipline for formal ISO/IEC and regulatory documents.
+- [Internal Standard Style](/Standardization/internal-standard-style) — house style (purpose/scope/terms/normative references/controlled language/bibliography).
+
+The following reference is provided as informative background: Youngju Kim, *Chaos and Order* — [English Technical Writing: RFC, ADR, Design Doc](https://www.youngju.dev/blog/english/2026-03-10-english-technical-writing-rfc-adr-design-doc.en).
+
+## 3. Terms and definitions
+
+For the purposes of this document, the following terms and definitions apply.
+
+### 3.1 RFC
+
+a proposal document used to collect team feedback on a new idea, technology adoption, or process change before a decision is taken.
+
+### 3.2 ADR
+
+an Architecture Decision Record; a short, durable document that records a decision, its context, and its consequences for the benefit of current and future team members.
+
+### 3.3 Design Doc
+
+a detailed technical design document used to achieve implementation consensus immediately before construction begins.
+
+### 3.4 normative / informative
+
+a clause or annex is **normative** when it states a requirement (marked `shall`); it is **informative** when it provides explanation, example, or guidance and is not binding.
+
+### 3.5 controlled language
+
+the restricted vocabulary of obligation and possibility used in this document: `shall` (requirement), `should` (recommendation), `may`/`can` (permission/possibility). `must` shall not be used as an obligation word.
+
+## 4. Document types
+
+The three document types serve distinct purposes. Table 1 classifies them.
+
+| Aspect | RFC | ADR | Design Doc |
+| --- | --- | --- | --- |
+| **Purpose** | Collect team feedback on a new proposal | Record and preserve architecture decisions | Achieve consensus on detailed technical design |
+| **Length** | 2–5 pages | 1–2 pages | 5–20 pages |
+| **Lifespan** | Archived after approval/rejection | Permanently preserved (history) | Living document during the project |
+| **Audience** | Broad (team, organization) | Current and future team members | Implementation team and reviewers |
+| **Timing** | Idea / proposal stage | Immediately after a decision | Just before implementation |
+| **Core question** | "Is this the right direction?" | "Why did we make this decision?" | "How will we implement this?" |
+
+**Table 1 — Classification of internal engineering document types**
+
+### 4.1 Selection criteria
+
+- An **RFC** shall be used when proposing new technology adoption, process changes, or organization-wide standards.
+- An **ADR** shall be used when recording tech-stack selections, database migrations, API versioning strategies, or other key decisions.
+- A **Design Doc** shall be used when planning new feature implementation, system architecture changes, or large-scale refactoring.
+
+## 5. Structure requirements
+
+### 5.1 RFC
+
+An RFC shall contain the following sections, in order:
+
+1. Title / RFC number
+2. Status: `Draft | In Review | Accepted | Rejected | Superseded`
+3. Author(s), Date, Reviewers
+4. Summary / Abstract
+5. Motivation / Problem Statement
+6. Detailed Proposal
+7. Alternatives Considered
+8. Risks and Mitigations
+9. Open Questions
+10. References
+
+### 5.2 ADR
+
+An ADR shall conform to [ADR-0033](/ADR/0033-frontend-mobile-adr-standard). The minimum required sections are: **Status**, **Context**, **Decision**, **Consequences**. For the step-by-step procedure, see [Write an ADR](/how-to/write-an-adr).
+
+### 5.3 Design Doc
+
+A Design Doc shall contain, at minimum: Title and Metadata; Overview / TL;DR; Context; Goals and Non-Goals; Detailed Design (architecture, API, data model, error handling); Alternatives Considered; Cross-Cutting Concerns (security, privacy, monitoring); Migration / Rollout Plan; Open Questions.
+
+## Annex A (normative) — RFC template
+
+```markdown
+# RFC-042: Migrate to Event-Driven Architecture for Order Processing
+
+**Status:** In Review
+**Author:** Jane Kim
+**Date:** 2026-03-10
+**Reviewers:** Backend Team, Platform Team
+
+## Summary
+
+This RFC proposes migrating the order processing pipeline from a synchronous
+REST-based architecture to an event-driven architecture using Apache Kafka.
+The goal is to improve system resilience and reduce coupling between services.
+
+## Motivation
+
+The current synchronous order processing pipeline has the following limitations:
+
+- **Single point of failure**: if the payment service is down, the entire
+  order flow is blocked.
+- **Tight coupling**: adding a new step (e.g. fraud detection) requires
+  modifying multiple services.
+- **Scalability bottleneck**: peak traffic (Black Friday) causes cascading
+  timeouts across services.
+
+## Detailed Proposal
+
+We propose introducing Kafka as the central message broker with the following
+topology:
+
+- Order Service publishes `OrderCreated` events
+- Payment Service subscribes to `OrderCreated` and publishes `PaymentProcessed`
+- Inventory Service subscribes to `PaymentProcessed`
+- Notification Service subscribes to all terminal events
+
+### Migration strategy
+
+- **Phase 1 — Dual-write (weeks 1–4)**: both sync and async paths active
+- **Phase 2 — Shadow mode (weeks 5–8)**: async primary, sync for validation
+- **Phase 3 — Cutover (weeks 9–10)**: async only, sync deprecated
+
+## Alternatives Considered
+
+### Alternative A: gRPC with circuit breaker
+
+- Pro: lower latency for the happy path
+- Con: does not address the fundamental coupling issue
+
+### Alternative B: AWS Step Functions
+
+- Pro: managed service, less operational overhead
+- Con: vendor lock-in, limited throughput at scale
+
+## Risks and Mitigations
+
+| Risk | Likelihood | Impact | Mitigation |
+| --- | --- | --- | --- |
+| Message ordering issues | Medium | High | Partition key by order ID |
+| Consumer lag during peak | Low | Medium | Auto-scaling consumer groups |
+| Data consistency | Medium | High | Saga pattern with compensation |
+
+## Open Questions
+
+1. Should we use Kafka Connect for database CDC, or custom producers?
+2. What is the acceptable end-to-end latency for order confirmation?
+
+## References
+
+- Internal: Design Doc for Kafka Cluster Setup (link)
+- External: *Designing Event-Driven Systems* by Ben Stopford
+```
+
+## Annex B (normative) — ADR templates
+
+> These templates implement [ADR-0033](/ADR/0033-frontend-mobile-adr-standard). They shall not drift from that standard.
+
+### B.1 Nygard-style ADR
+
+```markdown
+# ADR-017: Use PostgreSQL as the Primary Database
+
+## Status
+
+Accepted (2026-03-10)
+
+## Context
+
+We are building a new order management system that requires:
+
+- ACID transactions for financial data integrity
+- Complex queries with JOIN operations across multiple tables
+- JSON support for flexible product metadata
+- Strong ecosystem of ORMs and tooling
+
+The team has experience with both PostgreSQL and MySQL. We also evaluated
+NoSQL options (MongoDB, DynamoDB) for their scalability characteristics.
+
+## Decision
+
+We will use PostgreSQL 16 as the primary database for the order management
+system.
+
+Key factors in this decision:
+
+- Native JSONB support eliminates the need for a separate document store
+- Row-level security aligns with our multi-tenant architecture
+- pg_partitioning handles our anticipated data growth (100M+ rows/year)
+- The team has 3 engineers with deep PostgreSQL expertise
+
+## Consequences
+
+### Positive
+
+- Unified data layer reduces operational complexity
+- Strong consistency guarantees simplify application logic
+- Rich extension ecosystem (PostGIS, pg_trgm) enables future features
+
+### Negative
+
+- Horizontal scaling requires careful planning (read replicas, partitioning)
+- Higher memory requirements compared to MySQL for equivalent workloads
+- Team must invest in PostgreSQL-specific performance tuning knowledge
+```
+
+### B.2 MADR (Markdown Architectural Decision Records) style
+
+```markdown
+# Use React Server Components for the Dashboard
+
+## Context and Problem Statement
+
+The dashboard currently uses client-side rendering (CSR) with a React SPA.
+Initial load times exceed 4 seconds on mobile devices, and SEO is not
+possible for public-facing dashboard pages. We need to decide on a rendering
+strategy that improves performance while maintaining interactivity.
+
+## Decision Drivers
+
+- Page load time must be under 2 seconds on 3G networks
+- SEO required for public dashboard pages
+- Developer experience should not significantly degrade
+- Must be compatible with our existing component library
+
+## Considered Options
+
+1. React Server Components (RSC) with Next.js App Router
+2. Static Site Generation (SSG) with Incremental Static Regeneration
+3. Server-side Rendering (SSR) with streaming
+
+## Decision Outcome
+
+Chosen option: "React Server Components with Next.js App Router" because
+it provides the best balance of performance, SEO, and developer experience.
+
+### Positive Consequences
+
+- 60–70% reduction in client-side JavaScript bundle
+- Automatic code splitting at the component level
+- Server-side data fetching eliminates client-side waterfalls
+
+### Negative Consequences
+
+- Learning curve for the team (estimated 2-week ramp-up)
+- Some third-party libraries are not yet RSC-compatible
+- Debugging server/client boundary issues can be challenging
+```
+
+## Annex C (normative) — Design Doc template (condensed)
+
+```markdown
+# Design Doc: Real-Time Notification Service
+
+**Authors:** Jane Kim, Alex Park
+**Reviewers:** Backend Lead, SRE Team, Security Team
+**Status:** In Review
+**Last Updated:** 2026-03-10
+
+## Overview
+
+This document describes the design for a real-time notification service
+that delivers push notifications, in-app messages, and email digests to
+users. The service will handle up to 10 million notifications per day
+with a p99 delivery latency under 500ms for push notifications.
+
+## Context
+
+Currently, notifications are sent inline within each microservice. This
+leads to duplicated notification logic across 12 services, inconsistent
+delivery behavior, and no centralized tracking of notification state.
+User complaints about duplicate or missing notifications increased 40% in Q4 2025.
+
+## Goals
+
+- Provide a unified notification API for all backend services
+- Support push, in-app, and email channels with extensible architecture
+- Achieve p99 delivery latency under 500ms for push notifications
+- Enable user-level notification preferences and quiet hours
+
+## Non-Goals
+
+- Real-time chat or messaging features (separate project)
+- SMS notifications (planned for Phase 2, not in this scope)
+- Notification content personalization using ML (future enhancement)
+
+## Detailed Design
+
+### System Architecture
+
+- **Ingestion Layer**: gRPC API that accepts notification requests,
+  validates payloads, and publishes to Kafka
+- **Router**: consumes events, resolves user preferences, routes to channel
+- **Channel Handlers**: push (FCM/APNs), in-app (WebSocket), email (SendGrid)
+- **State Store**: PostgreSQL for notification metadata and delivery status
+
+### API Design
+
+POST /v1/notifications
+- Required: recipient_id, channel, template_id, parameters
+- Optional: priority, scheduled_at, idempotency_key
+- Response: notification_id, status (queued / delivered / failed)
+
+### Error Handling
+
+- Transient failures: exponential backoff with jitter, max 3 retries
+- Permanent failures: dead-letter queue with alerting
+- Duplicate prevention: idempotency key with 24h TTL in Redis
+
+## Alternatives Considered
+
+### Alternative 1: Managed service (AWS SNS + SES)
+
+- Pro: no operational overhead, built-in scalability
+- Con: limited customization for in-app, 3x cost at 10M/day
+- Decision: rejected due to cost and limited in-app support
+
+### Alternative 2: Extend existing per-service logic
+
+- Pro: no new infrastructure, incremental improvement
+- Con: does not address the root cause of duplication
+- Decision: rejected as it perpetuates technical debt
+
+## Cross-Cutting Concerns
+
+### Security
+
+- Payloads encrypted at rest (AES-256)
+- PII fields stored in a separate encrypted store
+- Service-to-service mTLS authentication
+
+### Monitoring
+
+- Dashboard: delivery rate, latency percentiles, failure rate by channel
+- Alerts: delivery rate < 99%, p99 latency > 1s
+
+## Rollout Plan
+
+- Week 1–2: deploy in staging, integration tests
+- Week 3: shadow mode (dual-write)
+- Week 4: canary to 5% of traffic
+- Week 5–6: gradual ramp to 100%, deprecate old code
+```
+
+## 6. Controlled vocabulary
+
+The following expression patterns are recommended. They shall be used to state obligations and comparisons unambiguously.
+
+### 6.1 Proposing
+
+| Expression | When to use |
+| --- | --- |
+| "We propose adopting …" | RFC introduction |
+| "We recommend using …" | Recommendations in conclusions |
+| "We should consider …" | Presenting alternatives |
+| "One possible approach is to …" | Design alternative discussions |
+| "X is the best fit for our requirements because …" | Justifying a choice |
+
+### 6.2 Comparing
+
+| Expression | When to use |
+| --- | --- |
+| "B outperforms A in terms of …" | Performance comparisons |
+| "Compared to X, this approach …" | Alternative comparisons |
+| "There are trade-offs between …" | Trade-off analysis |
+| "X has a clear advantage over Y in …" | Specific-aspect comparison |
+| "X and Y are comparable in terms of …" | Performance parity |
+
+### 6.3 Concluding
+
+| Expression | When to use |
+| --- | --- |
+| "Therefore, we have chosen to …" | Final decision |
+| "Based on the analysis above …" | Drawing conclusions |
+| "In summary, this design …" | Wrapping up documents |
+| "The next steps are …" | Action items |
+| "This proposal assumes that …" | Stating assumptions |
+
+### 6.4 Expressing uncertainty
+
+Uncertainty shall be stated explicitly; it is informative and equally important.
+
+> "We believe this approach will scale to 10M requests/day, but this needs to be validated through load testing."
+> "The estimated latency improvement is 30–50%, pending benchmarks."
+> "This is our current best understanding; we will revisit after the proof of concept."
+
+## 7. Non-conformities and corrections
+
+The following are recurrent non-conformities. Each is accompanied by a correction.
+
+**Non-conformity 1 — Solution presented without motivation**
+
+- Non-conforming: "We should use Kafka for message processing."
+- Conforming: "The current synchronous pipeline fails under peak load, causing cascading timeouts. We propose using Kafka to decouple services and improve resilience."
+- *Principle: the problem ("Why") shall precede the solution ("What").*
+
+**Non-conformity 2 — Superficial alternative analysis**
+
+- Non-conforming: "We considered MongoDB but decided not to use it."
+- Conforming: "We considered MongoDB for its flexible schema. However, our workload is primarily relational with complex JOINs across 5+ tables. MongoDB would require application-level joins, increasing code complexity and latency. Therefore PostgreSQL better fits our query patterns."
+- *Principle: each alternative shall record concrete pros, cons, and rejection rationale.*
+
+**Non-conformity 3 — Excessive passive voice**
+
+- Non-conforming: "It was decided that the service would be migrated."
+- Conforming: "We decided to migrate the service to the new cluster."
+- *Principle: active voice shall be used for clarity (per Google and Microsoft style guides).*
+
+**Non-conformity 4 — Vague quantitative claims**
+
+- Non-conforming: "The system should be fast and handle lots of requests."
+- Conforming: "The system shall achieve p99 latency under 200ms and sustain 50,000 requests per second during peak hours."
+- *Principle: specific, measurable metrics shall be used.*
+
+**Non-conformity 5 — Omitted Non-Goals**
+
+The Non-Goals section shall be present. Its absence permits scope creep. Non-Goals are not negated goals; they are items that could reasonably be in scope but are intentionally excluded.
+
+## 8. Conformity assessment
+
+### 8.1 RFC
+
+- [ ] Title describes the change in one sentence
+- [ ] Motivation describes the current problem with concrete data
+- [ ] Proposal is specific enough to be implementable
+- [ ] At least 2 alternatives compared
+- [ ] Risks and mitigations included
+- [ ] Review deadline and decision criteria specified
+
+### 8.2 ADR
+
+- [ ] Context is sufficient for understanding
+- [ ] Decision is summarizable in one sentence
+- [ ] Both positive and negative consequences recorded
+- [ ] Status is correctly set
+- [ ] References to related ADRs or RFCs included
+
+### 8.3 Design Doc
+
+- [ ] TL;DR conveys the core idea in 30 seconds
+- [ ] Goals and Non-Goals clearly distinguished
+- [ ] System architecture described
+- [ ] API design and data model described
+- [ ] Alternative analysis is objective and unbiased
+- [ ] Migration / rollout plan included
+- [ ] Rollback strategy exists
+- [ ] Cross-cutting concerns (security, monitoring) addressed
+
+## 9. Summary — principles of technical writing
+
+- **Reader-first** — the audience shall be identified first; information shall then be provided to meet that audience's needs.
+- **Why before What** — the problem and motivation shall precede the solution.
+- **Be specific** — quantitative, measurable metrics shall be used in place of vague descriptions.
+- **Active voice** — active-voice constructions shall be used for clarity.
+- **Show alternatives** — considered alternatives and their rejection rationale shall be recorded.
+- **Keep it updated** — Design Docs are living documents and shall reflect implementation changes.
+- **Invite feedback** — the essence of an RFC is feedback collection; Open Questions shall be used actively.
+
+Mastering technical writing is not about perfect grammar. It is about structuring thought logically, communicating clearly, and making reasoning easy for others to follow. These skills are the foundation of effective engineering leadership in any global team.
+
+## Bibliography
+
+- ISO/IEC 27001:2022 — Information security management systems — Requirements.
+- ISO/IEC 27701:2025 — Extension to ISO/IEC 27001 and ISO/IEC 27002 for privacy information management.
+- Regulation (EU) 2016/679 — General Data Protection Regulation (GDPR).
+- ADR-0033 — Frontend/Mobile ADR standard (binding house format).
+- ADR-0052 — Documentation architecture (Diátaxis taxonomy).
+- Youngju Kim, *Chaos and Order* — English Technical Writing: RFC, ADR, Design Doc.
