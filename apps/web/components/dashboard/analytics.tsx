@@ -2,17 +2,10 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ArrowLeftRight,
-  Building2,
-  ClipboardCheck,
-  PawPrint,
-  PieChart,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { ArrowLeftRight, Building2, ClipboardCheck, PawPrint, PieChart, TrendingUp, Users } from "lucide-react";
 
 import { useTRPC } from "#lib/trpc";
+import { useSession } from "#lib/auth-client";
 import type { AnimalSummary, MovementSummary } from "@rocky/validators/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@rocky/ui/components/card";
 import {
@@ -23,7 +16,17 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@rocky/ui/components/chart";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart as PieChartPrimitive, XAxis } from "recharts";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart as PieChartPrimitive,
+  XAxis,
+} from "recharts";
 
 import { DashboardStat } from "#components/dashboard/stat-tile";
 
@@ -210,10 +213,15 @@ export function DashboardAnalytics({
 
 export function useTotals() {
   const trpc = useTRPC();
-  const animals = useQuery(trpc.animal.list.queryOptions({ limit: 1, offset: 0 }));
-  const movements = useQuery(trpc.movement.list.queryOptions({ limit: 1, offset: 0 }));
-  const farms = useQuery(trpc.farm.list.queryOptions({ limit: 1, offset: 0 }));
-  const inspections = useQuery(trpc.inspection.list.queryOptions({ limit: 1, offset: 0 }));
+  const { data: session } = useSession();
+  // Gate on auth: the dashboard is auth-protected, but these fire during the
+  // brief pre-login/redirect window and would otherwise error as UNAUTHORIZED
+  // (logged by the tRPC loggerLink as the masked `[object Error]`).
+  const enabled = !!session?.user;
+  const animals = useQuery(trpc.animal.list.queryOptions({ limit: 1, offset: 0 }, { enabled }));
+  const movements = useQuery(trpc.movement.list.queryOptions({ limit: 1, offset: 0 }, { enabled }));
+  const farms = useQuery(trpc.farm.list.queryOptions({ limit: 1, offset: 0 }, { enabled }));
+  const inspections = useQuery(trpc.inspection.list.queryOptions({ limit: 1, offset: 0 }, { enabled }));
 
   return {
     animals: animals.data?.total ?? 0,
@@ -225,8 +233,10 @@ export function useTotals() {
 
 export function useDashboardData() {
   const trpc = useTRPC();
-  const animals = useQuery(trpc.animal.list.queryOptions({ limit: 100, offset: 0 }));
-  const movements = useQuery(trpc.movement.list.queryOptions({ limit: 100, offset: 0 }));
+  const { data: session } = useSession();
+  const enabled = !!session?.user;
+  const animals = useQuery(trpc.animal.list.queryOptions({ limit: 100, offset: 0 }, { enabled }));
+  const movements = useQuery(trpc.movement.list.queryOptions({ limit: 100, offset: 0 }, { enabled }));
   const totals = useTotals();
 
   return {
