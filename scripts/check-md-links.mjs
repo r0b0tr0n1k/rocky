@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(fileURLToPath(import.meta.url), "../..");
 const CONTENT = path.join(root, "apps/docs/content");
+const PUBLIC = path.join(root, "apps/docs/public");
 const MD_EXT = new Set([".md", ".mdx", ".markdown"]);
 const SKIP_SCHEME = /^(https?:|mailto:|tel:|data:|#|\/\/)/i;
 
@@ -28,10 +29,14 @@ function candidates(baseDir, target) {
   const hashIdx = target.search(/[?#]/);
   const pathPart = (hashIdx === -1 ? target : target.slice(0, hashIdx)).replace(/\/+$/, "") || ".";
   let abs;
-  if (pathPart.startsWith("/")) abs = path.join(CONTENT, pathPart);
-  else abs = path.resolve(baseDir, pathPart);
+  if (pathPart.startsWith("/")) {
+    // "/foo.png" resolves under content; Next.js/Nextra also serve
+    // "public/" at the site root, so check there too.
+    abs = path.join(CONTENT, pathPart);
+  } else abs = path.resolve(baseDir, pathPart);
   const ext = path.extname(abs).toLowerCase();
   const c = [abs];
+  if (pathPart.startsWith("/")) c.push(path.join(PUBLIC, pathPart));
   if (!MD_EXT.has(ext)) {
     c.push(abs + ".mdx", abs + ".md", path.join(abs, "index.mdx"), path.join(abs, "index.md"));
   } else if (ext === ".md") c.push(abs.slice(0, -3) + ".mdx");
@@ -97,7 +102,7 @@ for (const f of allFiles) {
     refUseRe.lastIndex = 0;
     while ((m = refUseRe.exec(ln))) {
       const preR = ln.slice(0, m.index);
-      if ((preR.match(/\`/g) || []).length % 2 === 1) continue; // inside inline-code span -> not a real link
+      if ((preR.match(/`/g) || []).length % 2 === 1) continue; // inside inline-code span -> not a real link
       const def = refDefs[m[1].toLowerCase()];
       if (!def) { warns.push({ f, line: i + 1, raw: m[0], kind: "undefined-ref" }); continue; }
       if (SKIP_SCHEME.test(def)) continue;
