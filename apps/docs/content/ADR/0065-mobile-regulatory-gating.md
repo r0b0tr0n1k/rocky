@@ -16,6 +16,7 @@
 ## Context
 
 The backend now enforces three regulatory pre-conditions on `movement.create()`:
+
 - EUDR deforestation-free attestation (WO-115 / ADR-0063)
 - Disease-zone spatial block, 3 km / 10 km (WO-119 / ADR-0064)
 - IMSOC/CHED requirement for export movements (WO-121 / ADR-0062)
@@ -47,15 +48,18 @@ after sync, as a rejection.
 ## Consequences
 
 ### Positive
+
 - Field workers warned before sync, not after — fewer rejected movements, less rework.
 - Single source of regulatory truth (the shared predicate); the device is a mirror, not a fork.
 
 ### Negative / Cost
+
 - Must keep geofences + RuleSet cached and fresh on device (ADR-0036 payload growth).
 - Duplicate *evaluation* (device + server) — acceptable because server is authoritative and the shared
   function prevents drift.
 
 ### Neutral
+
 - Regulatory *verdicts* (not raw PII) may be cached on device for offline display.
 
 ## Implementation
@@ -80,6 +84,14 @@ rg -n "evaluateMovementRegulatory" apps/api apps/mob packages/domains/movement
 1. Re-implementing the gating logic natively on mobile (divergence → wrong blocks).
 2. Treating the device pre-check as enforcement (only the server verdict is authoritative).
 3. Caching raw PII on device for the pre-check (use verdicts + pseudonyms, ADR-0061).
+
+## Compliance & Standards
+
+This ADR's mobile/offline regulatory gating enforces lawful processing at the edge; it maps to the
+controls in the canonical Statement of Applicability and the technical-organisational measures:
+
+- [Statement of Applicability — ROCKY-ISMS-001](../compliance/isms-policy.md) — A.8.11 (data in transit), A.1.4.5 (data minimisation / purpose limitation).
+- [Technical & organisational measures — ROCKY-TOMS-001](../compliance/rocky-toms.md) — the edge gating as a TOM.
 
 ## Related ADRs
 

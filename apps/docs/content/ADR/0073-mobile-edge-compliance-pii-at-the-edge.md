@@ -83,16 +83,19 @@ not by re-implementing them on the phone. Seven measures:
 ## Consequences
 
 ### Positive
+
 - Closes the edge gap the server ISMS cannot reach; treats the phone as an extension
   of the same control set rather than a blind spot.
 - Keeps the registry server-side (no duplication, no drift) while still gating the UI.
 
 ### Negative / Cost
+
 - Measures 2, 3, 5, 7 require server changes and device verification (WO-082 native
   gate); they cannot be certified from this environment.
 - App-layer encryption adds a key-management surface that must itself be reviewed.
 
 ### Neutral
+
 - Measure 1 (this turn) is pure, prop-driven, and unit-tested; it introduces no
   native dependency and no registry import.
 
@@ -124,6 +127,14 @@ rg -n "logReveal|audit" apps/api                     # reveal event reaches serv
 2. Treating OS file encryption as sufficient without app-level key protection and a
    logout / device-loss wipe.
 3. Revealing PII on-device without a logged, server-recorded purpose.
+
+## Compliance & Standards
+
+This ADR's mobile-edge PII handling (purpose-scoped sync, TTL) realises data-minimisation controls
+documented in the canonical Statement of Applicability:
+
+- [Statement of Applicability — ROCKY-ISMS-001](../compliance/isms-policy.md) — A.1.4.5 (data minimisation), A.8.11 (data in transit).
+- [Technical & organisational measures — ROCKY-TOMS-001](../compliance/rocky-toms.md) — edge minimisation as a TOM.
 
 ## Related ADRs
 

@@ -324,6 +324,15 @@ all implemented).
 
 **Not yet done (Phase 3):** the PDF/A visual render (WO-050).
 
+## Compliance & Standards
+
+This ADR's offline-verifiable signed-QR credentials provide cryptographic authenticity and integrity
+of records; they are promoted into the canonical Statement of Applicability as evidence for A.5.28
+and are referenced on A.8.24:
+
+- [Statement of Applicability — ROCKY-ISMS-001](../compliance/isms-policy.md) — A.5.28 (collection of evidence), A.8.24 (cryptography).
+- [Technical & organisational measures — ROCKY-TOMS-001](../compliance/rocky-toms.md) — signed credentials as a TOM.
+
 ## Related ADRs
 
 - **ADR-0082** — PDF/A-3 hybrid + PAdES signing (the online seal this credential complements).

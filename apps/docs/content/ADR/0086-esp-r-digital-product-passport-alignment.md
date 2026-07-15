@@ -108,6 +108,14 @@ However:
 - See gap-analysis **§15** (ESPR study) and **WO-155** (borrow + Phase 2).
 - Layering of ear tag / signed QR / passport registry vs the ESPR DPP model: [Animal-ID ↔ ESPR DPP](/animal-id-and-espr-dpp).
 
+## Compliance & Standards
+
+This ADR's ESPR digital-product-passport alignment maps product-passport data to the asset-inventory
+and accuracy controls in the canonical Statement of Applicability:
+
+- [Statement of Applicability — ROCKY-ISMS-001](../compliance/isms-policy.md) — A.5.9 (inventory of assets), A.1.4.4 (accuracy).
+- [Controls inventory — ROCKY-INV-001](../compliance/rocky-controls-inventory.md) — the as-built inventory the DPP data extends.
+
 ## Status
 
 **Accepted (2026-07-12).** The alignment is verified: Rocky's signed-QR (ADR-0084) + PAdES (ADR-0082)

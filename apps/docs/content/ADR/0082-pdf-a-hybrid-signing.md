@@ -453,6 +453,14 @@ Accepted and implemented (2026-07). The full pipeline lands in `packages/pdf`:
   (`HSM → P12 → NoOp`). An interim self-signed dev cert in `apps/api/keys/`
   (git-ignored) lets documents sign locally now; the qualified cert + HSM is an env swap.
 
+## Compliance & Standards
+
+This ADR's PDF/A-3 hybrid + PAdES signing produces immutable, signed records that satisfy the
+records-protection and cryptography controls in the canonical Statement of Applicability:
+
+- [Statement of Applicability — ROCKY-ISMS-001](../compliance/isms-policy.md) — A.5.33 (protection of records), A.1.4.9 (disposal), A.8.24 (cryptography).
+- [Retention schedule — ROCKY-RET-001](../compliance/rocky-retention-schedule.md) — retention of the signed archival artifacts.
+
 ## Related ADRs
 
 - **ADR-0009** — Document Generation framework (YAML/XML stable API; PDF deferred).

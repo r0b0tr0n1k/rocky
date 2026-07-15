@@ -132,3 +132,11 @@ masked in any audit output. SMS use requires **informed consent** (ADR-0068) giv
 4. SMS client (provider) — deferred ("at the end") ⬜.
 
 **RobotFarm pass:** Notification Bot AGENTS.md updated (routing policy + tiers); WO line added.
+
+## Compliance & Standards
+
+This ADR's notification-channel routing and SMS minimisation enforce data-minimisation in transit,
+mapping to controls in the canonical Statement of Applicability:
+
+- [Statement of Applicability — ROCKY-ISMS-001](../compliance/isms-policy.md) — A.1.4.5 (data minimisation), A.8.11 (data in transit).
+- [Technical & organisational measures — ROCKY-TOMS-001](../compliance/rocky-toms.md) — minimisation as a TOM.

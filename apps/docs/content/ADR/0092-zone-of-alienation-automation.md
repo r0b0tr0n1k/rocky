@@ -59,6 +59,14 @@ Implemented (2026-07-13) via the outbox pipeline (no new standalone service — 
 - The movement block (`runDiseaseZoneCheck`) already refuses movements out of the active zones,
   so no farm-deactivation code was needed for the legal lockdown.
 
+## Compliance & Standards
+
+This ADR's Zone-of-Alienation geofence lockdown auto-restricts movement on a positive CATEGORY_A lab
+result — a code-enforced logical-access / network-segregation control promoted into the canonical
+Statement of Applicability as A.8.20 / A.8.22 (and noted on A.5.15):
+
+- [Statement of Applicability — ROCKY-ISMS-001](../compliance/isms-policy.md) — A.8.20 / A.8.22 (networks security / network segregation), A.5.15 (access control).
+
 ## Sources
 
 - **Reg (EU) 2016/429 (AHL)** — protection/surveillance zone definitions, Art 2(42)/(43), zone

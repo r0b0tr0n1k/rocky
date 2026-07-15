@@ -206,6 +206,14 @@ pnpm test
 4. **Disease-clear check** depends on WO-119 (disease zones); the hook is wired but the check is a
    no-op until WO-119 lands.
 
+## Compliance & Standards
+
+This ADR's IMSOC/CHED-A document generation reinforces the records-protection and disposal controls
+in the canonical Statement of Applicability:
+
+- [Statement of Applicability — ROCKY-ISMS-001](../compliance/isms-policy.md) — A.5.33 (protection of records), A.1.4.9 (disposal).
+- [Retention schedule — ROCKY-RET-001](../compliance/rocky-retention-schedule.md) — retention/disposal rules the generated official records obey.
+
 ## Related ADRs
 
 - **ADR-0054** — regulatory framework; R9 / strike 9 is the parent of this plan.

@@ -47,6 +47,13 @@ follow the `@Policy`/Principal model (ADR authorization package).
   from lacking the national picture.
 - Cost: two dashboard pages + map/heatmap components; no schema change.
 
+## Compliance & Standards
+
+This ADR's dual dashboards (vet vs state epidemiologist) enforce purpose- and role-based segregation
+of access documented in the canonical Statement of Applicability:
+
+- [Statement of Applicability — ROCKY-ISMS-001](../compliance/isms-policy.md) — A.5.15 / A.5.18 (access rights), A.8.3 (information access restriction).
+
 ## Sources
 
 - **Reg (EU) 2016/429 (AHL)** — surveillance and reporting obligations (epidemiologist view).

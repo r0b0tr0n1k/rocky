@@ -44,6 +44,7 @@ neither *denial* of PII nor *concealment* of it -- it is **necessity-limited sco
 bounded residence, device auth, and accountability**.
 
 Two rejected extremes, recorded so we do not drift back to them:
+
 - **Deny all `pii:read` to field roles** -- defeats the job; the vet cannot contact
   the keeper.
 - **Obscure via VoIP / never show the number** -- bureaucratic absurdity; GDPR
@@ -98,6 +99,7 @@ back-office (web) = { syncScope: "web", piiResidency: "full", deviceAuth: "requi
 ```
 
 ### Hard rule: nationalId is NEVER on a field device
+
 `personalId` / national ID (UCN) is **never** sent to any field device, for any
 role. In North Macedonia its broad display is forbidden; it is accessible only to
 law enforcement with a warrant -- a server-side, legally-gated path (ADR-0061 D5 /
@@ -114,6 +116,7 @@ reason to *display* a national ID in the app that would warrant it appearing in 
 DPIA as a shown field. So in practice: nationalId is never on a device.
 
 ### What is IN the field-role offline bundle (per visit / per site)
+
 - Animal / health / movement operational data for the synced farm or site.
 - Keeper **name + phone + email** for that farm (necessary contact; click-to-dial
   and click-to-mail; the dial/mail action IS the logged reveal).
@@ -127,6 +130,7 @@ their own employee record). Contact-only keeper PII applies only if the butcher 
 call a keeper.
 
 ### What is NOT in it
+
 - `personalId` / national ID (almost never needed to place a call).
 - Any other farm's keepers.
 - Any region-wide or bulk PII dump.
@@ -138,6 +142,7 @@ roles), and **accountability** (every view reveal-logged). The "mass PII on a st
 phone" risk is bounded to the current visit's contacts, behind a device lock.
 
 ### Online vs offline
+
 When network is present the app **syncs and shows live server data** (server-audited
 via ADR-0007 on the read). The TTL and contact-only projection govern only the
 *offline residue* -- a temporary mirror. We never force workers offline; online is
@@ -149,11 +154,13 @@ The phone is castrated (ADR-0036): it cannot enforce this itself. The server own
 the Symbolic order. Two server changes implement the policy:
 
 ### S1. Offline projection variant on `syncDownload` (contact-only)
+
 The sync server already scopes rows by RLS. Add an **offline-profile projection**
 so that, for a field role's *offline cache*, the per-farm payload emits operational
 data plus the keeper's `firstName` / `lastName` / `phoneNumber` / `email` (the
 `contact-only` subset) for **that** farm, and omits `personalId` and every other
 farm's subjects.
+
 - Source of truth: `PII_FIELD_REGISTRY` (`packages/validators/src/pii`). Contact
   fields = the subset the registry marks as `type: "name" | "contact"`; `exclude` =
   `nationalId` + non-synced farms. The registry is consulted **server-side** -- the
@@ -162,6 +169,7 @@ farm's subjects.
   router). RLS decides *which rows*; this projection decides *which columns*.
 
 ### S2. Reveal-log mutation `audit.logReveal`
+
 A tRPC mutation that receives a reveal event -- `actor` (anonymised salted hash),
 `farm`, `entity`, `column`, `purpose`, `decision: ALLOWED` -- and writes it via the
 ExecutionPipeline (`RLSStage` + lifecycle `event-emitter`) to the tamper-evident,
@@ -171,6 +179,7 @@ server **re-validates** the principal and `pii:read` before logging -- the castr
 client is never trusted.
 
 ### S3. Integration points
+
 - **RLS** (already scopes syncDownload) + **`@Policy` / `pii:read`** (gates online
   reveals) + **offline projection** (contact-only default) + **RuleSet** (jurisdiction
   `ttlMs` for contact PII).
@@ -178,7 +187,9 @@ client is never trusted.
   relaxed/own-site; not in it -> contact-only strict.
 
 ### S4. TTL -- lazy / opportunistic purge (NOT a background timer)
+
 A killed app cannot run JavaScript, so no in-app timer guarantees deletion. Instead:
+
 - At sync, every cached contact record is stamped `expires_at = synced_at + ttlMs`.
 - Purge is **opportunistic**: on app launch, on app resume (foreground), on every
   sync, and *best-effort* via `expo-background-fetch` (WO-092). Expired contact PII is
@@ -187,14 +198,18 @@ A killed app cannot run JavaScript, so no in-app timer guarantees deletion. Inst
   exactly ttlMs of the app being killed." Honest and achievable.
 
 ### S5. Device auth (PIN / biometric) for third-party-PII roles
+
 Field roles that handle third-party PII (vet / technician / VI / butcher / market_op)
 require a device PIN or biometric unlock before any PII is rendered. The farmer is
 exempt (own data, low risk). This is ADR-0072 (re-auth lock) concretized for the edge.
+
 - Mechanism: gate the PII-rendering path behind `expo-local-authentication`
   (or the OS credential); the unlock is session-scoped, not per-field.
 
 ### S6. Device loss & breach assessment (Q5 resolved)
+
 A lost / stolen field device is handled by **procedure**, not panic:
+
 - **Accountability.** The device is issued to a named user (vet / technician / butcher /
   market_op) under the **controller** (VD). That user must safeguard it + report loss
   promptly; the controller (via DPO) owns the breach assessment. (GDPR has no literal
@@ -220,18 +235,21 @@ A lost / stolen field device is handled by **procedure**, not panic:
 ## Consequences
 
 ### Positive
+
 - Necessary PII is available to do the lawful job (dial/mail a keeper); the region-wide
   dump is prevented; every view is accountable; a stolen device is locked and its PII
   residue is TTL-bounded. Satisfies GDPR Art 5(1)(c) (minimization by scope) and
   Art 25 (by-design), without gagging the field worker.
 
 ### Negative / Cost
+
 - Server changes S1 + S2 are required (sync projection + audit mutation) and are
   verifiable here; the device TTL sweep (S4) and device auth (S5) need the native gate.
 - **All stakeholder questions are now answered** (see below); implementation may proceed
   on the user's go-ahead. No WORKORDER yet per standing directive.
 
 ### Neutral
+
 - Reuses ADR-0073's `<PiiText>` + reveal-log shape, the registry, and the audit store.
 - Deliberately excludes behavioural profiling of field roles (velocity / Anomaly caps)
   unless a later DPIA (ADR-0069) justifies it.
@@ -240,6 +258,7 @@ A lost / stolen field device is handled by **procedure**, not panic:
 
 All stakeholder questions are now **answered** (below). The ADR moves from *pending
 review* to *review complete*; a WORKORDER is created only on the user's go-ahead.
+
 1. ~~Which contact fields~~ -> **answered**: name + phone + email, clickable + logged.
 2. ~~TTL length / mechanism~~ -> **answered**: 24h working; lazy opportunistic purge
    (S4); never force offline.
@@ -292,6 +311,13 @@ rg -n "contact-only|purpose-farm|manifest-contact|expires_at|logReveal|deviceAut
    be lazy / opportunistic.
 6. Forcing workers offline -- online sync + live data is the preferred path.
 7. Creating a WORKORDER before stakeholder confirmation.
+
+## Compliance & Standards
+
+This ADR's field-role edge protocol (contact-only PII, purpose-scoped sync, TTL, reveal-audit)
+reinforces controls in the canonical Statement of Applicability:
+
+- [Statement of Applicability — ROCKY-ISMS-001](../compliance/isms-policy.md) — A.1.4.5 (data minimisation), A.8.11 (data in transit), A.5.34 (privacy in the SDLC).
 
 ## Related ADRs
 
