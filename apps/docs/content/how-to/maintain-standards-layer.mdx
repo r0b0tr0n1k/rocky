@@ -1,0 +1,87 @@
+---
+title: Maintain the Standards & Compliance Layer
+---
+
+# Maintain the Standards & Compliance Layer
+
+> How to keep Rocky's ISO 27001:2022 / ISO 27701:2025 / GDPR standards layer coherent and
+> self-enforcing. This is the operational companion to the ISMS/PIMS roadmap
+> ([ADR-0067](/ADR/0067-isms-posture-iso27001-27701-roadmap)) and the documentation taxonomy
+> ([ADR-0052](/ADR/0052-documentation-architecture)).
+
+## The one rule: a single canonical SoA
+
+`apps/docs/content/compliance/isms-policy.md` (**ROCKY-ISMS-001**) is the **only** Statement of
+Applicability. There is no second SoA. If you are tempted to add a summary/subset SoA, do not — the
+[`check:standards`](/how-to/run-the-guardians) guardian fails CI if a second `rocky-soa.md` appears
+without a `DERIVED FROM ROCKY-ISMS-001` marker. Every control row in the SoA carries **exactly one**
+status token: `**IMPLEMENTED**`, `**PARTIAL**`, or `**PLANNED**`.
+
+## Authoring style
+
+All standards/ISO documents follow two style guides:
+
+- [internal-standard-style.md](/Standardization/internal-standard-style) — internal document structure.
+- [writing-iso-compatible-documentation.md](/Standardization/writing-iso-compatible-documentation) —
+  ISO/IEC Directive Part 2, Annex A drafting discipline (controlled language `shall`/`should`/`may`/
+  `can`, numbered figure/table captions cross-referenced in text, titles ≤3 elements, cited normative
+  references, consistent bibliography).
+
+Use `must` sparingly and only where the constraint is genuinely external.
+
+## The `check:standards` guardian
+
+Run it locally and rely on CI (`ci:checks`):
+
+```bash
+pnpm check:standards
+```
+
+It enforces three invariants:
+
+1. **Single canonical SoA** — `rocky-soa.md` must be absent or marked `DERIVED FROM ROCKY-ISMS-001`.
+2. **SoA traceability** — every `| A.x.y |` row in `isms-policy.md` has exactly one status token and a
+   non-empty evidence cell.
+3. **Crosswalk anchoring** — every crosswalk doc with GDPR/LPDP/AL content cites
+   `VALIDATED_CROSSWALK` (`packages/validators/src/compliance/gdpr-articles.ts`) as the single source
+   of truth.
+
+ADR↔standards cross-link liveness is covered separately by `check:md-links` (fence-aware).
+
+## Adding a new standards document
+
+1. Create it under `apps/docs/content/compliance/` (or `Standardization/` for the raw standard text).
+2. Add frontmatter `title:` + `sidebarTitle:`.
+3. Add a `Related` (or `Compliance & Standards`) section that links **both** to its governing ADR **and**
+   to `isms-policy.md` (fit-both-ways).
+4. Add a `Bibliography` citing the relevant ISO/IEC standard(s) and local law.
+5. If the document satisfies SoA controls, name its `ROCKY-XXX-001` ID in the relevant SoA evidence
+   cells.
+
+## Adding a new ADR that touches PII / privacy / records
+
+Add a `## Compliance & Standards` section linking to the relevant `/compliance/` + `/Standardization/`
+docs and the SoA control IDs it reinforces (see ADR-0062, ADR-0082, ADR-0092 for the pattern). The
+target doc gets a matching back-link.
+
+## The crosswalk rule
+
+`VALIDATED_CROSSWALK` in `packages/validators/src/compliance/gdpr-articles.ts` is the single
+machine-checked anchor for the GDPR ↔ MK LPDP ↔ AL Law 124 ↔ ISO 27701 mappings. The four crosswalk
+documents (`iso27001-2022-annex-a-mapping.md`, `MACEDONIAN_LPDP_GDPR_ISO27701_CONTROLS_MATRIX.md`,
+`iso27001-2022-controls.md`, `iso27701_2025.md`) cite it. Its `iso27701` field is **populated but
+pending expert review** — treat the mapping as a lead, not authority.
+
+## Jurisdiction scope
+
+The operational conformity claim is evidenced for the Republic of North Macedonia (MK LPDP). AL Law
+124 is recognised (the `alLaw124` code field is retained) but its evidencing is **deferred** — see
+[ADR-0067 Decision 5](/ADR/0067-isms-posture-iso27001-27701-roadmap). Do not create an AL-Law-124
+document unless that decision is reversed.
+
+## Related
+
+- [ADR-0067](/ADR/0067-isms-posture-iso27001-27701-roadmap) — ISMS/PIMS roadmap (ruling).
+- [ADR-0052](/ADR/0052-documentation-architecture) — documentation taxonomy (this is a `how-to`).
+- [Run the guardians](/how-to/run-the-guardians) — how `check:standards` runs in CI.
+- [Write an ADR](/how-to/write-an-adr) — ADR-0033 house standard.
