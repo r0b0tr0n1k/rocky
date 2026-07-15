@@ -101,7 +101,7 @@ Each row uses exactly one status token:
 - ISO/IEC 27001:2022 — Information security management systems — Requirements.
 - ISO/IEC 27701:2025 — Extension for privacy information management.
 - ADR-0054 — Regulatory Compliance Framework.
-- ADR-0067 — ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap.
+- ADR-0067 — ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap.
 - [`isms-policy.md`](./isms-policy.md) (ROCKY-ISMS-001) — the canonical Statement of Applicability.
 - [`VALIDATED_CROSSWALK`](../../../../packages/validators/src/compliance/gdpr-articles.ts)
   — the machine-checked GDPR ↔ MK LPDP ↔ AL Law 124 ↔ ISO/IEC 27701:2025 crosswalk.
@@ -109,7 +109,7 @@ Each row uses exactly one status token:
 ## Related
 
 - ADR-0054 — Regulatory Compliance Framework (the engine governance).
-- ADR-0067 — ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap.
+- ADR-0067 — ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap.
 - [`isms-policy.md`](./isms-policy.md) — the canonical Statement of Applicability this
   register feeds.
 - [`VALIDATED_CROSSWALK`](../../../../packages/validators/src/compliance/gdpr-articles.ts)

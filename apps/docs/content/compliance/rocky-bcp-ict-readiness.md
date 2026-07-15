@@ -94,4 +94,4 @@ Phase 2 action.
 - ISO/IEC 20000-1 — Information technology — Service management.
 - ISO/IEC 27031 — Information security — ICT readiness for business continuity.
 - ADR-0099 — Business Continuity & ICT Readiness Plan (governing ADR).
-- ADR-0067 — Rocky ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap.
+- ADR-0067 — Rocky ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap.

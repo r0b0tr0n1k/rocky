@@ -1,4 +1,4 @@
-# ADR-0067: ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap
+# ADR-0067: ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap
 
 > The cow is already tagged, chipped, and row-level-secured. What the auditor wants next is
 > the **paper** that says we meant to. Rocky built the enforcement before the policy — the

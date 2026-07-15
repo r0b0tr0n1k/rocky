@@ -106,5 +106,5 @@ defensible as governance-authored.
 - ISO/IEC 27001:2022 — Information security management systems — Requirements.
 - ADR-0102 — Change & Configuration Management (governing).
 - ADR-0018 / ADR-0019 — Diamond Seal validators (enforcing mechanism).
-- ADR-0067 — ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap.
+- ADR-0067 — ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap.
 - [Statement of Applicability — ROCKY-ISMS-001](./isms-policy.md).

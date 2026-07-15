@@ -76,7 +76,7 @@ rg -n "ADR-0003" apps/docs/content/ADR/0103-isms-physical-controls-attestation.m
 ## Related ADRs
 
 - **ADR-0003** — ExecutionPipeline (environment stages; the boundary of provider responsibility).
-- **ADR-0067** — ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap.
+- **ADR-0067** — ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap.
 - **ADR-0061** — PII erasure/retention (logical controls; distinct from the physical layer).
 
 ## Compliance & Standards

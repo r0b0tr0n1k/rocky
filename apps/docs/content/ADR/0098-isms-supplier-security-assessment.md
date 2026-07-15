@@ -75,7 +75,7 @@ rg -n "ROCKY-SUP-001" apps/docs/content/compliance/isms-policy.md       # SoA ro
 ## Related ADRs
 
 - **ADR-0075** — Processor / sub-processor management (the inventory source).
-- **ADR-0067** — ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap (parent).
+- **ADR-0067** — ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap (parent).
 - **ADR-0071** — Cryptography-at-rest (paused; referenced by the assessment for at-rest status).
 - **ADR-0103** — Physical controls provider attestation (shared-responsibility boundary).
 

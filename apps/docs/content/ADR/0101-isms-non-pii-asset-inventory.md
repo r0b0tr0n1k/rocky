@@ -73,7 +73,7 @@ rg -n "A.5.9"    apps/docs/content/compliance/isms-policy.md        # SoA row ci
 ## Related ADRs
 
 - **ADR-0061** — PII Field Registry (the PII half of A.5.9).
-- **ADR-0067** — ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap.
+- **ADR-0067** — ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap.
 - **ADR-0102** — Change & Configuration Management (depends on this inventory).
 
 ## Compliance & Standards

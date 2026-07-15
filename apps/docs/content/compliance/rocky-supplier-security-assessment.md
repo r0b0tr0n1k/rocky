@@ -111,4 +111,4 @@ reference, residual-risk acceptance (owner + review date), assessment date, next
 - Regulation (EU) 2016/679 — General Data Protection Regulation (GDPR).
 - ADR-0075 — Processor / sub-processor management.
 - ADR-0098 — Supplier / Processor Security Assessment Procedure (governing ADR).
-- ADR-0067 — Rocky ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap.
+- ADR-0067 — Rocky ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap.

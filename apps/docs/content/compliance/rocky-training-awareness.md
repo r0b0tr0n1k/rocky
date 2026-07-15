@@ -106,4 +106,4 @@ cycle runs. The control remains **PLANNED** in the SoA until records evidence de
 - ISO/IEC 27701:2025 — Extension to ISO/IEC 27001 and ISO/IEC 27002 for privacy information management (A.3.17).
 - Regulation (EU) 2016/679 — General Data Protection Regulation (GDPR Art 39).
 - ADR-0100 — Training & Awareness Programme (governing ADR).
-- ADR-0067 — Rocky ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap.
+- ADR-0067 — Rocky ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap.

@@ -70,7 +70,7 @@ rg -n "ROCKY-TRN-001" apps/docs/content/compliance/isms-policy.md   # SoA rows A
 
 ## Related ADRs
 
-- **ADR-0067** — ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap (parent).
+- **ADR-0067** — ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap (parent).
 - **ADR-0071** — Cryptography-at-rest (paused; named curriculum topic).
 - **ADR-0022** — Authorization (Principal / PolicyEngine; curriculum topic 2).
 

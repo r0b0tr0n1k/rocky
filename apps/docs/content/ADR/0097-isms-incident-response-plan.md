@@ -73,7 +73,7 @@ rg -n "A.5.26"   apps/docs/content/compliance/isms-policy.md    # SoA row cites 
 
 - **ADR-0072** — Personal Data Breach Notification Workflow (the legal procedure this plan complements).
 - **ADR-0007** — Tamper-evident audit (detection + evidence store).
-- **ADR-0067** — ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap.
+- **ADR-0067** — ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap.
 
 ## Compliance & Standards
 

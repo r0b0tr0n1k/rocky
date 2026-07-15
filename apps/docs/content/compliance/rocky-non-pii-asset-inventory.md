@@ -98,6 +98,6 @@ shall not be re-listed here.
 - ISO/IEC 27701:2025 — Extension to ISO/IEC 27001 and ISO/IEC 27002 for privacy information management.
 - ADR-0101 — Non-PII Asset Inventory (governing).
 - ADR-0061 — PII Field Registry.
-- ADR-0067 — ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap.
+- ADR-0067 — ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap.
 - ROCKY-INV-001 — As-Built Security & Privacy Controls Inventory.
 - [Statement of Applicability — ROCKY-ISMS-001](./isms-policy.md).

@@ -94,4 +94,4 @@ forces a decision (implement, or re-accept with revised terms).
 - ISO/IEC 27701:2025 — Extension to ISO/IEC 27001 and ISO/IEC 27002 for privacy information management (A.3.26).
 - Regulation (EU) 2016/679 — General Data Protection Regulation (GDPR Art 32).
 - ADR-0071 — Cryptography-at-Rest via Off-Server Envelope Encryption (governing; PAUSED).
-- ADR-0067 — Rocky ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap.
+- ADR-0067 — Rocky ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap.

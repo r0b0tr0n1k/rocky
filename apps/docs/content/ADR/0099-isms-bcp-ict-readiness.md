@@ -71,7 +71,7 @@ rg -n "ROCKY-BCP-001" apps/docs/content/compliance/isms-policy.md   # SoA rows A
 
 ## Related ADRs
 
-- **ADR-0067** — ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap (parent).
+- **ADR-0067** — ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap (parent).
 - **ADR-0104** — Architecture diagrams & software-engineering ISO standards map (recovery-planning inputs).
 - **ADR-0003** — ExecutionPipeline / environment stages (separation of environments).
 - **ADR-0007** — Audit via lifecycle events (evidence preserved independently of the primary DB).

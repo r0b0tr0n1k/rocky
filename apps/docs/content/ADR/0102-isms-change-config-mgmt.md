@@ -78,7 +78,7 @@ rg -n "A.8.32"   apps/docs/content/compliance/isms-policy.md    # SoA row cites 
 - **ADR-0018 / ADR-0019** — Diamond Seal validators (the enforcing mechanism).
 - **ADR-0022** — Authorization (Principal / PolicyEngine; SoD at runtime).
 - **ADR-0061** — PII erasure/retention (configuration-owned).
-- **ADR-0067** — ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap.
+- **ADR-0067** — ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap.
 
 ## Compliance & Standards
 

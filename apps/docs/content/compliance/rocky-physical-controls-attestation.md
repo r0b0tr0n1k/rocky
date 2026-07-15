@@ -99,5 +99,5 @@ Law 124 is out of scope for this conformity claim and is not referenced here.
 - ISO/IEC 22123 — Information technology — Cloud computing — Reference architecture.
 - ADR-0103 — Physical & Environmental Controls Attestation (governing).
 - ADR-0003 — ExecutionPipeline (environment stages).
-- ADR-0067 — ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap.
+- ADR-0067 — ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap.
 - [Statement of Applicability — ROCKY-ISMS-001](./isms-policy.md).
