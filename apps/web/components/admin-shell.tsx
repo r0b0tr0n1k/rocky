@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOutIcon, SearchIcon } from "lucide-react";
+import { CookieIcon, LogOutIcon, SearchIcon } from "lucide-react";
 
 import {
   Avatar,
@@ -39,6 +39,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@rocky/ui/components/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@rocky/ui/components/dialog";
 
 import { signOut, useSession } from "#lib/auth-client";
 import { filterNavByPermissions, navSections } from "#lib/nav-config";
@@ -60,6 +67,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const roles = (user as { roles?: string[]; permissions?: string[] } | undefined)?.roles ?? [];
   const pathname = usePathname();
   const [cmdOpen, setCmdOpen] = React.useState(false);
+  const [cookieOpen, setCookieOpen] = React.useState(false);
 
   const sections = React.useMemo(
     () => filterNavByPermissions(navSections, permissions),
@@ -159,6 +167,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                     <LogOutIcon data-icon="inline-start" />
                     Sign out
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setCookieOpen(true);
+                    }}
+                  >
+                    <CookieIcon data-icon="inline-start" />
+                    Cookie &amp; Tracking Notice
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -166,6 +184,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <main className="flex-1 p-4 sm:p-6">{children}</main>
         </SidebarInset>
         <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} />
+        <Dialog open={cookieOpen} onOpenChange={setCookieOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Cookie &amp; Tracking Notice</DialogTitle>
+              <DialogDescription>
+                Rocky sets only the strictly-necessary session cookie (Better Auth) required to
+                keep you signed in. Under ePrivacy Art 5(3) and GDPR Art 6(1)(e) (official
+                authority) this cookie is exempt from consent. Rocky sets no analytics,
+                advertising, or cross-site tracking cookies. Full text: ROCKY-COOK-001.
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
       </SidebarProvider>
     </TooltipProvider>
   );
