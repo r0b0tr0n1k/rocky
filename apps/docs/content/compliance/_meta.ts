@@ -16,7 +16,6 @@ export default {
   "rocky-retention-schedule": { title: "Retention Schedule" },
   "rocky-automated-decision-making": { title: "Automated Decision-Making & Profiling" },
   "rocky-international-transfer-assessment": { title: "International Transfer Assessment" },
-  "rocky-soa": { title: "Statement of Applicability (SoA)" },
   "rocky-risk-assessment": { title: "Information Security Risk Assessment" },
   "rocky-risk-treatment-plan": { title: "Risk Treatment Plan" },
   "rocky-internal-audit-procedure": { title: "Internal Audit Procedure" },

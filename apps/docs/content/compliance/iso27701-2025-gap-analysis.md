@@ -233,8 +233,8 @@ key custody. Enforcement hook for GDPR Art 5(1)(f)/32 (§11.3).
 
 The deployment scaffolding built for the VM (Docker Compose + Cloudflare Access / DockFlare +
 external Postgres) is itself a set of _technological controls_ that map onto Annex A / PIMS. These are
-recorded here as **Phase-1 evidence** (they describe controls already running) and feed the SoA
-(`rocky-soa.md`). Clause mappings are engineering leads — counsel must still confirm (see §9).
+recorded here as **Phase-1 evidence** (they describe controls already running) and feed the canonical
+SoA (`isms-policy.md`). Clause mappings are engineering leads — counsel must still confirm (see §9).
 
 ### 10.1 Control → clause map
 
