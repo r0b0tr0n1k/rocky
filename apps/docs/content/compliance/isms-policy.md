@@ -213,7 +213,7 @@ The distribution is the dialectical inverse of the typical failing organisation:
 | --- | --- | --- | --- | --- |
 | A.6.1 | Screening | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.6.2 | Terms and conditions of employment | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
-| A.6.3 | Information security awareness, education and training | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
+| A.6.3 | Information security awareness, education and training | Governance-layer control. The training & awareness programme + records template is now authored (ROCKY-TRN-001, ADR-0100); completion records are a Phase 2 action. | **PLANNED** | ADR-0067 Decision P2; [rocky-training-awareness.md](./rocky-training-awareness.md) (ROCKY-TRN-001, ADR-0100) |
 | A.6.4 | Disciplinary process | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.6.5 | Responsibilities after termination or change of employment | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.6.6 | Confidentiality or non-disclosure agreements | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
