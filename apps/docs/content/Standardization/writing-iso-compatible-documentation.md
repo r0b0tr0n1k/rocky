@@ -377,6 +377,27 @@ One necessary distinction: **ISO/IEC standards are copyrighted (do not copy), wh
 
 This keeps the documentation perfectly legal while still letting the ISO discipline be *visible* in every deliverable.
 
+## 14. Claims, substantiation, and verifiability
+
+The ISO discipline applies to our *own* assertions, not only to transcribed standards. Every material claim in a tender-facing or marketing document must be:
+
+- **Verifiable** — a third party could independently check it.
+- **Substantiated** — backed by a real design fact, control, or evidence (in this repo, by the implementation it describes).
+- **Free of absolute superlatives** — no "unbreakable", "impossible", "100%", or "provable in court of law".
+
+State the *mechanism*, not the *superlative*. Conformance claims use precise qualifiers — *aligned to* / *designed to* / *certified to* — and never imply a certification we do not hold.
+
+Worked examples (claim → defensible form):
+
+| Casual claim | Defensible, verifiable form |
+| --- | --- |
+| PIMS with the same features as ISO/IEC 27701:2025 | Implements the privacy controls specified in Annex A of ISO/IEC 27701:2025 |
+| Better encryption than the standard | Zero-trust architecture: cryptographic keys held in an HSM/vault within EU jurisdiction, never on the application host |
+| Audit logs are unbreakable | Audit logs are tamper-evident via signed hash-chaining, enabling independent cryptographic verification of integrity |
+| Mathematically provable in court of law | *(omit)* — or: integrity is cryptographically verifiable by a third party |
+
+The posture is honest by construction: claims are written only for capabilities that are actually implemented, so the brag and the build stay aligned.
+
 ## Related guides
 
 - [Writing Technical Documents (RFC, ADR, Design Doc)](/how-to/writing-technical-documents) — the companion standard for *internal* engineering documents (RFC / ADR / Design Doc), written in the same controlled-language register.
