@@ -268,7 +268,7 @@ The distribution is the dialectical inverse of the typical failing organisation:
 | A.8.3 | Information access restriction | Information access is restricted by RLS predicates and by mask-by-default projection (fields omitted unless pii:read+purpose). | **IMPLEMENTED** | ADR-0006; ADR-0061 D5 |
 | A.8.30 | Outsourced development | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.8.31 | Separation of development, test and production environments | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
-| A.8.32 | Change management | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
+| A.8.32 | Change management | Governance-layer control. The change-authorisation / configuration-register procedure is now authored (ROCKY-CHG-001, ADR-0102); the Diamond Seal NoDrift mechanism (ADR-0018/0019) is the enforcing layer. | **PLANNED** | ADR-0067 Decision P2; [rocky-change-mgmt-procedure.md](./rocky-change-mgmt-procedure.md) (ROCKY-CHG-001, ADR-0102); ADR-0018 |
 | A.8.33 | Test information | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.8.34 | Protection of information systems during audit testing | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.8.4 | Access to source code | Source-code access is controlled via the repository platform and AGENTS.md review rules; a formal access-approval record is pending. | **PARTIAL** | AGENTS.md |
@@ -276,7 +276,7 @@ The distribution is the dialectical inverse of the typical failing organisation:
 | A.8.6 | Capacity management | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.8.7 | Protection against malware | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
 | A.8.8 | Management of technical vulnerabilities | Governance-layer control. ISMS procedure to be issued per ADR-0067 Phase 2 (P2). | **PLANNED** | ADR-0067 Decision P2 |
-| A.8.9 | Configuration management | Configuration is managed through typed Zod schemas + the Diamond Seal NoDrift guillotine; a change-authorisation register is pending. | **PARTIAL** | packages/validators; ADR-0018 |
+| A.8.9 | Configuration management | Configuration is managed through typed Zod schemas + the Diamond Seal NoDrift guillotine; the change-authorisation procedure (ROCKY-CHG-001, ADR-0102) governs the register and SoD sign-off. | **PARTIAL** | packages/validators; ADR-0018; [rocky-change-mgmt-procedure.md](./rocky-change-mgmt-procedure.md) (ROCKY-CHG-001, ADR-0102) |
 
 ### Table A.1 - Control objectives and controls for PII controllers
 

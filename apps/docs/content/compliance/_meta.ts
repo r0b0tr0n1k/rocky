@@ -15,6 +15,7 @@ export default {
   "rocky-dpa": { title: "Data Processing Agreement (DPA) — Art 28" },
   "rocky-retention-schedule": { title: "Retention Schedule" },
   "rocky-non-pii-asset-inventory": { title: "Non-PII Asset Inventory (ROCKY-AINV-001)" },
+  "rocky-change-mgmt-procedure": { title: "Change & Config Mgmt (ROCKY-CHG-001)" },
   "rocky-automated-decision-making": { title: "Automated Decision-Making & Profiling" },
   "rocky-international-transfer-assessment": { title: "International Transfer Assessment" },
   "rocky-risk-assessment": { title: "Information Security Risk Assessment" },
