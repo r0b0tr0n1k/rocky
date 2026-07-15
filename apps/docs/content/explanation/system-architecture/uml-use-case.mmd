@@ -1,0 +1,30 @@
+flowchart LR
+    classDef actor fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef uc fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+
+    Farmer["🧑 Farmer / Keeper"]:::actor
+    Inspector["🧑 Inspector"]:::actor
+    Vet["🧑 Vet"]:::actor
+    Epi["🧑 Epidemiologist"]:::actor
+    Admin["🧑 Admin"]:::actor
+    Auditor["🧑 Auditor"]:::actor
+
+    UC1["Register animal"]:::uc
+    UC2["Apply ear tag"]:::uc
+    UC3["Record movement"]:::uc
+    UC4["Read passport"]:::uc
+    UC5["Conduct inspection"]:::uc
+    UC6["Raise correction"]:::uc
+    UC7["Record treatment / vaccination"]:::uc
+    UC8["Report notifiable disease"]:::uc
+    UC9["View disease zones"]:::uc
+    UC10["Manage farms / keepers"]:::uc
+    UC11["Run risk analysis"]:::uc
+    UC12["Review audit log / verify evidence"]:::uc
+
+    Farmer --- UC1 & UC2 & UC3 & UC4
+    Inspector --- UC5 & UC6
+    Vet --- UC7 & UC8
+    Epi --- UC9
+    Admin --- UC10 & UC11
+    Auditor --- UC12

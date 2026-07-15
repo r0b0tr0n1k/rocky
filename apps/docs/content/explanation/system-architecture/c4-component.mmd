@@ -1,0 +1,25 @@
+C4Component
+    title Component Map — API (apps/api) (ISO/IEC 42010 component view)
+
+    Container_Boundary(api, "API (NestJS + tRPC)") {
+        Component(router, "tRPC Routers", "nestjs-trpc", "Expose Query/Mutation procedures")
+        Component(svc, "Domain Services", "TypeScript", "Business rules per domain")
+        Component(repo, "Repositories", "Drizzle ORM", "Typed data access")
+        Component(az, "Authorization", "Principal/PolicyEngine/PolicyRegistry", "Policy evaluation")
+        Component(rls, "RLSStage", "ExecutionPipeline", "SET LOCAL pgPolicy per request")
+        Component(emit, "EventEmitter", "ExecutionPipeline", "Tamper-evident audit outbox")
+        Component(pdf, "PDF Bot", "DocumentRegistry", "Typst -> pdf-lib PAdES -> QR")
+    }
+
+    ContainerDb(pg, "PostgreSQL", "RLS-enforced")
+    Container(ext, "Better Auth / HSM / SMS", "External")
+
+    Rel(router, svc, "Calls")
+    Rel(svc, repo, "Uses")
+    Rel(repo, pg, "Reads/writes (RLS)")
+    Rel(router, az, "Authorizes")
+    Rel(az, rls, "Sets policy")
+    Rel(svc, emit, "Emits lifecycle events")
+    Rel(router, pdf, "Renders documents")
+    Rel(pdf, ext, "Signs / notifies")
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")

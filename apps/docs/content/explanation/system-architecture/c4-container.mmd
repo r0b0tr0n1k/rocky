@@ -1,0 +1,38 @@
+C4Container
+    title Container Map — Rocky (ISO/IEC 42010 container view)
+
+    Person(farmer, "Farmer / Keeper")
+    Person(admin, "Admin / SuperAdmin")
+
+    System_Boundary(rocky, "Rocky Platform") {
+        Container(api, "API (NestJS + tRPC)", "TypeScript", "tRPC routers, domain services, RLS enforcement")
+        Container(web, "Web Admin (Next.js)", "TypeScript/React", "Admin UI + Nextra docs site")
+        Container(mob, "Mobile (Expo)", "TypeScript/React Native", "Offline-first field entry, local SQLite")
+        ContainerDb(pg, "PostgreSQL", "Postgres + pgPolicy RLS", "System of record")
+        ContainerDb(sqlite, "SQLite", "Mobile offline cache", "Local sync queue")
+        Container(geo, "Geo (PostGIS)", "Spatial service", "Geofences, disease zones")
+        Container(pdf, "PDF Bot", "Typst + pdf-lib", "PDF/A-3 + PAdES signing + QR")
+        Container(val, "Validators (Zod 4)", "Library", "Diamond Seal schemas")
+        Container(authz, "Auth (Better Auth)", "Library", "Session resolution")
+        Container(exec, "Execution", "Library", "Pipeline, RLS stage, event emitter")
+    }
+
+    System_Ext(betterauth, "Better Auth (cloud)", "Auth provider")
+    System_Ext(hsm, "PAdES HSM", "Signing authority")
+    System_Ext(sms, "SMS / Email", "Notifications")
+
+    Rel(farmer, mob, "Uses")
+    Rel(admin, web, "Uses")
+    Rel(mob, api, "Syncs via tRPC")
+    Rel(web, api, "Calls via tRPC")
+    Rel(api, pg, "Reads/writes (RLS)")
+    Rel(api, sqlite, "Pulls schema profile")
+    Rel(api, geo, "Queries geofences")
+    Rel(api, pdf, "Generates signed docs")
+    Rel(api, val, "Validates input")
+    Rel(api, authz, "Resolves session")
+    Rel(api, exec, "Runs pipeline")
+    Rel(api, betterauth, "Delegates auth")
+    Rel(pdf, hsm, "Signs")
+    Rel(api, sms, "Notifies")
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")

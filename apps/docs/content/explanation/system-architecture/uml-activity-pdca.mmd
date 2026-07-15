@@ -1,0 +1,23 @@
+flowchart TD
+    classDef pdca fill:#FFD700,stroke:#333,stroke-width:2px,color:black
+    classDef act fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+
+    Start([Request / Trigger]) --> P
+    subgraph PDCA["PDCA Governance Loop"]
+        direction TB
+        P["PLAN<br/>Canonize SoA, resolve conflicts"]:::pdca
+        D["DO<br/>Write missing artifacts"]:::pdca
+        C["CHECK<br/>check:standards guardian"]:::pdca
+        A["ACT<br/>Accept ADR-0067, risk-accept gap"]:::pdca
+        P --> D --> C --> A --> P
+    end
+
+    Start2([Data Subject Request]) --> V["Verify identity"]
+    V --> L["Locate PII via PII_FIELD_REGISTRY"]
+    L --> M{"Mask or delete?"}
+    M -->|Mask| MK["Mask by default + reveal-gate"]
+    M -->|Delete| DL["Delete / erase"]
+    MK --> LOG["Append to tamper-evident audit log"]
+    DL --> LOG
+    LOG --> CONF["Confirm to data subject"]
+    CONF --> Done([Closed])

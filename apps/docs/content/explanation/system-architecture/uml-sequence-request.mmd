@@ -1,0 +1,24 @@
+zenuml
+    title UML Sequence — RLS-injected tRPC request (ISO/IEC 19505, ZenUML)
+
+    Client
+    Router.tRPC
+    Authz.PolicyEngine
+    Exec.ExecutionPipeline
+    Repo.Drizzle
+    DB.PostgreSQL
+    Emit.EventEmitter
+
+    Client.call() {
+        Router.tRPC.handle() {
+            Authz.PolicyEngine.evaluate(action, authenticated, roles, admin)
+            Exec.ExecutionPipeline.run() {
+                Exec.RLSStage.setLocal(policy)  // SET LOCAL pgPolicy
+                Repo.Drizzle.query() {
+                    DB.PostgreSQL.execRLS()  // row-level security enforced
+                }
+                Emit.EventEmitter.emit(lifecycleEvent)  // tamper-evident audit
+            }
+            return result
+        }
+    }

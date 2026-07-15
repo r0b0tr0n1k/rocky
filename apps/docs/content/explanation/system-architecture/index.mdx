@@ -1,0 +1,66 @@
+---
+title: System Architecture (C4 + UML)
+sidebarTitle: System Architecture
+asIndexPage: true
+---
+
+# System Architecture — C4 + UML
+
+These diagrams make Rocky's architecture explicit. They are **explanation** artifacts under the
+Diátaxis taxonomy (ADR-0052) and are the visual backbone of the Software-Engineering ISO Standards
+Map (see `Standardization/iso-software-engineering-standards-map.md`). The diagram set is governed by
+**ADR-0104**.
+
+- **C4 model** diagrams follow the context → container → component hierarchy recommended by
+  **ISO/IEC/IEEE 42010** (architecture description). They are rendered with Mermaid's `C4Context` /
+  `C4Container` / `C4Component` types.
+- **UML** diagrams follow **ISO/IEC 19505** (Unified Modeling Language). Use-case and activity views
+  use Mermaid `flowchart` (high-contrast, Unicode actors); the class view uses Mermaid `classDiagram`;
+  the sequence view uses **ZenUML** (Mermaid `zenuml`) for clean nesting and `if/else`/`try/catch`.
+
+Every figure is numbered, captioned, and cross-referenced in the body per **ISO/IEC Directive Part 2,
+Annex A**. Source `.mmd` files are committed alongside the rendered PNGs; re-render with
+`mmdc -i <file>.mmd -o <file>.png -b white`.
+
+## C4 model (ISO/IEC 42010)
+
+**Figure 1 — System Context (C4 Level 1).** Rocky's system boundary, its human actors, and the
+external systems it depends on.
+
+![Figure 1 — System Context (C4 Level 1)](/diagrams/system-architecture/c4-context.png)
+
+**Figure 2 — Container Map (C4 Level 2).** The runnable/deployable units: API, web admin, mobile,
+datastores, and the shared packages.
+
+![Figure 2 — Container Map (C4 Level 2)](/diagrams/system-architecture/c4-container.png)
+
+**Figure 3 — Component Map, API (C4 Level 3).** Inside `apps/api`: routers, domain services,
+repositories, the authorization boundary, the execution pipeline (RLS stage + event emitter), and the
+PDF bot.
+
+![Figure 3 — Component Map, API (C4 Level 3)](/diagrams/system-architecture/c4-component.png)
+
+## UML (ISO/IEC 19505)
+
+**Figure 4 — Use-Case view.** Actors (Farmer/Keeper, Inspector, Vet, Epidemiologist, Admin, Auditor)
+and the domain-level use cases they drive.
+
+![Figure 4 — Use-Case view](/diagrams/system-architecture/uml-use-case.png)
+
+**Figure 5 — Class view, authorization domain.** `Principal`, `PolicyEngine`, `PolicyRegistry`,
+`PolicyResolver`, `AuthResult`, and the `@Policy` decorator; the registry holds policy metadata and the
+engine evaluates routers against it (ADR-0006 / ADR-0022).
+
+![Figure 5 — Class view, authorization domain](/diagrams/system-architecture/uml-class-authorization.png)
+
+**Figure 6 — Sequence view, RLS-injected tRPC request.** A request flows through the router, the
+policy engine, the execution pipeline (which issues `SET LOCAL` pgPolicy), the Drizzle repository, the
+RLS-enforced PostgreSQL, and the tamper-evident event emitter (ADR-0003 / ADR-0007).
+
+![Figure 6 — Sequence view, RLS-injected tRPC request](/diagrams/system-architecture/uml-sequence-request.png)
+
+**Figure 7 — Activity view, PDCA loop and DSR erasure flow.** The governance PDCA loop (Plan → Do →
+Check → Act) and the data-subject erasure flow that locates PII via `PII_FIELD_REGISTRY`, masks or
+deletes, and appends to the tamper-evident audit log (ADR-0061).
+
+![Figure 7 — Activity view, PDCA loop and DSR erasure flow](/diagrams/system-architecture/uml-activity-pdca.png)

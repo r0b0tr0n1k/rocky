@@ -1,0 +1,35 @@
+classDiagram
+    class Principal {
+        +id: string
+        +roles: Role[]
+        +authenticated: boolean
+        +isAdmin(): boolean
+    }
+    class PolicyEngine {
+        +evaluate(action, authenticated, roles, admin): Decision
+    }
+    class PolicyRegistry {
+        +metadata: Map
+        +register(alias, meta)
+        +get(alias): PolicyMeta
+    }
+    class PolicyResolver {
+        +resolve(authResult): Principal
+    }
+    class AuthResult {
+        +userId: string
+        +roles: string[]
+    }
+    class Policy {
+        +action: string
+        +authenticated: boolean
+        +roles: string[]
+        +admin: boolean
+    }
+
+    PolicyRegistry "1" --> "*" Policy : holds metadata
+    PolicyEngine ..> PolicyRegistry : reads metadata
+    PolicyEngine ..> Principal : evaluates against
+    PolicyResolver ..> AuthResult : resolves from
+    PolicyResolver ..> Principal : produces
+    Policy <.. PolicyEngine : decorates routers

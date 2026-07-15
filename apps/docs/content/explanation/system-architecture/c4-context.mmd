@@ -1,0 +1,28 @@
+C4Context
+    title System Context — Rocky Livestock Traceability (ISO/IEC 42010 context view)
+
+    Person(farmer, "Farmer / Keeper", "Owns/keeps animals; registers, tags, moves")
+    Person(inspector, "CPC/VS/VI Inspector", "Conducts on-spot inspections, raises corrections")
+    Person(epi, "State Epidemiologist", "Views disease zones, outbreak analysis")
+    Person(vet, "Veterinarian", "Records treatment/vaccination, reports notifiable disease")
+    Person(admin, "Admin / SuperAdmin", "Manages farms/keepers, runs risk analysis")
+    Person(auditor, "Auditor", "Reviews tamper-evident audit log, verifies evidence")
+
+    System(rocky, "Rocky", "Livestock identification & traceability platform (web admin + mobile + API)")
+
+    System_Ext(betterauth, "Better Auth (cloud)", "Authentication / session provider")
+    System_Ext(hsm, "PAdES HSM", "Offline/air-gapped signing authority for PDF/A-3 + QR")
+    System_Ext(sms, "SMS / Email Gateway", "Notifications (minimised payloads)")
+    System_Ext(registry, "National Animal Registry / MK LPDP", "National legal interoperability")
+
+    Rel(farmer, rocky, "Registers animals, applies ear tags, records movements")
+    Rel(inspector, rocky, "Conducts inspections, raises corrections")
+    Rel(epi, rocky, "Views disease zones")
+    Rel(vet, rocky, "Records treatment, reports notifiable disease")
+    Rel(admin, rocky, "Administers farms/keepers, runs risk analysis")
+    Rel(auditor, rocky, "Audits & verifies evidence")
+    Rel(rocky, betterauth, "Delegates auth/session")
+    Rel(rocky, hsm, "Signs documents (PAdES)")
+    Rel(rocky, sms, "Sends notifications")
+    Rel(rocky, registry, "Exchanges lawful-basis / registry data")
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
