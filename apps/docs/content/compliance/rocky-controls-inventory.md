@@ -16,8 +16,8 @@ applicability: "All Rocky packages and apps (api, web, mob, domains, shared pack
 references:
   - "ROCKY-ISMS-001 (isms-policy.md) — Adopted ISMS posture"
   - "iso27701-2025-gap-analysis.md — MET / PENDING posture"
-  - "MACEDONIAN_LPDP_GDPR_ISO27701_CONTROLS_MATRIX.md — clause crosswalk"
-  - "Standardization/iso27001_2022.md, Standardization/iso27701_2025.md — the standard-of-standards"
+  - "../Standardization/MACEDONIAN_LPDP_GDPR_ISO27701_CONTROLS_MATRIX.md — clause crosswalk"
+  - "Standardization/iso27001-2022-controls.md, Standardization/iso27701_2025.md — the standard-of-standards"
 confidentiality_level: "Internal"
 change_history:
   - "0.1.0-draft — initial as-built inventory authored from codebase inspection"
@@ -31,15 +31,15 @@ status: "DRAFT — INVENTORY ONLY"
 > assessment. It makes NO claim of certification.** It records what Rocky
 > *implements today* (the as-built state) so the standards can be mapped onto a
 > real substrate rather than an imaginary one. Precise clause-by-clause mapping
-> is maintained in `MACEDONIAN_LPDP_GDPR_ISO27701_CONTROLS_MATRIX.md`; this
+> is maintained in `../Standardization/MACEDONIAN_LPDP_GDPR_ISO27701_CONTROLS_MATRIX.md`; this
 > inventory records the *implementation reality* and cites the evidence.
 
 ## How this fits the documentation stack
 
 | Document | Role | Status |
 | --- | --- | --- |
-| `Standardization/iso27001_2022.md`, `iso27701_2025.md` | The standard-of-standards (reference, ~80% documentation/procedure) | Reference |
-| `MACEDONIAN_LPDP_GDPR_ISO27701_CONTROLS_MATRIX.md` | Crosswalk: LPDP → GDPR → ISO 27701 → ISO 27001 → SCF → Implementation → Evidence | Crosswalk |
+| `Standardization/iso27001-2022-controls.md`, `iso27701_2025.md` | The standard-of-standards (reference, ~80% documentation/procedure) | Reference |
+| `../Standardization/MACEDONIAN_LPDP_GDPR_ISO27701_CONTROLS_MATRIX.md` | Crosswalk: LPDP → GDPR → ISO 27701 → ISO 27001 → SCF → Implementation → Evidence | Crosswalk |
 | `ROCKY-ISMS-001` (`isms-policy.md`) | Adopted ISMS posture (engineering homework, not a conformity assessment) | Adopted |
 | `iso27701-2025-gap-analysis.md` | To-be posture: MET vs PENDING | Assessment |
 | **`ROCKY-INV-001` (this file)** | **As-built inventory: what Rocky ships today** | **Inventory** |
@@ -192,7 +192,7 @@ package, router, or ADR that proves implementation. Standards references are
   - WO-122 (GDPR exception) not yet created.
 - **Precise subclause mapping** — this inventory uses control *families*; the
   exact ISO 27701:2025 / 27001:2022 subclause per control lives in
-  `MACEDONIAN_LPDP_GDPR_ISO27701_CONTROLS_MATRIX.md` and should be the single
+  `../Standardization/MACEDONIAN_LPDP_GDPR_ISO27701_CONTROLS_MATRIX.md` and should be the single
   source of truth for clause numbers.
 - **Maturity level** — per the header template's 5-level model, Rocky is at
   L1–L2 (legal/compliance substrate implemented, ISO alignment aspirational). The

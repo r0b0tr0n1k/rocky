@@ -14,7 +14,7 @@ as leads, not authority.
 ## 0. Source Revaluation (2026-07)
 
 The two canonical control catalogs were re-evaluated against the Real of the files
-([`iso27001_2022.md`](../Standardization/iso27001_2022.md) and
+([`iso27001_2022.md`](../Standardization/iso27001-2022-controls.md) and
 [`iso27701_2025.md`](../Standardization/iso27701_2025.md)):
 
 - **Structure — FAITHFUL.** ISO 27001:2022 ships all **93** Annex-A controls across

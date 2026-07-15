@@ -21,11 +21,5 @@ export default {
   "rocky-risk-treatment-plan": { title: "Risk Treatment Plan" },
   "rocky-internal-audit-procedure": { title: "Internal Audit Procedure" },
   "eu-b2b-procurement-pack": { title: "EU B2B Procurement Compliance Pack" },
-  "MACEDONIAN_LPDP_GDPR_ISO27701_COMPLIANCE_GUIDE": { title: "LPDP+GDPR+ISO27701 Compliance Guide (MK)" },
-  "MACEDONIAN_LPDP_GDPR_ISO27701_CONTROLS_MATRIX": { title: "LPDP+GDPR+ISO27701 Controls Matrix (MK)" },
-  "MACEDONIAN_LPDP_GDPR_ISO27701_EXECUTIVE_SUMMARY": { title: "LPDP+GDPR+ISO27701 Exec Summary (MK)" },
-  "MACEDONIAN_LPDP_GDPR_ISO27701_IMPLEMENTATION_GUIDE": { title: "LPDP+GDPR+ISO27701 Implementation Guide (MK)" },
-  "MACEDONIAN_LPDP_GDPR_ISO27701_QUICK_REFERENCE": { title: "LPDP+GDPR+ISO27701 Quick Reference (MK)" },
-  "MACEDONIAN_LPDP_ISO27701_HEADER_DOCUMENTATION": { title: "ISO27701 Header Documentation (MK)" },
-  "MACEDONIAN_LPDP_ISO27701_HEADER_IMPLEMENTATION_PLAN": { title: "ISO27701 Header Implementation Plan (MK)" },
+  "MACEDONIAN_LPDP": { title: "Macedonian LPDP + GDPR + ISO 27701 (MK)" },
   } as const;
