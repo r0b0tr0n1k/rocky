@@ -1,4 +1,4 @@
-# ADR-0067: ISMS Posture & ISO 27001 / ISO 27701:2025 Conformity Roadmap
+# ADR-0067: ISMS Posture & ISO 27001 / ISO 27701:2025 Alignment Roadmap
 
 > The cow is already tagged, chipped, and row-level-secured. What the auditor wants next is
 > the **paper** that says we meant to. Rocky built the enforcement before the policy — the
@@ -56,7 +56,7 @@ run; build the governance we have deferred; certify only after expert review.**
    high-risk ops (health/risk); explicit RoPA from the registry + audit log; resolve crypto-at-rest
    (off-server KEK, envelope encryption); breach-notification workflow; enforced retention/erasure
    (ADR-0061 Phase 2); supplier/processor security assessment (ADR-0075); awareness + NDAs.
-3. **Phase 3 — Certification.** Independent ISMS audit (A.5.35 / A.3.15); physical
+3. **Phase 3 — Independent audit (no ISO certification claimed).** Independent ISMS audit (A.5.35 / A.3.15); physical
    controls (A.7.*); international-transfer safeguards (A.1.5.*). Engage counsel competent in
    both technology and data-protection law to confirm the mappings before any conformity claim.
 4. **The compliance reference module is canonical.** `packages/validators/src/compliance/
@@ -96,6 +96,10 @@ run; build the governance we have deferred; certify only after expert review.**
 - The ISMS / PIMS policy (`apps/docs/content/compliance/isms-policy.md`) harvests the
   enforcement already in operation into the recital + article + Statement-of-Applicability
   form; this ADR is their ruling.
+- The `check:standards` / `check:adrs` / `check:md-links` guardians, and the
+  AGENTS.md / RobotFarm contract lattice, are also the **discipline layer for the LLM
+  sub-agents** that author this repository - the controls are a panopticon built for
+  the bots: they work for us, cannot break the rules, and watch over each other.
 
 ## Verification (Definition of Done)
 

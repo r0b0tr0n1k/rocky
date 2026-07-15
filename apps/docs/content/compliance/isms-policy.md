@@ -90,7 +90,8 @@ operation; Phase 2 consists of the governance layer — policy, lawful
 basis, consent, data-protection impact assessment, records of processing,
 officer designation, awareness, supplier agreements, cryptography at rest,
 breach workflow, and enforced retention and erasure; Phase 3 consists of
-independent audit and certification;
+independent audit and, where counsel advises, external assessment — **no ISO/IEC
+27001 or ISO/IEC 27701 certification is claimed or sought**;
 
 **Whereas** the controls already implemented satisfy a substantial portion of
 Annex A of ISO/IEC 27001:2022 and of the normative PIMS tables of
@@ -112,9 +113,12 @@ following Information Security & Privacy Management System.
 This Management System establishes, implements, maintains and continually
 improves a coordinated set of controls that secure the confidentiality,
 integrity and availability of information, and protect the personal data
-processed by the Rocky system, consistent with the requirements of
-ISO/IEC 27001:2022 and ISO/IEC 27701:2025 as read through the
-local equivalents MK LPDP and AL Law 124.
+processed by the Rocky system, in accordance with Regulation (EU) 2016/679
+(GDPR) as transposed by MK LPDP (and, where applicable, AL Law 124).
+The ISO/IEC 27001:2022 and ISO/IEC 27701:2025 control taxonomies
+are used here as a **reference mapping** for structuring these controls —
+**not** as a conformity claim or certification. **Rocky makes no ISO 27001 /
+ISO 27701 conformity or certification claim.**
 
 ## Article 2 — Scope
 
@@ -161,6 +165,10 @@ its status, and the evidence. Status is one of:
 ---
 
 **Statement of Applicability (SoA) — 158 normative controls**
+
+This control map uses the ISO/IEC 27001:2022 Annex A taxonomy as a reference
+structure. It is an engineering inventory of the controls Rocky enforces —
+**not** an ISO conformity claim or badge.
 
 - **Implemented (code enforces today):** 33
 - **Partial (present, to be wrapped/formalised):** 14
