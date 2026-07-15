@@ -84,7 +84,7 @@ services:
       - MAPTILER_API_KEY=${NEXT_PUBLIC_MAPTILER_API_KEY}
     # Liveness: api listens on 8080. Alpine ships nc; TCP-probe the port.
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "8080"]
+      test: ["CMD", "nc", "-z", "api", "8080"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -117,7 +117,7 @@ services:
         condition: service_healthy
     # Liveness: Next.js serves on 3000 (netcat added to the web image).
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "3000"]
+      test: ["CMD", "nc", "-z", "web", "3000"]
       interval: 30s
       timeout: 10s
       retries: 3
