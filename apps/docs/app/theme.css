@@ -135,3 +135,6 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Brand logo: black by default; flip to white in dark mode (next-themes sets .dark). */
+.dark .rocky-logo { filter: invert(1); }

@@ -66,9 +66,19 @@ const banner = (
     </span>
   </Banner>
 )
-const navbar = <Navbar logo={<b>Rocky</b>} />
+const navbar = (
+  <Navbar
+    logo={<img src="/rocky-goat.svg" alt="Rocky" style={{ height: 28, width: "auto" }} className="rocky-logo" />}
+  />
+)
 const footer = (
   <Footer>
+    <img
+      src="/rocky-goat.svg"
+      alt="Rocky"
+      className="rocky-logo"
+      style={{ height: 24, width: "auto", marginRight: ".6em" }}
+    />
     <a
       href="https://github.com/rocky/rocky"
       target="_blank"

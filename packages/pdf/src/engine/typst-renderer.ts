@@ -34,12 +34,18 @@ import { CompileFormatEnum } from "@myriaddreamin/typst.ts/compiler";
  * build must copy `assets/` to `dist/assets/` (see package build step).
  */
 const FONT_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "assets", "fonts");
+const LOGO_PATH = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "assets", "rocky-goat.png");
 const FONT_FILES = [
   "DejaVuSans.ttf",
   "DejaVuSans-Bold.ttf",
   "DejaVuSans-Oblique.ttf",
   "DejaVuSans-BoldOblique.ttf",
 ];
+
+export function loadLogoPng(): Uint8Array | null {
+  if (!existsSync(LOGO_PATH)) return null;
+  return new Uint8Array(readFileSync(LOGO_PATH));
+}
 
 function resolveFonts(): Uint8Array[] {
   return FONT_FILES.map((name) => join(FONT_DIR, name))

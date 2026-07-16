@@ -94,10 +94,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <Sidebar collapsible="icon">
           <SidebarHeader>
             <div className="flex items-center gap-2 px-2 py-1.5">
-              <div className="grid size-7 place-items-center rounded-md bg-primary text-sm font-semibold text-primary-foreground">
+              <div className="grid size-7 place-items-center rounded-md bg-primary text-sm font-semibold text-primary-foreground group-data-[collapsible=icon]:flex hidden">
                 A
               </div>
-              <span className="text-sm font-semibold tracking-tight">AIMCS</span>
+              <img
+                src="/rocky-goat.svg"
+                alt="Rocky"
+                className="h-7 w-auto group-data-[collapsible=icon]:hidden rocky-logo"
+              />
+              <span className="text-sm font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
+                AIMCS
+              </span>
             </div>
           </SidebarHeader>
           <SidebarContent>

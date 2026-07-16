@@ -48,3 +48,42 @@ export async function embedQrPng(
   const bytes = await pdf.save();
   return new Uint8Array(bytes);
 }
+
+
+/**
+ * Embed the Rocky brand logo (ADR branding) onto the first page of a PDF using
+ * `@cantoo/pdf-lib`. Mirrors `embedQrPng`: the prebuilt Typst WASM sandbox
+ * cannot read images from its vfs, so the logo is stamped post-render. Placed
+ * top-left as a letterhead mark; the visual template reserves a top strip so
+ * it never overlaps the document title.
+ */
+export interface EmbedLogoOptions {
+  /** Width in PDF points. Default 120. */
+  width?: number;
+  /** Left margin in PDF points. Default 24. */
+  x?: number;
+  /** Top margin (distance from top edge) in PDF points. Default 24. */
+  top?: number;
+}
+
+export async function embedLogoPng(
+  pdfBytes: Uint8Array,
+  logoPng: Uint8Array,
+  opts: EmbedLogoOptions = {},
+): Promise<Uint8Array> {
+  const pdf = await PDFDocument.load(pdfBytes);
+  const img = await pdf.embedPng(logoPng);
+  const page = pdf.getPages()[0];
+  if (!page) throw new Error("PDF has no pages to embed a logo onto");
+
+  const w = opts.width ?? 120;
+  const h = w * (img.height / img.width);
+  const { width, height } = page.getSize();
+  const x = opts.x ?? 24;
+  const y = height - h - (opts.top ?? 24);
+
+  page.drawImage(img, { x, y, width: w, height: h });
+
+  const bytes = await pdf.save();
+  return new Uint8Array(bytes);
+}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuth, useSignInEmail } from "@better-auth-ui/react";
-import { GalleryVerticalEnd } from "lucide-react";
 import { Button } from "@rocky/ui/components/button";
 import { Card } from "@rocky/ui/components/card";
 import { Input } from "@rocky/ui/components/input";
@@ -35,10 +34,7 @@ export function SignIn() {
       {/* Brand panel */}
       <div className="hidden flex-col justify-between bg-primary p-8 text-primary-foreground lg:flex">
         <div className="flex items-center gap-2">
-          <div className="grid size-9 place-items-center rounded-lg bg-background/10">
-            <GalleryVerticalEnd className="size-5" />
-          </div>
-          <span className="text-lg font-semibold tracking-tight">AIMCS</span>
+          <img src="/rocky-goat-white.svg" alt="Rocky" className="h-8 w-auto" />
         </div>
         <div className="space-y-3">
           <h1 className="text-2xl font-semibold tracking-tight">

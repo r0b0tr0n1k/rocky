@@ -24,12 +24,12 @@ import {
 } from "../engine/yaml-serializer.js";
 import { DOCUMENT_ERRORS, documentErr, DocumentError } from "../errors/document.errors.js";
 import { buildDocumentModelInputs, GENERIC_DOCUMENT_TYPST } from "../engine/typst-document.template.js";
-import { renderTypst } from "../engine/typst-renderer.js";
+import { renderTypst, loadLogoPng } from "../engine/typst-renderer.js";
 import { wrapPdfA3 } from "../engine/pdfa3.js";
 import { NoOpSigner, type PdfSigner, extractSignature, type SignatureInfo } from "../sign/index.js";
 import { CredentialService, type CredentialResponseView, type CredentialVerifyView } from "./credential.service.js";
 import { type CredentialBatchManifest } from "../credential/batch.js";
-import { embedQrPng } from "../engine/pdf-embed.js";
+import { embedQrPng, embedLogoPng } from "../engine/pdf-embed.js";
 
 export interface DocumentGenerateInput {
   type: string;
@@ -160,6 +160,19 @@ export class DocumentService {
           } catch {
             pdfToWrap = pdf;
           }
+        }
+      }
+
+      // Brand letterhead (ADR branding): the Rocky goat logo is stamped onto
+      // the first page post-render because the Typst WASM sandbox cannot read
+      // images from its vfs (the same reason the credential QR is stamped).
+      // The visual template reserves a top strip so it never overlaps the title.
+      const logoPng = loadLogoPng();
+      if (logoPng) {
+        try {
+          pdfToWrap = await embedLogoPng(pdfToWrap, logoPng);
+        } catch {
+          /* keep the un-logoed visual */
         }
       }
 

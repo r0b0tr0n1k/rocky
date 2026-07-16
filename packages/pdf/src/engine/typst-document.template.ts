@@ -18,6 +18,8 @@ export const GENERIC_DOCUMENT_TYPST = `#set page(paper: "a4", margin: 2cm)
 #let raw = sys.inputs.at("model", default: "{}")
 #let data = json.decode(raw)
 
+#v(2.4cm)
+
 = #data.at("title", default: "Document")
 #text(size: 10pt, fill: rgb(90, 90, 90))[#data.at("subtitle", default: "")]
 
