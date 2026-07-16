@@ -135,7 +135,7 @@ services:
       context: .
       dockerfile: apps/docs/Dockerfile
     ports:
-      - "3041:3000"
+      - "3041:3002"
     restart: unless-stopped
     networks:
       - app-network
