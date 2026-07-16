@@ -14,7 +14,7 @@ flowchart TD
   GEN --> FIX["🩹 node fix-rls-sql.mjs<br/>(resolve $N placeholders)"]
   FIX --> APPLY["⚙️ psql apply<br/>SET check_function_bodies = off;"]
   APPLY --> SEED["🌱 pnpm seed<br/>(idempotent)"]
-  SEED --> VER["✅ 73 tables · 91 enums · RLS live"]
+  SEED --> VER["✅ 78 tables · 102 enums · 56 RLS policies"]
   classDef step fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
   classDef ok fill:#98FB98,stroke:#333,stroke-width:2px,color:black
   class DROP,GEN,FIX,APPLY,SEED step
@@ -30,8 +30,28 @@ flowchart TD
 - **`check_function_bodies = off`** — functions referencing not-yet-defined tables fail compile under the default `on`. Off makes compile lazy (validates at first RLS call).
 - **RLS `$N`** — `drizzle-kit` leaves `$1`/`$2` and unresolved `${isRoleIn(...)}`. `fix-rls-sql.mjs` resolves them; source tables that emit literal `ARRAY[...]` via `sql.raw` skip the post-process.
 
+## Seed scope & idempotency
+
+`pnpm seed` writes the demo dataset behind the admin UI and the Vet/Sanitary smoke
+test. It is designed for a **dropped** DB — `db-recreate.sh` drops first, so a fresh
+run is clean. Re-running bare `pnpm seed` against an already-populated or stress-seeded
+DB can abort on duplicate keys in Sections 6/7 (those inserts are intentionally
+non-idempotent for a dropped DB). For a clean state, always use
+`./scripts/db-recreate.sh` (or `--seed-only` only when the schema is already applied
+and the DB is empty).
+
+The seed also writes **Section 8 admin demo data** — `cattle_passports`, `vs_contracts`,
+`vs_assignments`, `farm_books`, `error_corrections`, `pda_devices`, `iot_devices`,
+`sensor_readings`, `notifications`, `audit_log` — so those admin pages are populated
+out of the box. Three pages stay empty by design: `movement-lineage`, `subjects`, and
+`sync` are interaction-gated (they fill from user actions / a selected region+farm
+filter), not from seed data.
+
 ## Verify
 ```sql
-SELECT count(*) FROM pg_policies;            -- expect ~49
+SELECT count(*) FROM information_schema.tables
+  WHERE table_schema='public' AND table_type='BASE TABLE';   -- expect 78
+SELECT count(*) FROM pg_type WHERE typtype='e';              -- expect 102 (enums)
+SELECT count(*) FROM pg_policies;                            -- expect 56
 SELECT to_regclass('sm.device_tokens');      -- expect a regclass
 ```

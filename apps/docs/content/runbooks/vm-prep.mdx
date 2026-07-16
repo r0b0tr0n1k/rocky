@@ -58,7 +58,7 @@ the first thing that actually needs a browser-reachable hostname.
 flowchart TD
   A["📋 Repo root .env<br/>ROCKY_DOMAIN · DB_HOST · POSTGRES_PASSWORD · BETTER_AUTH_SECRET"] --> B["🐘 PostGIS DB<br/>(bundled postgis/postgis, or external + CREATE EXTENSION postgis)"]
   B --> C["📝 packages/database/.env<br/>DATABASE_URL"]
-  C --> D["♻️ ./scripts/db-recreate.sh<br/>(schema + seed incl. Vet data)"]
+  C --> D["♻️ ./scripts/db-recreate.sh<br/>(schema + seed: Vet data + admin demo tables)"]
   D --> E["🚀 docker compose up -d api<br/>(OutboxProcessorJob every 5s)"]
   E --> F["🔍 psql verify zone<br/>(see Vet/Sanitary Smoke Test)"]
   F --> G(["✅ Backend testable — no domain needed"])
@@ -107,8 +107,17 @@ DATABASE_URL=postgresql://tbot:<pw>@<db-host>:5432/tbot
 ./scripts/db-recreate.sh --seed-only
 ```
 
-The seed includes the Veterinary & Sanitary fake data + a `lab_test.completed`
-outbox event (see [Veterinary & Sanitary Smoke Test](/runbooks/veterinary-sanitary-smoke-test)).
+The seed includes:
+- **Veterinary & Sanitary** fake data + a `lab_test.completed` outbox event (see
+  [Veterinary & Sanitary Smoke Test](/runbooks/veterinary-sanitary-smoke-test));
+- **Section 8 admin demo data** — `cattle_passports`, `vs_contracts`, `vs_assignments`,
+  `farm_books`, `error_corrections`, `pda_devices`, `iot_devices`, `sensor_readings`,
+  `notifications`, `audit_log`. These back the corresponding admin pages so they are
+  populated out of the box after a fresh `db-recreate.sh`.
+
+**Interaction-gated pages (not seeded):** `movement-lineage`, `subjects`, and `sync`
+fill from user actions / require a selected region+farm filter — they are empty by
+design until you drive the relevant workflow. Don't mistake them for missing data.
 
 ### 5. Start the API
 
