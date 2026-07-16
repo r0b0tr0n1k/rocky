@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AnimalPicker } from "@/components/animals/animal-picker";
 import { FarmPicker } from "@/components/farms/farm-picker";
 import { trpc } from "@/providers/trpc-provider";
@@ -47,6 +48,9 @@ export default function TreatmentScreen() {
   const { deviceId } = useOffline();
   const enqueueTreatment = useOfflineMutation("treatment");
   const canWriteHealth = useCan("health:write");
+
+  // Data-backed picker for disease (replaces the raw UUID input).
+  const { data: diseases } = trpc.health.listDiseases.useQuery({ limit: 50, offset: 0 });
 
   const {
     handleSubmit,
@@ -107,59 +111,80 @@ export default function TreatmentScreen() {
     recordTreatment.mutate(payload);
   });
 
+  const diseaseId = watch("diseaseId");
+
   return (
     <ScrollView className="flex-1 bg-background">
-    <Card className="m-4">
-      <CardContent className="gap-4 p-4">
-        <FormField label="Animal" error={errors.animalId?.message} nativeID="animal">
-          <AnimalPicker onSelect={(a) => setValue("animalId", a.id, { shouldValidate: true })} />
-        </FormField>
+      <Card className="m-4">
+        <CardContent className="gap-4 p-4">
+          <FormField label="Animal" error={errors.animalId?.message} nativeID="animal">
+            <AnimalPicker onSelect={(a) => setValue("animalId", a.id, { shouldValidate: true })} />
+          </FormField>
 
-        <FormField label="Farm" error={errors.farmId?.message} nativeID="farm">
-          <FarmPicker onSelect={(f) => setValue("farmId", f.id, { shouldValidate: true })} />
-        </FormField>
+          <FormField label="Farm" error={errors.farmId?.message} nativeID="farm">
+            <FarmPicker onSelect={(f) => setValue("farmId", f.id, { shouldValidate: true })} />
+          </FormField>
 
-        <FormField label="Disease ID (optional)" error={errors.diseaseId?.message} nativeID="diseaseId">
-          <Input
-            placeholder="UUID of the disease"
-            value={watch("diseaseId")}
-            onChangeText={(t) => setValue("diseaseId", t, { shouldValidate: true })}
-          />
-        </FormField>
+          <FormField label="Disease (optional)" error={errors.diseaseId?.message} nativeID="diseaseId">
+            <Select
+              value={
+                diseases?.data && diseaseId
+                  ? { value: diseaseId, label: diseases.data.find((d) => d.id === diseaseId)?.name ?? "" }
+                  : undefined
+              }
+              onValueChange={(opt) => setValue("diseaseId", opt?.value ?? "", { shouldValidate: true })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select disease..." />
+              </SelectTrigger>
+              <SelectContent>
+                {(diseases?.data ?? []).map((d) => (
+                  <SelectItem key={d.id} label={d.name} value={d.id} />
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
 
-        <FormField label="Diagnosis Date (YYYY-MM-DD)" error={errors.diagnosisDate?.message} nativeID="diagnosisDate">
-          <Input
-            placeholder="2026-01-15"
-            value={watch("diagnosisDate")}
-            onChangeText={(t) => setValue("diagnosisDate", t, { shouldValidate: true })}
-          />
-        </FormField>
+          <FormField label="Diagnosis Date (YYYY-MM-DD)" error={errors.diagnosisDate?.message} nativeID="diagnosisDate">
+            <Input
+              placeholder="2026-01-15"
+              value={watch("diagnosisDate")}
+              onChangeText={(t) => setValue("diagnosisDate", t, { shouldValidate: true })}
+            />
+          </FormField>
 
-        <FormField label="Treatment Description (optional)" error={errors.treatmentDesc?.message} nativeID="treatmentDesc">
-          <Input
-            placeholder="Describe the treatment"
-            value={watch("treatmentDesc")}
-            onChangeText={(t) => setValue("treatmentDesc", t, { shouldValidate: true })}
-          />
-        </FormField>
+          <FormField
+            label="Treatment Description (optional)"
+            error={errors.treatmentDesc?.message}
+            nativeID="treatmentDesc"
+          >
+            <Input
+              placeholder="Describe the treatment"
+              value={watch("treatmentDesc")}
+              onChangeText={(t) => setValue("treatmentDesc", t, { shouldValidate: true })}
+            />
+          </FormField>
 
-        <View className="flex-row items-center justify-between">
-          <Text>Isolated</Text>
-          <Switch value={watch("isolated")} onValueChange={(v) => setValue("isolated", v, { shouldValidate: true })} />
-        </View>
+          <View className="flex-row items-center justify-between">
+            <Text>Isolated</Text>
+            <Switch
+              value={watch("isolated")}
+              onValueChange={(v) => setValue("isolated", v, { shouldValidate: true })}
+            />
+          </View>
 
-        {!canWriteHealth ? (
-          <Text className="text-sm text-muted-foreground">You don't have permission to record health events.</Text>
-        ) : !onlineManager.isOnline() ? (
-          <Text className="text-sm text-muted-foreground">
-            Offline — the treatment is saved locally and syncs when you reconnect.
-          </Text>
-        ) : null}
+          {!canWriteHealth ? (
+            <Text className="text-sm text-muted-foreground">You don't have permission to record health events.</Text>
+          ) : !onlineManager.isOnline() ? (
+            <Text className="text-sm text-muted-foreground">
+              Offline — the treatment is saved locally and syncs when you reconnect.
+            </Text>
+          ) : null}
 
-        <Button onPress={onSubmit} disabled={isSubmitting || !canWriteHealth} size="lg">
-          <Text>Record Treatment</Text>
-        </Button>
-      </CardContent>
+          <Button onPress={onSubmit} disabled={isSubmitting || !canWriteHealth} size="lg">
+            <Text>Record Treatment</Text>
+          </Button>
+        </CardContent>
       </Card>
     </ScrollView>
   );

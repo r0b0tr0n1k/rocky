@@ -6,9 +6,9 @@ import { useRouter } from "expo-router";
 type RouteHref = Parameters<ReturnType<typeof useRouter>["push"]>[0];
 
 const HEALTH_ACTIONS: { title: string; route: RouteHref; desc: string }[] = [
-  { title: "Record Vaccination", route: "/health/vaccination", desc: "Log a vaccine administered to an animal" },
-  { title: "Record Treatment", route: "/health/treatment", desc: "Log a medical treatment or diagnosis" },
-  { title: "Record Lab Test", route: "/health/lab-test", desc: "Log laboratory test results" },
+  { title: "Record Vaccination", route: "/health/vaccine/create", desc: "Log a vaccine administered to an animal" },
+  { title: "Record Treatment", route: "/health/treatment/create", desc: "Log a medical treatment or diagnosis" },
+  { title: "Record Lab Test", route: "/health/lab-test/create", desc: "Log laboratory test results" },
 ];
 
 export default function HealthIndexScreen() {
@@ -24,7 +24,17 @@ export default function HealthIndexScreen() {
   );
 }
 
-function TouchableButton({ title, route, desc, router }: { title: string; route: RouteHref; desc: string; router: ReturnType<typeof useRouter> }) {
+function TouchableButton({
+  title,
+  route,
+  desc,
+  router,
+}: {
+  title: string;
+  route: RouteHref;
+  desc: string;
+  router: ReturnType<typeof useRouter>;
+}) {
   return (
     <TouchableOpacity onPress={() => router.push(route)}>
       <Card>
