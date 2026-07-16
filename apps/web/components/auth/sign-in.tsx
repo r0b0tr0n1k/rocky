@@ -32,19 +32,19 @@ export function SignIn() {
   return (
     <Card className="w-full max-w-3xl gap-0 overflow-hidden py-0 lg:grid lg:grid-cols-2">
       {/* Brand panel */}
-      <div className="hidden flex-col justify-between bg-primary p-8 text-primary-foreground lg:flex">
+      <div className="hidden flex-col justify-between border-r bg-muted p-8 lg:flex">
         <div className="flex items-center gap-2">
-          <img src="/rocky-goat-white.svg" alt="Rocky" className="h-8 w-auto" />
+          <img src="/rocky-goat.svg" alt="Rocky" className="h-8 w-auto rocky-logo" />
         </div>
         <div className="space-y-3">
           <h1 className="text-2xl font-semibold tracking-tight">
             Animal Identification &amp; Movement Control
           </h1>
-          <p className="text-sm text-primary-foreground/70">
+          <p className="text-sm text-muted-foreground">
             Sign in to manage farms, animals, movements and inspections.
           </p>
         </div>
-        <p className="text-xs text-primary-foreground/60">© 2026 AIMCS. All rights reserved.</p>
+        <p className="text-xs text-muted-foreground/70">© 2026 AIMCS. All rights reserved.</p>
       </div>
 
       {/* Form panel */}
