@@ -3,6 +3,7 @@ import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { Card, CardContent } from "@/components/ui/card";
+import { FarmPicker } from "@/components/farms/farm-picker";
 import { onlineManager } from "@tanstack/react-query";
 import { trpc } from "@/providers/trpc-provider";
 import { useOfflineMutation } from "@/lib/offline/use-offline-mutation";
@@ -12,6 +13,7 @@ import { useRouter } from "expo-router";
 import { notifyError, notifySuccess } from "@/lib/notify";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type Resolver } from "react-hook-form";
+import { useState } from "react";
 import { ActivityIndicator, ScrollView, View } from "react-native";
 import { declarePastureRequestSchema } from "@rocky/validators/api";
 import { z } from "zod";
@@ -41,6 +43,9 @@ export default function PastureScreen() {
   const { deviceId } = useOffline();
   const enqueuePasture = useOfflineMutation("movement");
   const canDeclarePasture = useCan("movement:pasture");
+
+  const [fromFarmLabel, setFromFarmLabel] = useState("");
+  const [toFarmLabel, setToFarmLabel] = useState("");
 
   const {
     handleSubmit,
@@ -111,20 +116,36 @@ export default function PastureScreen() {
           />
         </FormField>
 
-        <FormField label="From Farm ID" error={errors.fromFarmId?.message} nativeID="fromFarmId">
-          <Input
-            placeholder="UUID of source farm"
-            value={watch("fromFarmId")}
-            onChangeText={(t) => setValue("fromFarmId", t, { shouldValidate: true })}
-          />
+        <FormField label="From Farm" error={errors.fromFarmId?.message} nativeID="fromFarmId">
+          <View className="gap-2">
+            {watch("fromFarmId") ? (
+              <View className="bg-secondary p-3 rounded-md">
+                <Text className="text-foreground font-medium">{fromFarmLabel}</Text>
+              </View>
+            ) : null}
+            <FarmPicker
+              onSelect={(f) => {
+                setValue("fromFarmId", f.id, { shouldValidate: true });
+                setFromFarmLabel(f.name ?? "");
+              }}
+            />
+          </View>
         </FormField>
 
-        <FormField label="To Farm (Pasture) ID" error={errors.toFarmId?.message} nativeID="toFarmId">
-          <Input
-            placeholder="UUID of destination pasture"
-            value={watch("toFarmId")}
-            onChangeText={(t) => setValue("toFarmId", t, { shouldValidate: true })}
-          />
+        <FormField label="To Farm (Pasture)" error={errors.toFarmId?.message} nativeID="toFarmId">
+          <View className="gap-2">
+            {watch("toFarmId") ? (
+              <View className="bg-secondary p-3 rounded-md">
+                <Text className="text-foreground font-medium">{toFarmLabel}</Text>
+              </View>
+            ) : null}
+            <FarmPicker
+              onSelect={(f) => {
+                setValue("toFarmId", f.id, { shouldValidate: true });
+                setToFarmLabel(f.name ?? "");
+              }}
+            />
+          </View>
         </FormField>
 
         <FormField

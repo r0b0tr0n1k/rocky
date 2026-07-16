@@ -124,6 +124,8 @@ export default function SlaughterScreen() {
           error={errors.slaughterhouseId?.message}
           nativeID="slaughterhouseId"
         >
+          {/* TODO: data-backed select blocked — no listX procedure in movement router
+              (slaughterhouses are not farms; farm.list would mix in regular farms). */}
           <Input
             placeholder="UUID of the slaughterhouse"
             value={watch("slaughterhouseId")}
