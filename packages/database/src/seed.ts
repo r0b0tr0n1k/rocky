@@ -10,9 +10,9 @@
 //
 // Based on: SM.PDF (Oracle AIMCS), FS-HK, FS-Eartags, FS-Registration, FS-Health
 
-import "dotenv/config";
+import "./load-env.js";
 import { hashPassword } from "@better-auth/utils/password";
-import { sql } from "drizzle-orm";
+import { sql, inArray, eq } from "drizzle-orm";
 import { MODULE_TYPE } from "./constants/module-type.js";
 import { ROLE_PRIORITY } from "./constants/role-priority.js";
 import { VACCINE_TYPE } from "./constants/vaccine-type.js";
@@ -57,6 +57,32 @@ import { SANITARY_DECISION } from "./constants/sanitary-decision.js";
 import { OUTBOX_AGGREGATE_TYPE } from "./constants/outbox-aggregate-type.js";
 import { OUTBOX_EVENT_STATUS } from "./constants/outbox-event-status.js";
 
+// Domain demo-data tables (Section 8)
+import { cattlePassports } from "./schema/an/cattle-passports.js";
+import { errorCorrections } from "./schema/an/error-corrections.js";
+import { pdaDevices } from "./schema/an/pda-devices.js";
+import { iotDevices } from "./schema/an/iot-devices.js";
+import { sensorReadings } from "./schema/an/sensor-readings.js";
+import { vsContracts } from "./schema/hk/vs-contracts.js";
+import { vsAssignments } from "./schema/hk/vs-assignments.js";
+import { farmBooks } from "./schema/hk/farm-books.js";
+import { notifications } from "./schema/sm/notifications.js";
+import { auditLog } from "./schema/sm/audit-log.js";
+import { PASSPORT_STATUS } from "./constants/passport-status.js";
+import { STATE_CODE } from "./constants/state-code.js";
+import { VS_CONTRACT_STATUS } from "./constants/vs-contract-status.js";
+import { FARM_BOOK_STATUS } from "./constants/farm-book-status.js";
+import { CORRECTION_STATUS } from "./constants/correction-status.js";
+import { IOT_DEVICE_STATUS } from "./constants/iot-device-status.js";
+import { READING_TYPE } from "./constants/reading-type.js";
+import { TRANSMISSION_TYPE } from "./constants/transmission-type.js";
+import { NOTIFICATION_TYPE } from "./constants/notification-type.js";
+import { NOTIFICATION_CATEGORY } from "./constants/notification-category.js";
+import { NOTIFICATION_PRIORITY } from "./constants/notification-priority.js";
+import { NOTIFICATION_STATUS } from "./constants/notification-status.js";
+import { AUDIT_ACTION } from "./constants/audit-action.js";
+import { EVENT_SOURCE } from "./constants/event-source.js";
+
 // ── Permission Definitions ─────────────────────────────────────
 // Each entry: { resource, action, description, scope }
 //   scope: * = system-wide, org = org-scoped, farm = farm-scoped
@@ -64,27 +90,57 @@ import { OUTBOX_EVENT_STATUS } from "./constants/outbox-event-status.js";
 const PERMISSION_DEFS = [
   // System Management
   { resource: "sm:users", action: "read", description: "View system users", scope: PERMISSION_SCOPE.ALL },
-  { resource: "sm:users", action: "write", description: "Create/update/delete system users", scope: PERMISSION_SCOPE.ALL },
-  { resource: "sm:roles", action: "read", description: "View roles and their permissions", scope: PERMISSION_SCOPE.ALL },
+  {
+    resource: "sm:users",
+    action: "write",
+    description: "Create/update/delete system users",
+    scope: PERMISSION_SCOPE.ALL,
+  },
+  {
+    resource: "sm:roles",
+    action: "read",
+    description: "View roles and their permissions",
+    scope: PERMISSION_SCOPE.ALL,
+  },
   { resource: "sm:roles", action: "write", description: "Create/update/delete roles", scope: PERMISSION_SCOPE.ALL },
   { resource: "sm:orgs", action: "read", description: "View organizations", scope: PERMISSION_SCOPE.ALL },
-  { resource: "sm:orgs", action: "write", description: "Create/update/delete organizations", scope: PERMISSION_SCOPE.ALL },
+  {
+    resource: "sm:orgs",
+    action: "write",
+    description: "Create/update/delete organizations",
+    scope: PERMISSION_SCOPE.ALL,
+  },
   { resource: "sm:audit", action: "read", description: "View audit log", scope: PERMISSION_SCOPE.ALL },
   { resource: "sm:sysparams", action: "read", description: "View system parameters", scope: PERMISSION_SCOPE.ALL },
   { resource: "sm:sysparams", action: "write", description: "Modify system parameters", scope: PERMISSION_SCOPE.ALL },
   { resource: "sm:modules", action: "read", description: "View feature-flag modules", scope: PERMISSION_SCOPE.ALL },
-  { resource: "sm:modules", action: "write", description: "Enable/disable feature-flag modules", scope: PERMISSION_SCOPE.ALL },
+  {
+    resource: "sm:modules",
+    action: "write",
+    description: "Enable/disable feature-flag modules",
+    scope: PERMISSION_SCOPE.ALL,
+  },
 
   // Holder/Keeper (HK) Module
   { resource: "hk:farm", action: "read", description: "View farm/holding data", scope: PERMISSION_SCOPE.ORG },
   { resource: "hk:farm", action: "write", description: "Create/update farms", scope: PERMISSION_SCOPE.ORG },
   { resource: "hk:subject", action: "read", description: "View holder/keeper data", scope: PERMISSION_SCOPE.ORG },
-  { resource: "hk:subject", action: "write", description: "Create/update holder/keeper records", scope: PERMISSION_SCOPE.ORG },
+  {
+    resource: "hk:subject",
+    action: "write",
+    description: "Create/update holder/keeper records",
+    scope: PERMISSION_SCOPE.ORG,
+  },
   { resource: "hk:address", action: "read", description: "View addresses", scope: PERMISSION_SCOPE.ORG },
   { resource: "hk:address", action: "write", description: "Create/update addresses", scope: PERMISSION_SCOPE.ORG },
   { resource: "hk:binding", action: "read", description: "View holder-farm bindings", scope: PERMISSION_SCOPE.ORG },
   { resource: "hk:binding", action: "write", description: "Manage holder-farm bindings", scope: PERMISSION_SCOPE.ORG },
-  { resource: "hk:import", action: "admin", description: "Import HK data from flat files/PDA", scope: PERMISSION_SCOPE.ALL },
+  {
+    resource: "hk:import",
+    action: "admin",
+    description: "Import HK data from flat files/PDA",
+    scope: PERMISSION_SCOPE.ALL,
+  },
 
   // Animal Module
   { resource: "animal", action: "read", description: "View animal records", scope: PERMISSION_SCOPE.FARM },
@@ -95,7 +151,12 @@ const PERMISSION_DEFS = [
   // Movement Module
   { resource: "movement", action: "read", description: "View movement records", scope: PERMISSION_SCOPE.FARM },
   { resource: "movement", action: "write", description: "Record animal movements", scope: PERMISSION_SCOPE.FARM },
-  { resource: "movement", action: "import", description: "Import animals from other states", scope: PERMISSION_SCOPE.ORG },
+  {
+    resource: "movement",
+    action: "import",
+    description: "Import animals from other states",
+    scope: PERMISSION_SCOPE.ORG,
+  },
   { resource: "movement", action: "export", description: "Export animals", scope: PERMISSION_SCOPE.ORG },
   { resource: "movement", action: "pasture", description: "Declare pasture movements", scope: PERMISSION_SCOPE.FARM },
 
@@ -103,12 +164,37 @@ const PERMISSION_DEFS = [
   { resource: "eartag", action: "read", description: "View ear tag data", scope: PERMISSION_SCOPE.ORG },
   { resource: "eartag", action: "generate", description: "Generate new ear tag numbers", scope: PERMISSION_SCOPE.ALL },
   { resource: "eartag", action: "order", description: "Place ear tag orders", scope: PERMISSION_SCOPE.FARM },
-  { resource: "eartag", action: "order:cancel", description: "Cancel own ear tag orders", scope: PERMISSION_SCOPE.FARM },
-  { resource: "eartag", action: "order:cancel:any", description: "Cancel any ear tag order", scope: PERMISSION_SCOPE.ALL },
-  { resource: "eartag", action: "order:view_all", description: "View all orders system-wide", scope: PERMISSION_SCOPE.ALL },
+  {
+    resource: "eartag",
+    action: "order:cancel",
+    description: "Cancel own ear tag orders",
+    scope: PERMISSION_SCOPE.FARM,
+  },
+  {
+    resource: "eartag",
+    action: "order:cancel:any",
+    description: "Cancel any ear tag order",
+    scope: PERMISSION_SCOPE.ALL,
+  },
+  {
+    resource: "eartag",
+    action: "order:view_all",
+    description: "View all orders system-wide",
+    scope: PERMISSION_SCOPE.ALL,
+  },
   { resource: "eartag", action: "supply", description: "Manage supplier contingents", scope: PERMISSION_SCOPE.ALL },
-  { resource: "eartag", action: "collect_orders", description: "Collect orders for printing", scope: PERMISSION_SCOPE.ORG },
-  { resource: "eartag", action: "confirm_delivery", description: "Confirm ear tag delivery", scope: PERMISSION_SCOPE.ORG },
+  {
+    resource: "eartag",
+    action: "collect_orders",
+    description: "Collect orders for printing",
+    scope: PERMISSION_SCOPE.ORG,
+  },
+  {
+    resource: "eartag",
+    action: "confirm_delivery",
+    description: "Confirm ear tag delivery",
+    scope: PERMISSION_SCOPE.ORG,
+  },
   { resource: "eartag", action: "allocate", description: "Allocate tags to vet stations", scope: PERMISSION_SCOPE.ALL },
 
   // Slaughter
@@ -116,8 +202,18 @@ const PERMISSION_DEFS = [
   { resource: "slaughter", action: "register", description: "Register slaughter", scope: PERMISSION_SCOPE.FARM },
 
   // Birth Notifications
-  { resource: "birth_notification", action: "read", description: "View birth notifications", scope: PERMISSION_SCOPE.FARM },
-  { resource: "birth_notification", action: "write", description: "Record birth notifications", scope: PERMISSION_SCOPE.FARM },
+  {
+    resource: "birth_notification",
+    action: "read",
+    description: "View birth notifications",
+    scope: PERMISSION_SCOPE.FARM,
+  },
+  {
+    resource: "birth_notification",
+    action: "write",
+    description: "Record birth notifications",
+    scope: PERMISSION_SCOPE.FARM,
+  },
 
   // Pasture
   { resource: "pasture", action: "read", description: "View pasture declarations", scope: PERMISSION_SCOPE.FARM },
@@ -136,17 +232,42 @@ const PERMISSION_DEFS = [
   // Device Registry
   { resource: "device", action: "read", description: "View PDA device registry", scope: PERMISSION_SCOPE.ORG },
   { resource: "device", action: "write", description: "Register/update PDA devices", scope: PERMISSION_SCOPE.ORG },
-  { resource: "device", action: "admin", description: "Administer PDA devices (block/unblock)", scope: PERMISSION_SCOPE.ALL },
+  {
+    resource: "device",
+    action: "admin",
+    description: "Administer PDA devices (block/unblock)",
+    scope: PERMISSION_SCOPE.ALL,
+  },
 
   // Notifications
   { resource: "notification", action: "read", description: "View notifications", scope: PERMISSION_SCOPE.ORG },
   { resource: "notification", action: "write", description: "Send/manage notifications", scope: PERMISSION_SCOPE.ORG },
-  { resource: "notification", action: "admin", description: "Configure notification templates", scope: PERMISSION_SCOPE.ALL },
+  {
+    resource: "notification",
+    action: "admin",
+    description: "Configure notification templates",
+    scope: PERMISSION_SCOPE.ALL,
+  },
 
   // Health Module
-  { resource: "health", action: "read", description: "View health records (diseases, vaccines, treatments, lab tests)", scope: PERMISSION_SCOPE.FARM },
-  { resource: "health", action: "write", description: "Record health events (vaccinations, treatments, lab tests)", scope: PERMISSION_SCOPE.FARM },
-  { resource: "health", action: "admin", description: "Manage disease/vaccine master data", scope: PERMISSION_SCOPE.ALL },
+  {
+    resource: "health",
+    action: "read",
+    description: "View health records (diseases, vaccines, treatments, lab tests)",
+    scope: PERMISSION_SCOPE.FARM,
+  },
+  {
+    resource: "health",
+    action: "write",
+    description: "Record health events (vaccinations, treatments, lab tests)",
+    scope: PERMISSION_SCOPE.FARM,
+  },
+  {
+    resource: "health",
+    action: "admin",
+    description: "Manage disease/vaccine master data",
+    scope: PERMISSION_SCOPE.ALL,
+  },
 
   // Archive Module
   { resource: "archive", action: "read", description: "View archived documents", scope: PERMISSION_SCOPE.ORG },
@@ -156,7 +277,12 @@ const PERMISSION_DEFS = [
   // Correction Module
   { resource: "correction", action: "read", description: "View correction cases", scope: PERMISSION_SCOPE.ORG },
   { resource: "correction", action: "write", description: "Create correction cases", scope: PERMISSION_SCOPE.FARM },
-  { resource: "correction", action: "resolve", description: "Review/resolve correction cases", scope: PERMISSION_SCOPE.ORG },
+  {
+    resource: "correction",
+    action: "resolve",
+    description: "Review/resolve correction cases",
+    scope: PERMISSION_SCOPE.ORG,
+  },
 
   // Passport Module
   { resource: "passport", action: "read", description: "View cattle passports", scope: PERMISSION_SCOPE.ORG },
@@ -412,27 +538,166 @@ async function seed() {
     orderSeq: number;
     isActive: boolean;
   }> = [
-    { name: "ANIMALS", title: "Animal Registry", type: MODULE_TYPE.FEATURE, icon: "PawPrint", route: "/animals", orderSeq: 10, isActive: true },
-    { name: "MOVEMENTS", title: "Movements", type: MODULE_TYPE.FEATURE, icon: "ArrowLeftRight", route: "/movements", orderSeq: 20, isActive: true },
-    { name: "PASSPORTS", title: "Passports", type: MODULE_TYPE.FEATURE, icon: "BookUser", route: "/passports", orderSeq: 30, isActive: true },
-    { name: "EARTAGS", title: "Ear Tags", type: MODULE_TYPE.FEATURE, icon: "Tags", route: "/ear-tags", orderSeq: 40, isActive: true },
-    { name: "HEALTH", title: "Health", type: MODULE_TYPE.FEATURE, icon: "HeartPulse", route: "/health", orderSeq: 50, isActive: true },
-    { name: "INSPECTIONS", title: "Inspections", type: MODULE_TYPE.FEATURE, icon: "ClipboardCheck", route: "/inspections", orderSeq: 60, isActive: true },
-    { name: "CORRECTIONS", title: "Corrections", type: MODULE_TYPE.FEATURE, icon: "Wrench", route: "/corrections", orderSeq: 70, isActive: true },
-    { name: "ARCHIVE", title: "Archive", type: MODULE_TYPE.FEATURE, icon: "Archive", route: "/archive", orderSeq: 80, isActive: true },
-    { name: "NOTIFICATIONS", title: "Notifications", type: MODULE_TYPE.FEATURE, icon: "Bell", route: "/notifications", orderSeq: 90, isActive: true },
-    { name: "IOT", title: "IoT", type: MODULE_TYPE.INTEGRATION, icon: "RadioTower", route: "/iot", orderSeq: 100, isActive: true },
-    { name: "FARMS", title: "Farms", type: MODULE_TYPE.CORE, icon: "Building2", route: "/farms", orderSeq: 110, isActive: true },
-    { name: "ORGANIZATIONS", title: "Organizations", type: MODULE_TYPE.ADMIN, icon: "Users", route: "/organizations", orderSeq: 120, isActive: true },
-    { name: "USERS", title: "Users", type: MODULE_TYPE.ADMIN, icon: "UserCog", route: "/users", orderSeq: 130, isActive: true },
-    { name: "ROLES", title: "Roles & Permissions", type: MODULE_TYPE.ADMIN, icon: "ShieldCheck", route: "/rbac", orderSeq: 140, isActive: true },
-    { name: "AUDIT", title: "Audit", type: MODULE_TYPE.ADMIN, icon: "ScrollText", route: "/audit", orderSeq: 150, isActive: true },
-    { name: "SYSTEM_PARAMS", title: "System Parameters", type: MODULE_TYPE.ADMIN, icon: "SlidersHorizontal", route: "/system-parameters", orderSeq: 160, isActive: true },
-    { name: "FEATURE_FLAGS", title: "Feature Flags", type: MODULE_TYPE.ADMIN, icon: "ToggleLeft", route: "/feature-flags", orderSeq: 170, isActive: true },
+    {
+      name: "ANIMALS",
+      title: "Animal Registry",
+      type: MODULE_TYPE.FEATURE,
+      icon: "PawPrint",
+      route: "/animals",
+      orderSeq: 10,
+      isActive: true,
+    },
+    {
+      name: "MOVEMENTS",
+      title: "Movements",
+      type: MODULE_TYPE.FEATURE,
+      icon: "ArrowLeftRight",
+      route: "/movements",
+      orderSeq: 20,
+      isActive: true,
+    },
+    {
+      name: "PASSPORTS",
+      title: "Passports",
+      type: MODULE_TYPE.FEATURE,
+      icon: "BookUser",
+      route: "/passports",
+      orderSeq: 30,
+      isActive: true,
+    },
+    {
+      name: "EARTAGS",
+      title: "Ear Tags",
+      type: MODULE_TYPE.FEATURE,
+      icon: "Tags",
+      route: "/ear-tags",
+      orderSeq: 40,
+      isActive: true,
+    },
+    {
+      name: "HEALTH",
+      title: "Health",
+      type: MODULE_TYPE.FEATURE,
+      icon: "HeartPulse",
+      route: "/health",
+      orderSeq: 50,
+      isActive: true,
+    },
+    {
+      name: "INSPECTIONS",
+      title: "Inspections",
+      type: MODULE_TYPE.FEATURE,
+      icon: "ClipboardCheck",
+      route: "/inspections",
+      orderSeq: 60,
+      isActive: true,
+    },
+    {
+      name: "CORRECTIONS",
+      title: "Corrections",
+      type: MODULE_TYPE.FEATURE,
+      icon: "Wrench",
+      route: "/corrections",
+      orderSeq: 70,
+      isActive: true,
+    },
+    {
+      name: "ARCHIVE",
+      title: "Archive",
+      type: MODULE_TYPE.FEATURE,
+      icon: "Archive",
+      route: "/archive",
+      orderSeq: 80,
+      isActive: true,
+    },
+    {
+      name: "NOTIFICATIONS",
+      title: "Notifications",
+      type: MODULE_TYPE.FEATURE,
+      icon: "Bell",
+      route: "/notifications",
+      orderSeq: 90,
+      isActive: true,
+    },
+    {
+      name: "IOT",
+      title: "IoT",
+      type: MODULE_TYPE.INTEGRATION,
+      icon: "RadioTower",
+      route: "/iot",
+      orderSeq: 100,
+      isActive: true,
+    },
+    {
+      name: "FARMS",
+      title: "Farms",
+      type: MODULE_TYPE.CORE,
+      icon: "Building2",
+      route: "/farms",
+      orderSeq: 110,
+      isActive: true,
+    },
+    {
+      name: "ORGANIZATIONS",
+      title: "Organizations",
+      type: MODULE_TYPE.ADMIN,
+      icon: "Users",
+      route: "/organizations",
+      orderSeq: 120,
+      isActive: true,
+    },
+    {
+      name: "USERS",
+      title: "Users",
+      type: MODULE_TYPE.ADMIN,
+      icon: "UserCog",
+      route: "/users",
+      orderSeq: 130,
+      isActive: true,
+    },
+    {
+      name: "ROLES",
+      title: "Roles & Permissions",
+      type: MODULE_TYPE.ADMIN,
+      icon: "ShieldCheck",
+      route: "/rbac",
+      orderSeq: 140,
+      isActive: true,
+    },
+    {
+      name: "AUDIT",
+      title: "Audit",
+      type: MODULE_TYPE.ADMIN,
+      icon: "ScrollText",
+      route: "/audit",
+      orderSeq: 150,
+      isActive: true,
+    },
+    {
+      name: "SYSTEM_PARAMS",
+      title: "System Parameters",
+      type: MODULE_TYPE.ADMIN,
+      icon: "SlidersHorizontal",
+      route: "/system-parameters",
+      orderSeq: 160,
+      isActive: true,
+    },
+    {
+      name: "FEATURE_FLAGS",
+      title: "Feature Flags",
+      type: MODULE_TYPE.ADMIN,
+      icon: "ToggleLeft",
+      route: "/feature-flags",
+      orderSeq: 170,
+      isActive: true,
+    },
   ];
 
   for (const def of MODULE_DEFS) {
-    await db.insert(modules).values(def).onConflictDoNothing({ target: [modules.name] });
+    await db
+      .insert(modules)
+      .values(def)
+      .onConflictDoNothing({ target: [modules.name] });
   }
   const moduleCount = await db.select({ count: sql<number>`count(*)::int` }).from(modules);
   console.log(`  ✓ ${moduleCount[0]?.count ?? 0} feature-flag modules registered`);
@@ -450,48 +715,265 @@ async function seed() {
     minValue?: string;
     maxValue?: string;
   }> = [
-    { code: "DEFAULT_LANGUAGE", value: LANGUAGE.MK, dataType: "STRING", group: "general", description: "Default UI language", isEditable: true },
-    { code: "UI_THEME", value: "system", dataType: "STRING", group: "general", description: "UI color theme", allowedValues: ["light", "dark", "system"], isEditable: true },
-    { code: "DATE_FORMAT", value: "dd.MM.yyyy", dataType: "STRING", group: "general", description: "Default date format", isEditable: true },
-    { code: "SESSION_TIMEOUT_MIN", value: "30", dataType: "INTEGER", group: "security", description: "Session idle timeout (minutes)", minValue: "5", maxValue: "240", isEditable: true },
-    { code: "PASSWORD_MIN_LENGTH", value: "8", dataType: "INTEGER", group: "security", description: "Minimum password length", minValue: "6", maxValue: "64", isEditable: true },
-    { code: "AUDIT_RETENTION_DAYS", value: "1095", dataType: "INTEGER", group: "retention", description: "Audit log retention period (days)", minValue: "90", maxValue: "3650", isEditable: true },
-    { code: "NOTIFICATIONS_ENABLED", value: "true", dataType: "BOOLEAN", group: "notifications", description: "Enable system notifications", isEditable: true },
-    { code: "MAINTENANCE_MODE", value: "false", dataType: "BOOLEAN", group: "system", description: "Enable maintenance mode", isEditable: true },
-
+    {
+      code: "DEFAULT_LANGUAGE",
+      value: LANGUAGE.MK,
+      dataType: "STRING",
+      group: "general",
+      description: "Default UI language",
+      isEditable: true,
+    },
+    {
+      code: "UI_THEME",
+      value: "system",
+      dataType: "STRING",
+      group: "general",
+      description: "UI color theme",
+      allowedValues: ["light", "dark", "system"],
+      isEditable: true,
+    },
+    {
+      code: "DATE_FORMAT",
+      value: "dd.MM.yyyy",
+      dataType: "STRING",
+      group: "general",
+      description: "Default date format",
+      isEditable: true,
+    },
+    {
+      code: "SESSION_TIMEOUT_MIN",
+      value: "30",
+      dataType: "INTEGER",
+      group: "security",
+      description: "Session idle timeout (minutes)",
+      minValue: "5",
+      maxValue: "240",
+      isEditable: true,
+    },
+    {
+      code: "PASSWORD_MIN_LENGTH",
+      value: "8",
+      dataType: "INTEGER",
+      group: "security",
+      description: "Minimum password length",
+      minValue: "6",
+      maxValue: "64",
+      isEditable: true,
+    },
+    {
+      code: "AUDIT_RETENTION_DAYS",
+      value: "1095",
+      dataType: "INTEGER",
+      group: "retention",
+      description: "Audit log retention period (days)",
+      minValue: "90",
+      maxValue: "3650",
+      isEditable: true,
+    },
+    {
+      code: "NOTIFICATIONS_ENABLED",
+      value: "true",
+      dataType: "BOOLEAN",
+      group: "notifications",
+      description: "Enable system notifications",
+      isEditable: true,
+    },
+    {
+      code: "MAINTENANCE_MODE",
+      value: "false",
+      dataType: "BOOLEAN",
+      group: "system",
+      description: "Enable maintenance mode",
+      isEditable: true,
+    },
 
     // ── MK business-rule defaults (ADR-0030 RuleSet thresholds) ──
     // Seeded as the MK jurisdiction default. Domain services currently hardcode
     // these (the B2 gap, ADR-0023/0030); WO-012 will read them via the RuleSet
     // resolver instead of module-level constants. Idempotent via onConflictDoNothing.
-    { code: "ORDER_INTERVAL_DAYS", value: "120", dataType: "INTEGER", group: "business", description: "Minimum days between ear-tag orders", minValue: "1", maxValue: "365", isEditable: true },
-    { code: "MAX_ORDERS_PER_YEAR", value: "4", dataType: "INTEGER", group: "business", description: "Maximum ear-tag orders per year", minValue: "1", maxValue: "52", isEditable: true },
-    { code: "MIN_VACCINATION_AGE_DAYS", value: "30", dataType: "INTEGER", group: "business", description: "Minimum animal age (days) for vaccination", minValue: "1", isEditable: true },
-    { code: "SLAUGHTER_MIN_AGE_DAYS", value: "25", dataType: "INTEGER", group: "business", description: "Minimum age (days) for slaughter", minValue: "1", isEditable: true },
-    { code: "STILLBORN_THRESHOLD_DAYS", value: "25", dataType: "INTEGER", group: "business", description: "Max age (days) still classified stillborn", minValue: "1", isEditable: true },
-    { code: "ARRIVAL_CORRECTION_DAYS", value: "2", dataType: "INTEGER", group: "business", description: "Arrival correction window (days)", minValue: "0", maxValue: "30", isEditable: true },
-    { code: "MIN_MOTHER_AGE_MONTHS", value: "17", dataType: "INTEGER", group: "business", description: "Minimum mother age (months) at birth", minValue: "1", isEditable: true },
-    { code: "CALVING_PERIOD_DAYS", value: "365", dataType: "INTEGER", group: "business", description: "Minimum calving gap (days) since last calf", minValue: "1", isEditable: true },
-    { code: "SELECTION_PERCENTAGE", value: "10", dataType: "INTEGER", group: "inspection", description: "Annual risk-analysis farm selection percentage", minValue: "1", maxValue: "100", isEditable: true },
-    { code: "FARM_SIZE_WEIGHT", value: "0.3", dataType: "DECIMAL", group: "inspection", description: "Risk weight: farm size", isEditable: true },
-    { code: "HISTORY_WEIGHT", value: "0.3", dataType: "DECIMAL", group: "inspection", description: "Risk weight: inspection history", isEditable: true },
-    { code: "SPECIES_WEIGHT", value: "0.2", dataType: "DECIMAL", group: "inspection", description: "Risk weight: species diversity", isEditable: true },
-    { code: "REGION_WEIGHT", value: "0.2", dataType: "DECIMAL", group: "inspection", description: "Risk weight: regional random factor", isEditable: true },
-    { code: "FARMER_CAN_ADMINISTER", value: "true", dataType: "BOOLEAN", group: "business", description: "Farmer may administer (vaccinate/register) on own farm (ADR-0030)", isEditable: true },
-    { code: "RETENTION_YEARS_CPC", value: "3", dataType: "INTEGER", group: "retention", description: "Archive retention years (CPC tier)", isEditable: true },
-    { code: "RETENTION_YEARS_VS", value: "3", dataType: "INTEGER", group: "retention", description: "Archive retention years (VS tier)", isEditable: true },
-    { code: "RETENTION_YEARS_VI", value: "3", dataType: "INTEGER", group: "retention", description: "Archive retention years (VI tier)", isEditable: true },
-    { code: "RETENTION_YEARS_BIP", value: "3", dataType: "INTEGER", group: "retention", description: "Archive retention years (BIP tier)", isEditable: true },
-    { code: "ROLE_VOCAB", value: "owner,keeper,veterinarian,trader,slaughterhouse_op,market_op,technician,guardian", dataType: "STRING", group: "vocab", description: "Subject-role vocabulary for the jurisdiction (ADR-0030 WO-014)", isEditable: true },
-    { code: "ADMINISTER_ROLES", value: "veterinarian", dataType: "STRING", group: "business", description: "Roles permitted to administer; overridable per jurisdiction (B3 VI)", isEditable: true },
+    {
+      code: "ORDER_INTERVAL_DAYS",
+      value: "120",
+      dataType: "INTEGER",
+      group: "business",
+      description: "Minimum days between ear-tag orders",
+      minValue: "1",
+      maxValue: "365",
+      isEditable: true,
+    },
+    {
+      code: "MAX_ORDERS_PER_YEAR",
+      value: "4",
+      dataType: "INTEGER",
+      group: "business",
+      description: "Maximum ear-tag orders per year",
+      minValue: "1",
+      maxValue: "52",
+      isEditable: true,
+    },
+    {
+      code: "MIN_VACCINATION_AGE_DAYS",
+      value: "30",
+      dataType: "INTEGER",
+      group: "business",
+      description: "Minimum animal age (days) for vaccination",
+      minValue: "1",
+      isEditable: true,
+    },
+    {
+      code: "SLAUGHTER_MIN_AGE_DAYS",
+      value: "25",
+      dataType: "INTEGER",
+      group: "business",
+      description: "Minimum age (days) for slaughter",
+      minValue: "1",
+      isEditable: true,
+    },
+    {
+      code: "STILLBORN_THRESHOLD_DAYS",
+      value: "25",
+      dataType: "INTEGER",
+      group: "business",
+      description: "Max age (days) still classified stillborn",
+      minValue: "1",
+      isEditable: true,
+    },
+    {
+      code: "ARRIVAL_CORRECTION_DAYS",
+      value: "2",
+      dataType: "INTEGER",
+      group: "business",
+      description: "Arrival correction window (days)",
+      minValue: "0",
+      maxValue: "30",
+      isEditable: true,
+    },
+    {
+      code: "MIN_MOTHER_AGE_MONTHS",
+      value: "17",
+      dataType: "INTEGER",
+      group: "business",
+      description: "Minimum mother age (months) at birth",
+      minValue: "1",
+      isEditable: true,
+    },
+    {
+      code: "CALVING_PERIOD_DAYS",
+      value: "365",
+      dataType: "INTEGER",
+      group: "business",
+      description: "Minimum calving gap (days) since last calf",
+      minValue: "1",
+      isEditable: true,
+    },
+    {
+      code: "SELECTION_PERCENTAGE",
+      value: "10",
+      dataType: "INTEGER",
+      group: "inspection",
+      description: "Annual risk-analysis farm selection percentage",
+      minValue: "1",
+      maxValue: "100",
+      isEditable: true,
+    },
+    {
+      code: "FARM_SIZE_WEIGHT",
+      value: "0.3",
+      dataType: "DECIMAL",
+      group: "inspection",
+      description: "Risk weight: farm size",
+      isEditable: true,
+    },
+    {
+      code: "HISTORY_WEIGHT",
+      value: "0.3",
+      dataType: "DECIMAL",
+      group: "inspection",
+      description: "Risk weight: inspection history",
+      isEditable: true,
+    },
+    {
+      code: "SPECIES_WEIGHT",
+      value: "0.2",
+      dataType: "DECIMAL",
+      group: "inspection",
+      description: "Risk weight: species diversity",
+      isEditable: true,
+    },
+    {
+      code: "REGION_WEIGHT",
+      value: "0.2",
+      dataType: "DECIMAL",
+      group: "inspection",
+      description: "Risk weight: regional random factor",
+      isEditable: true,
+    },
+    {
+      code: "FARMER_CAN_ADMINISTER",
+      value: "true",
+      dataType: "BOOLEAN",
+      group: "business",
+      description: "Farmer may administer (vaccinate/register) on own farm (ADR-0030)",
+      isEditable: true,
+    },
+    {
+      code: "RETENTION_YEARS_CPC",
+      value: "3",
+      dataType: "INTEGER",
+      group: "retention",
+      description: "Archive retention years (CPC tier)",
+      isEditable: true,
+    },
+    {
+      code: "RETENTION_YEARS_VS",
+      value: "3",
+      dataType: "INTEGER",
+      group: "retention",
+      description: "Archive retention years (VS tier)",
+      isEditable: true,
+    },
+    {
+      code: "RETENTION_YEARS_VI",
+      value: "3",
+      dataType: "INTEGER",
+      group: "retention",
+      description: "Archive retention years (VI tier)",
+      isEditable: true,
+    },
+    {
+      code: "RETENTION_YEARS_BIP",
+      value: "3",
+      dataType: "INTEGER",
+      group: "retention",
+      description: "Archive retention years (BIP tier)",
+      isEditable: true,
+    },
+    {
+      code: "ROLE_VOCAB",
+      value: "owner,keeper,veterinarian,trader,slaughterhouse_op,market_op,technician,guardian",
+      dataType: "STRING",
+      group: "vocab",
+      description: "Subject-role vocabulary for the jurisdiction (ADR-0030 WO-014)",
+      isEditable: true,
+    },
+    {
+      code: "ADMINISTER_ROLES",
+      value: "veterinarian",
+      dataType: "STRING",
+      group: "business",
+      description: "Roles permitted to administer; overridable per jurisdiction (B3 VI)",
+      isEditable: true,
+    },
   ];
 
   for (const def of SYSTEM_PARAM_DEFS) {
-    await db.insert(systemParameters).values(def).onConflictDoNothing({ target: [systemParameters.code] });
+    await db
+      .insert(systemParameters)
+      .values(def)
+      .onConflictDoNothing({ target: [systemParameters.code] });
   }
   const paramCount = await db.select({ count: sql<number>`count(*)::int` }).from(systemParameters);
   console.log(`  ✓ ${paramCount[0]?.count ?? 0} system parameters registered`);
-
 
   // ═══════════════════════════════════════════════════════════════
   // 4. Seed Health Master Data
@@ -500,22 +982,118 @@ async function seed() {
   console.log("🌱 Seeding health master data...");
 
   const DISEASE_DEFS = [
-    { name: "Anthrax", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_A, controlMeasures: CONTROL_MEASURES.STAMPING_OUT, description: "Bacillus anthracis — acute infectious disease in cattle" },
-    { name: "Bovine Brucellosis", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_B, controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME, description: "Brucella abortus — causes abortions, highly contagious" },
-    { name: "Bovine Tuberculosis", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_B, controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME, description: "Mycobacterium bovis — chronic respiratory disease, zoonotic" },
-    { name: "Foot and Mouth Disease", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_A, controlMeasures: CONTROL_MEASURES.STAMPING_OUT, description: "Highly contagious viral vesicular disease (Aphtovirus)" },
-    { name: "Rabies", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_A, controlMeasures: CONTROL_MEASURES.STAMPING_OUT, description: "Lyssavirus — fatal zoonotic neurological disease" },
-    { name: "Bovine Spongiform Encephalopathy", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_A, controlMeasures: CONTROL_MEASURES.STAMPING_OUT, description: "Prion disease — fatal neurodegenerative (BSE)" },
-    { name: "Lumpy Skin Disease", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_A, controlMeasures: CONTROL_MEASURES.STAMPING_OUT, description: "Capripoxvirus — nodular skin lesions, fever" },
-    { name: "Bluetongue", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_B, controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME, description: "Orbivirus — vector-borne disease in ruminants" },
-    { name: "Bovine Viral Diarrhea", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_C, controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME, description: "Pestivirus — BVD/MD, immunosuppressive" },
-    { name: "Infectious Bovine Rhinotracheitis", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_C, controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME, description: "BoHV-1 — IBR/IPV respiratory and reproductive disease" },
-    { name: "Q Fever", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_B, controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME, description: "Coxiella burnetii — zoonotic, causes abortions" },
-    { name: "Salmonellosis", notifiable: true, diseaseCategory: DISEASE_CATEGORY.CATEGORY_B, controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME, description: "Salmonella enterica — enteric infection, zoonotic" },
-    { name: "Mastitis", notifiable: false, diseaseCategory: DISEASE_CATEGORY.CATEGORY_E, controlMeasures: CONTROL_MEASURES.SURVEILLANCE, description: "Bacterial udder infection — E. coli, Staph, Strep" },
-    { name: "Bovine Respiratory Disease Complex", notifiable: false, diseaseCategory: DISEASE_CATEGORY.CATEGORY_E, controlMeasures: CONTROL_MEASURES.SURVEILLANCE, description: "Multifactorial BRDC — shipping fever complex" },
-    { name: "Coccidiosis", notifiable: false, diseaseCategory: DISEASE_CATEGORY.CATEGORY_E, controlMeasures: CONTROL_MEASURES.SURVEILLANCE, description: "Eimeria spp. — protozoan enteritis in young calves" },
-    { name: "Blackleg", notifiable: false, diseaseCategory: DISEASE_CATEGORY.CATEGORY_E, controlMeasures: CONTROL_MEASURES.SURVEILLANCE, description: "Clostridium chauvoei — gas gangrene in muscle" },
+    {
+      name: "Anthrax",
+      notifiable: true,
+      diseaseCategory: DISEASE_CATEGORY.CATEGORY_A,
+      controlMeasures: CONTROL_MEASURES.STAMPING_OUT,
+      description: "Bacillus anthracis — acute infectious disease in cattle",
+    },
+    {
+      name: "Bovine Brucellosis",
+      notifiable: true,
+      diseaseCategory: DISEASE_CATEGORY.CATEGORY_B,
+      controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME,
+      description: "Brucella abortus — causes abortions, highly contagious",
+    },
+    {
+      name: "Bovine Tuberculosis",
+      notifiable: true,
+      diseaseCategory: DISEASE_CATEGORY.CATEGORY_B,
+      controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME,
+      description: "Mycobacterium bovis — chronic respiratory disease, zoonotic",
+    },
+    {
+      name: "Foot and Mouth Disease",
+      notifiable: true,
+      diseaseCategory: DISEASE_CATEGORY.CATEGORY_A,
+      controlMeasures: CONTROL_MEASURES.STAMPING_OUT,
+      description: "Highly contagious viral vesicular disease (Aphtovirus)",
+    },
+    {
+      name: "Rabies",
+      notifiable: true,
+      diseaseCategory: DISEASE_CATEGORY.CATEGORY_A,
+      controlMeasures: CONTROL_MEASURES.STAMPING_OUT,
+      description: "Lyssavirus — fatal zoonotic neurological disease",
+    },
+    {
+      name: "Bovine Spongiform Encephalopathy",
+      notifiable: true,
+      diseaseCategory: DISEASE_CATEGORY.CATEGORY_A,
+      controlMeasures: CONTROL_MEASURES.STAMPING_OUT,
+      description: "Prion disease — fatal neurodegenerative (BSE)",
+    },
+    {
+      name: "Lumpy Skin Disease",
+      notifiable: true,
+      diseaseCategory: DISEASE_CATEGORY.CATEGORY_A,
+      controlMeasures: CONTROL_MEASURES.STAMPING_OUT,
+      description: "Capripoxvirus — nodular skin lesions, fever",
+    },
+    {
+      name: "Bluetongue",
+      notifiable: true,
+      diseaseCategory: DISEASE_CATEGORY.CATEGORY_B,
+      controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME,
+      description: "Orbivirus — vector-borne disease in ruminants",
+    },
+    {
+      name: "Bovine Viral Diarrhea",
+      notifiable: true,
+      diseaseCategory: DISEASE_CATEGORY.CATEGORY_C,
+      controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME,
+      description: "Pestivirus — BVD/MD, immunosuppressive",
+    },
+    {
+      name: "Infectious Bovine Rhinotracheitis",
+      notifiable: true,
+      diseaseCategory: DISEASE_CATEGORY.CATEGORY_C,
+      controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME,
+      description: "BoHV-1 — IBR/IPV respiratory and reproductive disease",
+    },
+    {
+      name: "Q Fever",
+      notifiable: true,
+      diseaseCategory: DISEASE_CATEGORY.CATEGORY_B,
+      controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME,
+      description: "Coxiella burnetii — zoonotic, causes abortions",
+    },
+    {
+      name: "Salmonellosis",
+      notifiable: true,
+      diseaseCategory: DISEASE_CATEGORY.CATEGORY_B,
+      controlMeasures: CONTROL_MEASURES.CONTROL_PROGRAMME,
+      description: "Salmonella enterica — enteric infection, zoonotic",
+    },
+    {
+      name: "Mastitis",
+      notifiable: false,
+      diseaseCategory: DISEASE_CATEGORY.CATEGORY_E,
+      controlMeasures: CONTROL_MEASURES.SURVEILLANCE,
+      description: "Bacterial udder infection — E. coli, Staph, Strep",
+    },
+    {
+      name: "Bovine Respiratory Disease Complex",
+      notifiable: false,
+      diseaseCategory: DISEASE_CATEGORY.CATEGORY_E,
+      controlMeasures: CONTROL_MEASURES.SURVEILLANCE,
+      description: "Multifactorial BRDC — shipping fever complex",
+    },
+    {
+      name: "Coccidiosis",
+      notifiable: false,
+      diseaseCategory: DISEASE_CATEGORY.CATEGORY_E,
+      controlMeasures: CONTROL_MEASURES.SURVEILLANCE,
+      description: "Eimeria spp. — protozoan enteritis in young calves",
+    },
+    {
+      name: "Blackleg",
+      notifiable: false,
+      diseaseCategory: DISEASE_CATEGORY.CATEGORY_E,
+      controlMeasures: CONTROL_MEASURES.SURVEILLANCE,
+      description: "Clostridium chauvoei — gas gangrene in muscle",
+    },
   ];
 
   for (const def of DISEASE_DEFS) {
@@ -544,7 +1122,10 @@ async function seed() {
   ];
 
   for (const def of VACCINE_DEFS) {
-    await db.insert(vaccines).values(def).onConflictDoNothing({ target: [vaccines.name] });
+    await db
+      .insert(vaccines)
+      .values(def)
+      .onConflictDoNothing({ target: [vaccines.name] });
   }
 
   const allVaccines = await db.select().from(vaccines);
@@ -553,19 +1134,31 @@ async function seed() {
 
   const VACCINE_DISEASE_MAPPINGS = [
     { vaccineId: vaccineLookup.get("Bovilis BVD")!, diseaseId: diseaseLookup.get("Bovine Viral Diarrhea")! },
-    { vaccineId: vaccineLookup.get("Bovilis IBR Marker")!, diseaseId: diseaseLookup.get("Infectious Bovine Rhinotracheitis")! },
+    {
+      vaccineId: vaccineLookup.get("Bovilis IBR Marker")!,
+      diseaseId: diseaseLookup.get("Infectious Bovine Rhinotracheitis")!,
+    },
     { vaccineId: vaccineLookup.get("Bovilis BTV8")!, diseaseId: diseaseLookup.get("Bluetongue")! },
-    { vaccineId: vaccineLookup.get("Lumpy Skin Disease Vaccine")!, diseaseId: diseaseLookup.get("Lumpy Skin Disease")! },
+    {
+      vaccineId: vaccineLookup.get("Lumpy Skin Disease Vaccine")!,
+      diseaseId: diseaseLookup.get("Lumpy Skin Disease")!,
+    },
     { vaccineId: vaccineLookup.get("Anthrax Spore Vaccine")!, diseaseId: diseaseLookup.get("Anthrax")! },
-    { vaccineId: vaccineLookup.get("Foot and Mouth Disease Vaccine")!, diseaseId: diseaseLookup.get("Foot and Mouth Disease")! },
+    {
+      vaccineId: vaccineLookup.get("Foot and Mouth Disease Vaccine")!,
+      diseaseId: diseaseLookup.get("Foot and Mouth Disease")!,
+    },
     { vaccineId: vaccineLookup.get("Brucella Abortus S19")!, diseaseId: diseaseLookup.get("Bovine Brucellosis")! },
     { vaccineId: vaccineLookup.get("Pneumosyn")!, diseaseId: diseaseLookup.get("Bovine Respiratory Disease Complex")! },
   ];
 
   for (const mapping of VACCINE_DISEASE_MAPPINGS) {
-    await db.insert(vaccineDiseases).values(mapping).onConflictDoNothing({
-      target: [vaccineDiseases.vaccineId, vaccineDiseases.diseaseId],
-    });
+    await db
+      .insert(vaccineDiseases)
+      .values(mapping)
+      .onConflictDoNothing({
+        target: [vaccineDiseases.vaccineId, vaccineDiseases.diseaseId],
+      });
   }
   console.log(`  ✓ ${VACCINE_DISEASE_MAPPINGS.length} vaccine→disease mappings created`);
 
@@ -596,25 +1189,23 @@ async function seed() {
       }
 
       for (const eventType of SUBSCRIPTION_EVENT_TYPES) {
-        await db
-          .insert(eventSubscriptions)
-          .values({
-            eventType,
-            targetType: "role",
-            targetId: roleId,
-            conditions: [],
-            channels: { inApp: true, email: false, push: false },
-            delayMinutes: 0,
-            reminderEnabled: false,
-            reminderOffsetDays: 0,
-            isActive: true,
-          });
+        await db.insert(eventSubscriptions).values({
+          eventType,
+          targetType: "role",
+          targetId: roleId,
+          conditions: [],
+          channels: { inApp: true, email: false, push: false },
+          delayMinutes: 0,
+          reminderEnabled: false,
+          reminderOffsetDays: 0,
+          isActive: true,
+        });
         subscriptions++;
       }
     }
   } catch (e: any) {
-    const msg = e.message || e.cause?.message || '';
-    if (msg.includes('does not exist') || e.cause?.code === '42P01') {
+    const msg = e.message || e.cause?.message || "";
+    if (msg.includes("does not exist") || e.cause?.code === "42P01") {
       console.warn(`  ⚠ event_subscriptions table not found - skipping subscription seeding`);
     } else {
       throw e;
@@ -637,10 +1228,7 @@ async function seed() {
     await tx.execute(sql`SET LOCAL "app.current_role" = 'SUPER_ADMIN'`);
 
     // 6a. State + ZipCode + Address (required FK chain)
-    const [state] = await tx
-      .insert(states)
-      .values({ name: "Test State", shortName: "TS" })
-      .returning();
+    const [state] = await tx.insert(states).values({ name: "Test State", shortName: "TS" }).returning();
 
     const [zip] = await tx
       .insert(zipCodes)
@@ -745,7 +1333,7 @@ async function seed() {
       }
     });
   } catch (e: any) {
-    if (e.cause?.code === '42P01') {
+    if (e.cause?.code === "42P01") {
       console.warn(`  ⚠ farms table not found - skipping test farm`);
     } else {
       throw e;
@@ -972,6 +1560,262 @@ async function seed() {
   } catch (e: any) {
     if (e.cause?.code === "42P01") {
       console.warn(`  ⚠ veterinary/sanitary tables not found - skipping test data`);
+    } else {
+      throw e;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // 8. Seed Domain Demo Data (ADR empty-pages plan)
+  //    Populates the 10 tables backing the previously-empty admin pages:
+  //    cattle_passports, vs_contracts, vs_assignments, farm_books,
+  //    error_corrections, pda_devices, iot_devices, sensor_readings,
+  //    notifications, audit_log.
+  //
+  //    NOTE: movement-lineage / subjects / sync admin pages are
+  //    working-as-designed — they render only after user interaction
+  //    (animal pick / search string / "Pull snapshot" click) over data
+  //    already seeded above, so they need no seed rows of their own.
+  // ═══════════════════════════════════════════════════════════════
+  console.log("🌱 Seeding domain demo data...");
+
+  try {
+    await db.transaction(async (tx) => {
+      // Bypass RLS — SUPER_ADMIN can write everywhere
+      await tx.execute(sql`SET LOCAL "app.current_role" = 'SUPER_ADMIN'`);
+
+      // Look up identities created in earlier sections (never hardcode their UUIDs).
+      const [adminUser] = await tx.select().from(users).where(eq(users.email, "admin@test.com")).limit(1);
+      const adminId = adminUser!.id;
+
+      const [testFarmRow] = await tx.select().from(farms).where(eq(farms.farmId, "100000001")).limit(1);
+      const testFarm = testFarmRow!;
+
+      const seededAnimals = await tx
+        .select({ id: animals.id, farmId: animals.currentFarmId, earTagNumber: animals.earTagNumber })
+        .from(animals)
+        .where(inArray(animals.earTagNumber, ["10000001", "10000002", "10000003"]));
+
+      // 8a. A Veterinary Station subject to own the VS contract (fixed UUID → idempotent).
+      const VS_SUBJECT_ID = "b6d5e300-0000-0000-0000-000000000001";
+      await tx
+        .insert(subjects)
+        .values({ id: VS_SUBJECT_ID, shortName: "Test Veterinary Station" })
+        .onConflictDoNothing();
+
+      // 8b. Cattle passports — one per seeded animal (promoted from stress-seed).
+      const passportRows = seededAnimals.map((a) => ({
+        passportNumber: `PASS-${a.earTagNumber}`,
+        stateCode: STATE_CODE.MK,
+        animalId: a.id,
+        farmId: a.farmId!,
+        status: PASSPORT_STATUS.ACTIVE,
+        issueDate: "2026-07-16",
+      }));
+      await tx.insert(cattlePassports).values(passportRows).onConflictDoNothing({
+        target: cattlePassports.passportNumber,
+      });
+
+      // 8c. VS contract + assignment binding it to the Test Farm.
+      const VS_CONTRACT_ID = "b6d5e300-0000-0000-0000-000000000002";
+      await tx
+        .insert(vsContracts)
+        .values({
+          id: VS_CONTRACT_ID,
+          subjectId: VS_SUBJECT_ID,
+          contractNumber: "VS-100000001",
+          region: "Test Region",
+          startDate: new Date("2026-01-01T00:00:00Z"),
+          status: VS_CONTRACT_STATUS.ACTIVE,
+        })
+        .onConflictDoNothing({ target: vsContracts.contractNumber });
+
+      await tx
+        .insert(vsAssignments)
+        .values({
+          id: "b6d5e300-0000-0000-0000-000000000003",
+          contractId: VS_CONTRACT_ID,
+          farmId: testFarm.id,
+          isPrimary: true,
+          startDate: new Date("2026-01-01T00:00:00Z"),
+        })
+        .onConflictDoNothing();
+
+      // 8d. Farm book for the Test Farm.
+      await tx
+        .insert(farmBooks)
+        .values({
+          id: "b6d5e300-0000-0000-0000-000000000004",
+          farmId: testFarm.id,
+          status: FARM_BOOK_STATUS.DELIVERED,
+          deliveredAt: new Date("2026-07-16T00:00:00Z"),
+        })
+        .onConflictDoNothing();
+
+      // 8e. Corrections (net-new) — fixed UUIDs for idempotency.
+      await tx
+        .insert(errorCorrections)
+        .values([
+          {
+            id: "c0ffee00-0000-0000-0000-000000000001",
+            detectionSource: "field",
+            farmId: testFarm.id,
+            errorType: "tag_mismatch",
+            errorDescription: "Ear tag does not match registry record",
+            status: CORRECTION_STATUS.PENDING,
+          },
+          {
+            id: "c0ffee00-0000-0000-0000-000000000002",
+            detectionSource: "a_posteriori",
+            farmId: seededAnimals[0]?.farmId ?? testFarm.id,
+            animalId: seededAnimals[0]?.id,
+            errorType: "duplicate_registration",
+            errorDescription: "Animal appears registered twice in holding",
+            status: CORRECTION_STATUS.UNDER_REVIEW,
+          },
+          {
+            id: "c0ffee00-0000-0000-0000-000000000003",
+            detectionSource: "a_priori",
+            errorType: "missing_birth_notification",
+            errorDescription: "Birth notification absent within the 20-day window",
+            status: CORRECTION_STATUS.RESOLVED,
+          },
+        ])
+        .onConflictDoNothing();
+
+      // 8f. PDA (mobile/web) devices assigned to the admin.
+      await tx
+        .insert(pdaDevices)
+        .values([
+          {
+            id: "d00d0000-0000-0000-0000-000000000001",
+            deviceIdentifier: "WEB-ADMIN-001",
+            name: "Admin Web Session",
+            deviceType: "web",
+            currentUserId: adminId,
+            createdBy: adminId,
+          },
+        ])
+        .onConflictDoNothing({ target: pdaDevices.deviceIdentifier });
+
+      // 8g. IoT devices + sensor readings (net-new).
+      const IOT_DEVICE_ID = "10de0000-0000-0000-0000-000000000001";
+      await tx
+        .insert(iotDevices)
+        .values({
+          id: IOT_DEVICE_ID,
+          deviceEui: "70B3D5A000000001",
+          manufacturer: "Rocky Bio",
+          model: "RuminalBolus v1",
+          transmissionType: TRANSMISSION_TYPE.LORAWAN,
+          assignedToFarmId: testFarm.id,
+          status: IOT_DEVICE_STATUS.ACTIVE,
+          createdBy: adminId,
+        })
+        .onConflictDoNothing();
+
+      await tx
+        .insert(sensorReadings)
+        .values([
+          {
+            id: "5e5e0000-0000-0000-0000-000000000001",
+            deviceId: IOT_DEVICE_ID,
+            farmId: testFarm.id,
+            recordedAt: new Date("2026-07-16T08:00:00Z"),
+            readingType: READING_TYPE.TEMPERATURE,
+            valueNumeric: "38.5",
+            unit: "C",
+          },
+          {
+            id: "5e5e0000-0000-0000-0000-000000000002",
+            deviceId: IOT_DEVICE_ID,
+            animalId: seededAnimals[0]?.id,
+            farmId: testFarm.id,
+            recordedAt: new Date("2026-07-16T08:05:00Z"),
+            readingType: READING_TYPE.HEART_RATE,
+            valueNumeric: "72",
+            unit: "bpm",
+          },
+        ])
+        .onConflictDoNothing();
+
+      // 8h. Notifications for the admin. status DELIVERED + acknowledgedAt null
+      //     is what the UI treats as "unread" (see NotificationService.getUnreadCount).
+      await tx
+        .insert(notifications)
+        .values([
+          {
+            id: "b00c0000-0000-0000-0000-000000000001",
+            userId: adminId,
+            type: NOTIFICATION_TYPE.IN_APP,
+            category: NOTIFICATION_CATEGORY.SYSTEM_UPDATE,
+            priority: NOTIFICATION_PRIORITY.NORMAL,
+            status: NOTIFICATION_STATUS.DELIVERED,
+            subject: "Seed data loaded",
+            message: "Default seed populated demo domain data across the admin pages.",
+            source: EVENT_SOURCE.SYSTEM,
+          },
+          {
+            id: "b00c0000-0000-0000-0000-000000000002",
+            userId: adminId,
+            type: NOTIFICATION_TYPE.IN_APP,
+            category: NOTIFICATION_CATEGORY.ANIMAL_HEALTH_ALERT,
+            priority: NOTIFICATION_PRIORITY.HIGH,
+            status: NOTIFICATION_STATUS.DELIVERED,
+            subject: "Health alert",
+            message: "A Category-A positive lab result was recorded on a seeded animal.",
+            source: EVENT_SOURCE.SYSTEM,
+          },
+          {
+            id: "b00c0000-0000-0000-0000-000000000003",
+            userId: adminId,
+            type: NOTIFICATION_TYPE.IN_APP,
+            category: NOTIFICATION_CATEGORY.INSPECTION_DUE,
+            priority: NOTIFICATION_PRIORITY.NORMAL,
+            status: NOTIFICATION_STATUS.DELIVERED,
+            subject: "Inspection due",
+            message: "A routine on-spot inspection is scheduled for the Test Farm.",
+            source: EVENT_SOURCE.SYSTEM,
+          },
+        ])
+        .onConflictDoNothing();
+
+      // 8i. Audit log entries (net-new).
+      await tx
+        .insert(auditLog)
+        .values([
+          {
+            id: "a11ce000-0000-0000-0000-000000000001",
+            userId: adminId,
+            action: AUDIT_ACTION.CREATE,
+            resource: "cattle_passports",
+            source: EVENT_SOURCE.SYSTEM,
+            success: true,
+          },
+          {
+            id: "a11ce000-0000-0000-0000-000000000002",
+            userId: adminId,
+            action: AUDIT_ACTION.CREATE,
+            resource: "vs_contracts",
+            source: EVENT_SOURCE.SYSTEM,
+            success: true,
+          },
+          {
+            id: "a11ce000-0000-0000-0000-000000000003",
+            userId: adminId,
+            action: AUDIT_ACTION.UPDATE,
+            resource: "farm_books",
+            source: EVENT_SOURCE.WEBHOOK,
+            success: true,
+          },
+        ])
+        .onConflictDoNothing();
+
+      console.log("  ✓ Domain demo data inserted");
+    });
+  } catch (e: any) {
+    if (e.cause?.code === "42P01") {
+      console.warn(`  ⚠ domain tables not found - skipping`);
     } else {
       throw e;
     }
