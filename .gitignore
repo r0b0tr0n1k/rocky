@@ -78,3 +78,6 @@ apps/api/keys/
 # ── DB reset backups (scripts/db-reset.sh) ──
 backups/
 *.dump
+
+# mobile vitest cache
+apps/mob/.vitest-cache/
