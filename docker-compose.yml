@@ -104,7 +104,7 @@ services:
         # Inlined at build (browser). Defaults to the Cloudflare api domain.
         - NEXT_PUBLIC_API_URL=${WEB_PUBLIC_API_URL:-https://api.techno.party}
     ports:
-      - "3050:3001"
+      - "3050:3000"
     environment:
       - NODE_ENV=production
       # SSR: Next.js server calls the API via the SAME single HTTPS route the
