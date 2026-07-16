@@ -27,6 +27,7 @@ Update the closest owning AGENTS.md when a change affects:
 - required inputs, outputs, permissions, constraints, side effects, or artifacts
 - user preferences about behavior, communication, process, organization, or quality
 - AGENTS.md creation, deletion, move, rename, or index contents
+- an **operational procedure** documented under `runbooks/` (or `how-to/`) — seed data, deploy steps, DB counts, run commands, env setup. Docs travel with the code change; fix staleness in the same commit, not in a later sweep.
 
 Update parent docs when parent-level structure, ownership, workflow, or child index changes. Update child docs when parent changes alter local rules. Remove stale or contradictory text immediately. Small edits that do not change behavior or contracts may leave docs unchanged, but the RobotFarm pass still must happen.
 
@@ -110,7 +111,7 @@ Every architecture and documentation decision in this repo is governed by two AD
 
 ### RobotFarm pass
 
-Every meaningful change requires a RobotFarm pass: update the owning `AGENTS.md` (purpose/scope/contract) and, if a decision was made, its ADR. The guardians make this non-optional.
+Every meaningful change requires a RobotFarm pass: update the owning `AGENTS.md` (purpose/scope/contract), and if a decision was made, its ADR. If the change alters an operational procedure documented under `runbooks/` (seed, deploy, DB, run steps), update that runbook in the same commit. The guardians make this non-optional.
 
 ## RobotFarm: AIMCS Agent Network
 
