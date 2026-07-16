@@ -2,7 +2,11 @@
 
 import { Badge } from "@rocky/ui/components/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@rocky/ui/components/card";
-import { markAsReadSchema, sendNotificationSchema } from "@rocky/validators/api";
+import { markAsReadSchema, notificationOutputSchema, sendNotificationSchema } from "@rocky/validators/api";
+import { z } from "zod";
+import { type ColumnDef } from "@tanstack/react-table";
+import { DataTable } from "#components/shared/data-table";
+import { TableCard, tableDensityClass } from "#components/shared/table-card";
 import { NOTIFICATION_CATEGORY, NOTIFICATION_PRIORITY, NOTIFICATION_TYPE } from "@rocky/validators/enums";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ActionDialog } from "#components/shared/action-dialog";
@@ -11,6 +15,8 @@ import { PageHeader } from "#components/shared/page-header";
 import { enumToOptions } from "#lib/options";
 import { useTRPC } from "#lib/trpc";
 import { clientCanRole, usePermissions } from "#lib/permissions";
+
+type NotificationOutput = z.infer<typeof notificationOutputSchema>;
 
 export default function NotificationsPage() {
   const trpc = useTRPC();
@@ -31,6 +37,32 @@ export default function NotificationsPage() {
   );
 
   const count = unread.data?.count ?? 0;
+
+  const listQuery = useQuery(trpc.notification.list.queryOptions({ limit: 50, offset: 0 }));
+  const rows = (listQuery.data ?? []) as NotificationOutput[];
+
+  const notificationColumns: ColumnDef<NotificationOutput>[] = [
+    { accessorKey: "subject", header: "Subject" },
+    { accessorKey: "category", header: "Category" },
+    { accessorKey: "priority", header: "Priority" },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge variant={String(row.original.status) === "DELIVERED" ? "secondary" : "destructive"}>
+          {String(row.original.status)}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Created",
+      cell: ({ row }) => {
+        const v = row.original.createdAt;
+        return v ? new Date(v as Date).toLocaleString() : "\u2014";
+      },
+    },
+  ];
 
   return (
     <div className="flex flex-col gap-6">
@@ -101,6 +133,19 @@ export default function NotificationsPage() {
           )}
         />
       </div>
+
+      <TableCard>
+        <DataTable
+          columns={notificationColumns}
+          data={rows}
+          total={rows.length}
+          isLoading={listQuery.isLoading}
+          page={0}
+          pageSize={rows.length || 20}
+          bordered={false}
+          tableClassName={tableDensityClass}
+        />
+      </TableCard>
     </div>
   );
 }

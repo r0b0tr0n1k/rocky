@@ -9,6 +9,7 @@ import {
   confirmDeliverySchema,
   type ConfirmDeliveryInput,
   notificationOutputSchema,
+  notificationListRequestSchema,
   type SendNotificationInput,
   type RegisterDeviceInput,
   registerDeviceSchema,
@@ -45,6 +46,22 @@ export class NotificationRouter {
     );
 
     return { count };
+  }
+
+  @Query({ input: notificationListRequestSchema, output: z.array(notificationOutputSchema) })
+  async list(
+    @Input() input: z.infer<typeof notificationListRequestSchema>,
+    @Ctx() ctx: AppContext,
+  ): Promise<NotificationOutput[]> {
+    return unwrapResult(
+      await this.notificationService.list({
+        userId: ctx.execution!.principal.id,
+        status: input.status,
+        category: input.category,
+        limit: input.limit,
+        offset: input.offset,
+      }),
+    );
   }
 
   @Mutation({
@@ -129,6 +146,10 @@ type _verify_unreadCountOutput = SubtypeGuillotine<
   z.output<typeof unreadCountSchema>,
   Awaited<ReturnType<NotificationRouter["unreadCount"]>>
 >;
+type _verify_listOutput = SubtypeGuillotine<
+  z.output<typeof notificationOutputSchema>[],
+  Awaited<ReturnType<NotificationRouter["list"]>>
+>;
 type _verify_sendOutput = SubtypeGuillotine<
   z.output<typeof notificationOutputSchema>,
   Awaited<ReturnType<NotificationRouter["send"]>>
@@ -144,6 +165,7 @@ type _verify_confirmDeliveryOutput = SubtypeGuillotine<
 
 export type _NotificationGuillotines = ActivateGuillotines<[
   _verify_unreadCountOutput,
+  _verify_listOutput,
   _verify_sendOutput,
   _verify_markAsReadOutput,
   _verify_confirmDeliveryOutput
