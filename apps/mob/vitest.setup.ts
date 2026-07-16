@@ -64,6 +64,34 @@ vi.mock("@/lib/notify", () => ({
   notifySuccess: vi.fn(),
 }));
 
+// uniwind is externalized by Vite (not in server.deps.inline), so its internal
+// `require("react-native")` bypasses the `react-native` -> `react-native-web`
+// alias and pulls the real react-native Flow entry, which Vite 8 cannot parse.
+// The `Icon` component only uses `withUniwind` for className mapping, so return
+// the wrapped component unchanged for jsdom component tests.
+vi.mock("uniwind", () => ({
+  withUniwind: (component: unknown) => component,
+}));
+
+// lucide-react-native (and its transitive react-native-svg) pull the real
+// `react-native` Flow entry into the vitest graph. The mobile screens only use
+// its icons as <Icon as={X} /> decoration, so stub every export as a no-op
+// SVG component for jsdom component tests.
+vi.mock("lucide-react-native", async () => {
+  const React = await import("react");
+  const makeIcon = () =>
+    React.forwardRef((props: Record<string, unknown>, ref: unknown) =>
+      React.createElement("svg", { ...props, ref }),
+    );
+  return new Proxy(
+    { default: makeIcon() },
+    {
+      has: () => true,
+      get: (_t, prop) => (prop === "__esModule" ? true : makeIcon()),
+    },
+  );
+});
+
 // The shadcn `Select` (rn-primitives + react-native-reanimated/screens) pulls
 // the real `react-native` Flow source into the vitest graph. Replace it with a
 // DOM-friendly stub that still renders its `SelectItem` options inline so
