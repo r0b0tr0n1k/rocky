@@ -14,7 +14,7 @@
 //   Default input: drizzle/*/migration.sql (latest)
 //   Default output: <input>.fixed.sql
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, readdirSync } from "node:fs";
 
 // SECURITY DEFINER helper: resolves a farm's organization without
 // re-entering RLS (queries `farms` directly). Body is only validated
@@ -41,8 +41,10 @@ async function main() {
   if (inputPath) {
     input = inputPath;
   } else {
-    const { globSync } = await import("glob");
-    const dirs = globSync("drizzle/*/");
+    const dirs = readdirSync("drizzle", { withFileTypes: true })
+      .filter((e) => e.isDirectory())
+      .map((e) => `drizzle/${e.name}/`)
+      .sort();
     const latest = dirs.sort().at(-1);
     if (!latest) {
       console.error("No migration directory found in drizzle/");
