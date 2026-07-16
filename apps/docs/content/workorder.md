@@ -88,6 +88,9 @@
 | WO-154 | EUDR feature-parity evidence vs EUDR.Supply (Reg 2023/1115). Gap-analysis §14 scorecard (MET/PARTIAL/GAP) + refresh ADR-0063 Implementation (build status: `eudr-due-diligence.ts`, `deforestation.service.ts`, `eudr.api.ts` verified; ADR-0079 resolves the raster assumption). Rocky = vertical cattle solution with court-grade proof (PAdES + signed QR, ADR-0082/0084); gaps = commodity scope, SSI permissioning, EU-system submission. | 0063 / 0084 / 0079 | P2 | Done ✅ |
 | WO-155 | Borrow the DPP + ESPR 2024/1781 study. Adopt ESPR Digital Product Passport paradigm (user directive "definitely borrow that"): signed QR (ADR-0084) = ESPR data carrier; expose as EUDR export token (§14.3). New ADR-0086 (ESPR DPP alignment, Accepted) + ADR-0087 (Art 12 operator/facility identifier scheme = GS1 GLN, Accepted) + gap-analysis §15. Phase 2 wiring: ear-tag document type + credential, status-list publisher from passport/movement states, "last synced" UI, EUDR DDS (ADR-0063) emits/references the signed QR, operator/facility IDs re-encoded as GS1 GLN (GS1 chosen over CIN; WO-155 Phase 2 now active (ear-tag credential + GS1 GLN + status-list publisher built; EUDR DDS linkage remains). | 0084 / 0082 / 0063 / 0086 / 0087 | P2 | **Done ✓** (ear-tag credential ✅; GS1 GLN ✅; status-list publisher ✅; EUDR DDS linkage ✅; HSM bulk-throughput batch manifest ✅) |
 
+| WO-157 | Mobile frontend tab data-wiring + vitest suite (T01–T13): vitest+jsdom+react-native-web runner, tRPC fake-link/render helpers (v11 `getQueryKey`, not v10 `.queryKey()`), wire health+movements to live data, smoke tests for explore+sync, read/empty-state tests for Home/Animals/Inspections/EarTags/Passport/Corrections/Alerts — **44 tests / 14 files green** | 0033 / 0050 | P2 | Done ✅ |
+| WO-158 | Standards & regulations reference doc + Control Mapping (`reference/standards-and-regulations.mdx`): catalog every standard / EU reg+directive / EN·ETSI / TRACES·RASFF·CHED / tech-spec / national law with repo source; Control Mapping (ISO 27001/27701 clause → `rocky-*` doc / ADR → evidence); guidance framing **ISO/IEC 27701:2025** as alignment goal + anti-drift guardrail; `check:md-links` passes | 0067 | P2 | Done ✅ |
+
 ---
 
 ## ADR-0081 — accept-and-flag open questions (answers pending)
@@ -1487,10 +1490,9 @@ subprocessor), wired to ADR-0075 + rocky-processor-register / rocky-toms / rocky
 - ADR-0062 Related: linked ADR-0082 (PAdES), ADR-0084 (offline QR), ROCKY-WDRW-001, gap-analysis §13. ADR-0054 Related: linked ADR-0062 (IMSOC/CHED-A).
 - Source: ADR-0062 / 0082 / 0084 / 0061 / 0054 / rocky-withdrawal-recall-procedure.md.
 
-
 ### WO-156 — Notification channel routing + SMS minimization (ADR-0094) — In progress ⏳
 
-- **ADR-0094** Accepted: the Notification domain owns channel selection from *intent* (not a caller-supplied `type`). Security-tiered: our app (push + in_app, Tier 0) is the secure default; email (Tier 1) for long/attachment; SMS (Tier 2) is a consent-gated, content-minimized last resort, per-category suppressible.
+- **ADR-0094** Accepted: the Notification domain owns channel selection from _intent_ (not a caller-supplied `type`). Security-tiered: our app (push + in_app, Tier 0) is the secure default; email (Tier 1) for long/attachment; SMS (Tier 2) is a consent-gated, content-minimized last resort, per-category suppressible.
 - Slice 1 (done): pure, fully-testable `ChannelRouter.resolveChannels()` in `@rocky/domains-notification` + 14 tests (email routing, SMS primary for urgent/critical, ack-based SMS fallback, per-category suppression even when unreachable, minimization flag). Added `vitest.config.ts` + `test` script + `vitest` devDep.
 - Remaining: `acknowledgedAt` column + mobile `confirmDelivery`; delivery worker + fallback scanner (consult `resolveChannels`); real SMS client (Twilio/Vonage) — deferred ("at the end").
 - Source: ADR-0094.
