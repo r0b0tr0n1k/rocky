@@ -5,7 +5,14 @@
 //   Drizzle pgTable → createSelectSchema → InferSelectSchema → Factory output
 
 import { faker } from "@faker-js/faker";
-import { TEST_TYPE, TEST_TYPE_VALUES, TEST_RESULT, TEST_RESULT_VALUES } from "@rocky/database/constants";
+import {
+  SAMPLE_STATUS,
+  SAMPLE_STATUS_VALUES,
+  TEST_TYPE,
+  TEST_TYPE_VALUES,
+  TEST_RESULT,
+  TEST_RESULT_VALUES,
+} from "@rocky/database/constants";
 import { labTestsSelectSchema } from "@rocky/database/zod";
 import { SchemaDataFactory } from "../base.js";
 import type { InferSelectSchema } from "../type-helpers.js";
@@ -19,6 +26,7 @@ export class LabTestFactory extends SchemaDataFactory<LabTestRecord> {
       animalId,
       farmId,
       diseaseId,
+      sampleStatus: faker.helpers.arrayElement(SAMPLE_STATUS_VALUES),
       testType: faker.helpers.arrayElement(TEST_TYPE_VALUES),
       testMethod: faker.lorem.words(3),
       result: faker.helpers.arrayElement(TEST_RESULT_VALUES),

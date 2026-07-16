@@ -18,7 +18,7 @@
 #   3. Tunnel      — GET the account tunnel named $TUNNEL_NAME; if none
 #      exists, POST-create it (config_src=cloudflare). Result = TUNNEL_ID.
 #   4. Ingress     — PUT tunnel config, mapping 4 hostnames → services:
-#        api.ROCKY_DOMAIN    → http://api:8080            (NestJS API)
+#        api.ROCKY_DOMAIN    → http://api:8000            (NestJS API)
 #        admin.ROCKY_DOMAIN  → http://web:3000            (Next.js admin)
 #        docs.ROCKY_DOMAIN   → http://docs:3002           (Nextra docs)
 #        studio.ROCKY_DOMAIN → http://drizzle-studio:4983 (Drizzle Studio, --profile dev)

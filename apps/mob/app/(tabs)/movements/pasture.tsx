@@ -102,98 +102,90 @@ export default function PastureScreen() {
 
   return (
     <ScrollView className="flex-1 bg-background">
-    <Card className="m-4">
-      <CardContent className="gap-4 p-4">
-        <FormField
-          label="Animal IDs (comma-separated)"
-          error={errors.animalIds?.message}
-          nativeID="animalIds"
-        >
-          <Input
-            placeholder="uuid1, uuid2, uuid3"
-            value={watch("animalIds")}
-            onChangeText={(t) => setValue("animalIds", t, { shouldValidate: true })}
-          />
-        </FormField>
-
-        <FormField label="From Farm" error={errors.fromFarmId?.message} nativeID="fromFarmId">
-          <View className="gap-2">
-            {watch("fromFarmId") ? (
-              <View className="bg-secondary p-3 rounded-md">
-                <Text className="text-foreground font-medium">{fromFarmLabel}</Text>
-              </View>
-            ) : null}
-            <FarmPicker
-              onSelect={(f) => {
-                setValue("fromFarmId", f.id, { shouldValidate: true });
-                setFromFarmLabel(f.name ?? "");
-              }}
+      <Card className="m-4">
+        <CardContent className="gap-4 p-4">
+          <FormField label="Animal IDs (comma-separated)" error={errors.animalIds?.message} nativeID="animalIds">
+            <Input
+              placeholder="uuid1, uuid2, uuid3"
+              value={watch("animalIds")}
+              onChangeText={(t) => setValue("animalIds", t, { shouldValidate: true })}
             />
-          </View>
-        </FormField>
+          </FormField>
 
-        <FormField label="To Farm (Pasture)" error={errors.toFarmId?.message} nativeID="toFarmId">
-          <View className="gap-2">
-            {watch("toFarmId") ? (
-              <View className="bg-secondary p-3 rounded-md">
-                <Text className="text-foreground font-medium">{toFarmLabel}</Text>
-              </View>
-            ) : null}
-            <FarmPicker
-              onSelect={(f) => {
-                setValue("toFarmId", f.id, { shouldValidate: true });
-                setToFarmLabel(f.name ?? "");
-              }}
+          <FormField label="From Farm" error={errors.fromFarmId?.message} nativeID="fromFarmId">
+            <View className="gap-2">
+              {watch("fromFarmId") ? (
+                <View className="bg-secondary p-3 rounded-md">
+                  <Text className="text-foreground font-medium">{fromFarmLabel}</Text>
+                </View>
+              ) : null}
+              <FarmPicker
+                onSelect={(f) => {
+                  setValue("fromFarmId", f.id, { shouldValidate: true });
+                  setFromFarmLabel(f.name ?? "");
+                }}
+              />
+            </View>
+          </FormField>
+
+          <FormField label="To Farm (Pasture)" error={errors.toFarmId?.message} nativeID="toFarmId">
+            <View className="gap-2">
+              {watch("toFarmId") ? (
+                <View className="bg-secondary p-3 rounded-md">
+                  <Text className="text-foreground font-medium">{toFarmLabel}</Text>
+                </View>
+              ) : null}
+              <FarmPicker
+                onSelect={(f) => {
+                  setValue("toFarmId", f.id, { shouldValidate: true });
+                  setToFarmLabel(f.name ?? "");
+                }}
+              />
+            </View>
+          </FormField>
+
+          <FormField label="Departure Date (YYYY-MM-DD)" error={errors.departureDate?.message} nativeID="departureDate">
+            <Input
+              placeholder="2026-06-01"
+              value={watch("departureDate")}
+              onChangeText={(t) => setValue("departureDate", t, { shouldValidate: true })}
             />
-          </View>
-        </FormField>
+          </FormField>
 
-        <FormField
-          label="Departure Date (YYYY-MM-DD)"
-          error={errors.departureDate?.message}
-          nativeID="departureDate"
-        >
-          <Input
-            placeholder="2026-06-01"
-            value={watch("departureDate")}
-            onChangeText={(t) => setValue("departureDate", t, { shouldValidate: true })}
-          />
-        </FormField>
+          <FormField
+            label="Expected Return Date (YYYY-MM-DD)"
+            error={errors.expectedReturnDate?.message}
+            nativeID="expectedReturnDate"
+          >
+            <Input
+              placeholder="2026-10-01"
+              value={watch("expectedReturnDate")}
+              onChangeText={(t) => setValue("expectedReturnDate", t, { shouldValidate: true })}
+            />
+          </FormField>
 
-        <FormField
-          label="Expected Return Date (YYYY-MM-DD)"
-          error={errors.expectedReturnDate?.message}
-          nativeID="expectedReturnDate"
-        >
-          <Input
-            placeholder="2026-10-01"
-            value={watch("expectedReturnDate")}
-            onChangeText={(t) => setValue("expectedReturnDate", t, { shouldValidate: true })}
-          />
-        </FormField>
+          <FormField label="Pasture Type" error={errors.pastureType?.message} nativeID="pastureType">
+            <Input
+              placeholder="e.g. summer, winter, alpine"
+              value={watch("pastureType")}
+              onChangeText={(t) => setValue("pastureType", t, { shouldValidate: true })}
+            />
+          </FormField>
 
-        <FormField label="Pasture Type" error={errors.pastureType?.message} nativeID="pastureType">
-          <Input
-            placeholder="e.g. summer, winter, alpine"
-            value={watch("pastureType")}
-            onChangeText={(t) => setValue("pastureType", t, { shouldValidate: true })}
-          />
-        </FormField>
+          {!canDeclarePasture ? (
+            <Text className="text-sm text-muted-foreground">
+              You don't have permission to declare pasture movements.
+            </Text>
+          ) : !onlineManager.isOnline() ? (
+            <Text className="text-sm text-muted-foreground">
+              Offline — the pasture movement is saved locally and syncs when you reconnect.
+            </Text>
+          ) : null}
 
-        {!canDeclarePasture ? (
-          <Text className="text-sm text-muted-foreground">
-            You don't have permission to declare pasture movements.
-          </Text>
-        ) : !onlineManager.isOnline() ? (
-          <Text className="text-sm text-muted-foreground">
-            Offline — the pasture movement is saved locally and syncs when you reconnect.
-          </Text>
-        ) : null}
-
-        <Button onPress={onSubmit} disabled={isSubmitting || !canDeclarePasture} size="lg">
-          {isSubmitting ? <ActivityIndicator color="white" /> : <Text>Declare Pasture Movement</Text>}
-        </Button>
-      </CardContent>
+          <Button onPress={onSubmit} disabled={isSubmitting || !canDeclarePasture} size="lg">
+            {isSubmitting ? <ActivityIndicator color="white" /> : <Text>Declare Pasture Movement</Text>}
+          </Button>
+        </CardContent>
       </Card>
     </ScrollView>
   );

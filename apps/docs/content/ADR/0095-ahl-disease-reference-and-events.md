@@ -5,13 +5,13 @@
 > The listed-disease master data is **canonical jurisdiction reference data** and must be produced by the
 > seed script so dev/staging/prod never diverge.
 
-| Key | Value |
-| --- | --- |
-| **Status** | Proposed |
-| **Date** | 2026-07-13 |
-| **Author** | Architecture Review |
-| **Supersedes** | None |
-| **Superseded** | None |
+| Key            | Value               |
+| -------------- | ------------------- |
+| **Status**     | Proposed            |
+| **Date**       | 2026-07-13          |
+| **Author**     | Architecture Review |
+| **Supersedes** | None                |
+| **Superseded** | None                |
 
 ---
 

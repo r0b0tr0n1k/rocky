@@ -5,13 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 
 import { Button } from "@rocky/ui/components/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@rocky/ui/components/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@rocky/ui/components/select";
 import { DataTable } from "#components/shared/data-table";
 import { PageHeader } from "#components/shared/page-header";
 import { TableCard, tableDensityClass } from "#components/shared/table-card";
@@ -28,11 +22,13 @@ export default function InspectionsPage() {
   const pageSize = 20;
 
   const trpc = useTRPC();
-  const listQuery = useQuery(trpc.inspection.list.queryOptions({
-    status,
-    limit: pageSize,
-    offset: page * pageSize,
-  }));
+  const listQuery = useQuery(
+    trpc.inspection.list.queryOptions({
+      status,
+      limit: pageSize,
+      offset: page * pageSize,
+    }),
+  );
   const farms = useQuery(trpc.farm.list.queryOptions({ limit: 100 }));
   const users = useQuery(trpc.user.list.queryOptions({ limit: 100 }));
 
@@ -40,9 +36,13 @@ export default function InspectionsPage() {
   const total = listQuery.data?.total ?? 0;
 
   const farmMap = new Map<string, FarmResponse>();
-  ((farms.data?.data ?? []) as FarmResponse[]).forEach((f) => farmMap.set(f.id, f));
+  ((farms.data?.data ?? []) as FarmResponse[]).forEach((f) => {
+    farmMap.set(f.id, f);
+  });
   const userMap = new Map<string, UserSummary>();
-  ((users.data ?? []) as UserSummary[]).forEach((u) => userMap.set(u.id, u));
+  ((users.data ?? []) as UserSummary[]).forEach((u) => {
+    userMap.set(u.id, u);
+  });
 
   const farmLabel = (id: string) => {
     const f = farmMap.get(id);
@@ -56,10 +56,7 @@ export default function InspectionsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Inspections"
-        description="On-spot inspections, risk analysis, and form generation."
-      />
+      <PageHeader title="Inspections" description="On-spot inspections, risk analysis, and form generation." />
       <TableCard
         toolbarLeft={
           <Select

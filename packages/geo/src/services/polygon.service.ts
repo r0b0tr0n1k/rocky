@@ -11,12 +11,7 @@
 // Everything here is deterministic and unit-tested, so the guillotine has a
 // sovereign, side-effect-free truth to lean on.
 
-import {
-	geometryPolygonFromWkt,
-	geometryPolygonToWkt,
-	type Coordinate,
-	type PolygonGeometry,
-} from "@rocky/database";
+import { type Coordinate, geometryPolygonFromWkt, geometryPolygonToWkt, type PolygonGeometry } from "@rocky/database";
 import { err, ok, type Result } from "@rocky/domains-shared";
 import { GEO_ERRORS, GeoError } from "../errors/geo.errors.js";
 
@@ -59,10 +54,7 @@ export function decimalPrecision(value: number): number {
  */
 export function polygonAreaHectares(vertices: LatLng[]): number {
 	if (vertices.length < 3) return 0;
-	const pts: Array<[number, number]> = vertices.map((v) => [
-		toRadians(v.longitude),
-		toRadians(v.latitude),
-	]);
+	const pts: Array<[number, number]> = vertices.map((v) => [toRadians(v.longitude), toRadians(v.latitude)]);
 	let total = 0;
 	for (let i = 0; i < pts.length; i++) {
 		const a = pts[i]!;
@@ -79,9 +71,7 @@ export function haversineDistanceMeters(a: LngLat, b: LngLat): number {
 	const dLon = toRadians(b[0] - a[0]);
 	const lat1 = toRadians(a[1]);
 	const lat2 = toRadians(b[1]);
-	const h =
-		Math.sin(dLat / 2) ** 2 +
-		Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+	const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
 	return 2 * EARTH_RADIUS_METERS * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
@@ -93,8 +83,7 @@ export function pointInPolygon(point: LngLat, polygon: LngLat[]): boolean {
 	for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
 		const [xi, yi] = polygon[i]!;
 		const [xj, yj] = polygon[j]!;
-		const intersects =
-			yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+		const intersects = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
 		if (intersects) inside = !inside;
 	}
 	return inside;
@@ -206,15 +195,9 @@ export function geodesicCircle(center: LatLng, radiusMeters: number, segments = 
 	const ring: LatLng[] = [];
 	for (let i = 0; i < segments; i++) {
 		const theta = (2 * Math.PI * i) / segments;
-		const lat = Math.asin(
-			Math.sin(lat1) * Math.cos(d) + Math.cos(lat1) * Math.sin(d) * Math.cos(theta),
-		);
+		const lat = Math.asin(Math.sin(lat1) * Math.cos(d) + Math.cos(lat1) * Math.sin(d) * Math.cos(theta));
 		const lng =
-			lng1 +
-			Math.atan2(
-				Math.sin(theta) * Math.sin(d) * Math.cos(lat1),
-				Math.cos(d) - Math.sin(lat1) * Math.sin(lat),
-			);
+			lng1 + Math.atan2(Math.sin(theta) * Math.sin(d) * Math.cos(lat1), Math.cos(d) - Math.sin(lat1) * Math.sin(lat));
 		ring.push({ latitude: toDegrees(lat), longitude: toDegrees(lng) });
 	}
 	return ring;

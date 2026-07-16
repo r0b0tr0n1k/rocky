@@ -26,12 +26,14 @@ export default function MovementsPage() {
   const pageSize = 20;
 
   const trpc = useTRPC();
-  const listQuery = useQuery(trpc.movement.list.queryOptions({
-    limit: pageSize,
-    offset: page * pageSize,
-    sortBy: sort ? (sort.id as SortKey) : undefined,
-    sortOrder: sort?.desc ? "desc" : "asc",
-  }));
+  const listQuery = useQuery(
+    trpc.movement.list.queryOptions({
+      limit: pageSize,
+      offset: page * pageSize,
+      sortBy: sort ? (sort.id as SortKey) : undefined,
+      sortOrder: sort?.desc ? "desc" : "asc",
+    }),
+  );
   const farms = useQuery(trpc.farm.list.queryOptions({ limit: 100 }));
   const animals = useQuery(trpc.animal.list.queryOptions({ limit: 100 }));
 
@@ -39,9 +41,13 @@ export default function MovementsPage() {
   const total = listQuery.data?.total ?? 0;
 
   const farmMap = new Map<string, FarmResponse>();
-  ((farms.data?.data ?? []) as FarmResponse[]).forEach((f) => farmMap.set(f.id, f));
+  ((farms.data?.data ?? []) as FarmResponse[]).forEach((f) => {
+    farmMap.set(f.id, f);
+  });
   const animalMap = new Map<string, AnimalSummary>();
-  ((animals.data?.data ?? []) as AnimalSummary[]).forEach((a) => animalMap.set(a.id, a));
+  ((animals.data?.data ?? []) as AnimalSummary[]).forEach((a) => {
+    animalMap.set(a.id, a);
+  });
 
   const farmLabel = (id?: string | null) => {
     if (!id) return "—";
@@ -55,10 +61,7 @@ export default function MovementsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Movements"
-        description="Livestock movements across farms and borders."
-      />
+      <PageHeader title="Movements" description="Livestock movements across farms and borders." />
       <TableCard
         action={
           <Button onClick={() => router.push("/movements/new")}>

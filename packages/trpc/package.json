@@ -52,6 +52,8 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.5.0",
+    "@rocky/testing": "workspace:*",
     "typescript": "catalog:",
     "vitest": "catalog:",
     "vite-tsconfig-paths": "catalog:"

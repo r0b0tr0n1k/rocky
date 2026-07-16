@@ -1,7 +1,5 @@
 "use client";
 
-import * as React from "react";
-
 import {
   ingestReadingRequestSchema,
   registerDeviceRequestSchema,
@@ -11,20 +9,14 @@ import {
   type IotDeviceSummary,
   type SensorReadingResponse,
 } from "@rocky/validators/api";
-import {
-  READING_TYPE,
-  TRANSMISSION_TYPE,
-} from "@rocky/validators/enums";
+import { READING_TYPE, TRANSMISSION_TYPE } from "@rocky/validators/enums";
 import { ComboboxField, NumberField, SelectField, TextField } from "#components/shared/form-fields";
 import { ActionDialog, RowActionMenu } from "#components/shared/action-dialog";
 import { DataTable } from "#components/shared/data-table";
 import { appendRowActions, TableCard, tableDensityClass } from "#components/shared/table-card";
 import { RowDetailsDialog, type DetailField } from "#components/shared/row-details-dialog";
 import { PageHeader } from "#components/shared/page-header";
-import {
-  deviceColumns,
-  sensorReadingColumns,
-} from "#components/iot/columns";
+import { deviceColumns, sensorReadingColumns } from "#components/iot/columns";
 import { enumToOptions } from "#lib/options";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "#lib/trpc";
@@ -41,11 +33,17 @@ export default function IotPage() {
   const devices = useQuery(trpc.iot.listDevices.queryOptions({ limit: 100 }));
 
   const farmMap = new Map<string, FarmResponse>();
-  ((farms.data?.data ?? []) as FarmResponse[]).forEach((f) => farmMap.set(f.id, f));
+  ((farms.data?.data ?? []) as FarmResponse[]).forEach((f) => {
+    farmMap.set(f.id, f);
+  });
   const animalMap = new Map<string, AnimalSummary>();
-  ((animals.data?.data ?? []) as AnimalSummary[]).forEach((a) => animalMap.set(a.id, a));
+  ((animals.data?.data ?? []) as AnimalSummary[]).forEach((a) => {
+    animalMap.set(a.id, a);
+  });
   const deviceMap = new Map<string, IotDeviceSummary>();
-  ((devices.data?.data ?? []) as IotDeviceSummary[]).forEach((d) => deviceMap.set(d.id, d));
+  ((devices.data?.data ?? []) as IotDeviceSummary[]).forEach((d) => {
+    deviceMap.set(d.id, d);
+  });
 
   const farmLabel = (id: string | null | undefined) => (id ? (farmMap.get(id)?.name ?? id) : "—");
   const animalLabel = (id: string | null | undefined) => {
@@ -71,16 +69,16 @@ export default function IotPage() {
     label: d.deviceEui ?? d.manufacturer ?? d.model ?? d.id,
   }));
 
-  const [selectedFarmId, setSelectedFarmId] = React.useState<string | undefined>(undefined);
-  const effectiveFarmId = selectedFarmId ?? (farms.data?.data?.[0] as FarmResponse | undefined)?.id;
-
-
   const devicesQ = useQuery(trpc.iot.listDevices.queryOptions({ limit: PAGE_SIZE }));
   const readingsQ = useQuery(trpc.iot.listReadings.queryOptions({ limit: 100 }));
 
   const invalidate = (key: unknown) => queryClient.invalidateQueries({ queryKey: key as never });
-  const registerDevice = useMutation(trpc.iot.registerDevice.mutationOptions({ onSuccess: () => invalidate(trpc.iot.listDevices.queryKey()) }));
-  const ingestReading = useMutation(trpc.iot.ingestReading.mutationOptions({ onSuccess: () => invalidate(trpc.iot.listReadings.queryKey()) }));
+  const registerDevice = useMutation(
+    trpc.iot.registerDevice.mutationOptions({ onSuccess: () => invalidate(trpc.iot.listDevices.queryKey()) }),
+  );
+  const ingestReading = useMutation(
+    trpc.iot.ingestReading.mutationOptions({ onSuccess: () => invalidate(trpc.iot.listReadings.queryKey()) }),
+  );
 
   const nowIso = () => new Date().toISOString();
 
@@ -107,13 +105,45 @@ export default function IotPage() {
                     <TextField control={form.control} name="deviceEui" label="Device EUI" placeholder="Optional" />
                     <TextField control={form.control} name="manufacturer" label="Manufacturer" placeholder="Optional" />
                     <TextField control={form.control} name="model" label="Model" placeholder="Optional" />
-                    <TextField control={form.control} name="serialNumber" label="Serial number" placeholder="Optional" />
+                    <TextField
+                      control={form.control}
+                      name="serialNumber"
+                      label="Serial number"
+                      placeholder="Optional"
+                    />
                     <TextField control={form.control} name="firmwareVersion" label="Firmware" placeholder="Optional" />
-                    <SelectField control={form.control} name="transmissionType" label="Transmission" options={enumToOptions(Object.values(TRANSMISSION_TYPE))} />
-                    <NumberField control={form.control} name="transmissionIntervalSeconds" label="Interval (s)" placeholder="Optional" />
-                    <ComboboxField control={form.control} name="assignedToAnimalId" label="Assigned animal" placeholder="Search animals…" options={animalOptions} />
-                    <ComboboxField control={form.control} name="assignedToFarmId" label="Assigned farm" placeholder="Search farms…" options={farmOptions} />
-                    <TextField control={form.control} name="activationDate" label="Activation date" placeholder="YYYY-MM-DD (optional)" />
+                    <SelectField
+                      control={form.control}
+                      name="transmissionType"
+                      label="Transmission"
+                      options={enumToOptions(Object.values(TRANSMISSION_TYPE))}
+                    />
+                    <NumberField
+                      control={form.control}
+                      name="transmissionIntervalSeconds"
+                      label="Interval (s)"
+                      placeholder="Optional"
+                    />
+                    <ComboboxField
+                      control={form.control}
+                      name="assignedToAnimalId"
+                      label="Assigned animal"
+                      placeholder="Search animals…"
+                      options={animalOptions}
+                    />
+                    <ComboboxField
+                      control={form.control}
+                      name="assignedToFarmId"
+                      label="Assigned farm"
+                      placeholder="Search farms…"
+                      options={farmOptions}
+                    />
+                    <TextField
+                      control={form.control}
+                      name="activationDate"
+                      label="Activation date"
+                      placeholder="YYYY-MM-DD (optional)"
+                    />
                   </>
                 )}
               />
@@ -146,11 +176,39 @@ export default function IotPage() {
                 defaultValues={{ recordedAt: nowIso() }}
                 fields={(form) => (
                   <>
-                    <ComboboxField control={form.control} name="deviceId" label="Device" placeholder="Search devices…" options={deviceOptions} />
-                    <ComboboxField control={form.control} name="animalId" label="Animal" placeholder="Search animals…" options={animalOptions} />
-                    <ComboboxField control={form.control} name="farmId" label="Farm" placeholder="Search farms…" options={farmOptions} />
-                    <TextField control={form.control} name="recordedAt" label="Recorded at (ISO)" placeholder="2026-07-08T12:00:00Z" />
-                    <SelectField control={form.control} name="readingType" label="Reading type" options={enumToOptions(Object.values(READING_TYPE))} />
+                    <ComboboxField
+                      control={form.control}
+                      name="deviceId"
+                      label="Device"
+                      placeholder="Search devices…"
+                      options={deviceOptions}
+                    />
+                    <ComboboxField
+                      control={form.control}
+                      name="animalId"
+                      label="Animal"
+                      placeholder="Search animals…"
+                      options={animalOptions}
+                    />
+                    <ComboboxField
+                      control={form.control}
+                      name="farmId"
+                      label="Farm"
+                      placeholder="Search farms…"
+                      options={farmOptions}
+                    />
+                    <TextField
+                      control={form.control}
+                      name="recordedAt"
+                      label="Recorded at (ISO)"
+                      placeholder="2026-07-08T12:00:00Z"
+                    />
+                    <SelectField
+                      control={form.control}
+                      name="readingType"
+                      label="Reading type"
+                      options={enumToOptions(Object.values(READING_TYPE))}
+                    />
                     <NumberField control={form.control} name="valueNumeric" label="Value" placeholder="Optional" />
                     <TextField control={form.control} name="unit" label="Unit" placeholder="Optional" />
                   </>
@@ -172,8 +230,6 @@ export default function IotPage() {
             />
           </TableCard>
         </TabsContent>
-
-
       </Tabs>
     </div>
   );
@@ -197,11 +253,16 @@ function SensorReadingDetails({ reading }: { reading: SensorReadingResponse }) {
   const fields: DetailField[] = [
     { label: "Device", value: reading.deviceId },
     { label: "Reading type", value: reading.readingType },
-    { label: "Value", value: reading.valueNumeric != null ? `${reading.valueNumeric}${reading.unit ? " " + reading.unit : ""}` : (reading.unit ?? "—") },
+    {
+      label: "Value",
+      value:
+        reading.valueNumeric != null
+          ? `${reading.valueNumeric}${reading.unit ? ` ${reading.unit}` : ""}`
+          : (reading.unit ?? "—"),
+    },
     { label: "Recorded", value: new Date(reading.recordedAt).toLocaleString() },
     { label: "Stage", value: reading.processingStage ?? "—" },
     { label: "Created", value: new Date(reading.createdAt).toLocaleString() },
   ];
   return <RowDetailsDialog title="Sensor reading" description="Raw sensor reading" fields={fields} />;
 }
-

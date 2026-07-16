@@ -1,12 +1,12 @@
 # ADR-0002: Principal as Canonical Runtime Actor
 
-| Key | Value |
-| --- | --- |
-| **Status** | Accepted |
-| **Date** | 2026-07-05 |
-| **Author** | Architecture Review |
-| **Supersedes** | None |
-| **Superseded** | None |
+| Key            | Value               |
+| -------------- | ------------------- |
+| **Status**     | Accepted            |
+| **Date**       | 2026-07-05          |
+| **Author**     | Architecture Review |
+| **Supersedes** | None                |
+| **Superseded** | None                |
 
 ---
 

@@ -14,7 +14,7 @@ import { Cron } from "@nestjs/schedule";
 import { db } from "@rocky/database/index.js";
 import { outboxEvents } from "@rocky/database/schema/sm/index.js";
 import { and, eq, lt, sql } from "drizzle-orm";
-import { OutboxEventHandlers } from "./outbox-handlers.js";
+import type { OutboxEventHandlers } from "./outbox-handlers.js";
 
 export type OutboxEventHandler = (event: {
   type: string;
@@ -30,7 +30,7 @@ export class OutboxProcessorJob {
   private readonly maxRetries = 3;
 
   constructor(private readonly handlers: OutboxEventHandlers) {
-    this.logger.log("OutboxProcessorJob initialized");
+    this.logger.log(`OutboxProcessorJob initialized; handlers=${typeof this.handlers}`);
   }
 
   /** Main processing loop - runs every 5 seconds */

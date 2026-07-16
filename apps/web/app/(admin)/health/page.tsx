@@ -22,12 +22,7 @@ import {
   type VaccineResponse,
   type VaccinationResponse,
 } from "@rocky/validators/api";
-import {
-  administrationRouteSchema,
-  TEST_RESULT,
-  TEST_TYPE,
-  VACCINE_TYPE,
-} from "@rocky/validators/enums";
+import { administrationRouteSchema, TEST_RESULT, TEST_TYPE, VACCINE_TYPE } from "@rocky/validators/enums";
 import {
   ComboboxField,
   DateField,
@@ -53,18 +48,9 @@ import {
 import { enumToOptions } from "#lib/options";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "#lib/trpc";
-import {
-  Card,
-  CardContent,
-} from "@rocky/ui/components/card";
+import { Card, CardContent } from "@rocky/ui/components/card";
 import { Input } from "@rocky/ui/components/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@rocky/ui/components/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@rocky/ui/components/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@rocky/ui/components/tabs";
 import { Button } from "@rocky/ui/components/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@rocky/ui/components/dialog";
@@ -95,17 +81,29 @@ export default function HealthPage() {
   const users = useQuery(trpc.user.list.queryOptions({ limit: 100 }));
 
   const animalMap = new Map<string, AnimalSummary>();
-  ((animals.data?.data ?? []) as AnimalSummary[]).forEach((a) => animalMap.set(a.id, a));
+  ((animals.data?.data ?? []) as AnimalSummary[]).forEach((a) => {
+    animalMap.set(a.id, a);
+  });
   const farmMap = new Map<string, FarmResponse>();
-  ((farms.data?.data ?? []) as FarmResponse[]).forEach((f) => farmMap.set(f.id, f));
+  ((farms.data?.data ?? []) as FarmResponse[]).forEach((f) => {
+    farmMap.set(f.id, f);
+  });
   const vaccineMap = new Map<string, VaccineResponse>();
-  ((vaccines.data?.data ?? []) as VaccineResponse[]).forEach((v) => vaccineMap.set(v.id, v));
+  ((vaccines.data?.data ?? []) as VaccineResponse[]).forEach((v) => {
+    vaccineMap.set(v.id, v);
+  });
   const batchMap = new Map<string, VaccineBatchResponse>();
-  ((batches.data?.data ?? []) as VaccineBatchResponse[]).forEach((b) => batchMap.set(b.id, b));
+  ((batches.data?.data ?? []) as VaccineBatchResponse[]).forEach((b) => {
+    batchMap.set(b.id, b);
+  });
   const diseaseMap = new Map<string, DiseaseResponse>();
-  ((diseases.data?.data ?? []) as DiseaseResponse[]).forEach((d) => diseaseMap.set(d.id, d));
+  ((diseases.data?.data ?? []) as DiseaseResponse[]).forEach((d) => {
+    diseaseMap.set(d.id, d);
+  });
   const userMap = new Map<string, UserSummary>();
-  ((users.data ?? []) as UserSummary[]).forEach((u) => userMap.set(u.id, u));
+  ((users.data ?? []) as UserSummary[]).forEach((u) => {
+    userMap.set(u.id, u);
+  });
 
   const animalLabel = (id: string) => {
     const a = animalMap.get(id);
@@ -144,27 +142,47 @@ export default function HealthPage() {
 
   // -- Mutations --
   const invalidate = (key: unknown) => queryClient.invalidateQueries({ queryKey: key as never });
-  const createDisease = useMutation(trpc.health.createDisease.mutationOptions({ onSuccess: () => invalidate(trpc.health.listDiseases.queryKey()) }));
-  const createVaccine = useMutation(trpc.health.createVaccine.mutationOptions({ onSuccess: () => invalidate(trpc.health.listVaccines.queryKey()) }));
-  const createBatch = useMutation(trpc.health.createVaccineBatch.mutationOptions({ onSuccess: () => invalidate(trpc.health.listBatches.queryKey()) }));
-  const recordVaccination = useMutation(trpc.health.recordVaccination.mutationOptions({ onSuccess: () => invalidate(trpc.health.listVaccinations.queryKey()) }));
-  const recordTreatment = useMutation(trpc.health.recordTreatment.mutationOptions({ onSuccess: () => invalidate(trpc.health.listTreatments.queryKey()) }));
-  const recordLabTest = useMutation(trpc.health.recordLabTest.mutationOptions({ onSuccess: () => invalidate(trpc.health.listLabTests.queryKey()) }));
+  const createDisease = useMutation(
+    trpc.health.createDisease.mutationOptions({ onSuccess: () => invalidate(trpc.health.listDiseases.queryKey()) }),
+  );
+  const createVaccine = useMutation(
+    trpc.health.createVaccine.mutationOptions({ onSuccess: () => invalidate(trpc.health.listVaccines.queryKey()) }),
+  );
+  const createBatch = useMutation(
+    trpc.health.createVaccineBatch.mutationOptions({ onSuccess: () => invalidate(trpc.health.listBatches.queryKey()) }),
+  );
+  const recordVaccination = useMutation(
+    trpc.health.recordVaccination.mutationOptions({
+      onSuccess: () => invalidate(trpc.health.listVaccinations.queryKey()),
+    }),
+  );
+  const recordTreatment = useMutation(
+    trpc.health.recordTreatment.mutationOptions({ onSuccess: () => invalidate(trpc.health.listTreatments.queryKey()) }),
+  );
+  const recordLabTest = useMutation(
+    trpc.health.recordLabTest.mutationOptions({ onSuccess: () => invalidate(trpc.health.listLabTests.queryKey()) }),
+  );
 
   // -- Clinical record (animal-scoped Timeline) --
   const [selectedAnimal, setSelectedAnimal] = React.useState<string | null>(null);
-  const clinicalVacc = useQuery(trpc.health.listVaccinations.queryOptions(
-    { animalId: selectedAnimal ?? undefined, limit: 200 },
-    { enabled: !!selectedAnimal },
-  ));
-  const clinicalTreat = useQuery(trpc.health.listTreatments.queryOptions(
-    { animalId: selectedAnimal ?? undefined, limit: 200 },
-    { enabled: !!selectedAnimal },
-  ));
-  const clinicalLab = useQuery(trpc.health.listLabTests.queryOptions(
-    { animalId: selectedAnimal ?? undefined, limit: 200 },
-    { enabled: !!selectedAnimal },
-  ));
+  const clinicalVacc = useQuery(
+    trpc.health.listVaccinations.queryOptions(
+      { animalId: selectedAnimal ?? undefined, limit: 200 },
+      { enabled: !!selectedAnimal },
+    ),
+  );
+  const clinicalTreat = useQuery(
+    trpc.health.listTreatments.queryOptions(
+      { animalId: selectedAnimal ?? undefined, limit: 200 },
+      { enabled: !!selectedAnimal },
+    ),
+  );
+  const clinicalLab = useQuery(
+    trpc.health.listLabTests.queryOptions(
+      { animalId: selectedAnimal ?? undefined, limit: 200 },
+      { enabled: !!selectedAnimal },
+    ),
+  );
 
   const clinicalEvents = [
     ...((clinicalVacc.data?.data ?? []) as VaccinationResponse[]).map((v) => ({
@@ -199,21 +217,25 @@ export default function HealthPage() {
   const [diseaseSearch, setDiseaseSearch] = React.useState("");
   const [diseaseFilter, setDiseaseFilter] = React.useState<"all" | "notifiable" | "routine">("all");
   const debouncedDiseaseSearch = useDebounced(diseaseSearch);
-  const diseaseQuery = useQuery(trpc.health.listDiseases.queryOptions({
-    limit: PAGE_SIZE,
-    search: debouncedDiseaseSearch || undefined,
-    notifiable: diseaseFilter === "all" ? undefined : diseaseFilter === "notifiable",
-  }));
+  const diseaseQuery = useQuery(
+    trpc.health.listDiseases.queryOptions({
+      limit: PAGE_SIZE,
+      search: debouncedDiseaseSearch || undefined,
+      notifiable: diseaseFilter === "all" ? undefined : diseaseFilter === "notifiable",
+    }),
+  );
 
   // -- Vaccine tab: search + type filter (wired to the real API) --
   const [vaccineSearch, setVaccineSearch] = React.useState("");
   const [vaccineType, setVaccineType] = React.useState<string>("all");
   const debouncedVaccineSearch = useDebounced(vaccineSearch);
-  const vaccineQuery = useQuery(trpc.health.listVaccines.queryOptions({
-    limit: PAGE_SIZE,
-    search: debouncedVaccineSearch || undefined,
-    type: vaccineType === "all" ? undefined : (vaccineType as typeof VACCINE_TYPE[keyof typeof VACCINE_TYPE]),
-  }));
+  const vaccineQuery = useQuery(
+    trpc.health.listVaccines.queryOptions({
+      limit: PAGE_SIZE,
+      search: debouncedVaccineSearch || undefined,
+      type: vaccineType === "all" ? undefined : (vaccineType as (typeof VACCINE_TYPE)[keyof typeof VACCINE_TYPE]),
+    }),
+  );
 
   // -- Dense, contained data table shared across tabs --
   const tableClass = "[&_td]:!py-3 [&_th]:!py-3";
@@ -268,7 +290,12 @@ export default function HealthPage() {
                   <>
                     <TextField control={form.control} name="name" label="Name" placeholder="e.g. Brucellosis" />
                     <SwitchField control={form.control} name="notifiable" label="Notifiable" />
-                    <TextareaField control={form.control} name="description" label="Description" placeholder="Optional" />
+                    <TextareaField
+                      control={form.control}
+                      name="description"
+                      label="Description"
+                      placeholder="Optional"
+                    />
                   </>
                 )}
               />
@@ -308,7 +335,9 @@ export default function HealthPage() {
                   <SelectContent>
                     <SelectItem value="all">All types</SelectItem>
                     {enumToOptions(Object.values(VACCINE_TYPE)).map((o) => (
-                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -336,12 +365,25 @@ export default function HealthPage() {
             </div>
             <CardContent>
               <DataTable
-                columns={vaccineColumns({ rowActions: (v) => (
-                  <RowActionMenu items={[
-                    { type: "dialog", dialog: <VaccineDetails vaccine={v} /> },
-                    { type: "dialog", dialog: <VaccineDiseaseManager vaccine={v} diseaseOptions={diseaseOptions} diseaseMap={diseaseMap} /> },
-                  ]} />
-                ) })}
+                columns={vaccineColumns({
+                  rowActions: (v) => (
+                    <RowActionMenu
+                      items={[
+                        { type: "dialog", dialog: <VaccineDetails vaccine={v} /> },
+                        {
+                          type: "dialog",
+                          dialog: (
+                            <VaccineDiseaseManager
+                              vaccine={v}
+                              diseaseOptions={diseaseOptions}
+                              diseaseMap={diseaseMap}
+                            />
+                          ),
+                        },
+                      ]}
+                    />
+                  ),
+                })}
                 data={(vaccineQuery.data?.data ?? []) as VaccineResponse[]}
                 total={vaccineQuery.data?.total ?? 0}
                 isLoading={vaccineQuery.isLoading}
@@ -366,11 +408,22 @@ export default function HealthPage() {
                 description="Register a received vaccine batch (stock tracked)."
                 fields={(form) => (
                   <>
-                    <ComboboxField control={form.control} name="vaccineId" label="Vaccine" placeholder="Search vaccines…" options={vaccineOptions} />
+                    <ComboboxField
+                      control={form.control}
+                      name="vaccineId"
+                      label="Vaccine"
+                      placeholder="Search vaccines…"
+                      options={vaccineOptions}
+                    />
                     <TextField control={form.control} name="batchNo" label="Batch no" placeholder="e.g. B-2026-001" />
                     <DateField control={form.control} name="productionDate" label="Production date" />
                     <DateField control={form.control} name="expiryDate" label="Expiry date" />
-                    <NumberField control={form.control} name="quantityReceived" label="Quantity received" placeholder="100" />
+                    <NumberField
+                      control={form.control}
+                      name="quantityReceived"
+                      label="Quantity received"
+                      placeholder="100"
+                    />
                   </>
                 )}
               />
@@ -407,11 +460,41 @@ export default function HealthPage() {
                 description="Vet-authorized vaccination event."
                 fields={(form) => (
                   <>
-                    <ComboboxField control={form.control} name="animalId" label="Animal" placeholder="Search animals…" options={animalOptions} />
-                    <ComboboxField control={form.control} name="farmId" label="Farm" placeholder="Search farms…" options={farmOptions} />
-                    <ComboboxField control={form.control} name="vaccineId" label="Vaccine" placeholder="Search vaccines…" options={vaccineOptions} />
-                    <ComboboxField control={form.control} name="batchId" label="Batch" placeholder="Search batches…" options={batchOptions} />
-                    <ComboboxField control={form.control} name="vetId" label="Vet" placeholder="Search vets…" options={vetOptions} />
+                    <ComboboxField
+                      control={form.control}
+                      name="animalId"
+                      label="Animal"
+                      placeholder="Search animals…"
+                      options={animalOptions}
+                    />
+                    <ComboboxField
+                      control={form.control}
+                      name="farmId"
+                      label="Farm"
+                      placeholder="Search farms…"
+                      options={farmOptions}
+                    />
+                    <ComboboxField
+                      control={form.control}
+                      name="vaccineId"
+                      label="Vaccine"
+                      placeholder="Search vaccines…"
+                      options={vaccineOptions}
+                    />
+                    <ComboboxField
+                      control={form.control}
+                      name="batchId"
+                      label="Batch"
+                      placeholder="Search batches…"
+                      options={batchOptions}
+                    />
+                    <ComboboxField
+                      control={form.control}
+                      name="vetId"
+                      label="Vet"
+                      placeholder="Search vets…"
+                      options={vetOptions}
+                    />
                     <DateField control={form.control} name="adminDate" label="Administration date" />
                     <SelectField
                       control={form.control}
@@ -430,7 +513,11 @@ export default function HealthPage() {
                   animalLabel,
                   vaccineLabel: (id) => vaccineMap.get(id)?.name ?? id,
                   batchLabel: (id) => (id ? (batchMap.get(id)?.batchNo ?? id) : "—"),
-                  vetLabel: (id) => (id ? (userMap.get(id) ? `${userMap.get(id)!.firstName ?? ""} ${userMap.get(id)!.lastName ?? ""}`.trim() || userMap.get(id)!.username : id) : "—"),
+                  vetLabel: (id) => {
+                    if (!id) return "—";
+                    const u = userMap.get(id);
+                    return u ? `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim() || u.username : id;
+                  },
                   rowActions: (v) => (
                     <RowActionMenu items={[{ type: "dialog", dialog: <VaccinationDetails row={v} /> }]} />
                   ),
@@ -459,12 +546,41 @@ export default function HealthPage() {
                 description="Vet-authorized treatment / diagnosis event."
                 fields={(form) => (
                   <>
-                    <ComboboxField control={form.control} name="animalId" label="Animal" placeholder="Search animals…" options={animalOptions} />
-                    <ComboboxField control={form.control} name="farmId" label="Farm" placeholder="Search farms…" options={farmOptions} />
-                    <ComboboxField control={form.control} name="diseaseId" label="Disease" placeholder="Search diseases…" options={diseaseOptions} />
-                    <ComboboxField control={form.control} name="vetId" label="Vet" placeholder="Search vets…" options={vetOptions} />
+                    <ComboboxField
+                      control={form.control}
+                      name="animalId"
+                      label="Animal"
+                      placeholder="Search animals…"
+                      options={animalOptions}
+                    />
+                    <ComboboxField
+                      control={form.control}
+                      name="farmId"
+                      label="Farm"
+                      placeholder="Search farms…"
+                      options={farmOptions}
+                    />
+                    <ComboboxField
+                      control={form.control}
+                      name="diseaseId"
+                      label="Disease"
+                      placeholder="Search diseases…"
+                      options={diseaseOptions}
+                    />
+                    <ComboboxField
+                      control={form.control}
+                      name="vetId"
+                      label="Vet"
+                      placeholder="Search vets…"
+                      options={vetOptions}
+                    />
                     <DateField control={form.control} name="diagnosisDate" label="Diagnosis date" />
-                    <TextareaField control={form.control} name="treatmentDesc" label="Treatment description" placeholder="Optional" />
+                    <TextareaField
+                      control={form.control}
+                      name="treatmentDesc"
+                      label="Treatment description"
+                      placeholder="Optional"
+                    />
                     <SwitchField control={form.control} name="isolated" label="Isolated" />
                   </>
                 )}
@@ -475,7 +591,11 @@ export default function HealthPage() {
                 columns={treatmentColumns({
                   animalLabel,
                   diseaseLabel: (id) => (id ? (diseaseMap.get(id)?.name ?? id) : "—"),
-                  vetLabel: (id) => (id ? (userMap.get(id) ? `${userMap.get(id)!.firstName ?? ""} ${userMap.get(id)!.lastName ?? ""}`.trim() || userMap.get(id)!.username : id) : "—"),
+                  vetLabel: (id) => {
+                    if (!id) return "—";
+                    const u = userMap.get(id);
+                    return u ? `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim() || u.username : id;
+                  },
                   rowActions: (t) => (
                     <RowActionMenu items={[{ type: "dialog", dialog: <TreatmentDetails row={t} /> }]} />
                   ),
@@ -504,20 +624,63 @@ export default function HealthPage() {
                 description="Laboratory test result for an animal."
                 fields={(form) => (
                   <>
-                    <ComboboxField control={form.control} name="animalId" label="Animal" placeholder="Search animals…" options={animalOptions} />
-                    <ComboboxField control={form.control} name="farmId" label="Farm" placeholder="Search farms…" options={farmOptions} />
-                    <ComboboxField control={form.control} name="diseaseId" label="Disease" placeholder="Search diseases…" options={diseaseOptions} />
-                    <SelectField control={form.control} name="testType" label="Test type" options={enumToOptions(Object.values(TEST_TYPE))} />
-                    <SelectField control={form.control} name="result" label="Result" options={enumToOptions(Object.values(TEST_RESULT))} />
+                    <ComboboxField
+                      control={form.control}
+                      name="animalId"
+                      label="Animal"
+                      placeholder="Search animals…"
+                      options={animalOptions}
+                    />
+                    <ComboboxField
+                      control={form.control}
+                      name="farmId"
+                      label="Farm"
+                      placeholder="Search farms…"
+                      options={farmOptions}
+                    />
+                    <ComboboxField
+                      control={form.control}
+                      name="diseaseId"
+                      label="Disease"
+                      placeholder="Search diseases…"
+                      options={diseaseOptions}
+                    />
+                    <SelectField
+                      control={form.control}
+                      name="testType"
+                      label="Test type"
+                      options={enumToOptions(Object.values(TEST_TYPE))}
+                    />
+                    <SelectField
+                      control={form.control}
+                      name="result"
+                      label="Result"
+                      options={enumToOptions(Object.values(TEST_RESULT))}
+                    />
                     <TextField control={form.control} name="testMethod" label="Method" placeholder="Optional" />
                     <TextField control={form.control} name="labName" label="Lab name" placeholder="Optional" />
                     <TextField control={form.control} name="labSampleId" label="Sample id" placeholder="Optional" />
                     <DateField control={form.control} name="sampleDate" label="Sample date" />
                     <DateField control={form.control} name="resultDate" label="Result date" />
-                    <NumberField control={form.control} name="resultNumeric" label="Numeric result" placeholder="Optional" />
+                    <NumberField
+                      control={form.control}
+                      name="resultNumeric"
+                      label="Numeric result"
+                      placeholder="Optional"
+                    />
                     <TextField control={form.control} name="resultUnit" label="Unit" placeholder="Optional" />
-                    <TextField control={form.control} name="certificateRef" label="Certificate ref" placeholder="Optional" />
-                    <TextareaField control={form.control} name="interpretation" label="Interpretation" placeholder="Optional" />
+                    <TextField
+                      control={form.control}
+                      name="certificateRef"
+                      label="Certificate ref"
+                      placeholder="Optional"
+                    />
+                    <TextareaField
+                      control={form.control}
+                      name="interpretation"
+                      label="Interpretation"
+                      placeholder="Optional"
+                    />
                   </>
                 )}
               />
@@ -527,9 +690,7 @@ export default function HealthPage() {
                 columns={labTestColumns({
                   animalLabel,
                   diseaseLabel: (id) => (id ? (diseaseMap.get(id)?.name ?? id) : "—"),
-                  rowActions: (l) => (
-                    <RowActionMenu items={[{ type: "dialog", dialog: <LabTestDetails row={l} /> }]} />
-                  ),
+                  rowActions: (l) => <RowActionMenu items={[{ type: "dialog", dialog: <LabTestDetails row={l} /> }]} />,
                 })}
                 data={(labTestsQ.data?.data ?? []) as LabTestResponse[]}
                 total={labTestsQ.data?.total ?? 0}
@@ -552,14 +713,18 @@ export default function HealthPage() {
             >
               <option value="">Select animal…</option>
               {animalOptions.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
               ))}
             </select>
             {selectedAnimal ? (
               clinicalItems.length > 0 ? (
                 <Timeline items={clinicalItems} />
               ) : (
-                <p className="text-sm text-muted-foreground">No vaccination, treatment, or lab-test records for this animal.</p>
+                <p className="text-sm text-muted-foreground">
+                  No vaccination, treatment, or lab-test records for this animal.
+                </p>
               )
             ) : (
               <p className="text-sm text-muted-foreground">Select an animal to view its clinical timeline.</p>
@@ -576,9 +741,11 @@ export default function HealthPage() {
 function DiseaseRowActions({ disease }: { disease: DiseaseResponse }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const updateDisease = useMutation(trpc.health.updateDisease.mutationOptions({
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: trpc.health.listDiseases.queryKey() }),
-  }));
+  const updateDisease = useMutation(
+    trpc.health.updateDisease.mutationOptions({
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: trpc.health.listDiseases.queryKey() }),
+    }),
+  );
 
   return (
     <RowActionMenu
@@ -647,7 +814,11 @@ function VaccineDetails({ vaccine }: { vaccine: VaccineResponse }) {
 
 // ── Vaccine ↔ disease linking (closes health.GetVaccineDiseases / Link / Unlink parity gaps) ──
 
-function VaccineDiseaseManager({ vaccine, diseaseOptions, diseaseMap }: {
+function VaccineDiseaseManager({
+  vaccine,
+  diseaseOptions,
+  diseaseMap,
+}: {
   vaccine: VaccineResponse;
   diseaseOptions: { value: string; label: string }[];
   diseaseMap: Map<string, DiseaseResponse>;
@@ -681,7 +852,9 @@ function VaccineDiseaseManager({ vaccine, diseaseOptions, diseaseMap }: {
                 </SelectTrigger>
                 <SelectContent>
                   {diseaseOptions.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -701,7 +874,10 @@ function VaccineDiseaseManager({ vaccine, diseaseOptions, diseaseMap }: {
                 <li className="text-sm text-muted-foreground">No linked diseases yet.</li>
               ) : (
                 linkedRows.map((d) => (
-                  <li key={d.diseaseId} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm">
+                  <li
+                    key={d.diseaseId}
+                    className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm"
+                  >
                     <span>{diseaseMap.get(d.diseaseId)?.name ?? d.diseaseId}</span>
                     <Button
                       variant="ghost"

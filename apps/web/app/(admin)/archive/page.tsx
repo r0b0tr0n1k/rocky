@@ -6,13 +6,7 @@ import { Plus } from "lucide-react";
 
 import { Button } from "@rocky/ui/components/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@rocky/ui/components/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@rocky/ui/components/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@rocky/ui/components/select";
 import { DataTable } from "#components/shared/data-table";
 import { PageHeader } from "#components/shared/page-header";
 import { TableCard, SearchInput, tableDensityClass } from "#components/shared/table-card";
@@ -39,13 +33,15 @@ export default function ArchivePage() {
   const queryClient = useQueryClient();
   const invalidate = () => queryClient.invalidateQueries({ queryKey: trpc.archive.list.queryKey() });
   const markDestroyed = useMutation(trpc.archive.markDestroyed.mutationOptions({ onSuccess: invalidate }));
-  const listQuery = useQuery(trpc.archive.list.queryOptions({
-    documentType: documentType as (typeof ARCHIVE_DOCUMENT_TYPE)[keyof typeof ARCHIVE_DOCUMENT_TYPE] | undefined,
-    archiveLocation: location as (typeof ARCHIVE_LOCATION)[keyof typeof ARCHIVE_LOCATION] | undefined,
-    search: debouncedSearch || undefined,
-    limit: pageSize,
-    offset: page * pageSize,
-  }));
+  const listQuery = useQuery(
+    trpc.archive.list.queryOptions({
+      documentType: documentType as (typeof ARCHIVE_DOCUMENT_TYPE)[keyof typeof ARCHIVE_DOCUMENT_TYPE] | undefined,
+      archiveLocation: location as (typeof ARCHIVE_LOCATION)[keyof typeof ARCHIVE_LOCATION] | undefined,
+      search: debouncedSearch || undefined,
+      limit: pageSize,
+      offset: page * pageSize,
+    }),
+  );
   const farms = useQuery(trpc.farm.list.queryOptions({ limit: 100 }));
   const animals = useQuery(trpc.animal.list.queryOptions({ limit: 100 }));
   const inspections = useQuery(trpc.inspection.list.queryOptions({ limit: 100 }));
@@ -54,24 +50,30 @@ export default function ArchivePage() {
     label: i.referenceNumber ?? i.id,
   }));
   const listExpiredQ = useQuery(trpc.archive.listExpired.queryOptions({ limit: 100 }));
-  const archiveInspectionForm = useMutation(trpc.archive.archiveInspectionForm.mutationOptions({
-    onSuccess: () => {
-      invalidate();
-      queryClient.invalidateQueries({ queryKey: trpc.archive.listExpired.queryKey() });
-    },
-  }));
+  const archiveInspectionForm = useMutation(
+    trpc.archive.archiveInspectionForm.mutationOptions({
+      onSuccess: () => {
+        invalidate();
+        queryClient.invalidateQueries({ queryKey: trpc.archive.listExpired.queryKey() });
+      },
+    }),
+  );
 
   const rows = (listQuery.data?.data ?? []) as ArchiveDocumentResponse[];
   const total = listQuery.data?.total ?? 0;
 
   const farmMap = new Map<string, FarmResponse>();
-  ((farms.data?.data ?? []) as FarmResponse[]).forEach((f) => farmMap.set(f.id, f));
+  ((farms.data?.data ?? []) as FarmResponse[]).forEach((f) => {
+    farmMap.set(f.id, f);
+  });
   const farmOptions = ((farms.data?.data ?? []) as FarmResponse[]).map((f) => ({
     value: f.id,
     label: `${f.farmId} · ${f.name}`,
   }));
   const animalMap = new Map<string, AnimalSummary>();
-  ((animals.data?.data ?? []) as AnimalSummary[]).forEach((a) => animalMap.set(a.id, a));
+  ((animals.data?.data ?? []) as AnimalSummary[]).forEach((a) => {
+    animalMap.set(a.id, a);
+  });
 
   const farmLabel = (id?: string | null) => {
     if (!id) return "—";
@@ -86,10 +88,7 @@ export default function ArchivePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Archive"
-        description="3-tier document archive (CPC / VS / VI) with retention enforcement."
-      />
+      <PageHeader title="Archive" description="3-tier document archive (CPC / VS / VI) with retention enforcement." />
       <Tabs defaultValue="documents" className="flex flex-col gap-4">
         <TabsList>
           <TabsTrigger value="documents">Documents</TabsTrigger>
@@ -138,11 +137,7 @@ export default function ArchivePage() {
                     ))}
                   </SelectContent>
                 </Select>
-                <SearchInput
-                  value={search}
-                  onChange={setSearch}
-                  placeholder="Search documents…"
-                />
+                <SearchInput value={search} onChange={setSearch} placeholder="Search documents…" />
               </div>
             }
             action={
@@ -158,8 +153,20 @@ export default function ArchivePage() {
                   description="Archive a completed inspection form."
                   fields={(form) => (
                     <>
-                      <ComboboxField control={form.control} name="inspectionId" label="Inspection" placeholder="Search inspections…" options={inspectionOptions} />
-                      <ComboboxField control={form.control} name="farmId" label="Farm" placeholder="Search farms…" options={farmOptions} />
+                      <ComboboxField
+                        control={form.control}
+                        name="inspectionId"
+                        label="Inspection"
+                        placeholder="Search inspections…"
+                        options={inspectionOptions}
+                      />
+                      <ComboboxField
+                        control={form.control}
+                        name="farmId"
+                        label="Farm"
+                        placeholder="Search farms…"
+                        options={farmOptions}
+                      />
                     </>
                   )}
                 />

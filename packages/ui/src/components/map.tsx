@@ -174,6 +174,7 @@ export const GeoMapView = React.forwardRef<HTMLDivElement, GeoMapViewProps>(func
 	const drawModeRef = React.useRef(drawMode);
 	const onPolygonDrawnRef = React.useRef(onPolygonDrawn);
 	const [ready, setReady] = React.useState(false);
+	const [webglError, setWebglError] = React.useState<string | null>(null);
 	const [drawPts, setDrawPts] = React.useState<[number, number][]>([]);
 
 	// Keep mutable refs current so map event handlers read fresh values.
@@ -194,13 +195,18 @@ export const GeoMapView = React.forwardRef<HTMLDivElement, GeoMapViewProps>(func
 			const maplibregl = (await import("maplibre-gl")).default;
 			if (cancelled || !containerRef.current) return;
 			mlRef.current = maplibregl;
-			map = new maplibregl.Map({
-				container: containerRef.current,
-				style: styleUrl,
-				center: initialViewState ? [initialViewState.longitude, initialViewState.latitude] : [0, 20],
-				zoom: initialViewState?.zoom ?? 1.5,
-				attributionControl: { compact: true },
-			});
+			try {
+				map = new maplibregl.Map({
+					container: containerRef.current,
+					style: styleUrl,
+					center: initialViewState ? [initialViewState.longitude, initialViewState.latitude] : [0, 20],
+					zoom: initialViewState?.zoom ?? 1.5,
+					attributionControl: { compact: true },
+				});
+			} catch (err) {
+				if (!cancelled) setWebglError(err instanceof Error ? err.message : String(err));
+				return;
+			}
 			map.addControl(new maplibregl.NavigationControl(), "top-right");
 			map.on("load", () => {
 				if (!cancelled) setReady(true);
@@ -214,6 +220,7 @@ export const GeoMapView = React.forwardRef<HTMLDivElement, GeoMapViewProps>(func
 			mapRef.current = null;
 			mlRef.current = null;
 			setReady(false);
+			setWebglError(null);
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [styleUrl]);
@@ -408,13 +415,38 @@ export const GeoMapView = React.forwardRef<HTMLDivElement, GeoMapViewProps>(func
 
 	return (
 		<div
-			ref={(node) => {
-				containerRef.current = node;
-				if (typeof ref === "function") ref(node);
-				else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
-			}}
 			className={className}
-			style={{ height, width: "100%", borderRadius: 12, overflow: "hidden" }}
-		/>
+			style={{ position: "relative", height, width: "100%", borderRadius: 12, overflow: "hidden" }}
+		>
+			<div
+				ref={(node) => {
+					containerRef.current = node;
+					if (typeof ref === "function") ref(node);
+					else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+				}}
+				style={{ height: "100%", width: "100%" }}
+			/>
+			{webglError ? (
+				<div
+					role="alert"
+					style={{
+						position: "absolute",
+						inset: 0,
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "center",
+						justifyContent: "center",
+						gap: 8,
+						padding: 24,
+						textAlign: "center",
+						background: "rgba(15,23,42,0.04)",
+						color: "#475569",
+					}}
+				>
+					<strong>Map unavailable</strong>
+					<span style={{ fontSize: 13 }}>{webglError}</span>
+				</div>
+			) : null}
+		</div>
 	);
 });

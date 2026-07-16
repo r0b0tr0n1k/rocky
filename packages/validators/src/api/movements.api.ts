@@ -196,7 +196,8 @@ export const movementResponseSchema = movementsSelectSchema
     deathDate: z.coerce.date<string>().nullable(),
     deathCause: deathCauseSchema.nullable(),
     type: movementTypeSchema,
-  }).strip() satisfies z.ZodType<MovementResponse>; // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
+  })
+  .strip() satisfies z.ZodType<MovementResponse>; // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export const movementSummarySchema = z.object(
   movementResponseSchema.pick({
@@ -221,10 +222,14 @@ export const movementListResponseSchema = z.strictObject({
 // REQUEST SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════
 
+// Nil UUID the clients use as a "no selection" placeholder for optional
+// FK ids (e.g. the mobile forms send it for currentFarmId/vetId). The
+// movement create treats it as "not provided" and derives fromFarmId.
+const NIL_UUID = "00000000-0000-0000-0000-000000000000";
+
 export const createMovementRequestSchema = movementsInsertSchema
   .pick({
     animalId: true,
-    fromFarmId: true,
     toFarmId: true,
     movementDate: true,
     arrivalDate: true,
@@ -236,6 +241,15 @@ export const createMovementRequestSchema = movementsInsertSchema
     isActive: true,
   })
   .extend({
+    // fromFarmId is optional in practice: a movement's origin is the
+    // animal's current holding, so callers may omit it or send the nil
+    // sentinel placeholder. Both are normalized to null here and derived
+    // from the animal in the service.
+    fromFarmId: z
+      .uuid()
+      .or(z.literal(NIL_UUID))
+      .nullable()
+      .transform((v) => (v === NIL_UUID ? null : v)),
     type: movementTypeSchema.optional(),
     movementDate: z.coerce.date<string>(),
     arrivalDate: z.coerce.date<string>().optional(),
@@ -244,18 +258,19 @@ export const createMovementRequestSchema = movementsInsertSchema
   })
   .strict() satisfies z.ZodType<CreateMovementRequest>;
 
-export const movementListRequestSchema = z.strictObject({
-  animalId: z.uuid().optional(),
-  fromFarmId: z.uuid().optional(),
-  toFarmId: z.uuid().optional(),
-  type: movementTypeSchema.optional(),
-  fromDate: z.coerce.date<string>().optional(),
-  toDate: z.coerce.date<string>().optional(),
-  sortBy: sortByMovementSchema.default("movementDate"),
-  sortOrder: sortOrderSchema.default("desc"),
-  limit: z.int().min(1).max(100).default(20),
-  offset: z.int().min(0).default(0),
-})
+export const movementListRequestSchema = z
+  .strictObject({
+    animalId: z.uuid().optional(),
+    fromFarmId: z.uuid().optional(),
+    toFarmId: z.uuid().optional(),
+    type: movementTypeSchema.optional(),
+    fromDate: z.coerce.date<string>().optional(),
+    toDate: z.coerce.date<string>().optional(),
+    sortBy: sortByMovementSchema.default("movementDate"),
+    sortOrder: sortOrderSchema.default("desc"),
+    limit: z.int().min(1).max(100).default(20),
+    offset: z.int().min(0).default(0),
+  })
   .superRefine((data, ctx) => {
     if (data.fromDate && data.toDate && data.fromDate > data.toDate) {
       ctx.addIssue({
@@ -396,19 +411,43 @@ type _drift_declareAlpine = NoDriftSimple<z.infer<typeof declareAlpineRequestSch
 type _drift_returnFromAlpine = NoDriftSimple<z.infer<typeof returnFromAlpineRequestSchema>, ReturnFromAlpineRequest>;
 type _drift_recordSlaughter = NoDriftSimple<z.infer<typeof recordSlaughterRequestSchema>, RecordSlaughterRequest>;
 type _drift_importEU = NoDriftSimple<z.infer<typeof importEURequestSchema>, ImportEURequest>;
-type _drift_importThirdCountry = NoDriftSimple<z.infer<typeof importThirdCountryRequestSchema>, ImportThirdCountryRequest>;
+type _drift_importThirdCountry = NoDriftSimple<
+  z.infer<typeof importThirdCountryRequestSchema>,
+  ImportThirdCountryRequest
+>;
 type _drift_exportAnimal = NoDriftSimple<z.infer<typeof exportAnimalRequestSchema>, ExportAnimalRequest>;
-type _drift_recordMarketTransaction = NoDriftSimple<z.infer<typeof recordMarketTransactionRequestSchema>, RecordMarketTransactionRequest>;
-type _drift_recordMarketUnsold = NoDriftSimple<z.infer<typeof recordMarketUnsoldRequestSchema>, RecordMarketUnsoldRequest>;
-type _drift_recordMarketSlaughter = NoDriftSimple<z.infer<typeof recordMarketSlaughterRequestSchema>, RecordMarketSlaughterRequest>;
+type _drift_recordMarketTransaction = NoDriftSimple<
+  z.infer<typeof recordMarketTransactionRequestSchema>,
+  RecordMarketTransactionRequest
+>;
+type _drift_recordMarketUnsold = NoDriftSimple<
+  z.infer<typeof recordMarketUnsoldRequestSchema>,
+  RecordMarketUnsoldRequest
+>;
+type _drift_recordMarketSlaughter = NoDriftSimple<
+  z.infer<typeof recordMarketSlaughterRequestSchema>,
+  RecordMarketSlaughterRequest
+>;
 
 export type _MovementsGuillotines = ActivateGuillotines<
-  [_drift_movementResponse, _drift_movementSummary, _drift_movementListResponse,
-   _drift_createMovement, _drift_movementList, _drift_recordDeath,
-   _drift_declarePasture, _drift_declareAlpine, _drift_returnFromAlpine,
-   _drift_recordSlaughter, _drift_importEU, _drift_importThirdCountry,
-   _drift_exportAnimal, _drift_recordMarketTransaction, _drift_recordMarketUnsold,
-   _drift_recordMarketSlaughter]
+  [
+    _drift_movementResponse,
+    _drift_movementSummary,
+    _drift_movementListResponse,
+    _drift_createMovement,
+    _drift_movementList,
+    _drift_recordDeath,
+    _drift_declarePasture,
+    _drift_declareAlpine,
+    _drift_returnFromAlpine,
+    _drift_recordSlaughter,
+    _drift_importEU,
+    _drift_importThirdCountry,
+    _drift_exportAnimal,
+    _drift_recordMarketTransaction,
+    _drift_recordMarketUnsold,
+    _drift_recordMarketSlaughter,
+  ]
 >;
 
 // ── WO-116: Lineage & Traceability Graph (R6 EC 178/2002) ──

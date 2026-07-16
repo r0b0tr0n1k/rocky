@@ -1,12 +1,12 @@
 # ADR-0014: Cross-Domain Event Decoupling via Outbox
 
-| Key | Value |
-| --- | --- |
-| **Status** | Accepted |
-| **Date** | 2026-07-06 |
-| **Author** | RobotFarm |
+| Key            | Value                                                 |
+| -------------- | ----------------------------------------------------- |
+| **Status**     | Accepted                                              |
+| **Date**       | 2026-07-06                                            |
+| **Author**     | RobotFarm                                             |
 | **Supersedes** | Direct `InspectionRepository` call in `HealthService` |
-| **Superseded** | None |
+| **Superseded** | None                                                  |
 
 ---
 
@@ -102,14 +102,14 @@ private async handleNotifiableDisease(event) {
 
 ### Event Contract
 
-| Field | Type | Source |
-|-------|------|--------|
-| `diseaseId` | string | `input.diseaseId` |
+| Field         | Type   | Source                          |
+| ------------- | ------ | ------------------------------- |
+| `diseaseId`   | string | `input.diseaseId`               |
 | `diseaseName` | string | Looked up from `diseases` table |
-| `farmId` | string | `input.farmId` |
-| `animalId` | string | `input.animalId` |
-| `vetId` | string | `input.vetId` |
-| `createdBy` | string | `input.createdBy` |
+| `farmId`      | string | `input.farmId`                  |
+| `animalId`    | string | `input.animalId`                |
+| `vetId`       | string | `input.vetId`                   |
+| `createdBy`   | string | `input.createdBy`               |
 
 ## Consequences
 

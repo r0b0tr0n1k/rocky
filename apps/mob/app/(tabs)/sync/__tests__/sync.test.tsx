@@ -11,7 +11,12 @@ import { vi } from "vitest";
 // module, so the real provider's native (SQLite) surface never loads.
 
 const { current, fns } = vi.hoisted(() => ({
-  current: { isOnline: true, pendingCount: 0, items: [] as Array<{ idempotency_key: string; type: string; status: string; error_message?: string }>, isBusy: false },
+  current: {
+    isOnline: true,
+    pendingCount: 0,
+    items: [] as Array<{ idempotency_key: string; type: string; status: string; error_message?: string }>,
+    isBusy: false,
+  },
   fns: { flush: vi.fn(), download: vi.fn(), dismiss: vi.fn() },
 }));
 

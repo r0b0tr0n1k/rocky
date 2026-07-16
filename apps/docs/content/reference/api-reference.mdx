@@ -2,7 +2,7 @@
 
 > ⚠️ **AUTO-GENERATED** from `apps/api/src/routers/*.router.ts` via `pnpm gen:api-reference`. Do not edit by hand — re-run the generator when routers change.
 
-The Rocky API is a **tRPC** layer generated from NestJS routers (`@Router` / `@Query` / `@Mutation`) by `nestjs-trpc generate` into `packages/trpc/src/generated/server.ts`. It currently exposes **25 routers / 180 procedures**. The NoDrift ideology holds at the boundary: the client `AppRouter` type *is* the contract, so drift is impossible by construction (enforced by `check:trpc-boundary` in `ci:checks`).
+The Rocky API is a **tRPC** layer generated from NestJS routers (`@Router` / `@Query` / `@Mutation`) by `nestjs-trpc generate` into `packages/trpc/src/generated/server.ts`. It currently exposes **25 routers / 181 procedures**. The NoDrift ideology holds at the boundary: the client `AppRouter` type *is* the contract, so drift is impossible by construction (enforced by `check:trpc-boundary` in `ci:checks`).
 
 ## Where the surface lives
 
@@ -31,7 +31,7 @@ Nextra’s `<TSDoc>` component turns TS types into property / parameter / return
 - [iot](#iot) — 6 procedures
 - [modules](#modules) — 2 procedures
 - [movement](#movement) — 17 procedures
-- [notification](#notification) — 5 procedures
+- [notification](#notification) — 6 procedures
 - [organization](#organization) — 4 procedures
 - [passport](#passport) — 7 procedures
 - [rbac](#rbac) — 6 procedures
@@ -255,6 +255,7 @@ Nextra’s `<TSDoc>` component turns TS types into property / parameter / return
 | Procedure | Kind | Input | Output |
 | --- | --- | --- | --- |
 | `unreadCount` | Query | `-` | `unreadCountSchema` |
+| `list` | Query | `notificationListRequestSchema` | `z.array(notificationOutputSchema)` |
 | `unknown` | Mutation | `sendNotificationSchema.omit({ userId: true })` | `notificationOutputSchema` |
 | `markAsRead` | Mutation | `markAsReadSchema.omit({ userId: true })` | `notificationOutputSchema` |
 | `confirmDelivery` | Mutation | `confirmDeliverySchema.omit({ userId: true })` | `notificationOutputSchema` |

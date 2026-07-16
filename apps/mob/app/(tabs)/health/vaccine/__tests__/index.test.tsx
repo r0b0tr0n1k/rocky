@@ -5,18 +5,15 @@ import { trpc } from "@/providers/trpc-provider";
 import VaccineListScreen from "../index";
 
 function seedList(queryClient: ReturnType<typeof makeTestQueryClient>, rows: unknown[]) {
-  seedQuery(
-    queryClient,
-    getQueryKey(trpc.health.listVaccines, { limit: 20, offset: 0 }, "query"),
-    { data: rows, meta: { total: rows.length, limit: 20, offset: 0 } },
-  );
+  seedQuery(queryClient, getQueryKey(trpc.health.listVaccines, { limit: 20, offset: 0 }, "query"), {
+    data: rows,
+    meta: { total: rows.length, limit: 20, offset: 0 },
+  });
 }
 
 test("renders seeded vaccines from listVaccines", async () => {
   const queryClient = makeTestQueryClient();
-  seedList(queryClient, [
-    { id: "v1", name: "Bovilis IBR", manufacturer: "Merck", type: "INJECTABLE" },
-  ]);
+  seedList(queryClient, [{ id: "v1", name: "Bovilis IBR", manufacturer: "Merck", type: "INJECTABLE" }]);
   renderWithProviders(<VaccineListScreen />, { queryClient });
   expect(await screen.findByText("Bovilis IBR")).toBeTruthy();
   expect(screen.getByText("Merck")).toBeTruthy();

@@ -50,6 +50,7 @@ export class GeofenceFactory extends SchemaDataFactory<GeofenceRecord> {
       // WO-110: nullable PostGIS foundation columns — populated only by real IoT writes
       polygon: null,
       cadastralReference: null,
+      deforestationFreeSince: faker.date.past({ years: 2 }).toISOString().split("T")[0]!,
     });
   }
 

@@ -38,7 +38,7 @@ export default function DocumentsPage() {
   const generate = useMutation(trpc.document.generate.mutationOptions({}));
   const signature = useQuery(
     trpc.document.verify.queryOptions(
-      { type: query!.type, refId: query!.refId },
+      { type: query?.type ?? "", refId: query?.refId ?? "" },
       { enabled: !!query && !!result && result.format === "pdf" },
     ),
   );
@@ -56,10 +56,12 @@ export default function DocumentsPage() {
     if (refId) form.setValue("refId", refId);
     if (type && refId && !submittedFromQuery.current) {
       submittedFromQuery.current = true;
-      generate.mutateAsync({ type, refId, format: "pdf" }).then(setResult).catch(() => {});
+      generate
+        .mutateAsync({ type, refId, format: "pdf" })
+        .then(setResult)
+        .catch(() => {});
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, [searchParams, form, generate]);
 
   const onValid = async (values: { type: string; refId: string; format?: "yaml" | "xml" | "pdf" }) => {
     setQuery({ type: values.type, refId: values.refId });
@@ -78,8 +80,7 @@ export default function DocumentsPage() {
     return () => {
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [pdfUrl]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -155,11 +156,7 @@ export default function DocumentsPage() {
                 >
                   Download PDF
                 </a>
-                <object
-                  data={pdfUrl}
-                  type="application/pdf"
-                  className="h-[640px] w-full rounded-md border bg-muted"
-                >
+                <object data={pdfUrl} type="application/pdf" className="h-[640px] w-full rounded-md border bg-muted">
                   <p className="p-4 text-sm text-muted-foreground">
                     PDF preview unavailable in this browser. Use the Download button above.
                   </p>

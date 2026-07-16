@@ -80,9 +80,7 @@ vi.mock("uniwind", () => ({
 vi.mock("lucide-react-native", async () => {
   const React = await import("react");
   const makeIcon = () =>
-    React.forwardRef((props: Record<string, unknown>, ref: unknown) =>
-      React.createElement("svg", { ...props, ref }),
-    );
+    React.forwardRef((props: Record<string, unknown>, ref: unknown) => React.createElement("svg", { ...props, ref }));
   return new Proxy(
     { default: makeIcon() },
     {
@@ -112,21 +110,15 @@ vi.mock("@/components/ui/select", async () => {
       { value: (v: unknown) => onValueChange?.({ value: String(v), label: String(v) }) },
       children,
     );
-  const SelectTrigger = ({ children }: { children?: React.ReactNode }) =>
-    React.createElement(View, null, children);
-  const SelectValue = ({ placeholder }: { placeholder?: string }) =>
-    React.createElement(Text, null, placeholder ?? "");
-  const SelectContent = ({ children }: { children?: React.ReactNode }) =>
-    React.createElement(View, null, children);
+  const SelectTrigger = ({ children }: { children?: React.ReactNode }) => React.createElement(View, null, children);
+  const SelectValue = ({ placeholder }: { placeholder?: string }) => React.createElement(Text, null, placeholder ?? "");
+  const SelectContent = ({ children }: { children?: React.ReactNode }) => React.createElement(View, null, children);
   const SelectItem = ({ label, value }: { label: string; value: string }) => {
     const onChange = React.useContext(SelectCtx);
     return React.createElement(Text, { onPress: () => onChange(value) }, label);
   };
-  const SelectGroup = ({ children }: { children?: React.ReactNode }) =>
-    React.createElement(View, null, children);
-  const SelectLabel = ({ children }: { children?: React.ReactNode }) =>
-    React.createElement(Text, null, children);
-  const SelectSeparator = ({ children }: { children?: React.ReactNode }) =>
-    React.createElement(View, null, children);
+  const SelectGroup = ({ children }: { children?: React.ReactNode }) => React.createElement(View, null, children);
+  const SelectLabel = ({ children }: { children?: React.ReactNode }) => React.createElement(Text, null, children);
+  const SelectSeparator = ({ children }: { children?: React.ReactNode }) => React.createElement(View, null, children);
   return { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectGroup, SelectLabel, SelectSeparator };
 });

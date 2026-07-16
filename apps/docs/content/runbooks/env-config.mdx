@@ -8,7 +8,7 @@ sidebarTitle: Env Vars
 Rocky runs in **two worlds** with two different env-loading models:
 
 1. **Dev on this PC** — `pnpm dev` (Turborepo) runs the api / web / mob / docs workspaces, each reading its **own** `.env` file.
-2. **Docker (compose)** — `docker compose up` auto-loads the **root** `.env` and injects vars into containers; the API container *derives* `DATABASE_URL` itself.
+2. **Docker (compose)** — `docker compose up` auto-loads the **root** `.env` and injects vars into containers; the API receives `DATABASE_URL` **verbatim** and derives its internal db config from it.
 
 The single rule that governs both: **every secret lives only in a local `.env`, never in git.** `.env.example` files are the template; `.env` files are the filled-in secret-bearing copies and are git-ignored.
 
@@ -29,19 +29,24 @@ Each workspace loads env independently — there is **no single root `.env`** th
 
 `turbo.json` additionally declares a `globalPassThroughEnv` list (`PG_PORT`, `PG_HOST`, `PG_USER`, `PG_PASS`, `PG_DB`, `API_PORT`, `WEB_PORT`, `DOCS_PORT`, `LANDING_PORT`, `API_URL`, `WEB_URL`, `LANDING_URL`). Those vars, **if present in your shell environment**, are forwarded to every task. Use them for worktree/port overrides (see below) — they are not required for a normal single-machine dev.
 
-> `apps/api/src/config.ts` reads `PG_HOST`/`PG_USER`/`PG_PASS`/`PG_DB`/`PG_PORT`, `ENVIRONMENT`, `VERSION`, `NODE_ENV`, `BETTER_AUTH_SECRET`, `PORT`/`API_PORT`, `BASE_SERVICE_URL`, `CORS_ORIGINS`, `TRUSTED_ORIGINS`, `REQUEST_LOGGING` (plus the PDF-signer and credential-key vars). All of these come from `apps/api/.env` in dev.
+> `apps/api/src/config.ts` reads `DATABASE_URL` (and derives its internal db config from it), plus `ENVIRONMENT`, `VERSION`, `NODE_ENV`, `BETTER_AUTH_SECRET`, `PORT`/`API_PORT`, `BASE_SERVICE_URL`, `CORS_ORIGINS`, `TRUSTED_ORIGINS`, `REQUEST_LOGGING` (plus the PDF-signer and credential-key vars). All of these come from `apps/api/.env` in dev.
 
 ### Docker (compose)
 
-`docker-compose.yml` is launched from the repo root and **auto-loads `./.env`** for `${VAR}` interpolation (the compose file interpolates, not the apps). Inside the `api` service it **builds** the connection string itself:
+`docker-compose.yml` is launched from the repo root and **auto-loads `./.env`** for `${VAR}` interpolation. The api service receives the connection string **verbatim** — compose passes `DATABASE_URL=${DATABASE_URL}` straight through; it does **not** assemble it from `DB_HOST`/`DB_PORT`/`PG_*`. `apps/api/src/config.ts` then **derives** its internal `appConfig.db` (`host`/`user`/`password`/`name`/`port`) by parsing `DATABASE_URL` with `new URL(...)`.
+
+So in compose you set a **single** `DATABASE_URL` in the root `.env` (or injected into the environment) — there are no `DB_HOST`/`DB_PORT`/`DB_USER`/`PG_*` vars:
 
 ```
-DATABASE_URL=postgres://tbot:${POSTGRES_PASSWORD}@${DB_HOST:-db}:${DB_PORT:-5432}/tbot
+# Bundled db service (starts by default — profiles are off):
+DATABASE_URL=postgres://tbot:<POSTGRES_PASSWORD>@db:5432/tbot
+# External DB (separate host/VM):
+DATABASE_URL=postgres://tbot:<pw>@<host>:5432/tbot
 ```
 
-So in compose you set `DB_HOST` / `DB_PORT` / `POSTGRES_PASSWORD` and let compose assemble `DATABASE_URL` — **do not set `DATABASE_URL` in the root `.env` for a compose deploy**, or you'll override the derived value and likely break it.
+> **Write the password literally.** Compose does not expand `${VAR}` inside a `.env` *value*, so `DATABASE_URL=...${POSTGRES_PASSWORD}...` reaches the container unexpanded and breaks the connection. The `POSTGRES_PASSWORD` var is only used to initialize the bundled `db` container and must equal the password embedded in `DATABASE_URL`.
 
-The `web` image takes `NEXT_PUBLIC_API_URL` as a **build arg** (`docker-compose.yml` passes `--build-arg`), so it is frozen at image-build time. Everything else in `api`/`web` is a **runtime** env var injected by compose.
+The `db` service runs by default (its `profiles: [local-db]` is commented out); `web` depends on `api` being `service_healthy`, and both api/web healthchecks TCP-probe their own service name (`nc -z api 8080`, `nc -z web 3000`) inside the compose network — no localhost/port-number coupling. The `web` image takes `NEXT_PUBLIC_API_URL` as a **build arg** (`docker-compose.yml` passes `--build-arg`), so it is frozen at image-build time. Everything else in `api`/`web` is a **runtime** env var injected by compose.
 
 ---
 
@@ -49,7 +54,7 @@ The `web` image takes `NEXT_PUBLIC_API_URL` as a **build arg** (`docker-compose.
 
 | File | Purpose | Consumed by |
 | --- | --- | --- |
-| `.env` (root) | Compose secrets + local-dev tooling vars (Section 4) | `docker compose`, `scripts/setup-tunnel.sh` |
+| `.env` (root) | Compose secrets — single `DATABASE_URL` (+ `POSTGRES_PASSWORD` for the bundled db) + auth/domain vars | `docker compose`, `scripts/setup-tunnel.sh` |
 | `.env.example` (root) | Template for the above | — (copy target) |
 | `apps/api/.env` | API runtime config (DB, auth, ports, signer, creds) | `apps/api` dev |
 | `apps/web/.env` | `API_URL`, `BETTER_AUTH_SECRET`, `NEXT_PUBLIC_*` | `apps/web` dev |
@@ -63,7 +68,7 @@ The `web` image takes `NEXT_PUBLIC_API_URL` as a **build arg** (`docker-compose.
 ```bash
 # 1. API: copy the template, fill secrets
 cp apps/api/.env.example apps/api/.env
-#    set at minimum: ENVIRONMENT=dev, BETTER_AUTH_SECRET, PG_HOST/USER/PASS/DB
+#    set at minimum: ENVIRONMENT=dev, BETTER_AUTH_SECRET, DATABASE_URL
 
 # 2. Web admin
 cp apps/web/.env.example apps/web/.env
@@ -80,7 +85,7 @@ pnpm dev
 
 Mandatory gotcha: `apps/api/src/config.ts` validates `ENVIRONMENT` against a zod enum (`dev|production|test|staging`) with **no default** — the API refuses to start unless `apps/api/.env` sets `ENVIRONMENT=dev`.
 
-Keep the dev DB host consistent: `packages/database/.env` `DATABASE_URL` and `apps/api/.env` `PG_HOST` must point at the **same** Postgres (the LAN box `192.168.1.109:5432/tbot` in this setup).
+Keep the dev DB host consistent: `packages/database/.env` `DATABASE_URL` and `apps/api/.env` `DATABASE_URL` must point at the **same** Postgres (the LAN box `192.168.1.109:5432/tbot` in this setup).
 
 ---
 
@@ -89,14 +94,14 @@ Keep the dev DB host consistent: `packages/database/.env` `DATABASE_URL` and `ap
 ```bash
 # 1. Root compose secrets
 cp .env.example .env
-#    MANDATORY for a VM deploy: ROCKY_DOMAIN, POSTGRES_PASSWORD,
-#    BETTER_AUTH_SECRET, TUNNEL_TOKEN  (DB_HOST defaults to 192.168.1.109)
+#    MANDATORY for a VM deploy: ROCKY_DOMAIN, DATABASE_URL, POSTGRES_PASSWORD,
+#    BETTER_AUTH_SECRET, TUNNEL_TOKEN
 #    Everything else derives from ROCKY_DOMAIN — leave it alone unless you must override.
 
-# 2. Local Postgres in a container (single machine)
-docker compose --profile local-db up db
+# 2. Bundled Postgres starts by default (its `profiles` are commented out).
+#    For an external DB, point DATABASE_URL at it; this step is then optional.
 
-# 3. Full stack (api + web + docs + cloudflared tunnel)
+# 3. Full stack (api + web + docs)
 docker compose up -d
 
 # 4. Optional Drizzle Studio (dev profile)
@@ -117,7 +122,7 @@ CLOUDFLARE_API_TOKEN=<api-token> CLOUDFLARE_ACCOUNT_ID=<acct-id> \
 
 | Secret | Where it lives | Generate with |
 | --- | --- | --- |
-| `POSTGRES_PASSWORD` | root `.env` (compose) / `PG_PASS` + `DATABASE_URL` (dev) | random string |
+| `POSTGRES_PASSWORD` | root `.env` (compose) / `DATABASE_URL` (dev) | random string |
 | `BETTER_AUTH_SECRET` | root `.env` + `apps/api/.env` + `apps/web/.env` | `openssl rand -base64 32` |
 | `TUNNEL_TOKEN` | root `.env` | `scripts/setup-tunnel.sh` |
 | `DRIZZLE_MASTER_PASS` | root `.env` | random string |
@@ -154,7 +159,7 @@ pnpm dev
 ## Build-time vs runtime (Docker)
 
 - **Build-time (frozen in the image):** `apps/web` `NEXT_PUBLIC_API_URL` (compose `--build-arg`). Change it → **rebuild** the web image (`docker compose build web`).
-- **Runtime (hot via compose env):** `api` `PG_*`, `BETTER_AUTH_*`, `CORS_ORIGINS`, `AUTH_*`, `MAPTILER_API_KEY`, `web` `API_URL` / `BETTER_AUTH_SECRET`. Change → `docker compose up -d` (no rebuild).
+- **Runtime (hot via compose env):** `api` `DATABASE_URL`, `BETTER_AUTH_*`, `CORS_ORIGINS`, `AUTH_*`, `MAPTILER_API_KEY`, `web` `API_URL` / `BETTER_AUTH_SECRET`. Change → `docker compose up -d` (no rebuild).
 - **Mobile has no Dockerfile.** Expo builds are native; `EXPO_PUBLIC_*` are baked at `expo` build time and cannot be overridden by a `.env.worktree` afterward.
 
 ---
@@ -164,8 +169,8 @@ pnpm dev
 | Symptom | Cause | Fix |
 | --- | --- | --- |
 | API exits immediately in dev | `ENVIRONMENT` unset (zod enum, no default) | Set `ENVIRONMENT=dev` in `apps/api/.env` |
-| Dev connects to wrong DB | `packages/database/.env` `DATABASE_URL` ≠ `apps/api/.env` `PG_HOST` | Point both at the same host |
-| Compose API can't reach DB | `DATABASE_URL` set in root `.env` overrode the derived one | Remove `DATABASE_URL` from root `.env`; let compose build it |
+| Dev connects to wrong DB | `packages/database/.env` `DATABASE_URL` ≠ `apps/api/.env` `DATABASE_URL` | Point both at the same host |
+| Compose API can't reach DB | `DATABASE_URL` missing/wrong in root `.env`, or password ≠ `POSTGRES_PASSWORD` (bundled db) | Set a single correct `DATABASE_URL` in root `.env`; ensure its password matches `POSTGRES_PASSWORD` |
 | Web shows stale API URL in Docker | `NEXT_PUBLIC_API_URL` is build-time | `docker compose build web` then `up -d` |
 | Mobile hits wrong API after IP change | `EXPO_PUBLIC_*` baked at build | Edit `apps/mob/.env`, restart Expo |
 | Cookie/session not shared web↔api | `AUTH_COOKIE_DOMAIN` / `AUTH_BASE_URL` / `CORS_ORIGINS` inconsistent | Align across `api` + `web` (derive from `ROCKY_DOMAIN`) |
@@ -181,4 +186,4 @@ pnpm dev
 pnpm check:md-links
 ```
 
-Related: [DB Recreate & RLS](/runbooks/db-recreate) · [VM Prep & Domain](/runbooks/vm-prep) · [Deploy (EAS)](/runbooks/deploy) · [Sign PDF documents](/runbooks/sign-pdf-documents).
+Related: [Run the Stack Remotely](/runbooks/run-stack-remote) · [DB Recreate & RLS](/runbooks/db-recreate) · [VM Prep & Domain](/runbooks/vm-prep) · [Deploy (EAS)](/runbooks/deploy) · [Sign PDF documents](/runbooks/sign-pdf-documents).

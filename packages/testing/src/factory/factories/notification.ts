@@ -45,6 +45,7 @@ export class NotificationFactory extends SchemaDataFactory<NotificationRecord> {
       scheduledAt: null,
       sentAt: null,
       deliveredAt: null,
+      acknowledgedAt: null,
       expiresAt: null,
       attempts: 0,
       maxAttempts: 3,

@@ -9,14 +9,14 @@
 > This ADR makes channel selection a **policy owned by the Notification domain**, security-tiered, and
 > SMS a consent-gated, content-minimized last resort.
 
-| Key | Value |
-| --- | --- |
-| **Status** | Accepted |
-| **Date** | 2026-07-13 |
-| **Author** | Architecture Review (user directive: policy-driven, security-tiered routing; SMS minimized) |
-| **Supersedes** | None |
-| **Superseded** | None |
-| **Related** | ADR-0014 (cross-domain event decoupling — "send SMS to farmer" future handler) · ADR-0068 (lawful basis, GDPR Art 6) · ADR-0073 (mobile edge compliance) · ADR-0074 (field-role edge PII) · Notification Bot AGENTS.md |
+| Key            | Value                                                                                                                                                                                                                  |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Status**     | Accepted                                                                                                                                                                                                               |
+| **Date**       | 2026-07-13                                                                                                                                                                                                             |
+| **Author**     | Architecture Review (user directive: policy-driven, security-tiered routing; SMS minimized)                                                                                                                            |
+| **Supersedes** | None                                                                                                                                                                                                                   |
+| **Superseded** | None                                                                                                                                                                                                                   |
+| **Related**    | ADR-0014 (cross-domain event decoupling — "send SMS to farmer" future handler) · ADR-0068 (lawful basis, GDPR Art 6) · ADR-0073 (mobile edge compliance) · ADR-0074 (field-role edge PII) · Notification Bot AGENTS.md |
 
 ## Context
 
@@ -55,11 +55,11 @@ Adopt a **policy-driven, security-tiered `ChannelRouter`** owned by the Notifica
 
 ### 2. Security tiers
 
-| Tier | Channel | Trust boundary | May carry |
-| --- | --- | --- | --- |
-| **0 — preferred** | our app (push + in_app) | inside Rocky (TLS, authenticated user) | full content |
-| **1 — external, acceptable** | email | third-party but TLS, known address | long body / PDF attachment |
-| **2 — last resort, minimal** | SMS | plaintext (SS7), carrier sees number | **pointer only** — never the payload |
+| Tier                         | Channel                 | Trust boundary                         | May carry                            |
+| ---------------------------- | ----------------------- | -------------------------------------- | ------------------------------------ |
+| **0 — preferred**            | our app (push + in_app) | inside Rocky (TLS, authenticated user) | full content                         |
+| **1 — external, acceptable** | email                   | third-party but TLS, known address     | long body / PDF attachment           |
+| **2 — last resort, minimal** | SMS                     | plaintext (SS7), carrier sees number   | **pointer only** — never the payload |
 
 ### 3. Routing rules (pure, deterministic — `resolveChannels`)
 

@@ -21,16 +21,12 @@ const listedAnimal = {
 };
 
 function seedAnimalList(queryClient: ReturnType<typeof makeTestQueryClient>, rows: unknown[]) {
-  seedQuery(
-    queryClient,
-    getQueryKey(trpc.animal.list, { search: undefined, limit: 20, offset: 0 }, "query"),
-    {
-      data: rows,
-      total: rows.length,
-      limit: 20,
-      offset: 0,
-    },
-  );
+  seedQuery(queryClient, getQueryKey(trpc.animal.list, { search: undefined, limit: 20, offset: 0 }, "query"), {
+    data: rows,
+    total: rows.length,
+    limit: 20,
+    offset: 0,
+  });
 }
 
 test("renders a listed animal identifier from animal.list", async () => {

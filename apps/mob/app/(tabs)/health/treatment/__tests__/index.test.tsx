@@ -5,11 +5,10 @@ import { trpc } from "@/providers/trpc-provider";
 import TreatmentListScreen from "../index";
 
 function seedList(queryClient: ReturnType<typeof makeTestQueryClient>, rows: unknown[]) {
-  seedQuery(
-    queryClient,
-    getQueryKey(trpc.health.listTreatments, { limit: 20, offset: 0 }, "query"),
-    { data: rows, meta: { total: rows.length, limit: 20, offset: 0 } },
-  );
+  seedQuery(queryClient, getQueryKey(trpc.health.listTreatments, { limit: 20, offset: 0 }, "query"), {
+    data: rows,
+    meta: { total: rows.length, limit: 20, offset: 0 },
+  });
 }
 
 test("renders seeded treatments from listTreatments", async () => {

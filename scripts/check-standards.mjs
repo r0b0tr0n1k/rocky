@@ -201,15 +201,24 @@ const SHOULD_MAY_RE = /(?<![\w])(should|may)(?![\w])/i;
 
 function checkShall(f) {
   const lines = fs.readFileSync(f, "utf8").split("\n");
-  let inIntro = false, inScope = false, lvlI = 0, lvlS = 0;
+  let inIntro = false,
+    inScope = false,
+    lvlI = 0,
+    lvlS = 0;
   for (let i = 0; i < lines.length; i++) {
     const h = lines[i].match(/^(#{1,6})\s+(.*)$/);
     if (h) {
       const lvl = h[1].length;
       const t = h[2];
-      if (/^introduction\b/i.test(t)) { inIntro = true; lvlI = lvl; inScope = false; }
-      else if (/^scope\b/i.test(t)) { inScope = true; lvlS = lvl; inIntro = false; }
-      else {
+      if (/^introduction\b/i.test(t)) {
+        inIntro = true;
+        lvlI = lvl;
+        inScope = false;
+      } else if (/^scope\b/i.test(t)) {
+        inScope = true;
+        lvlS = lvl;
+        inIntro = false;
+      } else {
         if (inIntro && lvl <= lvlI) inIntro = false;
         if (inScope && lvl <= lvlS) inScope = false;
       }
@@ -234,21 +243,25 @@ function checkTableFig(f) {
     m = re.exec(txt);
   }
   for (const [k, c] of Object.entries(counts)) {
-    if (c < 2)
-      note(f, 0, `${k} caption not cross-referenced from body text (Directive Part 2 A.9/10, Cl 28/29)`);
+    if (c < 2) note(f, 0, `${k} caption not cross-referenced from body text (Directive Part 2 A.9/10, Cl 28/29)`);
   }
 }
 
 function checkFrontmatter(f) {
   const txt = fs.readFileSync(f, "utf8");
   const fm = txt.match(/^---\n([\s\S]*?)\n---/);
-  if (!fm) { note(f, 0, "missing YAML frontmatter (house rule 5: title: + sidebarTitle:)"); return; }
+  if (!fm) {
+    note(f, 0, "missing YAML frontmatter (house rule 5: title: + sidebarTitle:)");
+    return;
+  }
   if (!/^title:/m.test(fm[1])) note(f, 0, "frontmatter missing title: (house rule 5)");
   if (!/^sidebarTitle:/m.test(fm[1])) note(f, 0, "frontmatter missing sidebarTitle: (house rule 5)");
 }
 
 function slugify(s) {
-  return s.toLowerCase().trim()
+  return s
+    .toLowerCase()
+    .trim()
     .replace(/[^\w\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");

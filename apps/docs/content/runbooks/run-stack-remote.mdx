@@ -1,0 +1,130 @@
+---
+title: Run the Stack Remotely (docker-compose)
+sidebarTitle: Remote (compose)
+---
+
+# Run the Stack Remotely (docker-compose)
+
+Stand up the full Rocky stack (api + web + docs) on a remote server using the
+repo's `docker-compose.yml`. The compose config is already remote/server-ready:
+
+- it passes **`DATABASE_URL` through verbatim** to the api (`DATABASE_URL=${DATABASE_URL}`) — there are **no** `DB_HOST`/`DB_PORT`/`PG_*` vars to assemble;
+- services reach each other by **service name** (`api`, `web`), and the api/web healthchecks TCP-probe their own service name (`nc -z api 8080`, `nc -z web 3000`) — no localhost/port coupling;
+- `web` `depends_on` `api` `condition: service_healthy`, so the admin panel never starts before the API is live.
+
+You build the images on the server (the local PC does not build them).
+
+---
+
+## Prerequisites
+
+- The repo checked out on the server.
+- Docker + Compose v2.
+- A root `.env` (copy from `.env.example`).
+- A Postgres target — either the **bundled `db` service** (starts by default; its
+  `profiles: [local-db]` is commented out) or an **external Postgres** you run/own.
+
+---
+
+## Step 1 — Server `.env`
+
+Set the single connection string and the auth/domain vars. **Write the DB
+password literally** — Compose does not expand `${VAR}` inside a `.env` value, so
+`DATABASE_URL=...${POSTGRES_PASSWORD}...` would reach the container unexpanded.
+
+```bash
+cp .env.example .env
+```
+
+```dotenv
+# Bundled db (service name "db"):
+DATABASE_URL=postgres://tbot:<POSTGRES_PASSWORD>@db:5432/tbot
+# — OR — external DB (separate host/VM):
+# DATABASE_URL=postgres://tbot:<pw>@<host>:5432/tbot
+
+# Only used to initialise the BUNDLED db; must equal the password in DATABASE_URL.
+POSTGRES_PASSWORD=<same-password-as-above>
+
+# Better Auth shared secret (api + web). Generate: openssl rand -base64 32
+BETTER_AUTH_SECRET=<32+ base64 string>
+
+# Drives api./admin./docs.<domain>. Defaults assume techno.party if unset.
+ROCKY_DOMAIN=your.domain
+
+# Domain-derived defaults (override only if different from ROCKY_DOMAIN):
+# BETTER_AUTH_URL=https://api.your.domain
+# AUTH_COOKIE_DOMAIN=.your.domain
+# AUTH_BASE_URL=https://admin.your.domain
+# CORS_ORIGINS=https://admin.your.domain
+# TRUSTED_ORIGINS=https://admin.your.domain,mobile://
+# WEB_PUBLIC_API_URL=https://api.your.domain   # frozen at web BUILD time
+
+# Optional — Drizzle Studio container
+DRIZZLE_MASTER_PASS=<random>
+```
+
+> The bundled `db` container initialises `tbot`/`tbot` DB from `POSTGRES_PASSWORD`.
+> If `DATABASE_URL` points at an **external** Postgres, `POSTGRES_PASSWORD` is
+> ignored and you manage that DB separately (schema + seed below).
+
+---
+
+## Step 2 — Bring up the stack
+
+```bash
+docker compose up -d        # builds images on the server, starts db + api + web + docs
+```
+
+- `db` starts by default (no profile flag needed).
+- `api` comes up and passes its `nc -z api 8080` healthcheck; `web` then starts
+  (waits for `api` healthy).
+- The api's `OutboxProcessorJob` reconnects every ~5s, so a brief DB lag at boot
+  self-heals — you do **not** need a hard `depends_on: db`.
+
+Published ports (host → container): `api` **8080**, `web` **3050**→3000,
+`docs` **3041**→3000, `drizzle-studio` **4983**. Expose them via your reverse
+proxy / Cloudflare Tunnel (see [VM Prep & Domain](/runbooks/vm-prep)).
+
+---
+
+## Step 3 — Initialise the database
+
+The containers run, but the DB is empty until you push the schema and seed.
+
+The seed reads its `DATABASE_URL` from `packages/database/.env` (with a
+repo-root `.env` fallback via `load-env.ts`). On the server, make sure that file
+points at the **same** database as the api's `DATABASE_URL`.
+
+```bash
+# 1. Push schema + base seed (drops + recreates the DB blank):
+pnpm -C packages/database db-recreate
+
+# 2. Optional: load-test data (5000 animals / 50000 movements + coherent dependents)
+pnpm -C packages/database stress-seed
+```
+
+`db-recreate.sh` drops the DB, regenerates the migration from current code,
+fixes the drizzle-kit RLS `$N` placeholders, applies it (with
+`check_function_bodies = off`), and base-seeds. Run it once on a fresh server,
+then re-run `pnpm seed` / `pnpm stress-seed` any time without the drop.
+
+---
+
+## Pitfalls
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| API 400s on read with `Invalid UUID` | Seeded rows used RFC-4122-**invalid** UUIDs (fake `f3f3…` forms) | `stress-seed` now uses valid v4 UUIDs; re-run `db-recreate` + `stress-seed` |
+| API can't reach DB | `DATABASE_URL` missing/wrong, or password ≠ `POSTGRES_PASSWORD` (bundled db) | Set one correct `DATABASE_URL`; match the password |
+| `NEXT_PUBLIC_API_URL` wrong in web | It is a **build arg** — frozen at image build | `docker compose build web` then `up -d` |
+| Web never starts | `api` unhealthy | Check `docker compose logs api`; api must bind 8080 |
+| DB connection resets | External DB unreachable / creds | Verify `DATABASE_URL` from the server; `nc -z <host> 5432` |
+
+---
+
+## Related
+
+- [Manage Environment Variables](/runbooks/env-config) — the single-`DATABASE_URL` model
+- [DB Recreate & RLS](/runbooks/db-recreate) — `db-recreate.sh` internals
+- [VM Prep & Domain](/runbooks/vm-prep) — remote VM + Cloudflare/domain precondition
+- [Veterinary & Sanitary Smoke Test](/runbooks/veterinary-sanitary-smoke-test) — seed fake data

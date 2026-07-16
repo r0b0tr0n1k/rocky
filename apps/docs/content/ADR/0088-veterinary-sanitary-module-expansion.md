@@ -6,13 +6,13 @@
 > those EU resources into the Diamond Seal architecture, reusing existing Outbox / PostGIS /
 > Inspection infrastructure. Component decisions are split into ADR-0089 … ADR-0093.
 
-| Key | Value |
-| --- | --- |
-| **Status** | Accepted |
-| **Date** | 2026-07-13 |
-| **Author** | Architecture Review (user directive: expand Veterinary & Sanitary modules) |
-| **Supersedes** | None |
-| **Superseded** | None |
+| Key            | Value                                                                      |
+| -------------- | -------------------------------------------------------------------------- |
+| **Status**     | Accepted                                                                   |
+| **Date**       | 2026-07-13                                                                 |
+| **Author**     | Architecture Review (user directive: expand Veterinary & Sanitary modules) |
+| **Supersedes** | None                                                                       |
+| **Superseded** | None                                                                       |
 
 ## Context
 
@@ -44,15 +44,15 @@ Adopt a **resource-aligned expansion** of the Veterinary & Sanitary modules, gro
 instruments below, built on existing infrastructure (Outbox events, PostGIS `geofences`, the
 Inspection domain, the Geo service). Four components, each with its own ADR.
 
-| EU instrument | Governs | Rocky maps to |
-| --- | --- | --- |
+| EU instrument                                   | Governs                                                                                                      | Rocky maps to                                           |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
 | **Reg (EU) 2016/429 (AHL)** — Animal Health Law | Disease prevention/control framework; diseases listed in **Annex II**; defines protection/surveillance zones | Disease master data, zone concepts, notifiable triggers |
-| **Delegated Reg (EU) 2018/1629** | Animal disease categories for annual Union reporting (the A–E tiering) | `diseaseCategory` enum values |
-| **Reg (EU) 2017/625 (OCR)** | Official controls — incl. **ante-/post-mortem** inspection at slaughterhouses | `sanitary_inspections` entity |
-| **Reg (EC) 853/2004** | Hygiene rules for food of animal origin | ante/post-mortem pass / condemn decisions |
-| **Reg (EC) 1069/2009 (ABP)** | Animal by-products — **Category 1 ABP** condemnation/disposal | post-mortem condemnation → incineration |
-| **WOAH WAHIS** | International master disease list + codes | Seed `diseases` + `woahCode` |
-| **Reg (EU) 2019/6 (VMPR) + EMA UPD** | Vet medicinal products; legally mandated **withdrawal periods** | Seed `vaccines`/`treatments` + `withdrawalPeriod` |
+| **Delegated Reg (EU) 2018/1629**                | Animal disease categories for annual Union reporting (the A–E tiering)                                       | `diseaseCategory` enum values                           |
+| **Reg (EU) 2017/625 (OCR)**                     | Official controls — incl. **ante-/post-mortem** inspection at slaughterhouses                                | `sanitary_inspections` entity                           |
+| **Reg (EC) 853/2004**                           | Hygiene rules for food of animal origin                                                                      | ante/post-mortem pass / condemn decisions               |
+| **Reg (EC) 1069/2009 (ABP)**                    | Animal by-products — **Category 1 ABP** condemnation/disposal                                                | post-mortem condemnation → incineration                 |
+| **WOAH WAHIS**                                  | International master disease list + codes                                                                    | Seed `diseases` + `woahCode`                            |
+| **Reg (EU) 2019/6 (VMPR) + EMA UPD**            | Vet medicinal products; legally mandated **withdrawal periods**                                              | Seed `vaccines`/`treatments` + `withdrawalPeriod`       |
 
 **Component 1 — Sanitary Chokepoint** (ADR-0090): new `sanitary_inspections` entity in the
 inspection domain, linked to a `movementId` (slaughter arrival), with `anteMortemDecision`
@@ -77,13 +77,13 @@ overdue-birth alerts) — a panoptic view of national biological health.
 
 ### Child ADRs
 
-| ADR | Scope | Status |
-| --- | --- | --- |
+| ADR          | Scope                                                                                 | Status                |
+| ------------ | ------------------------------------------------------------------------------------- | --------------------- |
 | **ADR-0089** | Disease master data: AHL Annex II categories (Delegated 2018/1629) + WOAH WAHIS codes | Proposed (this batch) |
-| **ADR-0090** | Sanitary inspections (ante/post-mortem) — OCR 2017/625 / 853/2004 / 1069/2009 | Proposed |
-| **ADR-0091** | Lab test chain-of-custody status + PDA/lab workflow | Proposed |
-| **ADR-0092** | Zone-of-Alienation automation: `LabTestCompletedEvent` → geofence lockdown | Proposed |
-| **ADR-0093** | Dual dashboards: Private Vet vs State Epidemiologist | Proposed |
+| **ADR-0090** | Sanitary inspections (ante/post-mortem) — OCR 2017/625 / 853/2004 / 1069/2009         | Proposed              |
+| **ADR-0091** | Lab test chain-of-custody status + PDA/lab workflow                                   | Proposed              |
+| **ADR-0092** | Zone-of-Alienation automation: `LabTestCompletedEvent` → geofence lockdown            | Proposed              |
+| **ADR-0093** | Dual dashboards: Private Vet vs State Epidemiologist                                  | Proposed              |
 
 ## Consequences
 

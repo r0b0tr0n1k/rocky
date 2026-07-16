@@ -73,6 +73,7 @@
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
     "seed": "tsx src/seed.ts",
+    "stress-seed": "tsx src/stress-seed.ts",
     "push": "drizzle-kit push",
     "studio": "drizzle-kit studio"
   },
@@ -88,6 +89,7 @@
   "devDependencies": {
     "@types/node": "catalog:",
     "drizzle-kit": "catalog:",
+    "drizzle-seed": "1.0.0-beta.24",
     "tsx": "catalog:",
     "typescript": "catalog:"
   }

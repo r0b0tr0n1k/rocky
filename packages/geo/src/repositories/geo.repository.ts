@@ -1,7 +1,7 @@
-import { farms, geofences, animalGeofenceEvents, pastureDeclarations, settlements } from "@rocky/database";
+import { animalGeofenceEvents, farms, geofences, pastureDeclarations, settlements } from "@rocky/database";
 import { FENCE_TYPE } from "@rocky/database/constants";
 import { BaseRepository } from "@rocky/domains-shared";
-import { and, asc, eq, inArray, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, inArray, type SQL, sql } from "drizzle-orm";
 
 /** Parse a PostGIS POINT wkt ("POINT(lng lat)") into { latitude, longitude }. */
 function parsePointWkt(wkt: string): { latitude: number; longitude: number } {
@@ -19,11 +19,7 @@ export class GeoRepository extends BaseRepository {
 	}
 
 	async listGeofencesByFarm(farmId: string) {
-		return this.client
-			.select()
-			.from(geofences)
-			.where(eq(geofences.farmId, farmId))
-			.orderBy(asc(geofences.name));
+		return this.client.select().from(geofences).where(eq(geofences.farmId, farmId)).orderBy(asc(geofences.name));
 	}
 
 	async listGeofences(input: { farmId?: string; fenceType?: string; limit: number; offset: number }) {
@@ -89,9 +85,15 @@ export class GeoRepository extends BaseRepository {
 	}
 
 	/** Nearest settlement (village/town/city) to a GPS point, via KNN (<-> operator). */
-	async findNearestSettlement(longitude: number, latitude: number): Promise<
-		{ id: string; name: string; settlementType: string; location: { latitude: number; longitude: number } } | null
-	> {
+	async findNearestSettlement(
+		longitude: number,
+		latitude: number,
+	): Promise<{
+		id: string;
+		name: string;
+		settlementType: string;
+		location: { latitude: number; longitude: number };
+	} | null> {
 		const rows = await this.client
 			.select({
 				id: settlements.id,
@@ -166,7 +168,10 @@ export class GeoRepository extends BaseRepository {
 		if (pastureIds.length === 0) return [];
 		const conditions = [inArray(geofences.pastureId, pastureIds)];
 		if (fenceType) conditions.push(eq(geofences.fenceType, fenceType));
-		return this.client.select().from(geofences).where(and(...conditions));
+		return this.client
+			.select()
+			.from(geofences)
+			.where(and(...conditions));
 	}
 
 	/** Combined traversal: pastures touched by the animal → their geofences (default PASTURE_BOUNDARY). */
@@ -183,7 +188,10 @@ export class GeoRepository extends BaseRepository {
 	async findGeofencesIntersectingPolygon(wkt: string, fenceType?: string) {
 		const conditions = [sql`ST_Intersects(${geofences.polygon}, ST_GeomFromText(${wkt}, 4326))`];
 		if (fenceType) conditions.push(eq(geofences.fenceType, fenceType));
-		return this.client.select().from(geofences).where(and(...conditions));
+		return this.client
+			.select()
+			.from(geofences)
+			.where(and(...conditions));
 	}
 
 	// ── Disease-zone proximity (WO-119 / AHL 2016/429) ──
@@ -196,16 +204,7 @@ export class GeoRepository extends BaseRepository {
 		return this.client
 			.select(geofences)
 			.from(geofences)
-			.innerJoin(
-				farms,
-				sql`ST_DWithin(${geofences.polygon}::geography, ${farms.location}::geography, ${radiusMeters})`,
-			)
-			.where(
-				and(
-					eq(geofences.fenceType, FENCE_TYPE.DISEASE_ZONE),
-					eq(geofences.isActive, true),
-					eq(farms.id, farmId),
-				),
-				);
+			.innerJoin(farms, sql`ST_DWithin(${geofences.polygon}::geography, ${farms.location}::geography, ${radiusMeters})`)
+			.where(and(eq(geofences.fenceType, FENCE_TYPE.DISEASE_ZONE), eq(geofences.isActive, true), eq(farms.id, farmId)));
 	}
 }

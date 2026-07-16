@@ -15,10 +15,7 @@ import type {
   CreateMovementRequest,
   MovementListRequest,
 } from "@rocky/validators/api/index.js";
-import type {
-  animals as animalsTable,
-  movements as movementsTable,
-} from "@rocky/database";
+import type { animals as animalsTable, movements as movementsTable } from "@rocky/database";
 import type { SystemService } from "@rocky/domains-system";
 import { TraceabilityRuleEngine, EU_TRACEABILITY_FLOORS } from "@rocky/domains-system";
 import type { DiseaseZoneCheckResult, GeoRepository, GeoService } from "@rocky/geo";
@@ -33,11 +30,7 @@ import {
   PASTURE_TYPE,
   STATE_CODE,
 } from "@rocky/database/constants";
-import {
-  type Result,
-  fromAsyncThrowable,
-  toAppError,
-} from "@rocky/domains-shared";
+import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
 import { MovementError, MOVEMENT_ERRORS } from "../errors/movement.errors.js";
 import type { MovementRepository } from "../repositories/movement.repository.js";
 import type { AnimalRepository } from "@rocky/domains-animal";
@@ -94,10 +87,7 @@ export class MovementService {
   }
 
   /** ── Rule C.4: Invalidate active pasture declaration before unexpected movement ── */
-  private async invalidatePastureIfNeeded(
-    animalId: string,
-    reason?: string,
-  ): Promise<void> {
+  private async invalidatePastureIfNeeded(animalId: string, reason?: string): Promise<void> {
     const active = await this.repo.findActivePastureDeclaration(animalId);
     if (active) {
       await this.repo.deactivatePastureDeclaration(
@@ -115,9 +105,7 @@ export class MovementService {
     }, toAppError)();
   }
 
-  async listByAnimal(
-    input: MovementListRequest,
-  ): Promise<Result<MovementListResponse, Error>> {
+  async listByAnimal(input: MovementListRequest): Promise<Result<MovementListResponse, Error>> {
     return fromAsyncThrowable(async () => {
       const validated = movementListRequestSchema.parse(input);
       const filter = {
@@ -135,24 +123,36 @@ export class MovementService {
     }, toAppError)();
   }
 
-  async create(
-    input: CreateMovementRequest & { createdBy?: string },
-  ): Promise<Result<MovementResponse, Error>> {
+  async create(input: CreateMovementRequest & { createdBy?: string }): Promise<Result<MovementResponse, Error>> {
     return fromAsyncThrowable(async () => {
       // ── Rule C.4: Invalidate pasture if non-pasture movement ──
       if (input.type && !this.NON_PASTURE_SKIP_TYPES.has(input.type)) {
         await this.invalidatePastureIfNeeded(input.animalId);
       }
 
-      // ── Rule E.1/E.2: Unregistered farm substitution ──
-      let fromFarmId = input.fromFarmId;
-      let toFarmId = input.toFarmId;
+      // ── Fetch animal first ── so we can derive fromFarmId from its
+      // current holding when the caller omits it or sends the nil sentinel
+      // ("00000000-0000-0000-0000-000000000000") that the clients use
+      // as a "no selection" placeholder. A movement's origin is the
+      // animal's current farm, so this is the natural default.
+      const animal = await this.animalRepo.findById(input.animalId);
+      if (!animal) {
+        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, {
+          animalId: input.animalId,
+        });
+      }
 
-      if (
-        !fromFarmId &&
-        (input.type === MOVEMENT_TYPE.PURCHASE ||
-          input.type === MOVEMENT_TYPE.IMPORT)
-      ) {
+      // ── Rule E.1/E.2 (+ derive-on-missing): farm substitution ──
+      // The validator already normalized the nil sentinel to null, so here
+      // "missing" means null/undefined/empty. Fall back to the animal's
+      // current holding; only PURCHASE/IMPORT fall back to the configured
+      // unregistered-departure farm when even that is unknown.
+      let fromFarmId = input.fromFarmId ?? undefined;
+      let toFarmId = input.toFarmId;
+      if (!fromFarmId) {
+        fromFarmId = animal.currentFarmId ?? null;
+      }
+      if (!fromFarmId && (input.type === MOVEMENT_TYPE.PURCHASE || input.type === MOVEMENT_TYPE.IMPORT)) {
         fromFarmId = DEFAULT_PARAMS.unregisteredDepartureFarmId;
       }
       if (!toFarmId) {
@@ -174,14 +174,6 @@ export class MovementService {
         if (locked) {
           throw new MovementError(MOVEMENT_ERRORS.FARM_LOCKED, { farmId: fromFarmId });
         }
-      }
-
-      // Verify animal exists and is alive
-      const animal = await this.animalRepo.findById(input.animalId);
-      if (!animal) {
-        throw new MovementError(MOVEMENT_ERRORS.NOT_FOUND, {
-          animalId: input.animalId,
-        });
       }
 
       // ── Art. 13(4) + Art. 3 (Implementing Reg (EU) 2021/520) ──
@@ -243,14 +235,8 @@ export class MovementService {
       // A treated animal may not enter the food chain (slaughter) until its
       // withdrawal period has elapsed. 403 WITHDRAWAL_PERIOD_ACTIVE (mapped via
       // MOVEMENT_TRPC_ERROR_MAP). Clearance = diagnosis_date + withdrawal_period days.
-      if (
-        input.type === MOVEMENT_TYPE.SLAUGHTERHOUSE ||
-        input.type === MOVEMENT_TYPE.HOME_SLAUGHTER
-      ) {
-        const underWithdrawal = await this.repo.isAnimalUnderWithdrawal(
-          input.animalId,
-          new Date(),
-        );
+      if (input.type === MOVEMENT_TYPE.SLAUGHTERHOUSE || input.type === MOVEMENT_TYPE.HOME_SLAUGHTER) {
+        const underWithdrawal = await this.repo.isAnimalUnderWithdrawal(input.animalId, new Date());
         if (underWithdrawal) {
           throw new MovementError(MOVEMENT_ERRORS.WITHDRAWAL_PERIOD_ACTIVE, {
             animalId: input.animalId,
@@ -323,12 +309,16 @@ export class MovementService {
         const isUnweaned = ageDays < w.unweanedMaxAgeDays;
         if (isUnweaned && journeyDays >= w.maxSingleLegDays) {
           throw new MovementError(MOVEMENT_ERRORS.TRANSPORT_WELFARE_MAX_EXCEEDED, {
-            animalId: input.animalId, journeyDays, unweaned: true,
+            animalId: input.animalId,
+            journeyDays,
+            unweaned: true,
           });
         }
         if (!isUnweaned && journeyDays >= w.multiDayMaxDays) {
           throw new MovementError(MOVEMENT_ERRORS.TRANSPORT_WELFARE_MAX_EXCEEDED, {
-            animalId: input.animalId, journeyDays, unweaned: false,
+            animalId: input.animalId,
+            journeyDays,
+            unweaned: false,
           });
         }
       }
@@ -407,9 +397,7 @@ export class MovementService {
       } as unknown as typeof movementsTable.$inferInsert);
 
       // Update animal status
-      const newStatus = isStillborn
-        ? ANIMAL_STATUS.STILLBORN
-        : ANIMAL_STATUS.DEAD;
+      const newStatus = isStillborn ? ANIMAL_STATUS.STILLBORN : ANIMAL_STATUS.DEAD;
       await this.animalRepo.update(input.animalId, { status: newStatus });
 
       return movementResponseSchema.parse(mov);
@@ -432,10 +420,7 @@ export class MovementService {
 
       // ── Rule C.3: Pasture cannot be used as departure farm ──
       const fromFarmType = await this.repo.findFarmType(input.fromFarmId);
-      if (
-        fromFarmType === FARM_TYPE.PASTURE_MOUNTAIN ||
-        fromFarmType === FARM_TYPE.PASTURE_VILLAGE
-      ) {
+      if (fromFarmType === FARM_TYPE.PASTURE_MOUNTAIN || fromFarmType === FARM_TYPE.PASTURE_VILLAGE) {
         throw new MovementError(MOVEMENT_ERRORS.PASTURE_INVALID_DEPARTURE, {
           farmId: input.fromFarmId,
           farmType: fromFarmType,
@@ -504,10 +489,7 @@ export class MovementService {
 
       // C.3: Alpine pasture cannot be used as departure farm
       const fromFarmType = await this.repo.findFarmType(input.fromFarmId);
-      if (
-        fromFarmType === FARM_TYPE.PASTURE_MOUNTAIN ||
-        fromFarmType === FARM_TYPE.PASTURE_VILLAGE
-      ) {
+      if (fromFarmType === FARM_TYPE.PASTURE_MOUNTAIN || fromFarmType === FARM_TYPE.PASTURE_VILLAGE) {
         throw new MovementError(MOVEMENT_ERRORS.PASTURE_INVALID_DEPARTURE, {
           farmId: input.fromFarmId,
           farmType: fromFarmType,
@@ -716,8 +698,7 @@ export class MovementService {
         fromFarmId: input.fromFarmId,
         toFarmId: input.toFarmId,
         type: MOVEMENT_TYPE.IMPORT,
-        movementDate:
-          input.bipEntryDate ?? new Date().toISOString().split("T")[0]!,
+        movementDate: input.bipEntryDate ?? new Date().toISOString().split("T")[0]!,
         importCountry: input.countryOfOrigin,
         createdBy: input.createdBy,
       } as unknown as typeof movementsTable.$inferInsert);
@@ -735,9 +716,7 @@ export class MovementService {
         countryOfOrigin: input.countryOfOrigin,
         foreignPassportNumber: input.foreignPassportNumber,
         foreignPassportStored: !!input.foreignPassportNumber,
-        foreignPassportStorageExpiry: storageExpiry
-          .toISOString()
-          .split("T")[0]!,
+        foreignPassportStorageExpiry: storageExpiry.toISOString().split("T")[0]!,
         bipEntryDate: input.bipEntryDate,
         status: IMPORT_EXPORT_STATUS.COMPLETED,
         createdBy: input.createdBy,
@@ -814,8 +793,7 @@ export class MovementService {
         fromFarmId: input.fromFarmId,
         toFarmId: input.toFarmId,
         type: MOVEMENT_TYPE.IMPORT,
-        movementDate:
-          input.bipEntryDate ?? new Date().toISOString().split("T")[0]!,
+        movementDate: input.bipEntryDate ?? new Date().toISOString().split("T")[0]!,
         importCountry: input.countryOfOrigin,
         createdBy: input.createdBy,
       } as unknown as typeof movementsTable.$inferInsert);
@@ -868,8 +846,7 @@ export class MovementService {
         });
       }
 
-      const toFarmId =
-        input.toFarmId ?? DEFAULT_PARAMS.unregisteredDepartureFarmId;
+      const toFarmId = input.toFarmId ?? DEFAULT_PARAMS.unregisteredDepartureFarmId;
 
       // Create EXPORT movement
       const mov = await this.repo.insert({
@@ -877,8 +854,7 @@ export class MovementService {
         fromFarmId: input.fromFarmId,
         toFarmId,
         type: MOVEMENT_TYPE.EXPORT,
-        movementDate:
-          input.bipExitDate ?? new Date().toISOString().split("T")[0]!,
+        movementDate: input.bipExitDate ?? new Date().toISOString().split("T")[0]!,
         exportCountry: input.destinationCountry,
         createdBy: input.createdBy,
       } as unknown as typeof movementsTable.$inferInsert);
@@ -927,10 +903,7 @@ export class MovementService {
   }): Promise<Result<MovementResponse[], Error>> {
     return fromAsyncThrowable(async () => {
       // ── Rule C.4: Market sale invalidates active pasture declaration ──
-      await this.invalidatePastureIfNeeded(
-        input.animalId,
-        `Market sale at ${input.marketFarmId}`,
-      );
+      await this.invalidatePastureIfNeeded(input.animalId, `Market sale at ${input.marketFarmId}`);
 
       const animal = await this.animalRepo.findById(input.animalId);
       if (!animal)
@@ -1160,7 +1133,10 @@ export class MovementService {
         edges.push({ kind: "parentage", animalId: o.animalId, parentId: id });
         if (depth < maxDepth && !visited.has(o.animalId)) queue.push({ id: o.animalId, depth: depth + 1 });
       }
-      if (visited.size > CAP) { truncated = true; break; }
+      if (visited.size > CAP) {
+        truncated = true;
+        break;
+      }
     }
     return { animalId: rootAnimalId, nodes: Array.from(nodes.values()), edges, truncated };
   }

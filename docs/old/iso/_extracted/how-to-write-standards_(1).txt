@@ -1,0 +1,545 @@
+standards
+
+
+How to
+w r i t e   s t a n d a r d s
+
+
+
+
+                Tips for standards writers
+How to
+w r i t e   s t a n d a r d s
+Contents
+How this brochure can help you . .................................................... 2
+Writing plain language ...................................................................... 3
+Verbal forms ........................................................................................ 4
+Title ..... .................................................................................................. 4
+Table of contents . .............................................................................. 4
+Foreword .............................................................................................. 4
+Introduction . ....................................................................................... 5
+Scope	 . .................................................................................................. 5
+Normative references ....................................................................... 6
+Terms and definitions . ..................................................................... 6
+Clauses and subclauses . ................................................................. 8
+Notes and Examples ......................................................................... 8
+Tables and Figures .......................................................................... 10
+Mathematical formulae ................................................................... 12
+Annexes . ............................................................................................ 13
+Bibliography ...................................................................................... 14
+Graphical symbols . .......................................................................... 15
+Conformity assessment . ................................................................. 16
+Management system standards (MSS) ........................................ 16
+Templates and preferred file formats ........................................... 17
+
+
+
+                                                                             ISO | How to write standards – 1
+How this brochure
+can help you
+This brochure is designed to help people
+write clear, concise and user-friendly
+International Standards and other ISO
+documents. For more detailed drafting
+and editorial rules, see the ISO/IEC Direc-
+tives, Part 2, 2016, Principles and rules
+for the structure and drafting of ISO and
+IEC documents. References to the Direc-
+tives are given in parentheses next to the
+relevant header.
+Writing plain language
+Write your document with the user in mind. Using plain language is an effective
+means of getting your message across.
+By being clear and concise – but not simplistic – writers can avoid misinter-
+pretation. This reduces time and cost in translation.
+Because plain language is easier to understand, it also reduces discussion
+during drafting.
+Using plain language does not mean reducing the length of your message,
+changing its meaning or oversimplifying your text.
+
+
+
+
+How to use plain language :
+▸▸ Be clear to yourself about your       ▸▸ Punctuate your writing carefully
+   main message – try reading it         ▸▸ Use more full stops, fewer
+   to yourself out loud                     commas and brackets
+▸▸ Put yourself in the place             ▸▸ Phrase your points positively
+   of the reader                         ▸▸ Use everyday language whenever
+▸▸ Keep your sentences short                possible and reduce jargon
+▸▸ Have one idea per sentence            ▸▸ Plain language is particularly
+▸▸ Leave out words you don’t need           important in the Scope
+▸▸ Use lists when you can
+▸▸ Use the active voice when you can
+▸▸ Be concise, use short, simple                               HINT
+   words and avoid turning verbs                         Use the same term
+   into nouns                                           for the same concept
+                                                          everywhere. Don’t
+                                                            use synonyms
+
+
+                                                            ISO | How to write standards – 3
+Verbal forms
+In all clauses, be clear about what is a requirement and what is
+a recommendation or other type of statement. In order to make
+clear what the user must do, the following verbal forms are used
+in ISO documents :
+▸▸ Requirements – shall, shall not
+▸▸ Recommendations – should, should not                                        HINT
+▸▸ Permission – may, need not                                        Check that information
+▸▸ Possibility and capability – can, cannot                        is not duplicated between
+                                                                      the Introduction and
+                                                                            the Scope
+
+Title (Clause 11)
+The Title must be clear and concise, containing a maximum of
+three elements :
+▸▸ an introductory element
+▸▸ a main element
+▸▸ a complementary element
+
+
+               Cereals and pulses – Specification and test methods – Part 1 : Rice
+                       (introductory)             (main)              (complementary)
+
+
+
+
+Table of contents
+The Table of contents is automatically generated.
+
+
+Foreword (Clause 12)
+The Foreword of an ISO document contains generic text which is
+inserted by ISO Central Secretariat during editing and publishing.
+When revising an existing standard, include a list of the major
+changes compared with the previous edition.
+
+
+
+4 – ISO | How to write standards
+Introduction (Clause 13)
+The Introduction is optional but ISO encourages its inclusion. It
+can describe the content of the document and give information
+on why the document is needed.
+
+
+
+                   Introduction
+                   This document was developed in response to worldwide demand
+                   for minimum specifications for rice traded internationally, since
+                   most commercial bulks of grain, which have not been screened or
+                   aspirated, contain a proportion of other grains, weed seeds, chaff,
+                   straw, stones, sand, etc.
+
+
+
+Scope (Clause 14)
+The Scope is mandatory and it describes what the document
+does. For example, this document
+▸▸ specifies ...
+▸▸ establishes ...
+▸▸ gives guidelines for ...
+▸▸ defines terms ...
+The Scope is written as a series of statements of fact. Don’t put
+any requirements, recommendations or permissions in the Scope.
+
+
+
+                   1 Scope
+                   This document specifies minimum requirements and test methods
+                   for rice (Oryza sativa L.).
+                   It is applicable to husked rice, husked parboiled rice, milled rice and
+                   milled parboiled rice, suitable for human consumption, directly or
+                   after reconditioning.
+                   It is not applicable to cooked rice products.
+
+
+
+
+                                                                     ISO | How to write standards – 5
+Normative references (Clause 15 and 10.2)
+The Normative references clause is mandatory, even if there are no
+normative references in the document. It lists reference documents
+which are cited in the text in such a way that some or all of their
+content constitutes requirements of the document (e.g. “ Sampling
+shall be carried out in accordance with ISO 24333:2009, Clause 5 ”).
+Remember to date the reference if it refers to a specific clause, sub-
+clause, figure, table, etc., in that reference document. References
+are generally made to other ISO and IEC standards. Documents
+from other organizations can also be referenced under certain
+conditions. References must be publicly available.
+
+
+
+                          2 Normative references
+                          The following documents are referred to in the text in such a way
+                          that some or all of their content constitutes requirements of this
+                          document. For dated references, only the edition cited applies. For
+                          undated references, the latest edition of the referenced document
+                          (including any amendments) applies.
+                          ISO 712, Cereals and cereal products – Determination of moisture
+                          content – Reference method
+                          ISO 24333:2009, Cereals and cereal products – Sampling
+
+
+
+
+Terms and definitions (Clause 16)
+The Terms and definitions clause is a mandatory clause clarifying
+                                                                                           HINT
+the meaning of certain words in the context of the document.
+                                                                                      For guidance
+Only terms which are used in the document shall be defined.
+                                                                                    on terminological
+                                                                                         entries,
+                                                                                     see ISO 10241-1
+6 – ISO | How to write standards
+         HINT
+   Abbreviated terms
+and symbols can be listed
+  in a separate clause
+      immediately
+      after Clause 3
+                      3 Terms and definitions
+                      For the purposes of this document, the following terms and definitions
+                      apply.
+                      ISO and IEC maintain terminological databases for use in standardiza-
+                      tion at the following addresses :
+                      —— ISO Online browsing platform : available at http://www.iso.org/obp
+                      ——IEC Electropedia : available at http://www.electropedia.org
+
+
+        Terms and definitions from ISO documents are available on the ISO
+        Online Browsing Platform (www.iso.org/obp). Search the OBP by
+        committee and by standard to find terms that are already defined.
+        A definition is a single phrase that can replace the term wherever
+        used. It does not start with an article (e.g. “ a ”, “ the ”) or end with
+        a full-stop. It does not take the form of, or contain, a requirement
+        or recommendation. Additional information can be included in a
+        Note to entry or an Example. The example below shows a range
+        of elements that can be included in a terminological entry.
+
+
+                      3.2
+                      special language
+                      language for special purposes
+                      LSP
+                      language used in a domain (3.1.2) and characterized by the use of
+                      specific linguistic means of expression
+                      Note 1 to entry : The specific linguistic means of expression always include domain-
+                      or subject-specific terms and other kinds of designations as well as phraseology and also
+                      may cover stylistic or syntactic features.
+
+
+
+
+                                                                                       ISO | How to write standards – 7
+Clauses and subclauses (Clause 22)
+Clauses and subclauses form the main part of any ISO document.
+They tell users of the document what they need to do to imple-
+ment it.
+Number the clauses and subclauses to help people reference key
+parts of the document.
+ISO does not allow its documents to mandate the use of services,
+such as testing or certification (e.g. by another company). Write
+the requirements so they can be verified by anyone.
+ISO documents should avoid referring to trademarks or compa-
+nies. Patented items can be referred to under certain conditions
+(see ISO/IEC Directives, Part 1).
+ISO documents do not contain legal or contractual requirements.
+
+
+Notes (Clause 24) and Examples (Clause 25)
+Notes and Examples are used for giving additional information
+intended to assist the understanding or use of the document. Don’t
+put any requirements, recommendations or permissions in the
+notes or examples.
+
+
+
+8 – ISO | How to write standards
+        HINT
+If the note is removed,
+ do you lose essential
+        information ?
+    If so, it should not
+          be a note
+
+              4       Specifications
+              4.1     General characteristics
+              Kernels of rice, whether parboiled, husked or milled, and whether
+              whole or broken, shall be sound, clean and free from foreign odours
+              or odour which indicates deterioration.
+              4.2 Physical and chemical characteristics
+              4.2.1 The mass fraction of moisture, determined in accordance
+              with ISO 712, using an oven complying with the requirements of
+              IEC 61010-2, shall not be greater than 15 %.
+              The mass fraction of extraneous matter and defective kernels in
+              husked and milled rice, whether or not parboiled, determined in
+              accordance with Annex A, shall not be greater than the values
+              specified in Table 1.
+              NOTE Lower mass fractions of moisture are sometimes needed for certain
+              destinations depending on the climate, duration of transport and storage. For
+              further details, see ISO 6322-1, ISO 6322-2 and ISO 6322-3.
+
+              4.2.2 The defect tolerance for the categories considered,
+              and determined in accordance with the method given in Annex A,
+              shall not exceed the limits given in Table 1.
+
+              5       Sampling
+              Sampling shall be carried out in accordance with ISO 24333:2009,
+              Clause 5.
+                                                          HINT
+                                                 Subclauses can be
+                                              with or without headings.
+                                                 But be consistent
+                                                 within a subclause
+
+
+                                                                     ISO | How to write standards – 9
+                                                                                                   HINT
+                                                                                               Cite all tables
+     Tables (Clause 29) and Figures (Clause 28)                                                 and figures
+                                                                                                 in the text
+     Tables and figures should have labels and titles as shown below.
+
+                   Table 1 – Maximum permissible mass fraction of defects
+
+                                           Maximum permissible mass fraction of defects
+                                                             wmax
+            Defect                                            %
+                                                        in milled rice   in husked      in milled
+                                 in husked rice
+                                                       (non-glutinous) parboiled rice parboiled rice
+Extraneous matter :
+— organic a                              1,0                   0,5                   1,0           0,5
+— inorganic                              0,5                   0,5                   0,5           0,5
+NOTE 1 Only full red husked (cargo) rice is considered in this table.
+NOTE 2 Some commercial contracts require information in addition to that provided in this table.
+a
+    Organic extraneous matter includes foreign seeds, husks, bran, parts of straw, etc.
+
+
+
+     Notes used in tables and figures follow the same guidelines as notes to text.
+Key
+1 mandrel shank
+2 blind rivet head
+The mandrel shall be designed such that the blind rivet end deforms during installation,
+and the shank can expand.
+NOTE Figure 1 illustrates a type A rivet head.
+a
+  The break area shall be milled.
+b
+  The mandrel head is commonly chromium plated.
+                                  Figure 1 – Blind rivet
+                B.5.1         Weigh a portion of about 100 g of milled rice and put it into a gla
+
+                B.5.2 Add enough iodine working solution (B.3.3) to soak the kern
+                kernels are submerged under the solution. Let the kernels soak in the so
+
+Mathematical formulae
+     B.5.3 Pour  the rice(Clause
+                          and solution
+                                 27)   into a wire sieve (B.2.4), and shake th
+                out the solution. Then place the wire sieve on a piece of tissue paper (B.
+Use the International System of Units (SI units). Explain the mean-
+ing of the symbols used in a list underneath the formula. Number
+                B.5.4         Pour the stained kernels into a bowl (B.2.3). Using tweezers
+your formulae sequentially
+         reddish           in the text,
+                  brown kernels         as shown
+                                    of waxy   ricebelow.
+                                                   from the dark blue kernels of non-w
+Formulae are generally preceded by an introductory sentence.
+                B.5.5         Weigh the waxy rice portion (m1) and the non-waxy rice portion
+
+
+                B.6 Calculation
+                         Calculate the mass fraction, expressed as a percentage, of the
+                Calculate the w
+                     waxy rice, mass    fraction, expressed as a percentage, of the waxy ric
+                                 wax, using Formula (1) :
+
+
+                                       m1
+                       w wax
+                         wwax =                 × 100                                    (1)
+                                    m1 + m2
+                where
+                         where
+                       m1m is the
+                              is themass,  expressed
+                                     mass, expressed     in grams,
+                                                     in grams, of the of therice
+                                                                      waxy     waxy   rice portion;
+                                                                                 portion
+                               1
+                            m2 is the mass, expressed in grams, of the non-waxy rice portion
+                       m2 is the mass, expressed in grams, of the non-waxy rice portion.
+
+
+                B.7 Test report
+                Report the results as specified in Clause 7, giving the results calculated
+
+
+                                                                 HINT
+                                                      Commonly used symbols
+                                                      include :
+                                                            t = time
+                                                            l = length
+                                                            m = mass
+                                                            v = velocity
+
+
+
+
+12 – ISO | How to write standards
+Annexes (Clause 20)
+Annexes are used to provide additional information. They can
+be normative (e.g. a test method that the user is required to fol-
+low) or informative (additional information that complements
+the user’s understanding). The status (normative or informative)
+is determined by how the annex is cited in the main body of the
+document. Annexes are designated by a capital letter (A, B, C, ...).
+
+
+
+                                              Annex A
+                                            (informative)
+                        Attributes of enhanced risk management
+                 A.1    General
+                 All organizations should aim at the appropriate level of performance
+                 of their risk management framework in line with the criticality of
+                 the decisions that are to be made. The list of attributes below
+                 represents a high level of performance in managing risk. To assist
+                 organizations in measuring their own performance against these
+                 criteria, some tangible indicators are given for each attribute.
+                 A.2 Key outcomes
+                 A.2.1 The organization has a current, correct and comprehensive
+                 understanding of its risks.
+                 A.2.2 The organization’s risks are within its risk criteria.
+                 A.3 Attributes
+                 A.3.1 Continual improvement
+                 An emphasis is placed on continual improvement in risk manage-
+                 ment through the setting of organizational performance goals...
+                 A.3.2 Full accountability for risks
+                 Enhanced risk management includes comprehensive account-
+                 ability for risks...
+
+
+
+
+                                                                  ISO | How to write standards – 13
+  Bibliography (Clause 21)
+  List documents in the Bibliography that provide background
+  information. Be sure to list all references cited in the document
+  either in the Bibliography or in Clause 2 (depending on how they
+  are cited in the text).
+
+
+                                               Bibliography
+                           [1] ISO 78-2, Chemistry – Layouts for standards –
+                               Part 2 : Methods of chemical analysis
+                           [2] ISO 31000, Risk management – Principles and
+                               guidelines
+   HINT                    [3] ISO/IEC 15288, Systems and software engineering –
+ Keep your                     System life cycle processes
+Bibliography               [4] IEC 31010, Risk management – Risk assessment
+ as concise                    techniques
+as possible                [5] ASTM E 2608, Standard Practice for Equipment Control
+                               Matrix
+                           [6] ALLEN, B. Vanishing Wildlife of North America.
+                               Washington, D.C., National Geographic Society, 1974
+                           [7] GRUEN E. Collisional Balance of Meteoritic Complex.
+                               Icarus. 1985, 62, pp. 244-272
+                           [8] The Conference Board of Canada, 2012. Municipal
+                               Waste Generation [viewed 2013-01-10]. Available
+                               from www.conferenceboard.ca/hcp/details/
+                               environment/municipal-waste-
+                               generation.aspx
+                                                                               HINT
+                                                                           For guidance
+                                                                            on styling,
+                                                                           see ISO 690
+
+
+
+  14 – ISO | How to write standards
+Graphical symbols
+If your document contains graphical symbols, contact
+ISO/TC 145, Graphical symbols, to have them reviewed and visit
+http://isotc.iso.org/livelink/livelink?func=ll&objid=8755210&
+objAction=browse for the procedure for standardizing new
+graphical symbols.
+Search the OBP to find existing graphical symbols (www.iso.org/
+iso/home/store/graphical_symbols.htm).
+
+
+
+
+                                           ISO | How to write standards – 15
+Conformity assessment (Clause 33)
+If your document mentions conformity assessment, consult
+CASCO and visit www.iso.org/iso/Casco for information.
+
+
+Management system standards (MSS) (Clause 34)
+If your document is a management system standard, or you
+think it might deal with management system themes, contact
+your committee’s Technical Programme Manager and visit
+www.iso.org/iso/home/standards/management-standards.htm
+for information.
+
+
+
+
+16 – ISO | How to write standards
+Templates and preferred file formats
+Templates and information about preferred formats are available
+at the following link :
+www.iso.org/iso/home/standards_development/resources-for-
+technical-work/iso_templates.htm
+
+
+
+
+                                           ISO | How to write standards – 17
+About ISO
+ISO (International Organization for Standardization)
+is an independent, non-governmental international
+organization with a membership of 163* national
+standards bodies. Through its members, it brings
+together experts to share knowledge and develop
+voluntary, consensus-based, market-relevant Inter-
+national Standards that support innovation and
+provide solutions to global challenges.
+ISO has published more than 21 300* International
+Standards and related documents covering almost
+every industry, from technology to food safety,
+to agriculture and healthcare.
+For more information, please visit www.iso.org.
+
+
+*November 2016
+
+
+
+
+                       International Organization
+                              for Standardization
+                                  ISO Central Secretariat
+                                    Ch. de Blandonnet 8
+                                       Case Postale 401
+                              CH – 1214 Vernier, Geneva
+                                             Switzerland
+
+
+
+
+                            iso.org
+                                                © ISO, 2016
+                                          All rights reserved
+                                 ISBN 978-92-67-10686-1
+

@@ -85,92 +85,82 @@ export default function SlaughterScreen() {
 
   return (
     <ScrollView className="flex-1 bg-background">
-    <Card className="m-4">
-      <CardContent className="gap-4 p-4">
-        <FormField label="Animal" error={errors.animalId?.message} nativeID="animal">
-          <View className="gap-2">
-            {watch("animalId") ? (
-              <View className="bg-secondary p-3 rounded-md">
-                <Text className="text-foreground font-medium">{animalLabel}</Text>
-              </View>
-            ) : null}
-            <AnimalPicker
-              onSelect={(a) => {
-                setValue("animalId", a.id, { shouldValidate: true });
-                setAnimalLabel(`${a.stateCode} ${a.earTagNumber}`);
-              }}
-            />
-          </View>
-        </FormField>
+      <Card className="m-4">
+        <CardContent className="gap-4 p-4">
+          <FormField label="Animal" error={errors.animalId?.message} nativeID="animal">
+            <View className="gap-2">
+              {watch("animalId") ? (
+                <View className="bg-secondary p-3 rounded-md">
+                  <Text className="text-foreground font-medium">{animalLabel}</Text>
+                </View>
+              ) : null}
+              <AnimalPicker
+                onSelect={(a) => {
+                  setValue("animalId", a.id, { shouldValidate: true });
+                  setAnimalLabel(`${a.stateCode} ${a.earTagNumber}`);
+                }}
+              />
+            </View>
+          </FormField>
 
-        <FormField label="Source Farm" error={errors.fromFarmId?.message} nativeID="fromFarm">
-          <View className="gap-2">
-            {watch("fromFarmId") ? (
-              <View className="bg-secondary p-3 rounded-md">
-                <Text className="text-foreground font-medium">{fromFarmLabel}</Text>
-              </View>
-            ) : null}
-            <FarmPicker
-              onSelect={(f) => {
-                setValue("fromFarmId", f.id, { shouldValidate: true });
-                setFromFarmLabel(f.name ?? "");
-              }}
-            />
-          </View>
-        </FormField>
+          <FormField label="Source Farm" error={errors.fromFarmId?.message} nativeID="fromFarm">
+            <View className="gap-2">
+              {watch("fromFarmId") ? (
+                <View className="bg-secondary p-3 rounded-md">
+                  <Text className="text-foreground font-medium">{fromFarmLabel}</Text>
+                </View>
+              ) : null}
+              <FarmPicker
+                onSelect={(f) => {
+                  setValue("fromFarmId", f.id, { shouldValidate: true });
+                  setFromFarmLabel(f.name ?? "");
+                }}
+              />
+            </View>
+          </FormField>
 
-        <FormField
-          label="Slaughterhouse ID"
-          error={errors.slaughterhouseId?.message}
-          nativeID="slaughterhouseId"
-        >
-          {/* TODO: data-backed select blocked — no listX procedure in movement router
+          <FormField label="Slaughterhouse ID" error={errors.slaughterhouseId?.message} nativeID="slaughterhouseId">
+            {/* TODO: data-backed select blocked — no listX procedure in movement router
               (slaughterhouses are not farms; farm.list would mix in regular farms). */}
-          <Input
-            placeholder="UUID of the slaughterhouse"
-            value={watch("slaughterhouseId")}
-            onChangeText={(t) => setValue("slaughterhouseId", t, { shouldValidate: true })}
-          />
-        </FormField>
+            <Input
+              placeholder="UUID of the slaughterhouse"
+              value={watch("slaughterhouseId")}
+              onChangeText={(t) => setValue("slaughterhouseId", t, { shouldValidate: true })}
+            />
+          </FormField>
 
-        <FormField
-          label="Slaughter Date (YYYY-MM-DD)"
-          error={errors.slaughterDate?.message}
-          nativeID="slaughterDate"
-        >
-          <Input
-            placeholder="2026-01-15"
-            value={watch("slaughterDate")}
-            onChangeText={(t) => setValue("slaughterDate", t, { shouldValidate: true })}
-          />
-        </FormField>
+          <FormField label="Slaughter Date (YYYY-MM-DD)" error={errors.slaughterDate?.message} nativeID="slaughterDate">
+            <Input
+              placeholder="2026-01-15"
+              value={watch("slaughterDate")}
+              onChangeText={(t) => setValue("slaughterDate", t, { shouldValidate: true })}
+            />
+          </FormField>
 
-        <FormField
-          label="Arrival Date (optional, YYYY-MM-DD)"
-          error={errors.arrivalDate?.message}
-          nativeID="arrivalDate"
-        >
-          <Input
-            placeholder="2026-01-14"
-            value={watch("arrivalDate")}
-            onChangeText={(t) => setValue("arrivalDate", t, { shouldValidate: true })}
-          />
-        </FormField>
+          <FormField
+            label="Arrival Date (optional, YYYY-MM-DD)"
+            error={errors.arrivalDate?.message}
+            nativeID="arrivalDate"
+          >
+            <Input
+              placeholder="2026-01-14"
+              value={watch("arrivalDate")}
+              onChangeText={(t) => setValue("arrivalDate", t, { shouldValidate: true })}
+            />
+          </FormField>
 
-        {!canRecordSlaughter ? (
-          <Text className="text-sm text-muted-foreground">
-            You don't have permission to record slaughters.
-          </Text>
-        ) : !onlineManager.isOnline() ? (
-          <Text className="text-sm text-muted-foreground">
-            Offline — the slaughter is saved locally and syncs when you reconnect.
-          </Text>
-        ) : null}
+          {!canRecordSlaughter ? (
+            <Text className="text-sm text-muted-foreground">You don't have permission to record slaughters.</Text>
+          ) : !onlineManager.isOnline() ? (
+            <Text className="text-sm text-muted-foreground">
+              Offline — the slaughter is saved locally and syncs when you reconnect.
+            </Text>
+          ) : null}
 
-        <Button onPress={onSubmit} disabled={isSubmitting || !canRecordSlaughter} size="lg">
-          {isSubmitting ? <ActivityIndicator color="white" /> : <Text>Record Slaughter</Text>}
-        </Button>
-      </CardContent>
+          <Button onPress={onSubmit} disabled={isSubmitting || !canRecordSlaughter} size="lg">
+            {isSubmitting ? <ActivityIndicator color="white" /> : <Text>Record Slaughter</Text>}
+          </Button>
+        </CardContent>
       </Card>
     </ScrollView>
   );

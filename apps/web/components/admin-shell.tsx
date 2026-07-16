@@ -5,10 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CookieIcon, LogOutIcon, SearchIcon } from "lucide-react";
 
-import {
-  Avatar,
-  AvatarFallback,
-} from "@rocky/ui/components/avatar";
+import { Avatar, AvatarFallback } from "@rocky/ui/components/avatar";
 import { Button } from "@rocky/ui/components/button";
 import {
   DropdownMenu,
@@ -33,19 +30,8 @@ import {
   SidebarTrigger,
 } from "@rocky/ui/components/sidebar";
 import { Kbd } from "@rocky/ui/components/kbd";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@rocky/ui/components/tooltip";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@rocky/ui/components/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@rocky/ui/components/tooltip";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@rocky/ui/components/dialog";
 
 import { signOut, useSession } from "#lib/auth-client";
 import { filterNavByPermissions, navSections } from "#lib/nav-config";
@@ -69,10 +55,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [cmdOpen, setCmdOpen] = React.useState(false);
   const [cookieOpen, setCookieOpen] = React.useState(false);
 
-  const sections = React.useMemo(
-    () => filterNavByPermissions(navSections, permissions),
-    [permissions],
-  );
+  const sections = React.useMemo(() => filterNavByPermissions(navSections, permissions), [permissions]);
 
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -137,9 +120,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               </Avatar>
               <div className="min-w-0">
                 <div className="truncate font-medium">{displayName}</div>
-                <div className="truncate text-xs text-muted-foreground">
-                  {roles.join(", ") || "—"}
-                </div>
+                <div className="truncate text-xs text-muted-foreground">{roles.join(", ") || "—"}</div>
               </div>
             </div>
           </SidebarFooter>
@@ -196,10 +177,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <DialogHeader>
               <DialogTitle>Cookie &amp; Tracking Notice</DialogTitle>
               <DialogDescription>
-                Rocky sets only the strictly-necessary session cookie (Better Auth) required to
-                keep you signed in. Under ePrivacy Art 5(3) and GDPR Art 6(1)(e) (official
-                authority) this cookie is exempt from consent. Rocky sets no analytics,
-                advertising, or cross-site tracking cookies. Full text: ROCKY-COOK-001.
+                Rocky sets only the strictly-necessary session cookie (Better Auth) required to keep you signed in.
+                Under ePrivacy Art 5(3) and GDPR Art 6(1)(e) (official authority) this cookie is exempt from consent.
+                Rocky sets no analytics, advertising, or cross-site tracking cookies. Full text: ROCKY-COOK-001.
               </DialogDescription>
             </DialogHeader>
           </DialogContent>

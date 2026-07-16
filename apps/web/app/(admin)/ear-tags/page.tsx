@@ -31,7 +31,14 @@ import { enumToOptions } from "#lib/options";
 import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "#lib/trpc";
 import { useCan } from "#lib/permissions";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@rocky/ui/components/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@rocky/ui/components/dialog";
 import { DropdownMenuItem } from "@rocky/ui/components/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@rocky/ui/components/tabs";
 import { Button } from "@rocky/ui/components/button";
@@ -49,9 +56,13 @@ export default function EarTagsPage() {
   const farms = useQuery(trpc.farm.list.queryOptions({ limit: 100 }));
 
   const animalMap = new Map<string, AnimalSummary>();
-  ((animals.data?.data ?? []) as AnimalSummary[]).forEach((a) => animalMap.set(a.id, a));
+  ((animals.data?.data ?? []) as AnimalSummary[]).forEach((a) => {
+    animalMap.set(a.id, a);
+  });
   const typeMap = new Map<string, EarTagTypeResponse>();
-  ((types.data ?? []) as EarTagTypeResponse[]).forEach((t) => typeMap.set(t.id, t));
+  ((types.data ?? []) as EarTagTypeResponse[]).forEach((t) => {
+    typeMap.set(t.id, t);
+  });
 
   const animalLabel = (id: string | null | undefined) => {
     if (!id) return "—";
@@ -77,12 +88,24 @@ export default function EarTagsPage() {
   const ordersQ = useQuery(trpc.earTag.listOrders.queryOptions({ limit: PAGE_SIZE }));
 
   const invalidate = (key: unknown) => queryClient.invalidateQueries({ queryKey: key as never });
-  const createOrder = useMutation(trpc.earTag.createOrder.mutationOptions({ onSuccess: () => invalidate(trpc.earTag.listOrders.queryKey()) }));
-  const transition = useMutation(trpc.earTag.transitionStatus.mutationOptions({ onSuccess: () => invalidate(trpc.earTag.listOrders.queryKey()) }));
-  const cancelOrder = useMutation(trpc.earTag.cancelOrder.mutationOptions({ onSuccess: () => invalidate(trpc.earTag.listOrders.queryKey()) }));
-  const collectOrderTags = useMutation(trpc.earTag.collectOrderTags.mutationOptions({ onSuccess: () => invalidate(trpc.earTag.listOrders.queryKey()) }));
-  const appendToOrder = useMutation(trpc.earTag.appendToOrder.mutationOptions({ onSuccess: () => invalidate(trpc.earTag.listOrders.queryKey()) }));
-  const assignSupplierContingent = useMutation(trpc.earTag.assignSupplierContingent.mutationOptions({ onSuccess: () => invalidate(trpc.earTag.list.queryKey()) }));
+  const createOrder = useMutation(
+    trpc.earTag.createOrder.mutationOptions({ onSuccess: () => invalidate(trpc.earTag.listOrders.queryKey()) }),
+  );
+  const transition = useMutation(
+    trpc.earTag.transitionStatus.mutationOptions({ onSuccess: () => invalidate(trpc.earTag.listOrders.queryKey()) }),
+  );
+  const cancelOrder = useMutation(
+    trpc.earTag.cancelOrder.mutationOptions({ onSuccess: () => invalidate(trpc.earTag.listOrders.queryKey()) }),
+  );
+  const collectOrderTags = useMutation(
+    trpc.earTag.collectOrderTags.mutationOptions({ onSuccess: () => invalidate(trpc.earTag.listOrders.queryKey()) }),
+  );
+  const appendToOrder = useMutation(
+    trpc.earTag.appendToOrder.mutationOptions({ onSuccess: () => invalidate(trpc.earTag.listOrders.queryKey()) }),
+  );
+  const assignSupplierContingent = useMutation(
+    trpc.earTag.assignSupplierContingent.mutationOptions({ onSuccess: () => invalidate(trpc.earTag.list.queryKey()) }),
+  );
 
   const [orderLifecycle, setOrderLifecycle] = React.useState<EarTagOrderResponse | null>(null);
   const ORDER_STEP_ORDER = Object.values(EAR_TAG_ORDER_STATUS);
@@ -107,7 +130,14 @@ export default function EarTagsPage() {
           <TableCard>
             <DataTable
               columns={appendRowActions(earTagColumns({ animalLabel, typeLabel }), (row) => (
-                <RowActionMenu items={[{ type: "dialog", dialog: <EarTagDetails tag={row} animalLabel={animalLabel} typeLabel={typeLabel} /> }]} />
+                <RowActionMenu
+                  items={[
+                    {
+                      type: "dialog",
+                      dialog: <EarTagDetails tag={row} animalLabel={animalLabel} typeLabel={typeLabel} />,
+                    },
+                  ]}
+                />
               ))}
               data={(tagsQ.data?.data ?? []) as EarTagResponse[]}
               total={tagsQ.data?.total ?? 0}
@@ -133,12 +163,38 @@ export default function EarTagsPage() {
                     description="Place an order with a supplier organization."
                     fields={(form) => (
                       <>
-                        <TextField control={form.control} name="organizationId" label="Organization ID (UUID)" placeholder="org uuid" />
-                        <TextField control={form.control} name="supplierOrganizationId" label="Supplier org ID (UUID)" placeholder="supplier uuid" />
-                        <TextField control={form.control} name="supplierName" label="Supplier name" placeholder="e.g. TagCo" />
+                        <TextField
+                          control={form.control}
+                          name="organizationId"
+                          label="Organization ID (UUID)"
+                          placeholder="org uuid"
+                        />
+                        <TextField
+                          control={form.control}
+                          name="supplierOrganizationId"
+                          label="Supplier org ID (UUID)"
+                          placeholder="supplier uuid"
+                        />
+                        <TextField
+                          control={form.control}
+                          name="supplierName"
+                          label="Supplier name"
+                          placeholder="e.g. TagCo"
+                        />
                         <NumberField control={form.control} name="quantity" label="Quantity" placeholder="1000" />
-                        <ComboboxField control={form.control} name="farmId" label="Farm (optional)" placeholder="Search farms…" options={farmOptions} />
-                        <TextareaField control={form.control} name="description" label="Description" placeholder="Optional" />
+                        <ComboboxField
+                          control={form.control}
+                          name="farmId"
+                          label="Farm (optional)"
+                          placeholder="Search farms…"
+                          options={farmOptions}
+                        />
+                        <TextareaField
+                          control={form.control}
+                          name="description"
+                          label="Description"
+                          placeholder="Optional"
+                        />
                       </>
                     )}
                   />
@@ -151,8 +207,18 @@ export default function EarTagsPage() {
                   description="Advance an order to a new lifecycle status."
                   fields={(form) => (
                     <>
-                      <TextField control={form.control} name="orderId" label="Order ID (UUID)" placeholder="order uuid" />
-                      <SelectField control={form.control} name="newStatus" label="New status" options={enumToOptions(Object.values(ORDER_STATUS))} />
+                      <TextField
+                        control={form.control}
+                        name="orderId"
+                        label="Order ID (UUID)"
+                        placeholder="order uuid"
+                      />
+                      <SelectField
+                        control={form.control}
+                        name="newStatus"
+                        label="New status"
+                        options={enumToOptions(Object.values(ORDER_STATUS))}
+                      />
                     </>
                   )}
                 />
@@ -166,7 +232,12 @@ export default function EarTagsPage() {
                   alertVariant="destructive"
                   fields={(form) => (
                     <>
-                      <TextField control={form.control} name="orderId" label="Order ID (UUID)" placeholder="order uuid" />
+                      <TextField
+                        control={form.control}
+                        name="orderId"
+                        label="Order ID (UUID)"
+                        placeholder="order uuid"
+                      />
                       <TextareaField control={form.control} name="reason" label="Reason" placeholder="Optional" />
                     </>
                   )}
@@ -179,13 +250,45 @@ export default function EarTagsPage() {
                   description="Reserve a range of tags for a supplier / farm / type."
                   fields={(form) => (
                     <>
-                      <TextField control={form.control} name="supplierOrganizationId" label="Supplier org ID (UUID)" placeholder="supplier uuid" />
-                      <ComboboxField control={form.control} name="farmId" label="Farm" placeholder="Search farms…" options={farmOptions} />
-                      <ComboboxField control={form.control} name="typeId" label="Tag type" placeholder="Search types…" options={typeOptions} />
-                      <TextField control={form.control} name="tagRangeStart" label="Tag range start" placeholder="8-char e.g. 00012345" />
-                      <TextField control={form.control} name="tagRangeEnd" label="Tag range end" placeholder="8-char e.g. 00012399" />
+                      <TextField
+                        control={form.control}
+                        name="supplierOrganizationId"
+                        label="Supplier org ID (UUID)"
+                        placeholder="supplier uuid"
+                      />
+                      <ComboboxField
+                        control={form.control}
+                        name="farmId"
+                        label="Farm"
+                        placeholder="Search farms…"
+                        options={farmOptions}
+                      />
+                      <ComboboxField
+                        control={form.control}
+                        name="typeId"
+                        label="Tag type"
+                        placeholder="Search types…"
+                        options={typeOptions}
+                      />
+                      <TextField
+                        control={form.control}
+                        name="tagRangeStart"
+                        label="Tag range start"
+                        placeholder="8-char e.g. 00012345"
+                      />
+                      <TextField
+                        control={form.control}
+                        name="tagRangeEnd"
+                        label="Tag range end"
+                        placeholder="8-char e.g. 00012399"
+                      />
                       <NumberField control={form.control} name="quantity" label="Quantity" placeholder="100" />
-                      <SelectField control={form.control} name="contingentType" label="Contingent type" options={enumToOptions(contingentTypeSchema.options as readonly string[])} />
+                      <SelectField
+                        control={form.control}
+                        name="contingentType"
+                        label="Contingent type"
+                        options={enumToOptions(contingentTypeSchema.options as readonly string[])}
+                      />
                     </>
                   )}
                 />
@@ -230,8 +333,18 @@ export default function EarTagsPage() {
                           defaultValues={{ orderId: row.id, organizationId: row.organizationId ?? "" }}
                           fields={(form) => (
                             <>
-                              <TextField control={form.control} name="organizationId" label="Organization ID (UUID)" placeholder="org uuid" />
-                              <NumberField control={form.control} name="additionalQuantity" label="Additional quantity" placeholder="100" />
+                              <TextField
+                                control={form.control}
+                                name="organizationId"
+                                label="Organization ID (UUID)"
+                                placeholder="org uuid"
+                              />
+                              <NumberField
+                                control={form.control}
+                                name="additionalQuantity"
+                                label="Additional quantity"
+                                placeholder="100"
+                              />
                             </>
                           )}
                         />
@@ -330,21 +443,27 @@ function OrderDetailDialog({ orderId, order }: { orderId: string; order: EarTagO
   const items = (itemsQ.data?.data ?? []) as EarTagResponse[];
   const deliveryStr = data.expectedDeliveryDate ? new Date(data.expectedDeliveryDate).toISOString().slice(0, 10) : "";
 
-  const updateOrder = useMutation(trpc.earTag.updateOrder.mutationOptions({
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: trpc.earTag.getOrderById.queryKey() });
-      queryClient.invalidateQueries({ queryKey: trpc.earTag.listOrders.queryKey() });
-    },
-  }));
-  const cancelOrderItem = useMutation(trpc.earTag.cancelOrderItem.mutationOptions({
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: trpc.earTag.list.queryKey() });
-      queryClient.invalidateQueries({ queryKey: trpc.earTag.listOrders.queryKey() });
-    },
-  }));
-  const duplicateOrder = useMutation(trpc.earTag.createDuplicateOrder.mutationOptions({
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: trpc.earTag.listOrders.queryKey() }),
-  }));
+  const updateOrder = useMutation(
+    trpc.earTag.updateOrder.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: trpc.earTag.getOrderById.queryKey() });
+        queryClient.invalidateQueries({ queryKey: trpc.earTag.listOrders.queryKey() });
+      },
+    }),
+  );
+  const cancelOrderItem = useMutation(
+    trpc.earTag.cancelOrderItem.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: trpc.earTag.list.queryKey() });
+        queryClient.invalidateQueries({ queryKey: trpc.earTag.listOrders.queryKey() });
+      },
+    }),
+  );
+  const duplicateOrder = useMutation(
+    trpc.earTag.createDuplicateOrder.mutationOptions({
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: trpc.earTag.listOrders.queryKey() }),
+    }),
+  );
 
   const detailFields: { label: string; value: React.ReactNode }[] = [
     { label: "Order no", value: data.orderNumber ?? data.id },
@@ -354,7 +473,10 @@ function OrderDetailDialog({ orderId, order }: { orderId: string; order: EarTagO
     { label: "Organization", value: data.organizationId },
     { label: "Supplier org", value: data.supplierOrganizationId },
     { label: "Notes", value: data.notes ?? "\u2014" },
-    { label: "Expected delivery", value: data.expectedDeliveryDate ? new Date(data.expectedDeliveryDate).toLocaleDateString() : "\u2014" },
+    {
+      label: "Expected delivery",
+      value: data.expectedDeliveryDate ? new Date(data.expectedDeliveryDate).toLocaleDateString() : "\u2014",
+    },
   ];
 
   return (
@@ -385,7 +507,12 @@ function OrderDetailDialog({ orderId, order }: { orderId: string; order: EarTagO
                 <>
                   <TextField control={form.control} name="supplierName" label="Supplier name" />
                   <NumberField control={form.control} name="totalQuantity" label="Total quantity" />
-                  <TextField control={form.control} name="expectedDeliveryDate" label="Expected delivery (YYYY-MM-DD)" placeholder="2026-07-12" />
+                  <TextField
+                    control={form.control}
+                    name="expectedDeliveryDate"
+                    label="Expected delivery (YYYY-MM-DD)"
+                    placeholder="2026-07-12"
+                  />
                   <TextareaField control={form.control} name="notes" label="Notes" placeholder="Optional" />
                 </>
               )}
@@ -417,12 +544,37 @@ function OrderDetailDialog({ orderId, order }: { orderId: string; order: EarTagO
                   }}
                   fields={(form) => (
                     <>
-                      <TextField control={form.control} name="animalId" label="Animal ID (UUID)" placeholder="animal uuid" />
+                      <TextField
+                        control={form.control}
+                        name="animalId"
+                        label="Animal ID (UUID)"
+                        placeholder="animal uuid"
+                      />
                       <TextField control={form.control} name="farmId" label="Farm ID (UUID)" placeholder="farm uuid" />
-                      <TextField control={form.control} name="organizationId" label="Organization ID (UUID)" placeholder="org uuid" />
-                      <TextField control={form.control} name="supplierOrganizationId" label="Supplier org ID (UUID)" placeholder="supplier uuid" />
-                      <TextField control={form.control} name="supplierName" label="Supplier name" placeholder="e.g. TagCo" />
-                      <TextareaField control={form.control} name="description" label="Description" placeholder="Optional" />
+                      <TextField
+                        control={form.control}
+                        name="organizationId"
+                        label="Organization ID (UUID)"
+                        placeholder="org uuid"
+                      />
+                      <TextField
+                        control={form.control}
+                        name="supplierOrganizationId"
+                        label="Supplier org ID (UUID)"
+                        placeholder="supplier uuid"
+                      />
+                      <TextField
+                        control={form.control}
+                        name="supplierName"
+                        label="Supplier name"
+                        placeholder="e.g. TagCo"
+                      />
+                      <TextareaField
+                        control={form.control}
+                        name="description"
+                        label="Description"
+                        placeholder="Optional"
+                      />
                     </>
                   )}
                 />
@@ -432,8 +584,13 @@ function OrderDetailDialog({ orderId, order }: { orderId: string; order: EarTagO
                   <li className="text-sm text-muted-foreground">No tags linked to this order yet.</li>
                 ) : (
                   items.map((t) => (
-                    <li key={t.id} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm">
-                      <span>{t.tagNumber ?? t.id} · {t.status}</span>
+                    <li
+                      key={t.id}
+                      className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm"
+                    >
+                      <span>
+                        {t.tagNumber ?? t.id} · {t.status}
+                      </span>
                       <ActionDialog
                         triggerLabel="Cancel item"
                         schema={cancelOrderItemRequestSchema}
@@ -480,19 +637,11 @@ function GenerateTagNumbersDialog() {
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Count</label>
-            <Input
-              type="number"
-              value={count}
-              onChange={(e) => setCount(Number(e.target.value))}
-            />
+            <Input type="number" value={count} onChange={(e) => setCount(Number(e.target.value))} />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Start from (optional)</label>
-            <Input
-              value={startFrom}
-              onChange={(e) => setStartFrom(e.target.value)}
-              placeholder="10000001"
-            />
+            <Input value={startFrom} onChange={(e) => setStartFrom(e.target.value)} placeholder="10000001" />
           </div>
           <Button
             onClick={() => setParams({ count, startFrom: startFrom ? Number(startFrom) : undefined })}
@@ -502,8 +651,10 @@ function GenerateTagNumbersDialog() {
           </Button>
           {genQ.data ? (
             <ul className="max-h-60 overflow-y-auto rounded-md border p-2 text-sm">
-              {(genQ.data.tags ?? []).map((t: string, i: number) => (
-                <li key={i} className="font-mono">{t}</li>
+              {(genQ.data.tags ?? []).map((t: string) => (
+                <li key={t} className="font-mono">
+                  {t}
+                </li>
               ))}
             </ul>
           ) : null}
@@ -529,7 +680,10 @@ function TakeoverFileDialog() {
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Takeover file</DialogTitle>
-          <DialogDescription>Retrieve the tag-authority handover file for a takeover. This is the record of how a batch of tags was delegated to a supplier.</DialogDescription>
+          <DialogDescription>
+            Retrieve the tag-authority handover file for a takeover. This is the record of how a batch of tags was
+            delegated to a supplier.
+          </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
@@ -541,8 +695,12 @@ function TakeoverFileDialog() {
           </Button>
           {data ? (
             <div className="flex flex-col gap-2 rounded-md border p-3 text-sm">
-              <div className="text-muted-foreground">{data.fileName} · {data.lineCount} lines</div>
-              <pre className="max-h-60 overflow-y-auto whitespace-pre-wrap rounded bg-muted p-2 text-xs">{data.content}</pre>
+              <div className="text-muted-foreground">
+                {data.fileName} · {data.lineCount} lines
+              </div>
+              <pre className="max-h-60 overflow-y-auto whitespace-pre-wrap rounded bg-muted p-2 text-xs">
+                {data.content}
+              </pre>
             </div>
           ) : null}
         </div>

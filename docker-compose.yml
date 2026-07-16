@@ -14,8 +14,9 @@ services:
   db:
     container_name: rokidb
     image: postgis/postgis:18-3.6-alpine
-    # Local-dev DB only; external DB is used on deploy via DB_HOST in .env
-    profiles: [local-db]
+    # Bundled DB. Runs by default (profiles are off). For an EXTERNAL DB,
+    # set DATABASE_URL (root .env) to that host and this service is unused.
+    # profiles: [local-db]
     ports:
       - "5432:5432"
     environment:
@@ -49,11 +50,11 @@ services:
       context: .
       dockerfile: apps/api/Dockerfile
     ports:
-      - "8080:8080"
+      - "8080:8000"
     environment:
       - NODE_ENV=production
-      - PORT=8080
-      - API_PORT=8080
+      - PORT=8000
+      - API_PORT=8000
       # Database — app + Postgres share the POSTGRES_PASSWORD secret
       # Single source of truth: Postgres understands ONE parameter — the
       # connection string. Inherited verbatim from .env (dev: 192.168.1.109;
@@ -66,7 +67,7 @@ services:
       # (api.techno.party) https is required for Secure shared cookies.
       - BETTER_AUTH_URL=${BETTER_AUTH_URL:-https://api.techno.party}
       # Internal server-to-server base URL (Next.js SSR -> API).
-      - BASE_SERVICE_URL=http://api:8080
+      - BASE_SERVICE_URL=http://localhost:8080
       # Shared parent cookie domain: api./admin./docs. share the session.
       - AUTH_COOKIE_DOMAIN=${AUTH_COOKIE_DOMAIN:-.techno.party}
       # Admin/public origin the browser runs on (CSRF + CORS trust).
@@ -84,7 +85,7 @@ services:
       - MAPTILER_API_KEY=${NEXT_PUBLIC_MAPTILER_API_KEY}
     # Liveness: api listens on 8080. Alpine ships nc; TCP-probe the port.
     healthcheck:
-      test: ["CMD", "nc", "-z", "api", "8080"]
+      test: ["CMD", "nc", "-z", "api", "8000"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -103,11 +104,12 @@ services:
         # Inlined at build (browser). Defaults to the Cloudflare api domain.
         - NEXT_PUBLIC_API_URL=${WEB_PUBLIC_API_URL:-https://api.techno.party}
     ports:
-      - "3050:3000"
+      - "3050:3001"
     environment:
       - NODE_ENV=production
-      # SSR: Next.js server calls API via Docker internal network (RUNTIME)
-      - API_URL=http://api:8080
+      # SSR: Next.js server calls the API via the SAME single HTTPS route the
+      # browser uses (NEXT_PUBLIC_API_URL). One trpc route to the server.
+      - API_URL=${WEB_PUBLIC_API_URL:-https://api.techno.party}
       # Auth secret (same as API, for server-side session validation)
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       # Public base URL of the auth server (Cloudflare admin domain)
@@ -155,8 +157,8 @@ services:
     networks:
       - app-network
     restart: unless-stopped
-    profiles:
-      - dev
+    # profiles:
+    # - dev
 
 volumes:
   postgres_data:

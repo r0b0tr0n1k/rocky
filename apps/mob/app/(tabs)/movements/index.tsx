@@ -7,8 +7,16 @@ import { trpc } from "@/providers/trpc-provider";
 type RouteHref = Parameters<ReturnType<typeof useRouter>["push"]>[0];
 
 const MOVEMENT_ACTIONS: { title: string; route: RouteHref; desc: string }[] = [
-  { title: "Record Death", route: "/movements/death", desc: "Record an animal death at farm, in transit, or at slaughter" },
-  { title: "Pasture Declaration", route: "/movements/pasture", desc: "Declare pasture movement for one or more animals" },
+  {
+    title: "Record Death",
+    route: "/movements/death",
+    desc: "Record an animal death at farm, in transit, or at slaughter",
+  },
+  {
+    title: "Pasture Declaration",
+    route: "/movements/pasture",
+    desc: "Declare pasture movement for one or more animals",
+  },
   { title: "Record Slaughter", route: "/movements/slaughter", desc: "Record slaughter at a slaughterhouse" },
 ];
 
@@ -50,9 +58,7 @@ export default function MovementsIndexScreen() {
             </Text>
           </View>
         )}
-        ListEmptyComponent={
-          <Text className="text-muted-foreground text-center py-8">No movements found</Text>
-        }
+        ListEmptyComponent={<Text className="text-muted-foreground text-center py-8">No movements found</Text>}
       />
 
       {MOVEMENT_ACTIONS.map((action) => (
