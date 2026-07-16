@@ -91,6 +91,8 @@
 | WO-157 | Mobile frontend tab data-wiring + vitest suite (T01–T13): vitest+jsdom+react-native-web runner, tRPC fake-link/render helpers (v11 `getQueryKey`, not v10 `.queryKey()`), wire health+movements to live data, smoke tests for explore+sync, read/empty-state tests for Home/Animals/Inspections/EarTags/Passport/Corrections/Alerts — **44 tests / 14 files green** | 0033 / 0050 | P2 | Done ✅ |
 | WO-158 | Standards & regulations reference doc + Control Mapping (`reference/standards-and-regulations.mdx`): catalog every standard / EU reg+directive / EN·ETSI / TRACES·RASFF·CHED / tech-spec / national law with repo source; Control Mapping (ISO 27001/27701 clause → `rocky-*` doc / ADR → evidence); guidance framing **ISO/IEC 27701:2025** as alignment goal + anti-drift guardrail; `check:md-links` passes | 0067 | P2 | Done ✅ |
 
+| WO-159 | Audit-log compliance gap-closure (ISO 27001 A.8.15 Logging + MK LPDP + EUDR traceability): (1) append-only enforcement via DB trigger on `audit_log`; (2) sensitive-field masking in `oldValue`/`newValue` snapshots (LPDP/GDPR — snapshots can carry personal data); (3) retention/partitioning automation (schema TODO — monthly partitions + prune job); (4) verify full CUD coverage — confirm every mutating path invokes `AuditService.recordUpdate` (today manual, no global interceptor). **Out of scope:** Wazuh-vs-cloud SIEM / infra monitoring — separate infra decision, not part of the audit-log control. | 0067 / audit domain | P1 | Open |
+
 ---
 
 ## ADR-0081 — accept-and-flag open questions (answers pending)
