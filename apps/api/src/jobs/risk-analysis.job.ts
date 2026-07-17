@@ -9,13 +9,18 @@
 
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
-import { RiskAnalysisService } from "@rocky/domains-inspection";
+import { ExecutionPipeline } from "@rocky/execution";
+import { SYSTEM_PRINCIPAL } from "@rocky/authorization";
+import type { RiskAnalysisService } from "@rocky/domains-inspection";
 
 @Injectable()
 export class RiskAnalysisJob {
   private readonly logger = new Logger(RiskAnalysisJob.name);
 
-  constructor(private readonly riskAnalysisService: RiskAnalysisService) {}
+  constructor(
+    private readonly riskAnalysisService: RiskAnalysisService,
+    private readonly pipeline: ExecutionPipeline,
+  ) {}
 
   /**
    * Annual risk analysis - selects 10% of farms for inspection.
@@ -26,11 +31,10 @@ export class RiskAnalysisJob {
     const year = new Date().getFullYear();
     this.logger.log(`Starting annual risk analysis for ${year}...`);
 
-    const result = await this.riskAnalysisService.runAnalysis({
-      year,
-      selectionPercentage: 10,
-      createdBy: "system",
-    });
+    const ctx = ExecutionPipeline.makeSystemContext();
+    const result = await this.pipeline.run(SYSTEM_PRINCIPAL, ctx.request, () =>
+      this.riskAnalysisService.runAnalysis({ year, selectionPercentage: 10, createdBy: "system" }),
+    );
 
     if (result.isErr()) {
       this.logger.error("Risk analysis failed", result.error);

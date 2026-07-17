@@ -33,8 +33,9 @@ ArchiveService ← InspectionService.complete()                (10% farm selecti
 | Domain package | `packages/domains/inspection/` | `package.json`, `tsconfig.json`, `src/{errors,repositories,services}/` |
 | Errors | `packages/domains/inspection/src/errors/inspection.errors.ts` | 5 error codes |
 | Repository | `packages/domains/inspection/src/repositories/inspection.repository.ts` | findById, findByFarm, list, hasActiveInspection, create, update, updateStatus, flagFarmForInspection |
+| RiskAnalysisRepository | `packages/domains/inspection/src/repositories/risk-analysis.repository.ts` | createRiskAnalysis, insertRiskAnalysisResults, listRiskAnalyses, getRiskAnalysisById (sibling of InspectionRepository; reads/writes `risk_analyses`/`risk_analysis_results`) |
 | Service | `packages/domains/inspection/src/services/inspection.service.ts` | getById, list, create, schedule, complete, generateInspectionForm, listRiskAnalyses, runRiskAnalysis |
-| RiskAnalysisService | `packages/domains/inspection/src/services/risk-analysis.service.ts` | Weighted random 10% farm selection, list, getById |
+| RiskAnalysisService | `packages/domains/inspection/src/services/risk-analysis.service.ts` | Weighted random 10% farm selection, list, getById — injects `RiskAnalysisRepository` + `FarmRepository` (cross-domain, read-only farm/animal/inspection aggregate) + `SystemService`; no direct DB import |
 | API validators | `packages/validators/src/api/inspection.api.ts` | Response + list + create + complete + schedule + printForm schemas |
 | TRPC error map | `packages/validators/src/errors/inspection.errors.ts` | 5 error code → TRPCError mappings |
 | tRPC router | `apps/api/src/routers/inspection.router.ts` | 8 endpoints: getById, list, create, schedule, complete, printForm, listRiskAnalyses, runRiskAnalysis |
@@ -172,6 +173,7 @@ Phase F (Retention) ✅       ──────── depends on Phase A (satis
 ```
 
 Logical dependency chain:
+
 1. A, B, C, D can all start immediately (no inter-dependencies)
 2. E depends on B (needs local DB + network provider)
 3. F depends on A (needs Archive domain package)
@@ -230,7 +232,8 @@ Logical dependency chain:
 - Form data model (`models/inspection-form.yaml`) is the SINGLE SOURCE OF TRUTH for inspection form structure — both PDF generation and mobile app consume this
 - PDF generation is handled by `@rocky/pdf` package — `InspectionFormTemplate` delegates to `generateInspectionForm()`, generic `document.generate()` endpoint handles output
 - Mobile SQLite schema uses 3 permission-scoped profiles (FARMER, VETERINARIAN, CPC_ADMIN) — not 9 per-role schemas
-- RiskAnalysisService takes DB directly (not repo) since it queries both `farms` and `risk_analyses` tables
+- RiskAnalysisService reaches the DB only via `RiskAnalysisRepository` (own-domain: `risk_analyses`/`risk_analysis_results`) and `FarmRepository` (cross-domain via §8.5 module wiring: `countActiveFarms()` + `getFarmsWithRiskFactors()` read-join aggregate over `farms`+`animals`+`inspections`). It does NOT import `@rocky/database` client/tables (Diamond Seal §8.2).
+- The annual risk-analysis cron (`RiskAnalysisJob`) runs `runAnalysis()` **inside `ExecutionPipeline.run(SYSTEM_PRINCIPAL, makeSystemContext(), ...)`** so the repositories inherit the RLS transaction (no global-pool bypass). `makeSystemContext()` supplies `SYSTEM_PRINCIPAL`.
 - **Risk analysis uses weighted random selection.** Farms are scored on animal count (30%), past inspection history (30%), farm type diversity (20%), and random regional factor (20%) via `DEFAULT_WEIGHTS`. Weighted reservoir sampling selects the target count. Implemented 2026-07-05 — replaces previous pure `RANDOM()` approach.
 - `createPermissionGuard()` factory function: nestjs-trpc's `@UseMiddlewares` expects class constructors, not instances — factory returns `new()` class with permission baked in via closure
 - Archive wiring: `InspectionService.complete()` calls `archiveService.archiveInspectionForm()` as fire-and-forget — archive failure never blocks inspection completion

@@ -28,6 +28,7 @@
     "@rocky/domains-system": "workspace:*",
     "@rocky/domains-animal": "workspace:*",
     "@rocky/domains-archive": "workspace:*",
+    "@rocky/domains-farm": "workspace:*",
     "@rocky/domains-shared": "workspace:*",
     "@rocky/validators": "workspace:*",
     "drizzle-orm": "catalog:",

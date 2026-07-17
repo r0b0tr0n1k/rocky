@@ -35,7 +35,12 @@ import {
 } from "@rocky/domains-farm";
 import { HealthRepository, HealthService } from "@rocky/domains-health";
 import { SyncRepository, SyncService } from "@rocky/domains-sync";
-import { InspectionRepository, InspectionService, RiskAnalysisService } from "@rocky/domains-inspection";
+import {
+  InspectionRepository,
+  InspectionService,
+  RiskAnalysisService,
+  RiskAnalysisRepository,
+} from "@rocky/domains-inspection";
 import { MovementRepository, MovementService } from "@rocky/domains-movement";
 import {
   NotificationRepository,
@@ -157,7 +162,8 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     },
     {
       provide: SubscriptionResolver,
-      useFactory: (ns: NotificationService, repo: NotificationRepository, userRepo: UserRepository) => new SubscriptionResolver(ns, repo, userRepo),
+      useFactory: (ns: NotificationService, repo: NotificationRepository, userRepo: UserRepository) =>
+        new SubscriptionResolver(ns, repo, userRepo),
       inject: [NotificationService, NotificationRepository, UserRepository],
     },
     {
@@ -363,9 +369,15 @@ import { TrpcModule } from "./trpc/trpc.module.js";
       inject: [ArchiveRepository, SystemService],
     },
     {
+      provide: RiskAnalysisRepository,
+      useFactory: (dbp: DatabaseProvider) => new RiskAnalysisRepository(dbp),
+      inject: [DatabaseProvider],
+    },
+    {
       provide: RiskAnalysisService,
-      useFactory: (dbp: DatabaseProvider, system: SystemService) => new RiskAnalysisService(dbp, system),
-      inject: [DatabaseProvider, SystemService],
+      useFactory: (riskRepo: RiskAnalysisRepository, farmRepo: FarmRepository, system: SystemService) =>
+        new RiskAnalysisService(riskRepo, farmRepo, system),
+      inject: [RiskAnalysisRepository, FarmRepository, SystemService],
     },
     {
       provide: PassportService,
