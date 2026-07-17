@@ -5,6 +5,9 @@ The following wrapper documents assemble the control and guidance fragments belo
 - [ISO/IEC 27701:2025 — Privacy Information Management System (PIMS)](/Standardization/iso-27701-2025)
 - [ISO/IEC 27001:2022 — Information Security Management System (ISMS)](/Standardization/iso-27001-2022)
 
+> **🔏 Canonical architecture standard.** [Diamond Seal — End-to-End Type Safety (ROCKY-DS 001:2026)](/Standardization/diamond-seal-type-contracts) — the monorepo's authoritative type-contract standard: how tRPC types and enums are *derived* from Drizzle and *proven* drift-free. Start here for the *why*; the [Explanation narrative](/explanation/validation-circle-type-safety) is the companion walkthrough.
+
+
 This document specifies requirements and provides guidance for establishing, implementing, maintaining and improving a privacy information management system (PIMS). The requirements from this document can be used by any organization wishing to: a) establish, implement, maintain and improve a PIMS; b) assess its own capability to achieve the intended outcome of its PIMS; c) demonstrate conformity with the requirements of this document; d) seek certification to this document; e) make a self-determination and self-declaration of conformity to this document.
   
 ### Annex fragments

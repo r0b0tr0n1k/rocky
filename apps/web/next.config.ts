@@ -1,4 +1,5 @@
 import { existsSync } from "node:fs";
+import path from "node:path";
 
 // Monorepo root = the directory containing pnpm-workspace.yaml, found by
 // walking up from cwd. In the Docker build cwd is /app (the repo root);
@@ -27,6 +28,8 @@ const CONTENT_SECURITY_POLICY = `default-src 'self'; script-src 'self' 'unsafe-i
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone",
+  outputFileTracingRoot: path.join(__dirname, "../../"),
   allowedDevOrigins: ["http://localhost:3000"],
   // Workspace packages now ship compiled ESM + .d.ts to their dist/ (exports
   // point at ./dist/*). They are consumed as built JS at runtime; transpile here

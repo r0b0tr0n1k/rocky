@@ -12,6 +12,8 @@
     "build": "turbo run build",
     "clean:src-compiled": "bash scripts/detect-src-compiled-files.sh --clean",
     "test": "turbo run test",
+    "repomix:all": "bunx repomix --include '**/*.ts,**/*.json,**/*.yml,**/*.yaml,**/*.hbs,**/*.sh' --ignore 'packages/database/drizzle/**/*, packages/domains/telephony/src/generated/**/*, packages/freepbx/generated/**/*, packages/i18n/src/**/*, docker/grafana/provisioning/dashboards/json/**/*, apps/web/messages/**/*, packages/freepbx/introspection/freepbx-introspection.json' --compress --remove-comments --remove-empty-lines --token-count-tree 1000 --style markdown",
+    "repomix:ts": "pnpx repomix --include '**/*.ts' --ignore 'packages/database/drizzle/**/*, packages/domains/telephony/src/generated/**/*, packages/freepbx/generated/**/*, packages/i18n/src/**/*, docker/grafana/provisioning/dashboards/json/**/*, apps/web/messages/**/*, packages/freepbx/introspection/freepbx-introspection.json' --compress --remove-comments --remove-empty-lines --token-count-tree 1000",
     "test:e2e": "turbo run test:e2e",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",

@@ -21,9 +21,64 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
 FROM deps AS build
 COPY apps/api ./apps/api
 RUN pnpm -r --filter @rocky/api... build
-# pnpm deploy: standalone deployment with only @rocky/api's production deps
-# (no stale .pnpm store, no workspace package bloat, no symlinks)
-RUN pnpm deploy --filter=@rocky/api --prod --legacy /deploy
+# pnpm deploy --legacy copies the full workspace store; prune the bloat that
+# the compiled dist/ no longer imports (verified: zero @rocky/* requires in dist/).
+RUN pnpm deploy --filter=@rocky/api --prod --legacy /deploy \
+    && echo "=== /deploy size after deploy ===" && du -sh /deploy \
+    && echo "=== /deploy/node_modules top-level count ===" && ls /deploy/node_modules | wc -l \
+    && rm -rf /deploy/apps /deploy/packages /deploy/scripts /deploy/{README.md,LICENSE,CHANGELOG.md} \
+    && cd /deploy \
+    && rm -rf node_modules/@biomejs \
+       node_modules/@next \
+       node_modules/@pagefind \
+       node_modules/@react-native \
+       node_modules/@turbo \
+       node_modules/@types \
+       node_modules/lucide-react-native \
+       node_modules/maplibre-gl \
+       node_modules/mathjax-full \
+       node_modules/mermaid \
+       node_modules/react-aria \
+       node_modules/react-devtools-core \
+       node_modules/drizzle-kit \
+       node_modules/next \
+       node_modules/expo-sqlite \
+       node_modules/hermes-compiler \
+       node_modules/expo-modules-core \
+       node_modules/react-native \
+       node_modules/@rolldown \
+       node_modules/@expo \
+       node_modules/@myriaddreamin \
+       node_modules/@cantoo \
+       node_modules/@img \
+       node_modules/sharp 2>/dev/null || true \
+    && echo "=== /deploy/node_modules top-level count after prune ===" && ls /deploy/node_modules | wc -l \
+    && echo "=== /deploy size after prune ===" && du -sh /deploy \
+    && rm -rf node_modules/.pnpm/@biomejs+* \
+       node_modules/.pnpm/@next+* \
+       node_modules/.pnpm/@pagefind+* \
+       node_modules/.pnpm/@react-native+* \
+       node_modules/.pnpm/@turbo+* \
+       node_modules/.pnpm/@types+* \
+       node_modules/.pnpm/lucide-react-native@* \
+       node_modules/.pnpm/maplibre-gl@* \
+       node_modules/.pnpm/mathjax-full@* \
+       node_modules/.pnpm/mermaid@* \
+       node_modules/.pnpm/react-aria@* \
+       node_modules/.pnpm/react-devtools-core@* \
+       node_modules/.pnpm/drizzle-kit@* \
+       node_modules/.pnpm/next@* \
+       node_modules/.pnpm/expo-sqlite@* \
+       node_modules/.pnpm/hermes-compiler@* \
+       node_modules/.pnpm/expo-modules-core@* \
+       node_modules/.pnpm/react-native@* \
+       node_modules/.pnpm/@rolldown+* \
+       node_modules/.pnpm/@expo+* \
+       node_modules/.pnpm/@myriaddreamin+typst* \
+       node_modules/.pnpm/@cantoo+* \
+       node_modules/.pnpm/@img+* \
+       node_modules/.pnpm/sharp@* 2>/dev/null || true \
+    && echo "=== /deploy size after .pnpm prune ===" && du -sh /deploy
 # The NestJS SWC build emits CommonJS (dist/main.js uses `exports`), but the api
 # package.json declares "type": "module". Without this override Node treats
 # dist/main.js as ESM and crashes with "exports is not defined". Pin the compiled

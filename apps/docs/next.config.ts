@@ -1,5 +1,6 @@
 import nextra from "nextra";
 import { existsSync } from "node:fs";
+import path from "node:path";
 
 // Monorepo root = the directory containing pnpm-workspace.yaml, found by
 // walking up from cwd. Next/Turbopack's OWN root inference also walks up, but
@@ -32,6 +33,8 @@ const withNextra = nextra({
 });
 
 export default withNextra({
+  output: "standalone",
+  outputFileTracingRoot: path.join(__dirname, "../../"),
   reactStrictMode: true,
   turbopack: {
     root: monorepoRoot,

@@ -1,13 +1,8 @@
 # syntax=docker/dockerfile:1.7
-# Docs (Nextra) — minimal image. Theme tokens inlined (no @rocky/ui dep).
-# glibc base required: Next.js uses @parcel/watcher (no musl prebuilds).
-FROM node:slim AS deps
+FROM node:24-slim AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
-# Install the exact pnpm version pinned in package.json's "packageManager" field.
-# Uses npm (always present) instead of corepack, which is absent from
-# node:24-slim / alpine images.
-RUN PNPM_VER=$(node -p "require('./package.json').packageManager.replace('pnpm@','').split('+')[0]" 2>/dev/null || echo 11.13.0) \
+RUN PNPM_VER=$(node -p "require('./package.json').packageManager.replace('pnpm@','').split('+')[0]" 2>/dev/null || echo 11.13.1) \
     && for i in 1 2 3 4 5; do npm install -g "pnpm@${PNPM_VER}" && break || sleep 5; done
 COPY packages ./packages
 COPY apps ./apps
@@ -18,26 +13,20 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
 
 # ---- build
 FROM deps AS build
-COPY apps/docs ./apps/docs
+# apps/docs is already copied in `deps` — no second COPY needed
 RUN pnpm -r --filter docs... build
-# pnpm deploy: standalone deployment with docs' production deps.
-RUN pnpm deploy --filter=docs --prod --legacy /deploy
-# IMPORTANT: do NOT prune @swc/* or @babel/* here — Next.js requires
-# @swc/helpers at RUNTIME (`next start`). A prior aggressive rm removed it and
-# crashed with "Cannot find module '@swc/helpers/_/_interop_require_default'".
-# (The other rm targets — expo, react-native, drizzle, @nestjs, maplibre,
-# better-auth, trpc, mermaid — are not in docs' dependency tree anyway.)
-# pnpm deploy also EXCLUDES gitignored build output (.next, public), so copy
-# the prebuilt production build + static assets explicitly.
-RUN rm -rf /deploy/.next && cp -r apps/docs/.next /deploy/.next
-RUN rm -rf /deploy/public && cp -r apps/docs/public /deploy/public 2>/dev/null || true
 
-# ---- runtime (prod deps only, non-root)
-FROM node:slim AS runtime
+# ---- runtime
+FROM node:24-slim AS runtime
 WORKDIR /app
-ENV NODE_ENV=production
-COPY --from=build /deploy ./
-RUN addgroup --system nodejs && adduser --system --ingroup nodejs appuser && chown -R appuser:nodejs /app
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    HOSTNAME=0.0.0.0 \
+    PORT=3002
+RUN addgroup --system nodejs && adduser --system --ingroup nodejs appuser
+COPY --from=build --chown=appuser:nodejs /app/apps/docs/.next/standalone ./
+COPY --from=build --chown=appuser:nodejs /app/apps/docs/.next/static ./apps/docs/.next/static
+COPY --from=build --chown=appuser:nodejs /app/apps/docs/public ./apps/docs/public
 USER appuser
 EXPOSE 3002
-CMD ["npx", "next", "start", "--port", "3002"]
+CMD ["node", "apps/docs/server.js"]
