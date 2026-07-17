@@ -1,97 +1,51 @@
 # syntax=docker/dockerfile:1.7
 
-# ---- deps
+# ---- deps (manifests only → cache survives source edits)
 FROM node:24-alpine AS deps
 WORKDIR /app
+
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
-# Install the exact pnpm version pinned in package.json's "packageManager" field.
-# Uses npm (always present) instead of corepack, which is absent from
-# node:24-slim / alpine images.
-RUN PNPM_VER=$(node -p "require('./package.json').packageManager.replace('pnpm@','').split('+')[0]" 2>/dev/null || echo 11.13.1) \
-    && for i in 1 2 3 4 5; do npm install -g "pnpm@${PNPM_VER}" && break || sleep 5; done
 COPY packages ./packages
 COPY apps ./apps
-# Harden pnpm for flaky/slow registries: long per-request timeout, many
-# retries, low concurrency (fewer simultaneous slow sockets = fewer drops).
-RUN printf 'fetch-timeout=1200000\nstore-dir=/pnpm/store\nfetch-retries=10\nfetch-retry-mintimeout=10000\nfetch-retry-maxtimeout=120000\nnetwork-concurrency=4\n' >> .npmrc
+
+# Install pinned pnpm (npm is always present on node images)
+RUN PNPM_VER=$(node -p "require('./package.json').packageManager.replace('pnpm@','').split('+')[0]" 2>/dev/null || echo 11.13.1) \
+    && npm install -g "pnpm@${PNPM_VER}"
+
+# Harden for flaky registries
+RUN printf '%s\n' \
+      'fetch-timeout=1200000' \
+      'store-dir=/pnpm/store' \
+      'fetch-retries=10' \
+      'fetch-retry-mintimeout=10000' \
+      'fetch-retry-maxtimeout=120000' \
+      'network-concurrency=4' >> .npmrc
+
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    for i in 1 2 3 4 5; do pnpm install --frozen-lockfile && break || sleep 15; done
+    pnpm install --frozen-lockfile
 
 # ---- build
 FROM deps AS build
+# Real source now (busts cache only when sources change, not on lockfile edits)
 COPY apps/api ./apps/api
-RUN pnpm -r --filter @rocky/api... build
-# pnpm deploy --legacy copies the full workspace store; prune the bloat that
-# the compiled dist/ no longer imports (verified: zero @rocky/* requires in dist/).
-# NOTE: @rocky/pdf needs TWO third-party packages at RUNTIME — keep them:
-#   - @cantoo/pdf-lib       (PDF/A-3 wrap + PAdES; imported by document.service/pdfa3/pdf-embed)
-#   - @myriaddreamin/typst* (Typst WASM render invoked at request time by DocumentService)
-# The zero-@rocky/* check only covers workspace packages, not these runtime deps.
-RUN pnpm deploy --filter=@rocky/api --prod --legacy /deploy \
-    && rm -rf /deploy/apps /deploy/packages /deploy/scripts /deploy/{README.md,LICENSE,CHANGELOG.md} \
-    && cd /deploy \
-    && rm -rf node_modules/@biomejs \
-       node_modules/@next \
-       node_modules/@pagefind \
-       node_modules/@react-native \
-       node_modules/@turbo \
-       node_modules/@types \
-       node_modules/lucide-react-native \
-       node_modules/maplibre-gl \
-       node_modules/mathjax-full \
-       node_modules/mermaid \
-       node_modules/react-aria \
-       node_modules/react-devtools-core \
-       node_modules/drizzle-kit \
-       node_modules/next \
-       node_modules/expo-sqlite \
-       node_modules/hermes-compiler \
-       node_modules/expo-modules-core \
-       node_modules/react-native \
-       node_modules/@rolldown \
-       node_modules/@expo \
-       node_modules/@img \
-       node_modules/sharp 2>/dev/null || true \
-    && rm -rf node_modules/.pnpm/@biomejs+* \
-       node_modules/.pnpm/@next+* \
-       node_modules/.pnpm/@pagefind+* \
-       node_modules/.pnpm/@react-native+* \
-       node_modules/.pnpm/@turbo+* \
-       node_modules/.pnpm/@types+* \
-       node_modules/.pnpm/lucide-react-native@* \
-       node_modules/.pnpm/maplibre-gl@* \
-       node_modules/.pnpm/mathjax-full@* \
-       node_modules/.pnpm/mermaid@* \
-       node_modules/.pnpm/react-aria@* \
-       node_modules/.pnpm/react-devtools-core@* \
-       node_modules/.pnpm/drizzle-kit@* \
-       node_modules/.pnpm/next@* \
-       node_modules/.pnpm/expo-sqlite@* \
-       node_modules/.pnpm/hermes-compiler@* \
-       node_modules/.pnpm/expo-modules-core@* \
-       node_modules/.pnpm/react-native@* \
-       node_modules/.pnpm/@rolldown+* \
-       node_modules/.pnpm/@expo+* \
-       node_modules/.pnpm/@img+* \
-       node_modules/.pnpm/sharp@* 2>/dev/null || true
-# The NestJS SWC build emits CommonJS (dist/main.js uses `exports`), but the api
-# package.json declares "type": "module". Without this override Node treats
-# dist/main.js as ESM and crashes with "exports is not defined". Pin the compiled
-# output folder to CommonJS so the entry runs as CJS.
-RUN printf '{"type":"commonjs"}\n' > /deploy/dist/package.json
+COPY packages ./packages
 
-# ---- runtime (Alpine, prod deps only, non-root)
-# glibc NOT required: the API is NestJS (pure JS). @rocky/pdf renders via the
-# typst.ts WASM compiler (libc-agnostic), so Alpine/musl is fine here — unlike
-# the Next.js web/docs images, which need glibc for @parcel/watcher prebuilds.
-FROM node:24-alpine AS runtime
-RUN apk add --no-cache curl
+RUN NODE_OPTIONS='--max-old-space-size=4096' pnpm -r --filter @rocky/api... build \
+    && NODE_OPTIONS='--max-old-space-size=4096' pnpm deploy --legacy --filter=@rocky/api --prod /deploy \
+    && rm -rf /deploy/apps /deploy/packages /deploy/scripts \
+    && rm -f /deploy/README.md /deploy/LICENSE /deploy/CHANGELOG.md \
+    # NestJS SWC emits CJS (dist/main.js uses `exports`) but api package.json
+    # has "type":"module". Pin the dist folder to CJS so node loads it correctly.
+    && printf '{"type":"commonjs"}\n' > /deploy/dist/package.json
+
+# ---- runtime (distroless, prod deps only, non-root)
+# No shell, no curl — minimal attack surface. Use gRPC or HTTP health from orchestrator.
+FROM gcr.io/distroless/nodejs24-debian12:nonroot AS runtime
 WORKDIR /app
-ENV NODE_ENV=production
-ENV PORT=8000
+ENV NODE_ENV=production \
+    PORT=8000
+
 COPY --from=build /deploy ./
-# run as non-root
-RUN addgroup -S nodejs && adduser -S appuser -G nodejs && chown -R appuser:nodejs /app
-USER appuser
+
 EXPOSE 8000
-CMD ["node", "dist/main"]
+CMD ["dist/main"]
