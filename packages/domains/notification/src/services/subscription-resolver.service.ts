@@ -1,16 +1,9 @@
-import {
-  notificationErr,
-  NOTIFICATION_ERRORS,
-} from "../errors/notification.errors.js";
+import { notificationErr, NOTIFICATION_ERRORS } from "../errors/notification.errors.js";
 import type { NotificationRepository } from "../repositories/notification.repository.js";
 import type { NotificationService } from "./notification.service.js";
 import { fromAsyncThrowable, toAppError, type Result } from "@rocky/domains-shared";
 import type { UserRepository } from "@rocky/domains-user";
-import type {
-  notificationTypeType,
-  notificationCategoryType,
-  notificationPriorityType,
-} from "@rocky/validators/enums";
+import type { notificationTypeType, notificationCategoryType, notificationPriorityType } from "@rocky/validators/enums";
 
 export interface ResolveAndNotifyInput {
   eventType: string;
@@ -32,8 +25,7 @@ export class SubscriptionResolver {
       const subs = await this.repo.findActiveSubscriptionsByEventType(input.eventType);
 
       for (const sub of subs) {
-        if (!this.matchesConditions(input.data, sub.conditions as any[]))
-          continue;
+        if (!this.matchesConditions(input.data, sub.conditions as any[])) continue;
 
         const users = await this.resolveTargetUsers(sub.targetType, sub.targetId);
         for (const user of users) {
@@ -78,10 +70,7 @@ export class SubscriptionResolver {
     }, toAppError)();
   }
 
-  private async resolveTargetUsers(
-    targetType: string,
-    targetId: string,
-  ): Promise<Array<{ id: string }>> {
+  private async resolveTargetUsers(targetType: string, targetId: string): Promise<Array<{ id: string }>> {
     switch (targetType) {
       case "user": {
         const u = await this.userRepo.findById(targetId);
@@ -128,26 +117,15 @@ export class SubscriptionResolver {
     });
   }
 
-  private resolveChannel(
-    channels: Record<string, boolean>,
-  ): notificationTypeType {
+  private resolveChannel(channels: Record<string, boolean>): notificationTypeType {
     if (channels.push) return "push";
     if (channels.email) return "email";
     return "in_app";
   }
 
-  private resolvePriority(
-    data: Record<string, unknown>,
-  ): notificationPriorityType {
+  private resolvePriority(data: Record<string, unknown>): notificationPriorityType {
     const p = data.priority as string;
-    if (
-      p === "low" ||
-      p === "normal" ||
-      p === "high" ||
-      p === "urgent" ||
-      p === "critical"
-    )
-      return p;
+    if (p === "low" || p === "normal" || p === "high" || p === "urgent" || p === "critical") return p;
     return "normal";
   }
 
@@ -158,10 +136,7 @@ export class SubscriptionResolver {
     return `Event: ${eventType}`;
   }
 
-  private formatMessage(
-    template: unknown,
-    data: Record<string, unknown>,
-  ): string {
+  private formatMessage(template: unknown, data: Record<string, unknown>): string {
     if (template && typeof template === "object" && "message" in template) {
       return (template as any).message;
     }
@@ -179,9 +154,7 @@ export class SubscriptionResolver {
       entityId: input.aggregateId,
       userId: userId,
       title: `Follow-up: ${input.eventType}`,
-      dueAt: new Date(
-        Date.now() + sub.reminderOffsetDays * 24 * 60 * 60 * 1000,
-      ),
+      dueAt: new Date(Date.now() + sub.reminderOffsetDays * 24 * 60 * 60 * 1000),
       priority: "normal",
     });
   }

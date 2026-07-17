@@ -5,11 +5,18 @@
  */
 
 import { eq, and, desc, asc, inArray, lte, sql, type SQL } from "drizzle-orm";
-import { notifications, notificationPreferences, notificationTemplates, deviceTokens, eventSubscriptions, reminders, notificationDeliveries } from "@rocky/database";
+import {
+  notifications,
+  notificationPreferences,
+  notificationTemplates,
+  deviceTokens,
+  eventSubscriptions,
+  reminders,
+  notificationDeliveries,
+} from "@rocky/database";
 import { BaseRepository } from "@rocky/domains-shared";
 
 export class NotificationRepository extends BaseRepository {
-
   /** Insert a single notification. Returns the created row. */
   async insert(values: typeof notifications.$inferInsert): Promise<typeof notifications.$inferSelect | null> {
     const [row] = await this.client.insert(notifications).values(values).returning();
@@ -141,12 +148,7 @@ export class NotificationRepository extends BaseRepository {
     return this.client
       .select()
       .from(eventSubscriptions)
-      .where(
-        and(
-          eq(eventSubscriptions.eventType, eventType),
-          eq(eventSubscriptions.isActive, true),
-        ),
-      );
+      .where(and(eq(eventSubscriptions.eventType, eventType), eq(eventSubscriptions.isActive, true)));
   }
 
   /** Find a notification delivery by its dedup key (null if none). */
