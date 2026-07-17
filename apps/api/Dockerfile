@@ -1,7 +1,7 @@
+# syntax=docker/dockerfile:1.7
+
+# ---- deps
 FROM node:24-alpine AS deps
-# glibc NOT required: the API is NestJS (pure JS). @rocky/pdf renders via the
-# typst.ts WASM compiler (libc-agnostic), so Alpine/musl is fine here — unlike
-# the Next.js web/docs images, which need glibc for @parcel/watcher prebuilds.
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 # Install the exact pnpm version pinned in package.json's "packageManager" field.
@@ -13,8 +13,9 @@ COPY packages ./packages
 COPY apps ./apps
 # Harden pnpm for flaky/slow registries: long per-request timeout, many
 # retries, low concurrency (fewer simultaneous slow sockets = fewer drops).
-RUN printf 'fetch-timeout=1200000\nfetch-retries=10\nfetch-retry-mintimeout=10000\nfetch-retry-maxtimeout=120000\nnetwork-concurrency=4\n' >> .npmrc
-RUN for i in 1 2 3 4 5; do pnpm install --frozen-lockfile && break || sleep 15; done
+RUN printf 'fetch-timeout=1200000\nstore-dir=/pnpm/store\nfetch-retries=10\nfetch-retry-mintimeout=10000\nfetch-retry-maxtimeout=120000\nnetwork-concurrency=4\n' >> .npmrc
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    for i in 1 2 3 4 5; do pnpm install --frozen-lockfile && break || sleep 15; done
 
 # ---- build
 FROM deps AS build
@@ -27,8 +28,6 @@ RUN pnpm -r --filter @rocky/api... build
 #   - @myriaddreamin/typst* (Typst WASM render invoked at request time by DocumentService)
 # The zero-@rocky/* check only covers workspace packages, not these runtime deps.
 RUN pnpm deploy --filter=@rocky/api --prod --legacy /deploy \
-    && echo "=== /deploy size after deploy ===" && du -sh /deploy \
-    && echo "=== /deploy/node_modules top-level count ===" && ls /deploy/node_modules | wc -l \
     && rm -rf /deploy/apps /deploy/packages /deploy/scripts /deploy/{README.md,LICENSE,CHANGELOG.md} \
     && cd /deploy \
     && rm -rf node_modules/@biomejs \
@@ -53,8 +52,6 @@ RUN pnpm deploy --filter=@rocky/api --prod --legacy /deploy \
        node_modules/@expo \
        node_modules/@img \
        node_modules/sharp 2>/dev/null || true \
-    && echo "=== /deploy/node_modules top-level count after prune ===" && ls /deploy/node_modules | wc -l \
-    && echo "=== /deploy size after prune ===" && du -sh /deploy \
     && rm -rf node_modules/.pnpm/@biomejs+* \
        node_modules/.pnpm/@next+* \
        node_modules/.pnpm/@pagefind+* \
@@ -76,8 +73,7 @@ RUN pnpm deploy --filter=@rocky/api --prod --legacy /deploy \
        node_modules/.pnpm/@rolldown+* \
        node_modules/.pnpm/@expo+* \
        node_modules/.pnpm/@img+* \
-       node_modules/.pnpm/sharp@* 2>/dev/null || true \
-    && echo "=== /deploy size after .pnpm prune ===" && du -sh /deploy
+       node_modules/.pnpm/sharp@* 2>/dev/null || true
 # The NestJS SWC build emits CommonJS (dist/main.js uses `exports`), but the api
 # package.json declares "type": "module". Without this override Node treats
 # dist/main.js as ESM and crashes with "exports is not defined". Pin the compiled
@@ -85,12 +81,17 @@ RUN pnpm deploy --filter=@rocky/api --prod --legacy /deploy \
 RUN printf '{"type":"commonjs"}\n' > /deploy/dist/package.json
 
 # ---- runtime (Alpine, prod deps only, non-root)
+# glibc NOT required: the API is NestJS (pure JS). @rocky/pdf renders via the
+# typst.ts WASM compiler (libc-agnostic), so Alpine/musl is fine here — unlike
+# the Next.js web/docs images, which need glibc for @parcel/watcher prebuilds.
 FROM node:24-alpine AS runtime
 RUN apk add --no-cache curl
 WORKDIR /app
 ENV NODE_ENV=production
+ENV PORT=8000
 COPY --from=build /deploy ./
 # run as non-root
 RUN addgroup -S nodejs && adduser -S appuser -G nodejs && chown -R appuser:nodejs /app
 USER appuser
+EXPOSE 8000
 CMD ["node", "dist/main"]
