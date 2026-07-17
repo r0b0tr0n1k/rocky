@@ -1,5 +1,4 @@
 import { fromAsyncThrowable, type Result, toAppError } from "@rocky/domains-shared";
-import { iotDevices } from "@rocky/database";
 import type {
   RegisterDeviceRequest,
   ListDevicesRequest,
