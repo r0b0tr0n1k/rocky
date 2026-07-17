@@ -18,7 +18,7 @@ import type {
 } from "@rocky/validators/api";
 import { addressResponseSchema, farmResponseSchema } from "@rocky/validators/api";
 import { FARM_ERRORS, FarmError } from "../errors/farm.errors.js";
-import type { FarmRepository } from "../repositories/farm.repository.js";
+import type { FarmRepository, FarmRow } from "../repositories/farm.repository.js";
 
 export class FarmService {
   constructor(
@@ -56,7 +56,7 @@ export class FarmService {
         const existing = await this.repo.findByFarmId(input.farmId);
         if (existing) throw new FarmError(FARM_ERRORS.DUPLICATE_FARM_ID, { farmId: input.farmId });
       }
-      const farm = await this.repo.insert(input as typeof import("@rocky/database").farms.$inferInsert);
+      const farm = await this.repo.insert(input as FarmRow);
       return farmResponseSchema.parse(farm);
     }, toAppError)();
   }
@@ -65,7 +65,7 @@ export class FarmService {
     return fromAsyncThrowable(async () => {
       const old = await this.repo.findById(id);
       if (!old) throw new FarmError(FARM_ERRORS.NOT_FOUND, { id });
-      const farm = await this.repo.update(id, input as Partial<typeof import("@rocky/database").farms.$inferInsert>);
+      const farm = await this.repo.update(id, input as Partial<FarmRow>);
       if (!farm) throw new FarmError(FARM_ERRORS.NOT_FOUND, { id });
       await this.auditService.recordUpdate({
         resource: "farm",

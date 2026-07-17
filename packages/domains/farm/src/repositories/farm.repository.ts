@@ -7,6 +7,8 @@
 
 import { eq, and, ilike, or, desc, asc, sql, type SQL } from "drizzle-orm";
 import { farms as farmsTable, addresses as addressesTable, animals, inspections } from "@rocky/database";
+
+export type FarmRow = typeof farmsTable.$inferInsert;
 import { BaseRepository } from "@rocky/domains-shared";
 
 export interface FarmFilter {

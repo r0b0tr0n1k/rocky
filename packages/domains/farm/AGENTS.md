@@ -67,6 +67,8 @@ Both return `Result<T, FarmError>` / `Result<T, SubjectError>`.
 
 ## Repository Methods — `FarmRepository`
 
+**Row-shape types:** `FarmRow` is re-exported from this repository so services import it relative (ROCKY-DS 001:2026(E) §8.2) instead of importing `@rocky/database` table definitions.
+
 `packages/domains/farm/src/repositories/farm.repository.ts` (extends `BaseRepository`, reaches the DB only via `this.client`):
 
 - `findById(id)` / `findByFarmId(farmId)` / `findAddressById(id)`
