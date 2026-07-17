@@ -27,6 +27,10 @@ export class UserRepository extends BaseRepository {
     return row ?? null;
   }
 
+  async findByRole(role: string) {
+    return this.client.select().from(usersTable).where(eq(usersTable.role, role));
+  }
+
   async list(filters: {
     organizationId?: string;
     status?: string;
