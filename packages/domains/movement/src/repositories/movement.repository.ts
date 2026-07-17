@@ -5,7 +5,10 @@
  */
 
 import { eq, and, desc, asc, sql, gte, lte, inArray, gt, isNotNull, type SQL } from "drizzle-orm";
-import { movements as movementsTable, pastureDeclarations as pastureDeclarationsTable, farms as farmsTable, birthNotifications as birthNotificationsTable, treatments as treatmentsTable, animalParents as animalParentsTable } from "@rocky/database";
+import { animals, movements as movementsTable, pastureDeclarations as pastureDeclarationsTable, farms as farmsTable, birthNotifications as birthNotificationsTable, treatments as treatmentsTable, animalParents as animalParentsTable } from "@rocky/database";
+
+export type MovementRow = typeof movementsTable.$inferInsert;
+export type AnimalRow = typeof animals.$inferInsert;
 import { importExportRecords as importExportRecordsTable } from "@rocky/database";
 import { BaseRepository } from "@rocky/domains-shared";
 import { SORT_BY_MOVEMENT, SORT_ORDER, BIRTH_NOTIFICATION_STATUS } from "@rocky/database/constants";

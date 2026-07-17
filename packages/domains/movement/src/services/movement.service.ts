@@ -15,7 +15,6 @@ import type {
   CreateMovementRequest,
   MovementListRequest,
 } from "@rocky/validators/api/index.js";
-import type { animals as animalsTable, movements as movementsTable } from "@rocky/database";
 import type { SystemService } from "@rocky/domains-system";
 import { TraceabilityRuleEngine, EU_TRACEABILITY_FLOORS } from "@rocky/domains-system";
 import type { DiseaseZoneCheckResult, GeoRepository, GeoService } from "@rocky/geo";
@@ -32,7 +31,7 @@ import {
 } from "@rocky/database/constants";
 import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
 import { MovementError, MOVEMENT_ERRORS } from "../errors/movement.errors.js";
-import type { MovementRepository } from "../repositories/movement.repository.js";
+import type { MovementRepository, MovementRow, AnimalRow } from "../repositories/movement.repository.js";
 import type { AnimalRepository } from "@rocky/domains-animal";
 import type { OutboxEventPublisher } from "@rocky/execution";
 import { EVENT_TYPE_IDS } from "@rocky/domains-notification/index.js";
@@ -332,7 +331,7 @@ export class MovementService {
         fromFarmId,
         toFarmId,
         type: input.type ?? MOVEMENT_TYPE.SALE,
-      } as unknown as typeof movementsTable.$inferInsert);
+      } as unknown as MovementRow);
 
       // Update animal's current farm (only for non-death/non-slaughter movements)
       if (
@@ -394,7 +393,7 @@ export class MovementService {
         deathDate: input.deathDate,
         deathCause: effectiveCause,
         createdBy: input.createdBy,
-      } as unknown as typeof movementsTable.$inferInsert);
+      } as unknown as MovementRow);
 
       // Update animal status
       const newStatus = isStillborn ? ANIMAL_STATUS.STILLBORN : ANIMAL_STATUS.DEAD;
@@ -450,7 +449,7 @@ export class MovementService {
           type: MOVEMENT_TYPE.PASTURE_DEPARTURE,
           movementDate: input.departureDate,
           createdBy: input.createdBy,
-        } as unknown as typeof movementsTable.$inferInsert);
+        } as unknown as MovementRow);
 
         if (mov) {
           // Update animal's current farm to pasture
@@ -519,7 +518,7 @@ export class MovementService {
           type: MOVEMENT_TYPE.ALPINE_DEPARTURE,
           movementDate: input.departureDate,
           createdBy: input.createdBy,
-        } as unknown as typeof movementsTable.$inferInsert);
+        } as unknown as MovementRow);
 
         if (mov) {
           await this.animalRepo.updateFarm(animalId, input.toFarmId);
@@ -577,7 +576,7 @@ export class MovementService {
         type: MOVEMENT_TYPE.ALPINE_RETURN,
         movementDate: input.returnDate,
         createdBy: input.createdBy,
-      } as unknown as typeof movementsTable.$inferInsert);
+      } as unknown as MovementRow);
 
       await this.animalRepo.updateFarm(input.animalId, input.toFarmId);
 
@@ -651,7 +650,7 @@ export class MovementService {
         movementDate,
         arrivalDate: input.arrivalDate,
         createdBy: input.createdBy,
-      } as unknown as typeof movementsTable.$inferInsert);
+      } as unknown as MovementRow);
 
       // Update animal status
       await this.animalRepo.update(input.animalId, {
@@ -701,7 +700,7 @@ export class MovementService {
         movementDate: input.bipEntryDate ?? new Date().toISOString().split("T")[0]!,
         importCountry: input.countryOfOrigin,
         createdBy: input.createdBy,
-      } as unknown as typeof movementsTable.$inferInsert);
+      } as unknown as MovementRow);
 
       // IE.2: Foreign passport stored for 3 years
       const storageExpiry = new Date();
@@ -779,7 +778,7 @@ export class MovementService {
         status: ANIMAL_STATUS.ALIVE,
         imported: true,
         createdBy: input.createdBy,
-      } as unknown as typeof animalsTable.$inferInsert);
+      } as unknown as AnimalRow);
 
       if (!newAnimal)
         throw new MovementError(MOVEMENT_ERRORS.INVALID_INPUT, {
@@ -796,7 +795,7 @@ export class MovementService {
         movementDate: input.bipEntryDate ?? new Date().toISOString().split("T")[0]!,
         importCountry: input.countryOfOrigin,
         createdBy: input.createdBy,
-      } as unknown as typeof movementsTable.$inferInsert);
+      } as unknown as MovementRow);
 
       // Create import_export_record for the new national animal
       await this.repo.createImportExportRecord({
@@ -857,7 +856,7 @@ export class MovementService {
         movementDate: input.bipExitDate ?? new Date().toISOString().split("T")[0]!,
         exportCountry: input.destinationCountry,
         createdBy: input.createdBy,
-      } as unknown as typeof movementsTable.$inferInsert);
+      } as unknown as MovementRow);
 
       // Create import_export_record
       await this.repo.createImportExportRecord({
@@ -917,7 +916,7 @@ export class MovementService {
       }
 
       const movementGroupId = crypto.randomUUID();
-      const legs: (typeof movementsTable.$inferInsert)[] = [];
+      const legs: (MovementRow)[] = [];
 
       // Leg 1: Seller → Market (MARKET_SALE)
       legs.push({
@@ -1011,7 +1010,7 @@ export class MovementService {
         movementDate: input.movementDate,
         reason: "unsold_at_market",
         createdBy: input.createdBy,
-      } as unknown as typeof movementsTable.$inferInsert);
+      } as unknown as MovementRow);
 
       // Update animal's current farm back to seller
       await this.animalRepo.updateFarm(input.animalId, input.sellerFarmId);
@@ -1059,7 +1058,7 @@ export class MovementService {
         type: MOVEMENT_TYPE.SLAUGHTERHOUSE,
         movementDate: input.movementDate,
         createdBy: input.createdBy,
-      } as unknown as typeof movementsTable.$inferInsert);
+      } as unknown as MovementRow);
 
       // Update animal status
       await this.animalRepo.update(input.animalId, {

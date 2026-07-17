@@ -59,6 +59,8 @@ national transposition **S.I. No. 254 of 2023** (Reg. 11(5), 12(6), 13(5),
 
 ## Service Methods
 
+**Row-shape types:** `MovementRow and AnimalRow` is re-exported from this domain's repository so services import it relative (ROCKY-DS 001:2026(E) §8.2) instead of importing `@rocky/database` table definitions directly.
+
 `packages/domains/movement/src/services/movement.service.ts` — 14 methods:
 
 | Method                           | Purpose                                           | Status |
