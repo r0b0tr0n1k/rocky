@@ -19,7 +19,7 @@ import { validateEarTagFormat } from "@rocky/validators/utils/check-digit";
 import { ANIMAL_ERRORS, AnimalError } from "../errors/animal.errors.js";
 import type { SystemService } from "@rocky/domains-system";
 import { TraceabilityRuleEngine, speciesTaggingMaxDays, SPECIES_TAGGING_RULE, type TraceableSpecies } from "@rocky/domains-system";
-import type { AnimalRepository } from "../repositories/animal.repository.js";
+import type { AnimalRepository, AnimalRow } from "../repositories/animal.repository.js";
 import { randomUUID } from "node:crypto";
 
 /** System parameters for registration validation */
@@ -198,7 +198,7 @@ export class AnimalService {
         ...input,
         id: animalId,
         createdBy: input.createdBy,
-      } as typeof import("@rocky/database").animals.$inferInsert);
+      } as AnimalRow);
 
       if (!animal) {
         throw new AnimalError(ANIMAL_ERRORS.INVALID_INPUT, { reason: "Failed to create animal record" });
@@ -261,7 +261,7 @@ export class AnimalService {
 
       const animal = await this.repo.update(
         id,
-        input as Partial<typeof import("@rocky/database").animals.$inferInsert>,
+        input as Partial<AnimalRow>,
       );
       if (!animal) throw new AnimalError(ANIMAL_ERRORS.NOT_FOUND, { id });
       return animalResponseSchema.parse(animal);

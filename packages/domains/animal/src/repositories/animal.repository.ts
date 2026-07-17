@@ -5,6 +5,8 @@
  */
 
 import { animals as animalsTable, birthNotifications as birthNotificationsTable } from "@rocky/database";
+
+export type AnimalRow = typeof animalsTable.$inferInsert;
 import { SORT_ANIMAL_BY, SORT_ORDER, BIRTH_NOTIFICATION_STATUS } from "@rocky/database/constants";
 import { BaseRepository } from "@rocky/domains-shared";
 import { and, asc, desc, eq, ilike, inArray, or, type SQL, sql } from "drizzle-orm";

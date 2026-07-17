@@ -79,6 +79,8 @@ Handled in `packages/domains/correction/`. See [Correction Bot AGENTS.md](../cor
 
 ## Architecture
 
+**Row-shape types:** `AnimalRow` is re-exported from this domain's repository so services import it relative (ROCKY-DS 001:2026(E) §8.2) instead of importing `@rocky/database` table definitions directly.
+
 ```
 ┌─ Animal Domain (packages/domains/animal/) ─────────────────┐
 │  AnimalService (register, tag validation, mother checks)    │
