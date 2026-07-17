@@ -19,7 +19,7 @@
 #      exists, POST-create it (config_src=cloudflare). Result = TUNNEL_ID.
 #   4. Ingress     — PUT tunnel config, mapping 4 hostnames → services:
 #        api.ROCKY_DOMAIN    → http://api:8000            (NestJS API)
-#        admin.ROCKY_DOMAIN  → http://web:3000            (Next.js admin)
+#        rocky.ROCKY_DOMAIN  → http://web:3000            (Next.js admin)
 #        docs.ROCKY_DOMAIN   → http://docs:3002           (Nextra docs)
 #        studio.ROCKY_DOMAIN → http://drizzle-studio:4983 (Drizzle Studio, --profile dev)
 #        *                  → http_status:404
@@ -70,7 +70,7 @@ fi
 # ── 2. Validate required vars ──────────────────────────────────
 : "${CLOUDFLARE_API_TOKEN:?CLOUDFLARE_API_TOKEN is required (Cloudflare API token: Account>Tunnel:Edit + Zone>DNS:Edit)}"
 : "${CLOUDFLARE_ACCOUNT_ID:?CLOUDFLARE_ACCOUNT_ID is required (Cloudflare Dashboard › Overview)}"
-: "${ROCKY_DOMAIN:?ROCKY_DOMAIN is required (e.g. techno.party)}"
+: "${ROCKY_DOMAIN:?ROCKY_DOMAIN is required (e.g. tehno.party)}"
 
 TUNNEL_NAME="${TUNNEL_NAME:-rocky}"
 CF_API="https://api.cloudflare.com/client/v4"
@@ -100,7 +100,7 @@ curl -s --fail -X PUT -H "$AUTH" -H "Content-Type: application/json" \
     \"config\": {
       \"ingress\": [
         { \"hostname\": \"api.${ROCKY_DOMAIN}\",   \"service\": \"http://api:8080\",  \"originRequest\": {} },
-        { \"hostname\": \"admin.${ROCKY_DOMAIN}\", \"service\": \"http://web:3000\",  \"originRequest\": {} },
+        { \"hostname\": \"rocky.${ROCKY_DOMAIN}\", \"service\": \"http://web:3000\",  \"originRequest\": {} },
         { \"hostname\": \"docs.${ROCKY_DOMAIN}\",  \"service\": \"http://docs:3002\", \"originRequest\": {} },
         { \"hostname\": \"studio.${ROCKY_DOMAIN}\", \"service\": \"http://drizzle-studio:4983\", \"originRequest\": {} },
         { \"service\": \"http_status:404\" }
@@ -111,7 +111,7 @@ curl -s --fail -X PUT -H "$AUTH" -H "Content-Type: application/json" \
 echo "✓ Ingress rules pushed."
 
 # ── 5. Resolve zone id, then create DNS CNAMEs ─────────────────
-# ROCKY_DOMAIN may be a subdomain (techno.party); the Zone is the
+# ROCKY_DOMAIN may be a subdomain (tehno.party); the Zone is the
 # registrable domain (tehno.party). Look the zone id up from the API.
 ZONE_NAME=$(echo "$ROCKY_DOMAIN" | awk -F. '{ if (NF>=3) print $(NF-1)"."$NF; else print $0 }')
 if [[ -z "${CLOUDFLARE_ZONE_ID:-}" ]]; then
@@ -126,7 +126,7 @@ if [[ -z "${CLOUDFLARE_ZONE_ID:-}" ]]; then
 fi
 echo "✓ Zone id: ${CLOUDFLARE_ZONE_ID}"
 
-for sub in api admin docs studio; do
+for sub in api rocky docs studio; do
 	echo "⟳ Creating CNAME ${sub}.${ROCKY_DOMAIN} → ${TUNNEL_ID}.cfargotunnel.com ..."
 	curl -s --fail -X POST -H "$AUTH" -H "Content-Type: application/json" \
 		--data "{
@@ -170,7 +170,7 @@ echo "  Tunnel ready"
 echo "  Tunnel : ${TUNNEL_NAME}  (${TUNNEL_ID})"
 echo "  Domain : ${ROCKY_DOMAIN}   zone: ${CLOUDFLARE_ZONE_ID}"
 echo "  Routes : https://api.${ROCKY_DOMAIN}"
-echo "           https://admin.${ROCKY_DOMAIN}"
+echo "           https://rocky.${ROCKY_DOMAIN}"
 echo "           https://docs.${ROCKY_DOMAIN}"
 echo "           https://studio.${ROCKY_DOMAIN}  (--profile dev)"
 echo ""

@@ -1,6 +1,6 @@
 # ── Domain model ─────────────────────────────────────────────
 # ROCKY_DOMAIN is the TERTIARY root the app is served from, e.g.
-# techno.party. Hosts become api./admin./docs.ROCKY_DOMAIN.
+# tehno.party. Hosts become api./admin./docs.ROCKY_DOMAIN.
 #
 # ── Security model ──────────────────────────────────────────
 # Services expose ports to the host for local development.
@@ -35,7 +35,7 @@ services:
       start_period: 30s
     restart: unless-stopped
     networks:
-      - app-network
+      - iotn-network
     deploy:
       resources:
         limits:
@@ -64,17 +64,17 @@ services:
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       # Public API origin must be external https, not the internal docker host.
       # Better Auth derives the cookie domain from this; on a tertiary domain
-      # (api.techno.party) https is required for Secure shared cookies.
-      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-https://api.techno.party}
+      # (api.tehno.party) https is required for Secure shared cookies.
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-https://api.tehno.party}
       # Internal server-to-server base URL (Next.js SSR -> API).
-      - BASE_SERVICE_URL=http://localhost:8080
+      - BASE_SERVICE_URL=${BASE_SERVICE_URL:-https://api.tehno.party}
       # Shared parent cookie domain: api./admin./docs. share the session.
-      - AUTH_COOKIE_DOMAIN=${AUTH_COOKIE_DOMAIN:-.techno.party}
+      - AUTH_COOKIE_DOMAIN=${AUTH_COOKIE_DOMAIN:-.tehno.party}
       # Admin/public origin the browser runs on (CSRF + CORS trust).
-      - AUTH_BASE_URL=${AUTH_BASE_URL:-https://admin.techno.party}
+      - AUTH_BASE_URL=${AUTH_BASE_URL:-https://rocky.tehno.party}
       # CORS: admin origin (browser). Override CORS_ORIGINS on a VM.
-      - CORS_ORIGINS=${CORS_ORIGINS:-https://admin.techno.party}
-      - TRUSTED_ORIGINS=${TRUSTED_ORIGINS:-https://admin.techno.party,mobile://}
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://rocky.tehno.party}
+      - TRUSTED_ORIGINS=${TRUSTED_ORIGINS:-https://rocky.tehno.party,mobile://}
       # App
       - VERSION=${VERSION:-production}
       - ENVIRONMENT=production
@@ -92,7 +92,7 @@ services:
       start_period: 40s
     restart: unless-stopped
     networks:
-      - app-network
+      - iotn-network
 
   # ── Next.js Admin Panel ──────────────────────────────────────
   web:
@@ -102,31 +102,35 @@ services:
       dockerfile: apps/web/Dockerfile
       args:
         # Inlined at build (browser). Defaults to the Cloudflare api domain.
-        - NEXT_PUBLIC_API_URL=${WEB_PUBLIC_API_URL:-https://api.techno.party}
+        - NEXT_PUBLIC_API_URL=${WEB_PUBLIC_API_URL:-https://api.tehno.party}
     ports:
       - "3050:3000"
     environment:
       - NODE_ENV=production
       # SSR: Next.js server calls the API via the SAME single HTTPS route the
       # browser uses (NEXT_PUBLIC_API_URL). One trpc route to the server.
-      - API_URL=${WEB_PUBLIC_API_URL:-https://api.techno.party}
+      - API_URL=${WEB_PUBLIC_API_URL:-https://api.tehno.party}
       # Auth secret (same as API, for server-side session validation)
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       # Public base URL of the auth server (Cloudflare admin domain)
-      - AUTH_BASE_URL=${AUTH_BASE_URL:-https://admin.techno.party}
+      - AUTH_BASE_URL=${AUTH_BASE_URL:-https://rocky.tehno.party}
     depends_on:
       api:
         condition: service_healthy
-    # Liveness: Next.js serves on 3000 (netcat added to the web image).
+    # Liveness: Next.js serves on 3000.
     healthcheck:
-      test: ["CMD", "nc", "-z", "web", "3000"]
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "require(''net'').createConnection(3000,''localhost'').on(''connect'',()=>process.exit(0)).on(''error'',()=>process.exit(1))"',
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
     restart: unless-stopped
     networks:
-      - app-network
+      - iotn-network
 
   # ── Nextra Docs Site ─────────────────────────────────────────
   docs:
@@ -138,7 +142,7 @@ services:
       - "3041:3002"
     restart: unless-stopped
     networks:
-      - app-network
+      - iotn-network
 
   drizzle-studio:
     image: ghcr.io/drizzle-team/gateway:latest
@@ -155,7 +159,7 @@ services:
       # Drizzle Gateway reads the SAME single DATABASE_URL as the api.
       - DATABASE_URL=${DATABASE_URL}
     networks:
-      - app-network
+      - iotn-network
     restart: unless-stopped
     # profiles:
     # - dev
@@ -165,5 +169,7 @@ volumes:
   drizzle-gateway-data:
 
 networks:
+  iotn-network:
+    external: true
+    name: iotn_network
   app-network:
-    driver: bridge
