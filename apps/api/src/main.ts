@@ -27,6 +27,13 @@ async function bootstrap() {
   // Mount Better Auth HTTP handler — must come after CORS, before listen
   app.getHttpAdapter().use("/api/auth", toNodeHandler(auth));
 
+  // Lightweight liveness probe for the container HEALTHCHECK (GET /health -> 200).
+  // Registered before listen(); the distroless runtime ships no curl/nc, so the
+  // probe reaches this route via `node -e "fetch('http://localhost:8000/health')"`.
+  app.getHttpAdapter().get("/health", (_req, res) => {
+    res.status(200).json({ status: "ok" });
+  });
+
   await app.listen(appConfig.port, "0.0.0.0");
 
   const logger = app.get(Logger);

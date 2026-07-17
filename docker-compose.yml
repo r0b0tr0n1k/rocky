@@ -83,13 +83,8 @@ services:
       # (also inlined into the web build); alias it here rather than
       # duplicating the value as a second .env var.
       - MAPTILER_API_KEY=${NEXT_PUBLIC_MAPTILER_API_KEY}
-    # Liveness: api listens on 8080. Alpine ships nc; TCP-probe the port.
-    healthcheck:
-      test: ["CMD", "nc", "-z", "api", "8000"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+    # Liveness: handled by the image HEALTHCHECK (Dockerfile) — probes GET /health
+    # via node, since the distroless runtime ships no curl/nc.
     restart: unless-stopped
     networks:
       - iotn-network

@@ -36,7 +36,9 @@ RUN NODE_OPTIONS='--max-old-space-size=4096' pnpm -r --filter @rocky/api... buil
     && rm -f /deploy/README.md /deploy/LICENSE /deploy/CHANGELOG.md \
     # NestJS SWC emits CJS (dist/main.js uses `exports`) but api package.json
     # has "type":"module". Pin the dist folder to CJS so node loads it correctly.
-    && printf '{"type":"commonjs"}\n' > /deploy/dist/package.json
+    && printf '{"type":"commonjs"}\n' > /deploy/dist/package.json \
+    # Strip TypeScript source maps from dist/ (not needed at runtime, smaller image)
+    && find /deploy/dist -name '*.map' -delete
 
 # ---- runtime (distroless, prod deps only, non-root)
 # No shell, no curl — minimal attack surface. Use gRPC or HTTP health from orchestrator.
@@ -48,4 +50,8 @@ ENV NODE_ENV=production \
 COPY --from=build /deploy ./
 
 EXPOSE 8000
+# Distroless runtime ships no curl/nc, so probe /health with node (global fetch).
+# /health is a plain GET returning 200 once Nest has initialised (see main.ts).
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD ["node", "-e", "fetch('http://localhost:8000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
 CMD ["dist/main"]
