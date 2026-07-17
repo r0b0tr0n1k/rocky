@@ -29,9 +29,7 @@ export function proxy(request: NextRequest) {
 
   // Redirect unauthenticated users away from protected routes
   const isDashboardRoute =
-    pathname === "/" ||
-    (!AUTH_PATHS.some((p) => pathname.startsWith(p)) &&
-      !pathname.startsWith("/auth"));
+    pathname === "/" || (!AUTH_PATHS.some((p) => pathname.startsWith(p)) && !pathname.startsWith("/auth"));
 
   if (isDashboardRoute && !isAuthenticated) {
     return NextResponse.redirect(new URL("/auth/sign-in", request.url));
@@ -46,7 +44,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|trpc|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|trpc|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };
