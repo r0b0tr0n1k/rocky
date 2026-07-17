@@ -10,6 +10,8 @@ Manages organizations (VD, VS, BIP, slaughterhouses, markets, farms). Supports h
 
 ## Service Methods
 
+**Row-shape types:** `OrganizationRow` is re-exported from this domain's repository so services import it relative (ROCKY-DS 001:2026(E) §8.2) instead of importing `@rocky/database` table definitions directly.
+
 `packages/domains/organization/src/services/organization.service.ts`:
 
 | Method             | Purpose                      | Status |

@@ -10,7 +10,7 @@ import type {
 import { organizationResponseSchema, organizationSummarySchema } from "@rocky/validators/api";
 import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
 import { OrgError, ORG_ERRORS } from "../errors/organization.errors.js";
-import type { OrganizationRepository } from "../repositories/organization.repository.js";
+import type { OrganizationRepository, OrganizationRow } from "../repositories/organization.repository.js";
 
 export class OrganizationService {
   constructor(private readonly repo: OrganizationRepository) {}
@@ -37,7 +37,7 @@ export class OrganizationService {
 
   async create(input: CreateOrganizationRequest): Promise<Result<OrganizationResponse, Error>> {
     return fromAsyncThrowable(async () => {
-      const org = await this.repo.insert(input as typeof import("@rocky/database").organizations.$inferInsert);
+      const org = await this.repo.insert(input as OrganizationRow);
       if (!org) throw new OrgError(ORG_ERRORS.INVALID_INPUT, {});
       return organizationResponseSchema.parse(org);
     }, toAppError)();

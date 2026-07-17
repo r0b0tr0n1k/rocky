@@ -4,6 +4,8 @@
 
 import { eq } from "drizzle-orm";
 import { organizations as orgsTable, orgAreas as orgAreasTable } from "@rocky/database";
+
+export type OrganizationRow = typeof orgsTable.$inferInsert;
 import { BaseRepository } from "@rocky/domains-shared";
 
 export class OrganizationRepository extends BaseRepository {
