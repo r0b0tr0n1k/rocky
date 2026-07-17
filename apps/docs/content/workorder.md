@@ -92,6 +92,7 @@
 | WO-158 | Standards & regulations reference doc + Control Mapping (`reference/standards-and-regulations.mdx`): catalog every standard / EU reg+directive / EN·ETSI / TRACES·RASFF·CHED / tech-spec / national law with repo source; Control Mapping (ISO 27001/27701 clause → `rocky-*` doc / ADR → evidence); guidance framing **ISO/IEC 27701:2025** as alignment goal + anti-drift guardrail; `check:md-links` passes | 0067 | P2 | Done ✅ |
 
 | WO-159 | Audit-log compliance gap-closure (ISO 27001 A.8.15 Logging + MK LPDP + EUDR traceability): (1) append-only enforcement via DB trigger on `audit_log`; (2) sensitive-field masking in `oldValue`/`newValue` snapshots (LPDP/GDPR — snapshots can carry personal data); (3) retention/partitioning automation (schema TODO — monthly partitions + prune job); (4) verify full CUD coverage — confirm every mutating path invokes `AuditService.recordUpdate` (today manual, no global interceptor). **Out of scope:** Wazuh-vs-cloud SIEM / infra monitoring — separate infra decision, not part of the audit-log control. | 0067 / audit domain | P1 | Open |
+| WO-161 | Geo geometry helpers relocated to @rocky/geo (Visa-Matrix observation closure) | Open | 2026-07-17 | ROCKY-DS 001:2026(E) Annex C (geo row) |
 | WO-160 | ROCKY-DS 001:2026(E) §8.2 service→DB Visa-Matrix closure: decouple 10 domain services from direct `@rocky/database` import (RED 4/4 remediated + committed — notification/subscription-resolver/risk-analysis/iot; AMBER 6/6 deferred — animal/farm/movement/user/organization/device type-only `$inferInsert` re-exports) | ROCKY-DS 001:2026(E) §8.2 / Annex C | P1 | Done ✅ (RED 4/4 + AMBER 6/6) |
 
 ---
@@ -1513,5 +1514,19 @@ subprocessor), wired to ADR-0075 + rocky-processor-register / rocky-toms / rocky
 - **RobotFarm AGENTS.md passes done:** `packages/domains/{notification,user,inspection,farm}/AGENTS.md` updated (new repo methods + SubscriptionResolver / `RiskAnalysisService` DI note + cron-RLS note + farm aggregate methods).
 - **AMBER 6/6 remediated + committed (WO-160 closed):** `animal` / `farm` / `movement` / `user` / `organization` / `device` services contain only `import type { X } from "@rocky/database"` / `typeof import("@rocky/database").X.$inferInsert` used to type inputs passed to `this.repo.insert(…)`. Fix = source the `$inferInsert` type from the repository (re-export `XRow = typeof table.$inferInsert`, like Service A) instead of the DB package. Trivial, same pattern; deferred to a follow-up pass (no behavioral change, no RLS risk — repos already own the query).
 - - **Enforcement (2026-07-17):** Annex C (Visa Matrix) is now machine-checked by `scripts/check-layers.mjs` (`pnpm check:layers`), wired into `ci:checks`. The guard encodes Annex C rows 359/360 + the router row exactly (scope `packages/domains/*/services|repositories` + `apps/api/src/routers`) and fails the build on any violation. It confirmed the 10/10 domain services are clean. Two imports in cross-cutting packages outside the matrix's scope were noted as observations: `packages/execution/src/services/execution.service.ts` (`import type { businessRules }`) and `packages/geo/src/services/polygon.service.ts` (value import of geometry helpers from `@rocky/database`) — not §8.2 domain-service breaches; geo's geometry-helper dependency warrants a follow-up WO.
+### WO-161 — Geo geometry helpers relocated to @rocky/geo
+
+**Observation (from WO-160 enforcement):** `scripts/check-layers.mjs` surfaced a cross-cutting-package import outside the matrix's `packages/domains/*` scope: `packages/geo/src/services/polygon.service.ts` value-imported `geometryPolygonFromWkt` / `geometryPolygonToWkt` from `@rocky/database`.
+
+**Root cause:** the WKT helpers lived in `@rocky/database/src/geometry/helpers.ts` (pure functions, no DB coupling) while geo — the spatial authority and sole consumer — pulled them across the package boundary.
+
+**Resolution:**
+- `helpers.ts` (WKT point/polygon functions) moved verbatim to `packages/geo/src/geometry/helpers.ts`.
+- `polygon.service.ts` now imports the value functions from `../geometry/helpers.js`; only `Coordinate` / `PolygonGeometry` remain a **type-only** import from `@rocky/database`.
+- `@rocky/database/src/geometry/index.ts` dropped the helpers re-export; `coordinate-schema.ts` (the types, anchored by the `geofences` schema's `GeofenceGeometry`) stays in `@rocky/database`.
+- Annex C gained a `packages/geo/*/services` row; the guard (`check:layers`) now governs geo services and encodes the **type-only carve-out** (database cannot depend on geo without inverting the arrow into a cycle).
+
+**Verification:** `pnpm check:layers` green (geo governed, type-only carve-out applied); geo package typechecks.
+
 **Verification:** grep guard — all 4 RED files return zero `from "@rocky/database"` (exact); only the 2 deferred AMBER type-only imports (`movement`, `user`) remain. Per-package vitest green (notification 16/16, inspection 4/4, farm 4+skip, user green). `check:agents` green. `ci:checks` test step + `pnpm build` are blocked by **pre-existing** environment rot (missing `apps/api/node_modules` — `Cannot find module '@nestjs/common'`; untouched packages + `*.workflow.test.ts` + a vitest-dep resolution error) — orthogonal to this remediation.
 - **Source:** ROCKY-DS 001:2026(E) §8.2 / Annex C (Visa Matrix); `Standardization/diamond-seal-type-contracts.md`.

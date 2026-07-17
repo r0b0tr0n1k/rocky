@@ -358,11 +358,14 @@ The following table is the consolidated import constitution. A consumer (row) **
 | `@rocky/validators/src/api` (`*.api.ts`) | `@rocky/database/zod`, `@rocky/validators/enums`, `zod` | `@rocky/database`, `@rocky/validators/events`, `@rocky/validators/integrations` (RESERVED) |
 | `packages/domains/*/repositories` | `@rocky/database`, `@rocky/database/zod`, `@rocky/domains-shared` | `@rocky/validators/api`, `@rocky/validators/events` (RESERVED) |
 | `packages/domains/*/services` | `@rocky/validators/api`, `@rocky/database/constants` (Dictionary only), `@rocky/domains-shared`, own-domain `repositories/` (relative) | `@rocky/database` (client/tables), `@rocky/database/zod`, `@rocky/validators/events` (RESERVED), `@rocky/validators/integrations` (RESERVED) |
+| `packages/geo/*/services` | `@rocky/database/constants` (Dictionary), type-only `@rocky/database` TYPE imports (carve-out, see NOTE GEO), `@rocky/validators/api`, `@rocky/domains-shared`, own-domain `repositories/` (relative) | `@rocky/database` (VALUE/client/tables/functions), `@rocky/database/zod`, `@rocky/validators/events` (RESERVED), `@rocky/validators/integrations` (RESERVED) |
 | `apps/api/src/routers` | `@rocky/validators/api`, `@rocky/validators/enums`, `@rocky/validators/errors`, `@rocky/trpc`, domain services | `@rocky/database`, `@rocky/database/zod`, `@rocky/validators/events` (RESERVED), `@rocky/validators/integrations` (RESERVED) |
 | `@rocky/validators/src/integrations` (RESERVED) | vendor SDK types, `zod`, `@rocky/validators/utils/type-bridge` | `@rocky/database`, `@rocky/validators/api` |
 | `@rocky/validators/src/vendor-enums` (RESERVED) | `@rocky/database/constants` (Dictionary re-export only) | `@rocky/validators/api` |
 
 NOTE The module-wiring exception (8.5) permits `*.module.ts` files to import other domains' exported services/repositories for DI even where the table above forbids business-logic imports.
+
+NOTE GEO `packages/geo/*/services` may type-import `@rocky/database` types (for example `Coordinate`, `PolygonGeometry`) but shall **not** value-import `@rocky/database`. The carve-out exists because the foundational `geofences` schema owns `GeofenceGeometry`, which depends on the shared coordinate type, and `@rocky/database` cannot depend on `@rocky/geo` (that would invert the dependency arrow into a cycle). The WKT helpers were relocated into `@rocky/geo` (WO-161) so geo services no longer value-import the DB.
 
 **Enforcement.** This matrix is enforced automatically by `scripts/check-layers.mjs` (`pnpm check:layers`), wired into `ci:checks` as a CI gate. A standard without a machine is fetishistic disavowal — the guard is the symptom's return-preventer; it fails the build on any Annex C row violation in `packages/domains/*/services`, `packages/domains/*/repositories`, or `apps/api/src/routers`.
 

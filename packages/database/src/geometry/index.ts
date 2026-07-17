@@ -13,11 +13,5 @@ export {
   type Coordinate, type GeofenceGeometry, type PolygonGeometry
 } from "./coordinate-schema.js";
 
-export {
-  geometryPointFromWkt,
-  geometryPointToWkt,
-  geometryPolygonFromWkt,
-  geometryPolygonToWkt
-} from "./helpers.js";
 
 export { geometry } from "./postgis.js";

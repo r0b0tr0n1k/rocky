@@ -11,7 +11,8 @@
 // Everything here is deterministic and unit-tested, so the guillotine has a
 // sovereign, side-effect-free truth to lean on.
 
-import { type Coordinate, geometryPolygonFromWkt, geometryPolygonToWkt, type PolygonGeometry } from "@rocky/database";
+import { type Coordinate, type PolygonGeometry } from "@rocky/database";
+import { geometryPolygonFromWkt, geometryPolygonToWkt } from "../geometry/helpers.js";
 import { err, ok, type Result } from "@rocky/domains-shared";
 import { GEO_ERRORS, GeoError } from "../errors/geo.errors.js";
 
