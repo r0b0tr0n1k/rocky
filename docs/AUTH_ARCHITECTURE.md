@@ -100,6 +100,128 @@ one Better Auth server for the whole monorepo. Configuration:
 The API mounts this instance in `apps/api/src/main.ts`:
 `app.getHttpAdapter().use("/api/auth", toNodeHandler(auth))`.
 
+### Bootstrap — wiring Better Auth into nestjs-trpc
+
+> The community `@mguay/nestjs-better-auth` tutorial reaches the same goal with a *per-router*
+> `AuthMiddleware` that throws `Unauthorized` and a `basePath: "/api/trpc"`. **Rocky deliberately
+> diverges** (see *Recipe vs Rocky* at the end): a custom `AuthResolver`/`PrincipalResolver` split,
+> a **global** middleware, `basePath: "/trpc"`, and anonymous-by-default. The steps below document
+> *our* wiring.
+
+**1. Dependencies.** The Nest↔tRPC bridge is `nestjs-trpc`. Better Auth is **not** pulled in via a
+third-party Nest wrapper — it lives in our own `packages/auth` (`Auth.getInstance` singleton) and is
+resolved by `packages/authorization` (`PrincipalResolver`) and `packages/execution`
+(`ExecutionPipeline`). There is no `@mguay/nestjs-better-auth` dependency in this repo.
+
+**2. tRPC module config.** `apps/api/src/trpc/trpc.module.ts` bootstraps tRPC with one `basePath` and
+**global** middlewares:
+
+```ts
+TRPCModule.forRoot({
+  context: AppContextProvider,
+  basePath: "/trpc",
+  transformer: superjson,
+  globalMiddlewares: [ExecutionMiddleware, PolicyResolver], // auth + per-procedure policy
+  onError: TrpcErrorHandler,
+});
+```
+
+**3. Expose the request in the context.** Unlike the recipe (which hands `req`/`res` to the context),
+our `AppContextProvider` normalises the incoming Express headers into a Web `Headers` object so the
+middleware can read the cookie uniformly:
+
+```ts
+@Injectable()
+export class AppContextProvider implements TRPCContext {
+  create(opts: CreateExpressContextOptions): AppContext {
+    return {
+      headers: new Headers(opts.req.headers as Record<string, string>),
+      user: null,
+      session: null,
+    };
+  }
+}
+```
+
+**4. Auth middleware (global).** `ExecutionMiddleware` is the equivalent of the recipe's
+`AuthMiddleware`, but it is registered once in `globalMiddlewares` (so it wraps **every** procedure)
+and it does **not** throw on a missing session:
+
+```ts
+async use(opts: MiddlewareOptions<AppContext>) {
+  const { ctx, next } = opts;
+
+  // 1. Resolve authentication from the cookie
+  const cookieHeader = ctx.headers?.get?.("cookie") ?? "";
+  const authResult = await AuthResolver.resolve(this.auth, cookieHeader);
+
+  // 2. Resolve principal (handles anonymous automatically → ANONYMOUS)
+  const principal = await this.principalResolver.resolve(authResult);
+
+  // 3. Run inside ExecutionPipeline (RLS transaction + events)
+  return this.pipeline.run(principal, request, async (_principal) => {
+    ctx.execution = { principal: _principal, request, runtime } satisfies ExecCtx;
+    return next({ ctx });
+  });
+}
+```
+
+The `ANONYMOUS` principal flows through; per-procedure access is then enforced by the second global
+middleware, `PolicyResolver` (driven by `@Policy()`).
+
+**5. Apply the middleware.** Because it lives in `globalMiddlewares`, there is **no** per-router
+`@UseMiddlewares(AuthMiddleware)` — every `/trpc` call is automatically authenticated-or-anonymous
+before the handler runs. Routers opt into *required* auth by decorating procedures with
+`@Policy({ ... })`.
+
+**6. Web client.** `apps/web/lib/trpc.ts` builds the client on a **relative** URL (the Next.js
+gateway) and forwards the cookie with `credentials: "include"`:
+
+```ts
+function getBaseUrl(): string {
+  if (typeof window !== "undefined") return "";          // browser → Next.js origin → rewrite → API
+  return process.env.API_URL ?? "http://localhost:8080";  // SSR → direct API
+}
+
+httpBatchLink({
+  url: `${getBaseUrl()}/trpc`,
+  transformer,
+  fetch(url, options) {
+    return fetch(url, { ...options, credentials: "include" });
+  },
+});
+```
+
+**7. Next.js rewrites.** `apps/web/next.config.ts` proxies both the tRPC path and the Better Auth
+path to the API. This is the critical step that lets the Secure, HttpOnly session cookie reach the
+backend across origins:
+
+```ts
+async rewrites() {
+  const apiUrl = process.env.API_URL || "http://localhost:8080";
+  return [
+    { source: "/trpc/:path*",      destination: `${apiUrl}/trpc/:path*` },
+    { source: "/api/auth/:path*",  destination: `${apiUrl}/api/auth/:path*` },
+  ];
+}
+```
+
+**8. Mobile client.** `apps/mob` calls the API **directly** (no gateway). `trpc-provider.tsx` forwards
+the session cookie manually: `headers["cookie"] = authClient.getCookie()` (the `expoClient` stores the
+cookie in `SecureStore`). No `expo-origin` header is used — the cookie *is* the credential.
+
+**Recipe vs Rocky — key divergences**
+
+| Aspect | Community recipe | Rocky |
+|--------|------------------|-------|
+| Better Auth Nest wrapper | `@mguay/nestjs-better-auth` `AuthService` | custom `packages/auth` singleton + `AuthResolver` |
+| `basePath` | `/api/trpc` | `/trpc` |
+| Middleware scope | per-router `@UseMiddlewares(AuthMiddleware)` | global `globalMiddlewares: [ExecutionMiddleware, PolicyResolver]` |
+| No-session behavior | throws `Unauthorized` | resolves `ANONYMOUS` principal; `@Policy()` enforces |
+| Client lib | `createTRPCReact` (`@trpc/react-query`) | `createTRPCContext` (`@trpc/tanstack-react-query`) |
+| Context shape | `{ req, res }` | `{ headers: Headers, user, session }` |
+
+
 ### Packet 1 — Sign-in (email / password)
 
 ```mermaid
