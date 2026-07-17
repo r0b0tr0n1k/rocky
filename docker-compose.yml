@@ -60,21 +60,24 @@ services:
       # connection string. Inherited verbatim from .env (dev: 192.168.1.109;
       # prod: localhost or db). Single var, passed through verbatim.
       - DATABASE_URL=${DATABASE_URL}
+      # ── Domain (single source) ──
+      # ROCKY_DOMAIN is the tertiary root; hosts become api./admin./docs.<domain>.
+      # Every auth/origin var below derives from it by default. Override any one
+      # explicitly (e.g. CORS_ORIGINS) only for a non-standard topology.
+      - ROCKY_DOMAIN=${ROCKY_DOMAIN:-tehno.party}
       # Auth
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
-      # Public API origin must be external https, not the internal docker host.
-      # Better Auth derives the cookie domain from this; on a tertiary domain
-      # (api.tehno.party) https is required for Secure shared cookies.
-      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-https://api.tehno.party}
+      # Public API origin — external https required for Secure shared cookies.
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-https://api.${ROCKY_DOMAIN:-tehno.party}}
       # Internal server-to-server base URL (Next.js SSR -> API).
-      - BASE_SERVICE_URL=${BASE_SERVICE_URL:-https://api.tehno.party}
+      - BASE_SERVICE_URL=${BASE_SERVICE_URL:-https://api.${ROCKY_DOMAIN:-tehno.party}}
       # Shared parent cookie domain: api./admin./docs. share the session.
-      - AUTH_COOKIE_DOMAIN=${AUTH_COOKIE_DOMAIN:-.tehno.party}
+      - AUTH_COOKIE_DOMAIN=${AUTH_COOKIE_DOMAIN:-.${ROCKY_DOMAIN:-tehno.party}}
       # Admin/public origin the browser runs on (CSRF + CORS trust).
-      - AUTH_BASE_URL=${AUTH_BASE_URL:-https://rocky.tehno.party}
+      - AUTH_BASE_URL=${AUTH_BASE_URL:-https://${ROCKY_DOMAIN:-tehno.party}}
       # CORS: admin origin (browser). Override CORS_ORIGINS on a VM.
-      - CORS_ORIGINS=${CORS_ORIGINS:-https://rocky.tehno.party}
-      - TRUSTED_ORIGINS=${TRUSTED_ORIGINS:-https://rocky.tehno.party,mobile://}
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://${ROCKY_DOMAIN:-tehno.party}}
+      - TRUSTED_ORIGINS=${TRUSTED_ORIGINS:-https://${ROCKY_DOMAIN:-tehno.party},mobile://}
       # App
       - VERSION=${VERSION:-production}
       - ENVIRONMENT=production
@@ -97,18 +100,21 @@ services:
       dockerfile: apps/web/Dockerfile
       args:
         # Inlined at build (browser). Defaults to the Cloudflare api domain.
-        - NEXT_PUBLIC_API_URL=${WEB_PUBLIC_API_URL:-https://api.tehno.party}
+        - NEXT_PUBLIC_API_URL=${WEB_PUBLIC_API_URL:-https://api.${ROCKY_DOMAIN:-tehno.party}}
     ports:
       - "3050:3000"
     environment:
       - NODE_ENV=production
       # SSR: Next.js server calls the API via the SAME single HTTPS route the
       # browser uses (NEXT_PUBLIC_API_URL). One trpc route to the server.
-      - API_URL=${WEB_PUBLIC_API_URL:-https://api.tehno.party}
+      - ROCKY_DOMAIN=${ROCKY_DOMAIN:-tehno.party}
+      # SSR: Next.js server calls the API via the SAME single HTTPS route the
+      # browser uses (NEXT_PUBLIC_API_URL). One trpc route to the server.
+      - API_URL=${WEB_PUBLIC_API_URL:-https://api.${ROCKY_DOMAIN:-tehno.party}}
       # Auth secret (same as API, for server-side session validation)
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       # Public base URL of the auth server (Cloudflare admin domain)
-      - AUTH_BASE_URL=${AUTH_BASE_URL:-https://rocky.tehno.party}
+      - AUTH_BASE_URL=${AUTH_BASE_URL:-https://${ROCKY_DOMAIN:-tehno.party}}
     depends_on:
       api:
         condition: service_healthy
