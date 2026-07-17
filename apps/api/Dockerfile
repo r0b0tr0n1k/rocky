@@ -13,9 +13,8 @@ COPY packages ./packages
 COPY apps ./apps
 # Harden pnpm for flaky/slow registries: long per-request timeout, many
 # retries, low concurrency (fewer simultaneous slow sockets = fewer drops).
-RUN printf 'fetch-timeout=1200000\nstore-dir=/pnpm/store\nfetch-retries=10\nfetch-retry-mintimeout=10000\nfetch-retry-maxtimeout=120000\nnetwork-concurrency=4\n' >> .npmrc
-RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    for i in 1 2 3 4 5; do pnpm install --frozen-lockfile && break || sleep 15; done
+RUN printf 'fetch-timeout=1200000\nfetch-retries=10\nfetch-retry-mintimeout=10000\nfetch-retry-maxtimeout=120000\nnetwork-concurrency=4\n' >> .npmrc
+RUN for i in 1 2 3 4 5; do pnpm install --frozen-lockfile && break || sleep 15; done
 
 # ---- build
 FROM deps AS build
