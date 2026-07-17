@@ -31,7 +31,8 @@
   },
   "scripts": {
     "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",
-    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit"
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "catalog:",
@@ -43,6 +44,8 @@
   },
   "devDependencies": {
     "@rocky/typescript-config": "workspace:*",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "vite-tsconfig-paths": "catalog:"
   }
 }
