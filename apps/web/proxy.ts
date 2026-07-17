@@ -1,13 +1,8 @@
+import { getSessionCookie } from "better-auth/cookies";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-const AUTH_PATHS = [
-  "/auth/sign-in",
-  "/auth/sign-up",
-  "/auth/forgot-password",
-];
-
-const SESSION_COOKIE = "rocky.session_token";
+const AUTH_PATHS = ["/auth/sign-in", "/auth/sign-up", "/auth/forgot-password"];
 
 /**
  * Minimum structural check: a valid better-auth session token looks like
@@ -26,8 +21,11 @@ function looksLikeSessionToken(value: string | undefined): boolean {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const sessionCookie = request.cookies.get(SESSION_COOKIE);
-  const isAuthenticated = looksLikeSessionToken(sessionCookie?.value);
+  // Resolve the better-auth session cookie via its helper (correct cookie
+  // name, as configured) rather than a hard-coded name. This folds in the
+  // guard previously in middleware.ts, which Next.js 16 replaces with proxy.ts.
+  const sessionCookie = getSessionCookie(request);
+  const isAuthenticated = looksLikeSessionToken(sessionCookie ?? undefined);
 
   // Redirect unauthenticated users away from protected routes
   const isDashboardRoute =
