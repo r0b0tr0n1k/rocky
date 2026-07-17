@@ -23,6 +23,10 @@ COPY apps/api ./apps/api
 RUN pnpm -r --filter @rocky/api... build
 # pnpm deploy --legacy copies the full workspace store; prune the bloat that
 # the compiled dist/ no longer imports (verified: zero @rocky/* requires in dist/).
+# NOTE: @rocky/pdf needs TWO third-party packages at RUNTIME — keep them:
+#   - @cantoo/pdf-lib       (PDF/A-3 wrap + PAdES; imported by document.service/pdfa3/pdf-embed)
+#   - @myriaddreamin/typst* (Typst WASM render invoked at request time by DocumentService)
+# The zero-@rocky/* check only covers workspace packages, not these runtime deps.
 RUN pnpm deploy --filter=@rocky/api --prod --legacy /deploy \
     && echo "=== /deploy size after deploy ===" && du -sh /deploy \
     && echo "=== /deploy/node_modules top-level count ===" && ls /deploy/node_modules | wc -l \
@@ -48,8 +52,6 @@ RUN pnpm deploy --filter=@rocky/api --prod --legacy /deploy \
        node_modules/react-native \
        node_modules/@rolldown \
        node_modules/@expo \
-       node_modules/@myriaddreamin \
-       node_modules/@cantoo \
        node_modules/@img \
        node_modules/sharp 2>/dev/null || true \
     && echo "=== /deploy/node_modules top-level count after prune ===" && ls /deploy/node_modules | wc -l \
@@ -74,8 +76,6 @@ RUN pnpm deploy --filter=@rocky/api --prod --legacy /deploy \
        node_modules/.pnpm/react-native@* \
        node_modules/.pnpm/@rolldown+* \
        node_modules/.pnpm/@expo+* \
-       node_modules/.pnpm/@myriaddreamin+typst* \
-       node_modules/.pnpm/@cantoo+* \
        node_modules/.pnpm/@img+* \
        node_modules/.pnpm/sharp@* 2>/dev/null || true \
     && echo "=== /deploy size after .pnpm prune ===" && du -sh /deploy
