@@ -28,8 +28,9 @@
     "check:agents": "node scripts/check-agents.mjs",
     "check:standards": "node scripts/check-standards.mjs",
     "check:pdfa": "pnpm --filter @rocky/pdf check:pdfa",
-    "ci:checks": "pnpm generate:trpc && pnpm check:trpc-boundary && pnpm check:adrs && pnpm check:md-links && pnpm check:standards && pnpm check:agents && pnpm check:pdfa && pnpm check:web-parity && pnpm test",
-    "gen:api-reference": "node scripts/generate-api-reference.mjs"
+    "ci:checks": "pnpm generate:trpc && pnpm check:trpc-boundary && pnpm check:adrs && pnpm check:md-links && pnpm check:standards && pnpm check:agents && pnpm check:layers && pnpm check:pdfa && pnpm check:web-parity && pnpm test",
+    "gen:api-reference": "node scripts/generate-api-reference.mjs",
+    "check:layers": "node scripts/check-layers.mjs"
   },
   "devDependencies": {
     "@rocky/typescript-config": "workspace:*",

@@ -364,6 +364,8 @@ The following table is the consolidated import constitution. A consumer (row) **
 
 NOTE The module-wiring exception (8.5) permits `*.module.ts` files to import other domains' exported services/repositories for DI even where the table above forbids business-logic imports.
 
+**Enforcement.** This matrix is enforced automatically by `scripts/check-layers.mjs` (`pnpm check:layers`), wired into `ci:checks` as a CI gate. A standard without a machine is fetishistic disavowal — the guard is the symptom's return-preventer; it fails the build on any Annex C row violation in `packages/domains/*/services`, `packages/domains/*/repositories`, or `apps/api/src/routers`.
+
 ---
 
 ## Bibliography
