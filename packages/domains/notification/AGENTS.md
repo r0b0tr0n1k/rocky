@@ -42,6 +42,9 @@ Manages in-app notifications for users. Supports unread counts, send/mark-as-rea
 | `incrementAttempts(id, updates)`     | Increment attempt counter atomically  |
 | `findTemplateByCode(code)`           | Find template by code                 |
 
+
+**Row-shape types:** `NotificationRow` and `DeviceTokenRow` are re-exported from this repository so services import them relative (ROCKY-DS 001:2026(E) §8.2 / Annex C) instead of importing `@rocky/database` table definitions directly. No new query method is added by this re-export.
+
 ## Cross-Domain Integration
 
 | Domain | Integration                                              |

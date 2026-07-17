@@ -6,10 +6,8 @@
  */
 
 import { notificationErr, NOTIFICATION_ERRORS } from "../errors/notification.errors.js";
-import type { NotificationRepository } from "../repositories/notification.repository.js";
+import type { NotificationRepository, NotificationRow, DeviceTokenRow } from "../repositories/notification.repository.js";
 import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
-import type { notifications as notificationsTable } from "@rocky/database";
-import { deviceTokens as deviceTokensTable } from "@rocky/database";
 import { sendExpoPush } from "../clients/expo-push.client.js";
 import { NOTIFICATION_TYPE } from "@rocky/database/constants";
 import type { Notification } from "../types/notification.types.js";
@@ -55,7 +53,7 @@ export class NotificationService {
         maxAttempts: 3,
         source: "USER" as const,
         createdAt: new Date(),
-      } as typeof notificationsTable.$inferInsert);
+      } as NotificationRow);
       return row as Notification;
     }, toAppError)();
   }
@@ -78,7 +76,7 @@ export class NotificationService {
             maxAttempts: 3,
             source: "USER" as const,
             createdAt: now,
-          }) as typeof notificationsTable.$inferInsert,
+          }) as NotificationRow,
       );
       return (await this.repo.insertMany(rows)) as Notification[];
     }, toAppError)();
@@ -104,7 +102,7 @@ export class NotificationService {
           maxAttempts: 3,
           source: "SYSTEM" as const,
           createdAt: new Date(),
-        } as typeof notificationsTable.$inferInsert);
+        } as NotificationRow);
         return row as Notification;
       }
 
@@ -119,7 +117,7 @@ export class NotificationService {
           maxAttempts: 3,
           source: "SYSTEM" as const,
           createdAt: new Date(),
-        } as typeof notificationsTable.$inferInsert);
+        } as NotificationRow);
         return row as Notification;
       }
 
@@ -132,7 +130,7 @@ export class NotificationService {
         maxAttempts: 3,
         source: "SYSTEM" as const,
         createdAt: new Date(),
-      } as typeof notificationsTable.$inferInsert);
+      } as NotificationRow);
       return row as Notification;
     }, toAppError)();
   }
@@ -198,7 +196,7 @@ export class NotificationService {
     errorMessage?: string,
   ): Promise<Result<Notification, Error>> {
     return fromAsyncThrowable(async () => {
-      const updates: Partial<typeof notificationsTable.$inferInsert> = {};
+      const updates: Partial<NotificationRow> = {};
       if (status === "SENT") updates.sentAt = new Date();
       if (status === "DELIVERED") updates.deliveredAt = new Date();
       if (status === "FAILED" && errorMessage) updates.lastError = errorMessage;
@@ -229,7 +227,7 @@ export class NotificationService {
         platform: input.platform,
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as typeof deviceTokensTable.$inferInsert);
+      } as DeviceTokenRow);
     }, toAppError)();
   }
 

@@ -136,3 +136,8 @@ export class NotificationRepository extends BaseRepository {
     return this.client.select().from(deviceTokens).where(inArray(deviceTokens.userId, userIds));
   }
 }
+
+// Row-shape types re-exported so services import them relative (ROCKY-DS 001:2026(E) §8.2 / Annex C),
+// instead of reaching into @rocky/database for table definitions.
+export type NotificationRow = typeof notifications.$inferInsert;
+export type DeviceTokenRow = typeof deviceTokens.$inferInsert;
