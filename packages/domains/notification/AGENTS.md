@@ -41,7 +41,25 @@ Manages in-app notifications for users. Supports unread counts, send/mark-as-rea
 | `findPending(limit)`                 | Get pending notifications             |
 | `incrementAttempts(id, updates)`     | Increment attempt counter atomically  |
 | `findTemplateByCode(code)`           | Find template by code                 |
+| `findActiveSubscriptionsByEventType(eventType)` | SELECT `eventSubscriptions` WHERE `eventType=?` AND `isActive=true` |
+| `findDeliveryByKey(key)`         | SELECT `{id}` `notificationDeliveries` WHERE `deliveryKey=?` LIMIT 1 (null if none) |
+| `insertDelivery(values)`         | INSERT `notificationDeliveries` ON CONFLICT DO NOTHING (`deliveryKey`) RETURNING (null if conflict) |
+| `markDeliverySent(id, notificationId)` | UPDATE `notificationDeliveries` SET `notificationId`, `status='sent'`, `deliveredAt` |
+| `insertReminder(values)`         | INSERT `reminders` |
 
+## Subscription Resolver
+
+`packages/domains/notification/src/services/subscription-resolver.service.ts`:
+
+| Method                  | Purpose                                                                          | Status |
+| ----------------------- | -------------------------------------------------------------------------------- | ------ |
+| `resolveAndNotify(input)` | Match active `eventSubscriptions` for the event type, dedupe via `notificationDeliveries`, send through `NotificationService`, and schedule `reminders`. | ✅     |
+
+**Cross-domain dependency:** injects `UserRepository` from `@rocky/domains-user` (permitted by
+ROCKY-DS 001:2026(E) §8.5 module-wiring exception) to resolve target users for `targetType`
+`"user"` (`findById`), `"role"` (`findByRole`), and `"org"` (`list({organizationId})`). All DB access
+routes through `NotificationRepository` / `UserRepository`; the service imports no `@rocky/database`
+client/table (§8.2). `resolveAndNotify` returns `Result<void, Error>` via `fromAsyncThrowable`.
 
 **Row-shape types:** `NotificationRow` and `DeviceTokenRow` are re-exported from this repository so services import them relative (ROCKY-DS 001:2026(E) §8.2 / Annex C) instead of importing `@rocky/database` table definitions directly. No new query method is added by this re-export.
 
@@ -72,6 +90,7 @@ pure and fully unit-tested (`channel-router.test.ts`, 14 tests); the real SMS tr
 deferred (ADR-0094 §7).
 
 **Implementation slices (ADR-0094 §7):**
+
 - Slice 1 — `ChannelRouter` (`resolveChannels`) pure module + exhaustive tests ✅ (committed 8269825).
 - Slice 2 — `acknowledgedAt` column (Drizzle + migration applied to `tbot`) + `confirmDelivery` tRPC
   Mutation + `NotificationService.confirmDelivery()` ✅ (this increment).

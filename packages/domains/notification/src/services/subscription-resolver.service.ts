@@ -4,14 +4,8 @@ import {
 } from "../errors/notification.errors.js";
 import type { NotificationRepository } from "../repositories/notification.repository.js";
 import type { NotificationService } from "./notification.service.js";
-import { db } from "@rocky/database";
-import {
-  eventSubscriptions,
-  reminders,
-  notificationDeliveries,
-} from "@rocky/database";
-import { users } from "@rocky/database/schema/sm";
-import { eq, and } from "drizzle-orm";
+import { fromAsyncThrowable, toAppError, type Result } from "@rocky/domains-shared";
+import type { UserRepository } from "@rocky/domains-user";
 import type {
   notificationTypeType,
   notificationCategoryType,
@@ -30,80 +24,58 @@ export class SubscriptionResolver {
   constructor(
     private readonly notificationService: NotificationService,
     private readonly repo: NotificationRepository,
+    private readonly userRepo: UserRepository,
   ) {}
 
-  async resolveAndNotify(input: ResolveAndNotifyInput): Promise<void> {
-    const subs = await db
-      .select()
-      .from(eventSubscriptions)
-      .where(
-        and(
-          eq(eventSubscriptions.eventType, input.eventType),
-          eq(eventSubscriptions.isActive, true),
-        ),
-      );
+  async resolveAndNotify(input: ResolveAndNotifyInput): Promise<Result<void, Error>> {
+    return fromAsyncThrowable(async () => {
+      const subs = await this.repo.findActiveSubscriptionsByEventType(input.eventType);
 
-    for (const sub of subs) {
-      if (!this.matchesConditions(input.data, sub.conditions as any[]))
-        continue;
+      for (const sub of subs) {
+        if (!this.matchesConditions(input.data, sub.conditions as any[]))
+          continue;
 
-      const users = await this.resolveTargetUsers(sub.targetType, sub.targetId);
-      for (const user of users) {
-        const key = `${input.outboxEventId}:${sub.id}:${user.id}`;
+        const users = await this.resolveTargetUsers(sub.targetType, sub.targetId);
+        for (const user of users) {
+          const key = `${input.outboxEventId}:${sub.id}:${user.id}`;
 
-        const alreadyDelivered = await db
-          .select({ id: notificationDeliveries.id })
-          .from(notificationDeliveries)
-          .where(eq(notificationDeliveries.deliveryKey, key))
-          .limit(1);
+          const existing = await this.repo.findDeliveryByKey(key);
+          if (existing) continue;
 
-        if (alreadyDelivered.length > 0) continue;
-
-        const [delivery] = await db
-          .insert(notificationDeliveries)
-          .values({
+          const delivery = await this.repo.insertDelivery({
             outboxEventId: input.outboxEventId,
             subscriptionId: sub.id,
             userId: user.id,
             deliveryKey: key,
             status: "pending",
-          })
-          .onConflictDoNothing({ target: notificationDeliveries.deliveryKey })
-          .returning();
+          });
+          if (!delivery) continue;
 
-        if (!delivery) continue;
+          const template = await this.repo.findTemplateByCode(input.eventType);
+          const title = this.formatTitle(template, input.eventType);
+          const message = this.formatMessage(template, input.data);
 
-        const template = await this.repo.findTemplateByCode(input.eventType);
-        const title = this.formatTitle(template, input.eventType);
-        const message = this.formatMessage(template, input.data);
+          const result = await this.notificationService.send({
+            userId: user.id,
+            type: this.resolveChannel(sub.channels as any),
+            category:
+              (template as { category?: notificationCategoryType })?.category ??
+              (input.eventType as notificationCategoryType),
+            subject: title,
+            message,
+            priority: this.resolvePriority(input.data),
+          });
 
-        const result = await this.notificationService.send({
-          userId: user.id,
-          type: this.resolveChannel(sub.channels as any),
-          category:
-            (template as { category?: notificationCategoryType })?.category ??
-            (input.eventType as notificationCategoryType),
-          subject: title,
-          message,
-          priority: this.resolvePriority(input.data),
-        });
+          if (result.isOk()) {
+            await this.repo.markDeliverySent(delivery.id, result.value.id);
+          }
 
-        if (result.isOk()) {
-          await db
-            .update(notificationDeliveries)
-            .set({
-              notificationId: result.value.id,
-              status: "sent",
-              deliveredAt: new Date(),
-            })
-            .where(eq(notificationDeliveries.id, delivery.id));
-        }
-
-        if (sub.reminderEnabled) {
-          await this.createReminder(sub, user.id, input);
+          if (sub.reminderEnabled) {
+            await this.createReminder(sub, user.id, input);
+          }
         }
       }
-    }
+    }, toAppError)();
   }
 
   private async resolveTargetUsers(
@@ -111,21 +83,22 @@ export class SubscriptionResolver {
     targetId: string,
   ): Promise<Array<{ id: string }>> {
     switch (targetType) {
-      case "user":
-        return db
-          .select({ id: users.id })
-          .from(users)
-          .where(eq(users.id, targetId as any));
+      case "user": {
+        const u = await this.userRepo.findById(targetId);
+        return u ? [{ id: u.id }] : [];
+      }
       case "role":
-        return db
-          .select({ id: users.id })
-          .from(users)
-          .where(eq(users.role, targetId as any));
+        return (await this.userRepo.findByRole(targetId)).map((u: { id: string }) => ({ id: u.id }));
       case "org":
-        return db
-          .select({ id: users.id })
-          .from(users)
-          .where(eq(users.organizationId, targetId as any));
+        return (
+          await this.userRepo.list({
+            organizationId: targetId,
+            sortBy: "createdAt",
+            sortOrder: "asc",
+            limit: 1000,
+            offset: 0,
+          })
+        ).data.map((u: { id: string }) => ({ id: u.id }));
       default:
         return [];
     }
@@ -196,11 +169,11 @@ export class SubscriptionResolver {
   }
 
   private async createReminder(
-    sub: typeof eventSubscriptions.$inferSelect,
+    sub: Awaited<ReturnType<NotificationRepository["findActiveSubscriptionsByEventType"]>>[number],
     userId: string,
     input: ResolveAndNotifyInput,
   ): Promise<void> {
-    await db.insert(reminders).values({
+    await this.repo.insertReminder({
       outboxEventId: input.outboxEventId,
       entityType: input.aggregateType,
       entityId: input.aggregateId,

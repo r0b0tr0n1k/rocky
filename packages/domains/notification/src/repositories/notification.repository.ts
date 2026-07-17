@@ -5,7 +5,7 @@
  */
 
 import { eq, and, desc, asc, inArray, lte, sql, type SQL } from "drizzle-orm";
-import { notifications, notificationPreferences, notificationTemplates, deviceTokens } from "@rocky/database";
+import { notifications, notificationPreferences, notificationTemplates, deviceTokens, eventSubscriptions, reminders, notificationDeliveries } from "@rocky/database";
 import { BaseRepository } from "@rocky/domains-shared";
 
 export class NotificationRepository extends BaseRepository {
@@ -134,6 +134,56 @@ export class NotificationRepository extends BaseRepository {
   async findDeviceTokensByUsers(userIds: string[]): Promise<(typeof deviceTokens.$inferSelect)[]> {
     if (userIds.length === 0) return [];
     return this.client.select().from(deviceTokens).where(inArray(deviceTokens.userId, userIds));
+  }
+
+  /** Find active event subscriptions for an event type. */
+  async findActiveSubscriptionsByEventType(eventType: string) {
+    return this.client
+      .select()
+      .from(eventSubscriptions)
+      .where(
+        and(
+          eq(eventSubscriptions.eventType, eventType),
+          eq(eventSubscriptions.isActive, true),
+        ),
+      );
+  }
+
+  /** Find a notification delivery by its dedup key (null if none). */
+  async findDeliveryByKey(key: string) {
+    const rows = await this.client
+      .select({ id: notificationDeliveries.id })
+      .from(notificationDeliveries)
+      .where(eq(notificationDeliveries.deliveryKey, key))
+      .limit(1);
+    return rows[0] ?? null;
+  }
+
+  /** Insert a delivery record idempotently (null if conflict on deliveryKey). */
+  async insertDelivery(values: typeof notificationDeliveries.$inferInsert) {
+    const rows = await this.client
+      .insert(notificationDeliveries)
+      .values(values)
+      .onConflictDoNothing({ target: notificationDeliveries.deliveryKey })
+      .returning();
+    return rows[0] ?? null;
+  }
+
+  /** Mark a delivery as sent. */
+  async markDeliverySent(id: string, notificationId: string) {
+    await this.client
+      .update(notificationDeliveries)
+      .set({
+        notificationId,
+        status: "sent",
+        deliveredAt: new Date(),
+      })
+      .where(eq(notificationDeliveries.id, id));
+  }
+
+  /** Insert a reminder record. */
+  async insertReminder(values: typeof reminders.$inferInsert) {
+    await this.client.insert(reminders).values(values);
   }
 }
 

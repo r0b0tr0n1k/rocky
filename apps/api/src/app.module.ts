@@ -157,8 +157,8 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     },
     {
       provide: SubscriptionResolver,
-      useFactory: (ns: NotificationService, repo: NotificationRepository) => new SubscriptionResolver(ns, repo),
-      inject: [NotificationService, NotificationRepository],
+      useFactory: (ns: NotificationService, repo: NotificationRepository, userRepo: UserRepository) => new SubscriptionResolver(ns, repo, userRepo),
+      inject: [NotificationService, NotificationRepository, UserRepository],
     },
     {
       provide: UserRepository,

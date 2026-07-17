@@ -36,3 +36,20 @@ Manages SM (System Management) users. Users are the system agents — they have 
 | `mfaEnabled`/ `mfaSecret` | ✅ Better Auth manages MFA       | Better Auth 2FA               |
 | `role` (flat)             | ✅ RBAC M:N system               | `user_roles` + `roles` tables |
 | `user_sessions` table     | ✅ Better Auth sessions          | `auth_session` table          |
+
+## Repository Methods
+
+`packages/domains/user/src/repositories/user.repository.ts`:
+
+| Method                              | Purpose                                                   | Status |
+| ----------------------------------- | --------------------------------------------------------- | ------ |
+| `findById(id)`                      | Fetch a user by id (null if none)                         | ✅      |
+| `findByUsername(username)`           | Fetch a user by username (null if none)                   | ✅      |
+| `findByEmail(email)`                 | Fetch a user by email (null if none)                      | ✅      |
+| `findByRole(role)`                   | List users by flat `role` column                          | ✅      |
+| `list(filters)`                      | List users with org/status/search filters + pagination    | ✅      |
+| `insert(data)` / `update(id, data)`  | Create / update a user row                                | ✅      |
+
+**Cross-domain consumption:** `findByRole(role)` is consumed by Notification's `SubscriptionResolver`
+to resolve `targetType: "role"` subscribers (ROCKY-DS 001:2026(E) §8.5 module-wiring exception — the
+`UserRepository` is provided in `app.module.ts` and injected into the resolver; User Bot owns the method).
