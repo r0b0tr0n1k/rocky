@@ -1,4 +1,6 @@
 import { pdaDevices as pdaDevicesTable } from "@rocky/database";
+
+export type PdaDeviceRow = typeof pdaDevicesTable.$inferInsert;
 import { BaseRepository } from "@rocky/domains-shared";
 import { and, eq, ilike, or, sql, type SQL } from "drizzle-orm";
 

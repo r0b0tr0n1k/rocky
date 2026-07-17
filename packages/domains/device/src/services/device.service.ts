@@ -7,7 +7,7 @@ import type {
 } from "@rocky/validators/api";
 import { pdaDeviceResponseSchema, pdaDeviceSummarySchema } from "@rocky/validators/api";
 import { DEVICE_ERRORS, DeviceError } from "../errors/device.errors.js";
-import type { DeviceRepository } from "../repositories/device.repository.js";
+import type { DeviceRepository, PdaDeviceRow } from "../repositories/device.repository.js";
 import { randomUUID } from "node:crypto";
 
 const MAX_FAILED_ATTEMPTS = 3;
@@ -47,14 +47,14 @@ export class DeviceService {
         ...input,
         id: deviceId,
         createdBy: input.createdBy,
-      } as typeof import("@rocky/database").pdaDevices.$inferInsert);
+      } as PdaDeviceRow);
       return pdaDeviceResponseSchema.parse(device);
     }, toAppError)();
   }
 
   async update(id: string, input: UpdatePdaDeviceRequest): Promise<Result<PdaDeviceResponse, Error>> {
     return fromAsyncThrowable(async () => {
-      const device = await this.repo.update(id, input as Partial<typeof import("@rocky/database").pdaDevices.$inferInsert>);
+      const device = await this.repo.update(id, input as Partial<PdaDeviceRow>);
       if (!device) throw new DeviceError(DEVICE_ERRORS.NOT_FOUND, { id });
       return pdaDeviceResponseSchema.parse(device);
     }, toAppError)();
