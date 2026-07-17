@@ -11,7 +11,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { ExecutionPipeline } from "@rocky/execution";
 import { SYSTEM_PRINCIPAL } from "@rocky/authorization";
-import type { RiskAnalysisService } from "@rocky/domains-inspection";
+import { RiskAnalysisService } from "@rocky/domains-inspection";
 
 @Injectable()
 export class RiskAnalysisJob {
