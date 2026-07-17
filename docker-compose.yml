@@ -76,8 +76,8 @@ services:
       # Admin/public origin the browser runs on (CSRF + CORS trust).
       - AUTH_BASE_URL=${AUTH_BASE_URL:-https://${ROCKY_DOMAIN:-tehno.party}}
       # CORS: admin origin (browser). Override CORS_ORIGINS on a VM.
-      - CORS_ORIGINS=${CORS_ORIGINS:-https://${ROCKY_DOMAIN:-tehno.party}}
-      - TRUSTED_ORIGINS=${TRUSTED_ORIGINS:-https://${ROCKY_DOMAIN:-tehno.party},mobile://}
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://${ROCKY_DOMAIN:-tehno.party},https://admin.${ROCKY_DOMAIN:-tehno.party},https://docs.${ROCKY_DOMAIN:-tehno.party}}
+      - TRUSTED_ORIGINS=${TRUSTED_ORIGINS:-https://${ROCKY_DOMAIN:-tehno.party},https://admin.${ROCKY_DOMAIN:-tehno.party},https://docs.${ROCKY_DOMAIN:-tehno.party},mobile://}
       # App
       - VERSION=${VERSION:-production}
       - ENVIRONMENT=production
