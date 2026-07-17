@@ -42,7 +42,7 @@ describe("PolicyEngine — authorization decisions", () => {
 
   // ── WO-098: SUPER_ADMIN gate on the rbac / user routers ──
   describe("role gate (WO-098)", () => {
-    const policy = { authenticated: true, roles: ["SUPER_ADMIN"] } as const;
+    const policy = { authenticated: true, roles: ["SUPER_ADMIN"] };
 
     it("DENIES a non-SUPER_ADMIN session (e.g. VD_ADMIN) — the regression guard", async () => {
       const engine = makeEngine();

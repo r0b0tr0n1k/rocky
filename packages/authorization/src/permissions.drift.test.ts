@@ -22,7 +22,7 @@ const read = (p: string) => fs.readFileSync(path.join(repoRoot, p), "utf8");
 function extractPermDefs(seed: string): Set<string> {
   const flat = new Set<string>();
   for (const m of seed.matchAll(/resource:\s*"([^"]+)"\s*,\s*action:\s*"([^"]+)"/g)) {
-    flat.add(`${m[1]}:${m[2]}`);
+    flat.add(`${m[1]!}:${m[2]!}`);
   }
   return flat;
 }
@@ -31,8 +31,8 @@ function extractRolePermMap(seed: string): Set<string> {
   const block = seed.match(/const ROLE_PERM_MAP[\s\S]*?\};\n/);
   const set = new Set<string>();
   if (!block) return set;
-  for (const m of block[0].matchAll(/"([^"]+)"/g)) {
-    if (m[1] !== "*") set.add(m[1]);
+  for (const m of block[0]!.matchAll(/"([^"]+)"/g)) {
+    if (m[1] !== "*") set.add(m[1]!);
   }
   return set;
 }
@@ -43,8 +43,8 @@ function extractPolicyActions(dir: string): Set<string> {
     if (!f.endsWith(".router.ts")) continue;
     const content = read(dir + "/" + f);
     for (const dec of content.matchAll(/@Policy\(\{([^}]*)\}/g)) {
-      const am = dec[1].match(/action:\s*["']([^"']+)["']/);
-      if (am) set.add(am[1]);
+      const am = dec[1]!.match(/action:\s*["']([^"']+)["']/);
+      if (am) set.add(am[1]!);
     }
   }
   return set;
@@ -58,10 +58,10 @@ describe("WO-101 permission drift guillotine", () => {
   const rolePerm = extractRolePermMap(seed);
   const policyActions = extractPolicyActions("apps/api/src/routers");
   const nav = new Set<string>(
-    [...read("apps/web/lib/nav-config.ts").matchAll(/permission:\s*["']([^"']+)["']/g)].map((m) => m[1]),
+    [...read("apps/web/lib/nav-config.ts").matchAll(/permission:\s*["']([^"']+)["']/g)].map((m) => m[1]!),
   );
   const mob = new Set<string>(
-    [...read("apps/mob/app/(tabs)/_layout.tsx").matchAll(/can\(\s*["']([^"']+)["']\s*\)/g)].map((m) => m[1]),
+    [...read("apps/mob/app/(tabs)/_layout.tsx").matchAll(/can\(\s*["']([^"']+)["']\s*\)/g)].map((m) => m[1]!),
   );
 
   it("catalog mirrors PERMISSION_DEFS (seed is the source of grantable perms)", () => {
