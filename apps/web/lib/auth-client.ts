@@ -10,9 +10,11 @@
 // fetch resource". Going same-origin through the proxy removes that footgun entirely.
 // SSR (no window) falls back to the direct API URL.
 
-import { createRockyAuthClient } from "@rocky/auth/client";
+import { createAuthClient } from "better-auth/react";
+import { adminClient, organizationClient, twoFactorClient } from "better-auth/client/plugins";
 
-export const authClient = createRockyAuthClient({
+export const authClient = createAuthClient({
+  plugins: [adminClient(), organizationClient({ dynamicAccessControl: { enabled: true } }), twoFactorClient()],
   baseURL:
     typeof window !== "undefined"
       ? window.location.origin

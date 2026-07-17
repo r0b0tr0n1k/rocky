@@ -1,7 +1,7 @@
 import { createContext, useContext, type ReactNode } from "react";
 import { useSession } from "@/providers/session-provider";
 import { trpc } from "@/providers/trpc-provider";
-import { type Permission } from "@rocky/validators/rbac";
+import { type Permission } from "@rocky/validators/api";
 
 type PermissionsContextValue = {
   permissions: readonly string[];

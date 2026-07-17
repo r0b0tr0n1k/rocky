@@ -65,3 +65,8 @@ export type _RbacGuillotines = ActivateGuillotines<
   [_drift_roleResponse, _drift_permissionResponse, _drift_roleWithPermissionsResponse,
    _drift_assignRoleToUser, _drift_revokeRoleFromUser]
 >;
+
+// Re-export the RBAC contract surface so frontends import from the allowed
+// @rocky/validators/api subpath instead of @rocky/authorization / @rocky/validators/rbac.
+export { Permissions, formatPermission } from "../rbac/permissions.js";
+export type { Permission } from "../rbac/permissions.js";

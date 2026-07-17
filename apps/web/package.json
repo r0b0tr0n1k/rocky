@@ -15,7 +15,6 @@
     "@better-auth-ui/core": "catalog:",
     "@better-auth-ui/react": "catalog:",
     "@hookform/resolvers": "catalog:",
-    "@rocky/auth": "workspace:*",
     "@rocky/trpc": "workspace:*",
     "@rocky/ui": "workspace:*",
     "@rocky/validators": "workspace:*",

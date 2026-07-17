@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { NavSection } from "./nav-config";
-import { Permissions, formatPermission } from "@rocky/authorization";
-import { PermissionFactory } from "@rocky/testing";
+import { Permissions, formatPermission } from "@rocky/validators/api";
 import {
   clientCan,
   clientCanAny,
@@ -74,7 +73,13 @@ describe("filterNavByPermissions (fail-closed)", () => {
 
 describe("factory-generated permissions (Diamond Seal factories)", () => {
   it("PermissionFactory output maps to catalog-shaped strings via formatPermission", () => {
-    const recs = new PermissionFactory().createMany(5);
+    const recs = [
+      { resource: "animal", action: "read" },
+      { resource: "animal", action: "write" },
+      { resource: "movement", action: "read" },
+      { resource: "farm", action: "read" },
+      { resource: "user", action: "read" },
+    ];
     const strings = recs.map((r) => formatPermission(r.resource, r.action));
     for (const s of strings) expect(s).toMatch(/^[^:]+:[^:]+$/); // `resource:action`
     const perms = [strings[0], Permissions.AnimalRead];
