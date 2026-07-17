@@ -6,9 +6,8 @@
  */
 
 import { eq, and, ilike, or, desc, asc, sql, type SQL } from "drizzle-orm";
-import { farms as farmsTable, addresses as addressesTable } from "@rocky/database";
+import { farms as farmsTable, addresses as addressesTable, animals, inspections } from "@rocky/database";
 import { BaseRepository } from "@rocky/domains-shared";
-
 
 export interface FarmFilter {
   type?: string;
@@ -21,7 +20,6 @@ export interface FarmFilter {
 }
 
 export class FarmRepository extends BaseRepository {
-
   async findById(id: string) {
     const [row] = await this.client.select().from(farmsTable).where(eq(farmsTable.id, id)).limit(1);
     return row ?? null;
@@ -73,5 +71,31 @@ export class FarmRepository extends BaseRepository {
   async findAddressById(id: string) {
     const [row] = await this.client.select().from(addressesTable).where(eq(addressesTable.id, id)).limit(1);
     return row ?? null;
+  }
+
+  async countActiveFarms(): Promise<number> {
+    const [{ count }] = await this.client
+      .select({ count: sql<number>`count(*)` })
+      .from(farmsTable)
+      .where(eq(farmsTable.isActive, true));
+    return Number(count);
+  }
+
+  async getFarmsWithRiskFactors(): Promise<
+    Array<{ id: string; type: string; animalCount: number; pastInspections: number }>
+  > {
+    return this.client
+      .select({
+        id: farmsTable.id,
+        type: farmsTable.type,
+        animalCount: sql<number>`COALESCE(count(DISTINCT ${animals.id}), 0)`,
+        pastInspections: sql<number>`count(DISTINCT CASE WHEN ${inspections.status} = 'completed' THEN ${inspections.id} END)`,
+      })
+      .from(farmsTable)
+      .leftJoin(animals, eq(animals.currentFarmId, farmsTable.id))
+      .leftJoin(inspections, eq(inspections.farmId, farmsTable.id))
+      .where(eq(farmsTable.isActive, true))
+      .groupBy(farmsTable.id)
+      .having(sql`count(${animals.id}) > 0`);
   }
 }

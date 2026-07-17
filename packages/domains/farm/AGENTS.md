@@ -65,6 +65,18 @@ SubjectRouter (tRPC) → SubjectService (validate + orchestrate) → SubjectRepo
 
 Both return `Result<T, FarmError>` / `Result<T, SubjectError>`.
 
+## Repository Methods — `FarmRepository`
+
+`packages/domains/farm/src/repositories/farm.repository.ts` (extends `BaseRepository`, reaches the DB only via `this.client`):
+
+- `findById(id)` / `findByFarmId(farmId)` / `findAddressById(id)`
+- `listFiltered(filter)` — paginated + counted list with type/verification/status filters and search
+- `insert(data)` / `update(id, data)`
+- `countActiveFarms(): Promise<number>` — `COUNT(*)` over `farms WHERE isActive = true`
+- `getFarmsWithRiskFactors()` — read-only aggregate: `farms` LEFT JOIN `animals` LEFT JOIN `inspections` (active farms only), selecting `{ id, type, animalCount, pastInspections }`, `GROUP BY farms.id HAVING count(animals.id) > 0`. Consumed cross-domain by Inspection's `RiskAnalysisService` (§8.5 module-wiring exception; Farm Bot owns the method).
+
+> Note: `getFarmsWithRiskFactors()` is a **read-join** over `animals`/`inspections` (read-only sources) — no writes outside the farm domain.
+
 ## Error Codes — Farm (`farm.errors.ts`)
 
 | Code | String Value | When |
@@ -89,18 +101,22 @@ Both return `Result<T, FarmError>` / `Result<T, SubjectError>`.
 ## tRPC Endpoints
 
 **FarmRouter** (`apps/api/src/routers/farm.router.ts`):
+
 - Query: `getById`, `list`
 - Mutation: `create`, `update`
 
 **SubjectRouter** (`apps/api/src/routers/subject.router.ts`):
+
 - Query: `getById`, `search`
 - Mutation: `create`, `update`, `bindToFarm`, `unbindFromFarm`
 
 **VsContractRouter** (`apps/api/src/routers/vs-contract.router.ts`):
+
 - Query: `getById`, `getBySubject`, `getByRegion`
 - Mutation: `create`, `updateStatus`
 
 **VsAssignmentRouter** (`apps/api/src/routers/vs-assignment.router.ts`):
+
 - Query: `getById`, `getByFarm`, `getActiveByFarm`, `getByContract`
 - Mutation: `assign`, `unassign`
 
