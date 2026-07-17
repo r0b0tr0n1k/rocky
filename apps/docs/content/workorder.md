@@ -94,6 +94,7 @@
 | WO-159 | Audit-log compliance gap-closure (ISO 27001 A.8.15 Logging + MK LPDP + EUDR traceability): (1) append-only enforcement via DB trigger on `audit_log`; (2) sensitive-field masking in `oldValue`/`newValue` snapshots (LPDP/GDPR — snapshots can carry personal data); (3) retention/partitioning automation (schema TODO — monthly partitions + prune job); (4) verify full CUD coverage — confirm every mutating path invokes `AuditService.recordUpdate` (today manual, no global interceptor). **Out of scope:** Wazuh-vs-cloud SIEM / infra monitoring — separate infra decision, not part of the audit-log control. | 0067 / audit domain | P1 | Open |
 | WO-161 | Geo geometry helpers relocated to @rocky/geo (Visa-Matrix observation closure) | Open | 2026-07-17 | ROCKY-DS 001:2026(E) Annex C (geo row) |
 | WO-160 | ROCKY-DS 001:2026(E) §8.2 service→DB Visa-Matrix closure: decouple 10 domain services from direct `@rocky/database` import (RED 4/4 remediated + committed — notification/subscription-resolver/risk-analysis/iot; AMBER 6/6 deferred — animal/farm/movement/user/organization/device type-only `$inferInsert` re-exports) | ROCKY-DS 001:2026(E) §8.2 / Annex C | P1 | Done ✅ (RED 4/4 + AMBER 6/6) |
+| WO-162 | rocky-api container runtime hardening: portable pnpm deploy (store-dir MODULE_NOT_FOUND), RiskAnalysisJob DI crash-loop (value vs `import type`), distroless `/health` HEALTHCHECK + source-map strip (compose `nc` check removed) | Docker runtime / compose | P1 | Done ✅ (485037f1, ab9713e0, ec4417a9) |
 
 ---
 
@@ -1530,3 +1531,13 @@ subprocessor), wired to ADR-0075 + rocky-processor-register / rocky-toms / rocky
 
 **Verification:** grep guard — all 4 RED files return zero `from "@rocky/database"` (exact); only the 2 deferred AMBER type-only imports (`movement`, `user`) remain. Per-package vitest green (notification 16/16, inspection 4/4, farm 4+skip, user green). `check:agents` green. `ci:checks` test step + `pnpm build` are blocked by **pre-existing** environment rot (missing `apps/api/node_modules` — `Cannot find module '@nestjs/common'`; untouched packages + `*.workflow.test.ts` + a vitest-dep resolution error) — orthogonal to this remediation.
 - **Source:** ROCKY-DS 001:2026(E) §8.2 / Annex C (Visa Matrix); `Standardization/diamond-seal-type-contracts.md`.
+
+### WO-162 — rocky-api container runtime hardening
+
+- **Why:** on `docker compose up` on iotn the api container started but stayed `unhealthy`, so `rocky-web` (`depends_on: api: condition: service_healthy`) never started. Three distinct defects, all in the api Docker/compose runtime path.
+- **Defects + resolutions:**
+  1. **MODULE_NOT_FOUND `@nestjs/core` at runtime** — `apps/api/Dockerfile` used `store-dir=/pnpm/store` + a BuildKit cache mount; cache mounts are external and do not persist into the image, so `pnpm deploy --legacy` emitted a non-portable `/deploy` still referencing `/pnpm/store`. Fix: drop the store-dir + cache mount so pnpm uses the in-image store and deploy emits a self-contained bundle. (commit 485037f1) — runtime-verified on iotn.
+  2. **`UnknownDependenciesException` RiskAnalysisJob (?, ExecutionPipeline)** — `risk-analysis.job.ts` used `import type { RiskAnalysisService }`; SWC/TS erased it at runtime so Nest's reflect-metadata emitted `[Function: Object]` as the token. Fix: value `import`. (commit ab9713e0) — runtime-verified on iotn.
+  3. **Container perpetually `unhealthy`** — `docker-compose.yml` probed with `nc -z api 8000`, but the runtime stage is `gcr.io/distroless/nodejs24-debian12` (no shell, no curl/nc). Fix: add `GET /health -> 200` in `main.ts`, a distroless `HEALTHCHECK` via `node -e fetch(...)`, strip `*.map` from `/deploy/dist`, and remove the broken `nc` compose check so the Dockerfile HEALTHCHECK governs. (commit ec4417a9)
+- **Source:** `apps/api/Dockerfile`, `apps/api/src/main.ts`, `docker-compose.yml`.
+- **Note:** rebuild on iotn with `docker compose up --build` (plain `up` reuses the stale image).
