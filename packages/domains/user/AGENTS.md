@@ -39,6 +39,8 @@ Manages SM (System Management) users. Users are the system agents — they have 
 
 ## Repository Methods
 
+**Row-shape types:** `UserRow` is re-exported from this repository so services import it relative (ROCKY-DS 001:2026(E) §8.2) instead of importing `@rocky/database` table definitions.
+
 `packages/domains/user/src/repositories/user.repository.ts`:
 
 | Method                              | Purpose                                                   | Status |

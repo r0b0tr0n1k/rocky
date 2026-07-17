@@ -2,7 +2,6 @@
  * User Domain Service
  */
 
-import type { users as usersTable } from "@rocky/database";
 import { fromAsyncThrowable, type Result, toAppError } from "@rocky/domains-shared";
 import type {
   CreateUserRequest,
@@ -13,7 +12,7 @@ import type {
 } from "@rocky/validators/api";
 import { userResponseSchema, userSummarySchema } from "@rocky/validators/api";
 import { USER_ERRORS, UserError } from "../errors/user.errors.js";
-import type { UserRepository } from "../repositories/user.repository.js";
+import type { UserRepository, UserRow } from "../repositories/user.repository.js";
 
 export class UserService {
   constructor(private readonly repo: UserRepository) { }
@@ -44,7 +43,7 @@ export class UserService {
       // password field is currently unused — Better Auth manages authentication
       // In the future, pass it to Better Auth API for user creation
       const { password: _password, ...rest } = input;
-      const dbInput: typeof usersTable.$inferInsert = {
+      const dbInput: UserRow = {
         ...rest,
       };
       const user = await this.repo.insert(dbInput);

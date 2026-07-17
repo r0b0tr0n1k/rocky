@@ -3,6 +3,8 @@
  */
 
 import { users as usersTable } from "@rocky/database";
+
+export type UserRow = typeof usersTable.$inferInsert;
 import { SORT_BY_USER, type SORT_ORDER } from "@rocky/database/constants";
 import { BaseRepository } from "@rocky/domains-shared";
 import { and, eq, ilike, or, sql } from "drizzle-orm";
@@ -11,7 +13,6 @@ export type SortByUser = (typeof SORT_BY_USER)[keyof typeof SORT_BY_USER];
 export type SortOrder = (typeof SORT_ORDER)[keyof typeof SORT_ORDER];
 
 export class UserRepository extends BaseRepository {
-
   async findById(id: string) {
     const [row] = await this.client.select().from(usersTable).where(eq(usersTable.id, id)).limit(1);
     return row ?? null;
