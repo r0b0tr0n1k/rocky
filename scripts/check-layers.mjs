@@ -49,15 +49,18 @@ const REPO_RE = /\/packages\/domains\/[^/]+\/src\/repositories\/.*\.ts$/;
 const ROUTER_RE = /\/apps\/api\/src\/routers\/.*\.ts$/;
 const TEST_RE = /\.test\.ts$|\.spec\.ts$|\.workflow\.test\.ts$/;
 // static import (captures `type` keyword + spec); dynamic import() is treated as value
-const LINE_IMPORT_RE = /^\s*import\s+(type\s+)?(?:[\s\S]*?)\s+from\s+["']([^"']+)["']\s*;?\s*$/;
+const LINE_IMPORT_RE =
+  /^\s*import\s+(type\s+)?(?:[\s\S]*?)\s+from\s+["']([^"']+)["']\s*;?\s*$/;
 const DYN_IMPORT_RE = /import\s*\(\s*["']([^"']+)["']\s*\)/g;
 
 const isAllowedDb = (spec) =>
-  spec === "@rocky/database/constants" || spec.startsWith("@rocky/database/constants/");
+  spec === "@rocky/database/constants" ||
+  spec.startsWith("@rocky/database/constants/");
 
 function walk(dir, out) {
   for (const entry of readdirSync(dir)) {
-    if (entry === "node_modules" || entry === ".git" || entry === "dist") continue;
+    if (entry === "node_modules" || entry === ".git" || entry === "dist")
+      continue;
     const p = resolve(dir, entry);
     if (statSync(p).isDirectory()) walk(p, out);
     else if (p.endsWith(".ts") && !TEST_RE.test(p)) out.push(p);
@@ -67,9 +70,13 @@ function walk(dir, out) {
 let files;
 if (override) {
   const op = resolve(root, override);
-  if (!existsSync(op)) { console.error(`[fail] path not found: ${op}`); process.exit(1); }
+  if (!existsSync(op)) {
+    console.error(`[fail] path not found: ${op}`);
+    process.exit(1);
+  }
   files = [];
-  if (statSync(op).isDirectory()) walk(op, files); else files = [op];
+  if (statSync(op).isDirectory()) walk(op, files);
+  else files = [op];
 } else {
   files = [];
   for (const base of ["packages", "apps"]) {
@@ -98,20 +105,36 @@ for (const f of files) {
         // geo services MAY type-import @rocky/database types (carve-out, NOTE GEO).
         if (spec.startsWith("@rocky/database") && !isAllowedDb(spec)) {
           if (isTypeOnly && isGeoService) continue; // allowed carve-out
-          violations.push({ rel, spec, rule: isGeoService
-            ? "Annex C geo row: geo service must not value-import @rocky/database (type-only is the carve-out)"
-            : "Annex C row 360: domain service must not import @rocky/database (except /constants)" });
+          violations.push({
+            rel,
+            spec,
+            rule: isGeoService
+              ? "Annex C geo row: geo service must not value-import @rocky/database (type-only is the carve-out)"
+              : "Annex C row 360: domain service must not import @rocky/database (except /constants)",
+          });
         }
       }
       if (isRepo) {
-        if (spec === "@rocky/validators/api" || spec.startsWith("@rocky/validators/api/") ||
-            spec === "@rocky/validators/events" || spec.startsWith("@rocky/validators/events/")) {
-          violations.push({ rel, spec, rule: "Annex C row 359: domain repository must not import @rocky/validators/api or /events" });
+        if (
+          spec === "@rocky/validators/api" ||
+          spec.startsWith("@rocky/validators/api/") ||
+          spec === "@rocky/validators/events" ||
+          spec.startsWith("@rocky/validators/events/")
+        ) {
+          violations.push({
+            rel,
+            spec,
+            rule: "Annex C row 359: domain repository must not import @rocky/validators/api or /events",
+          });
         }
       }
       if (isRouter) {
         if (spec.startsWith("@rocky/database")) {
-          violations.push({ rel, spec, rule: "Annex C router row: router must not import @rocky/database (any subpath)" });
+          violations.push({
+            rel,
+            spec,
+            rule: "Annex C router row: router must not import @rocky/database (any subpath)",
+          });
         }
       }
       continue;
@@ -122,21 +145,38 @@ for (const f of files) {
     while ((dm = DYN_IMPORT_RE.exec(line))) {
       const spec = dm[1];
       if (!spec.startsWith("@rocky/")) continue;
-      if (isService && spec.startsWith("@rocky/database") && !isAllowedDb(spec)) {
-        violations.push({ rel, spec, rule: isGeoService
-          ? "Annex C geo row: geo service must not value-import @rocky/database"
-          : "Annex C row 360: domain service must not import @rocky/database (except /constants)" });
+      if (
+        isService &&
+        spec.startsWith("@rocky/database") &&
+        !isAllowedDb(spec)
+      ) {
+        violations.push({
+          rel,
+          spec,
+          rule: isGeoService
+            ? "Annex C geo row: geo service must not value-import @rocky/database"
+            : "Annex C row 360: domain service must not import @rocky/database (except /constants)",
+        });
       }
       if (isRouter && spec.startsWith("@rocky/database")) {
-        violations.push({ rel, spec, rule: "Annex C router row: router must not import @rocky/database (any subpath)" });
+        violations.push({
+          rel,
+          spec,
+          rule: "Annex C router row: router must not import @rocky/database (any subpath)",
+        });
       }
     }
   }
 }
 
 if (violations.length) {
-  console.error(`[fail] Visa Matrix (Annex C) violated — ${violations.length} import(s):`);
-  for (const v of violations) console.error(`  ${v.rel}\n    imports ${v.spec}  —  ${v.rule}`);
+  console.error(
+    `[fail] Visa Matrix (Annex C) violated — ${violations.length} import(s):`,
+  );
+  for (const v of violations)
+    console.error(`  ${v.rel}\n    imports ${v.spec}  —  ${v.rule}`);
   process.exit(1);
 }
-console.log(`[ok] Visa Matrix clean: 0 layer-boundary violations across ${files.length} scanned source files (scope: packages/{domains,geo}/*/services + packages/domains/*/repositories + apps/api/src/routers)`);
+console.log(
+  `[ok] Visa Matrix clean: 0 layer-boundary violations across ${files.length} scanned source files (scope: packages/{domains,geo}/*/services + packages/domains/*/repositories + apps/api/src/routers)`,
+);

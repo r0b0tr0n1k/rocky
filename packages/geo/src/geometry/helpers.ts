@@ -16,10 +16,10 @@ const POLYGON_REGEX = /POLYGON\s*\(+\s*(.+?)\s*\)+\s*$/;
  * @returns PostGIS Point WKT string like "SRID=4326;POINT(longitude latitude)"
  */
 export function geometryPointToWkt(
-	latitude: number,
-	longitude: number,
+  latitude: number,
+  longitude: number,
 ): string {
-	return `SRID=4326;POINT(${longitude} ${latitude})`;
+  return `SRID=4326;POINT(${longitude} ${latitude})`;
 }
 
 /**
@@ -28,15 +28,15 @@ export function geometryPointToWkt(
  * @returns PostGIS Polygon WKT string like "SRID=4326;POLYGON((lng lat, lat, ...))"
  */
 export function geometryPolygonToWkt(
-	coordinates: Array<{ latitude: number; longitude: number }>,
+  coordinates: Array<{ latitude: number; longitude: number }>,
 ): string {
-	if (!coordinates || coordinates.length === 0) {
-		throw new Error("Polygon requires at least one coordinate");
-	}
-	const coords = coordinates
-		.map((p) => `${p.longitude} ${p.latitude}`)
-		.join(", ");
-	return `SRID=4326;POLYGON((${coords}))`;
+  if (!coordinates || coordinates.length === 0) {
+    throw new Error("Polygon requires at least one coordinate");
+  }
+  const coords = coordinates
+    .map((p) => `${p.longitude} ${p.latitude}`)
+    .join(", ");
+  return `SRID=4326;POLYGON((${coords}))`;
 }
 
 /**
@@ -45,19 +45,19 @@ export function geometryPolygonToWkt(
  * @returns Object with latitude and longitude
  */
 export function geometryPointFromWkt(
-	wkt: string | null,
+  wkt: string | null,
 ): { latitude: number; longitude: number } | null {
-	if (!wkt) {
-		return null;
-	}
-	const match = wkt.match(POINT_REGEX);
-	if (!(match?.[1] && match?.[2])) {
-		throw new Error(`Invalid geometry point format: ${wkt}`);
-	}
-	return {
-		longitude: Number.parseFloat(match[1]),
-		latitude: Number.parseFloat(match[2]),
-	};
+  if (!wkt) {
+    return null;
+  }
+  const match = wkt.match(POINT_REGEX);
+  if (!(match?.[1] && match?.[2])) {
+    throw new Error(`Invalid geometry point format: ${wkt}`);
+  }
+  return {
+    longitude: Number.parseFloat(match[1]),
+    latitude: Number.parseFloat(match[2]),
+  };
 }
 
 /**
@@ -66,27 +66,34 @@ export function geometryPointFromWkt(
  * @returns Array of {latitude, longitude} points
  */
 export function geometryPolygonFromWkt(
-	wkt: string | null,
+  wkt: string | null,
 ): Array<{ latitude: number; longitude: number }> | null {
-	if (!wkt) {
-		return null;
-	}
-	const match = wkt.match(POLYGON_REGEX);
-	if (!match?.[1]) {
-		throw new Error(`Invalid geometry polygon format: ${wkt}`);
-	}
-	const coords = match[1].split(", ").map((coord): {
-		latitude: number;
-		longitude: number;
-	} => {
-		// Strip any residual ring parentheses around an individual coordinate.
-		const parts = coord.replace(/^\(+|\s*\)+$/g, "").trim().split(/\s+/);
-		const longitude = Number(parts[0]);
-		const latitude = Number(parts[1]);
-		if (Number.isNaN(longitude) || Number.isNaN(latitude)) {
-			throw new Error(`Invalid coordinate in polygon: ${coord}`);
-		}
-		return { latitude, longitude };
-	});
-	return coords;
+  if (!wkt) {
+    return null;
+  }
+  const match = wkt.match(POLYGON_REGEX);
+  if (!match?.[1]) {
+    throw new Error(`Invalid geometry polygon format: ${wkt}`);
+  }
+  const coords = match[1].split(", ").map(
+    (
+      coord,
+    ): {
+      latitude: number;
+      longitude: number;
+    } => {
+      // Strip any residual ring parentheses around an individual coordinate.
+      const parts = coord
+        .replace(/^\(+|\s*\)+$/g, "")
+        .trim()
+        .split(/\s+/);
+      const longitude = Number(parts[0]);
+      const latitude = Number(parts[1]);
+      if (Number.isNaN(longitude) || Number.isNaN(latitude)) {
+        throw new Error(`Invalid coordinate in polygon: ${coord}`);
+      }
+      return { latitude, longitude };
+    },
+  );
+  return coords;
 }
