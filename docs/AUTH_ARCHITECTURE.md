@@ -224,6 +224,8 @@ those client calls hit unimplemented routes.
 | `TRUSTED_ORIGINS` | `better-auth.ts` | CSRF origin allow-list. |
 | `CORS_ORIGINS` | `apps/api/src/config.ts` → `main.ts` CORS | Browser origin allowed with `credentials: true`. |
 | `BASE_SERVICE_URL` | `auth.ts` | Internal server→server base URL (Next.js SSR → API). |
+| `API_URL` / `NEXT_PUBLIC_API_URL` | web `next.config.ts` + `trpc.ts` | Gateway/rewrite target — where `/trpc` and `/api/auth` are proxied (the `API_URL` in the topology). |
+| `EXPO_PUBLIC_API_URL` | mobile `trpc-provider.tsx` / `auth.ts` | Direct API origin the Expo app calls (the mobile edge in the topology). |
 
 
 ## Package Layout
