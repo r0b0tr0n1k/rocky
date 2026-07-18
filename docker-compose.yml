@@ -115,9 +115,8 @@ services:
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       # Public base URL of the auth server (Cloudflare admin domain)
       - AUTH_BASE_URL=${AUTH_BASE_URL:-https://${ROCKY_DOMAIN:-tehno.party}}
-    depends_on:
-      api:
-        condition: service_healthy
+    # web starts independently of api: api's container HEALTHCHECK is
+    # disabled, so a service_healthy gate could never resolve.
     # Liveness: Next.js serves on 3000.
     healthcheck:
       test:

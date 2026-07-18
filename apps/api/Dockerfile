@@ -50,8 +50,7 @@ ENV NODE_ENV=production \
 COPY --from=build /deploy ./
 
 EXPOSE 8000
-# Distroless runtime ships no curl/nc, so probe /health with node (global fetch).
-# /health is a plain GET returning 200 once Nest has initialised (see main.ts).
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD ["node", "-e", "fetch('http://localhost:8000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+# Healthcheck disabled on request — no container-level probe. External
+# orchestrators should probe GET /health (200 once Nest has initialised).
+HEALTHCHECK NONE
 CMD ["dist/main"]
