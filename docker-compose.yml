@@ -110,7 +110,11 @@ services:
       - ROCKY_DOMAIN=${ROCKY_DOMAIN:-tehno.party}
       # SSR: Next.js server calls the API via the SAME single HTTPS route the
       # browser uses (NEXT_PUBLIC_API_URL). One trpc route to the server.
-      - API_URL=${WEB_PUBLIC_API_URL:-https://api.${ROCKY_DOMAIN:-tehno.party}}
+      # Server-side SSR proxy target - Docker network (NOT localhost: the web
+      # container is isolated; the api is reachable by service name on iotn-network
+      # at its container port 8000). Do NOT use the public domain here: that would
+      # hairpin every request out through Cloudflare and back.
+      - API_URL=http://api:8000
       # Auth secret (same as API, for server-side session validation)
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       # Public base URL of the auth server (Cloudflare admin domain)
