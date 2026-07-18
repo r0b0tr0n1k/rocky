@@ -14,206 +14,7 @@ import { z } from "zod";
 
 const t = initTRPC.create({ transformer: superjson });
 const publicProcedure = t.procedure;
-import {
-  animalResponseSchema,
-  findAnimalByTagRequestSchema,
-  animalListRequestSchema,
-  animalListResponseSchema,
-  createAnimalRequestSchema,
-  updateAnimalRequestSchema,
-  archiveDocumentResponseSchema,
-  archiveDocumentListRequestSchema,
-  archiveDocumentListResponseSchema,
-  createArchiveDocumentRequestSchema,
-  archiveExpiredListResponseSchema,
-  markDestroyedArchiveRequestSchema,
-  archiveInspectionFormRequestSchema,
-  auditListRequestSchema,
-  auditListResponseSchema,
-  correctionResponseSchema,
-  correctionListRequestSchema,
-  correctionListResponseSchema,
-  createCorrectionRequestSchema,
-  reviewCorrectionRequestSchema,
-  resolveCorrectionRequestSchema,
-  escalateCorrectionRequestSchema,
-  rejectCorrectionRequestSchema,
-  pdaDeviceResponseSchema,
-  pdaDeviceListRequestSchema,
-  pdaDeviceListResponseSchema,
-  createPdaDeviceRequestSchema,
-  updatePdaDeviceRequestSchema,
-  assignDeviceUserRequestSchema,
-  recordSyncRequestSchema,
-  registerFailedAttemptDeviceRequestSchema,
-  pdaDeviceBlockedResponseSchema,
-  unblockDeviceRequestSchema,
-  documentGenerateRequestSchema,
-  documentResponseSchema,
-  documentVerifyRequestSchema,
-  documentVerifyResponseSchema,
-  documentCredentialRequestSchema,
-  documentCredentialResponseSchema,
-  credentialBatchRequestSchema,
-  credentialBatchResponseSchema,
-  documentCredentialVerifyRequestSchema,
-  documentCredentialVerifyResponseSchema,
-  documentStatusListResponseSchema,
-  earTagResponseSchema,
-  earTagListRequestSchema,
-  earTagListResponseSchema,
-  earTagTypeResponseSchema,
-  earTagOrderResponseSchema,
-  orderListRequestSchema,
-  earTagOrderListResponseSchema,
-  generateTagNumbersRequestSchema,
-  generateTagNumbersResponseSchema,
-  orderStatusTransitionSchema,
-  collectOrderTagsRequestSchema,
-  createDuplicateOrderRequestSchema,
-  createOrderRequestSchema,
-  updateOrderRequestSchema,
-  cancelOrderRequestSchema,
-  cancelOrderItemRequestSchema,
-  appendToOrderRequestSchema,
-  assignSupplierContingentRequestSchema,
-  getTakeoverFileRequestSchema,
-  takeoverFileResponseSchema,
-  farmBookResponseSchema,
-  createFarmBookRequestSchema,
-  updateFarmBookStatusRequestSchema,
-  farmResponseSchema,
-  farmListRequestSchema,
-  farmListResponseSchema,
-  createFarmRequestSchema,
-  updateFarmRequestSchema,
-  geofenceResponseSchema,
-  geofenceEventResponseSchema,
-  createGeofenceRequestSchema,
-  logGeofenceEventRequestSchema,
-  settlementResponseSchema,
-  declareDiseaseZoneRequestSchema,
-  diseaseZoneListResponseSchema,
-  diseaseResponseSchema,
-  diseaseListRequestSchema,
-  diseaseListResponseSchema,
-  createDiseaseRequestSchema,
-  updateDiseaseRequestSchema,
-  vaccineResponseSchema,
-  vaccineListRequestSchema,
-  vaccineListResponseSchema,
-  createVaccineRequestSchema,
-  createVaccineBatchRequestSchema,
-  vaccineBatchResponseSchema,
-  vaccinationResponseSchema,
-  vaccinationListRequestSchema,
-  vaccinationListResponseSchema,
-  recordVaccinationRequestSchema,
-  treatmentResponseSchema,
-  treatmentListRequestSchema,
-  treatmentListResponseSchema,
-  recordTreatmentRequestSchema,
-  vaccineBatchListResponseSchema,
-  labTestResponseSchema,
-  labTestListRequestSchema,
-  labTestListResponseSchema,
-  recordLabTestRequestSchema,
-  vaccineDiseaseListResponseSchema,
-  linkVaccineDiseaseRequestSchema,
-  vaccineDiseaseResponseSchema,
-  unlinkVaccineDiseaseRequestSchema,
-  vaccineDiseaseUnlinkResponseSchema,
-  inspectionResponseSchema,
-  inspectionListRequestSchema,
-  inspectionListResponseSchema,
-  createInspectionRequestSchema,
-  scheduleInspectionRequestSchema,
-  completeInspectionRequestSchema,
-  printInspectionFormRequestSchema,
-  riskAnalysisListResponseSchema,
-  riskAnalysisRunResponseSchema,
-  registerDeviceRequestSchema,
-  iotDeviceResponseSchema,
-  listDevicesRequestSchema,
-  iotDeviceListResponseSchema,
-  ingestReadingRequestSchema,
-  sensorReadingResponseSchema,
-  listReadingsRequestSchema,
-  sensorReadingListResponseSchema,
-  moduleListRequestSchema,
-  moduleListResponseSchema,
-  moduleResponseSchema,
-  updateModuleSchema,
-  movementResponseSchema,
-  lineageRequestSchema,
-  lineageGraphSchema,
-  movementListRequestSchema,
-  movementListResponseSchema,
-  eudrDueDiligenceRequestSchema,
-  eudrDueDiligenceResponseSchema,
-  diseaseZoneCheckRequestSchema,
-  diseaseZoneCheckResponseSchema,
-  createMovementRequestSchema,
-  recordDeathRequestSchema,
-  declarePastureRequestSchema,
-  declareAlpineRequestSchema,
-  returnFromAlpineRequestSchema,
-  recordSlaughterRequestSchema,
-  importEURequestSchema,
-  importThirdCountryRequestSchema,
-  exportAnimalRequestSchema,
-  recordMarketTransactionRequestSchema,
-  recordMarketUnsoldRequestSchema,
-  recordMarketSlaughterRequestSchema,
-  notificationListRequestSchema,
-  notificationOutputSchema,
-  sendNotificationSchema,
-  markAsReadSchema,
-  confirmDeliverySchema,
-  registerDeviceSchema,
-  organizationResponseSchema,
-  organizationSummarySchema,
-  createOrganizationRequestSchema,
-  passportResponseSchema,
-  passportListRequestSchema,
-  passportListResponseSchema,
-  issuePassportRequestSchema,
-  shipToVsPassportRequestSchema,
-  deliverToKeeperPassportRequestSchema,
-  seizePassportRequestSchema,
-  reprintPassportRequestSchema,
-  roleResponseSchema,
-  roleWithPermissionsResponseSchema,
-  permissionResponseSchema,
-  assignRoleToUserRequestSchema,
-  revokeRoleFromUserRequestSchema,
-  subjectResponseSchema,
-  subjectSummarySchema,
-  createSubjectRequestSchema,
-  updateSubjectRequestSchema,
-  bindSubjectToFarmRequestSchema,
-  farmSubjectBindingResponseSchema,
-  unbindSubjectFromFarmRequestSchema,
-  syncDownloadRequestSchema,
-  syncDownloadResponseSchema,
-  syncUploadRequestSchema,
-  syncUploadResponseSchema,
-  systemParameterListRequestSchema,
-  systemParameterListResponseSchema,
-  systemParameterResponseSchema,
-  updateSystemParameterSchema,
-  userResponseSchema,
-  userListRequestSchema,
-  userSummarySchema,
-  createUserRequestSchema,
-  updateUserRequestSchema,
-  vsAssignmentResponseSchema,
-  createVsAssignmentRequestSchema,
-  updateVsAssignmentRequestSchema,
-  vsContractResponseSchema,
-  createVsContractRequestSchema,
-  updateVsContractStatusRequestSchema,
-} from "@rocky/validators/api/index.js";
+import { animalResponseSchema, findAnimalByTagRequestSchema, animalListRequestSchema, animalListResponseSchema, createAnimalRequestSchema, updateAnimalRequestSchema, archiveDocumentResponseSchema, archiveDocumentListRequestSchema, archiveDocumentListResponseSchema, createArchiveDocumentRequestSchema, archiveExpiredListResponseSchema, markDestroyedArchiveRequestSchema, archiveInspectionFormRequestSchema, auditListRequestSchema, auditListResponseSchema, correctionResponseSchema, correctionListRequestSchema, correctionListResponseSchema, createCorrectionRequestSchema, reviewCorrectionRequestSchema, resolveCorrectionRequestSchema, escalateCorrectionRequestSchema, rejectCorrectionRequestSchema, pdaDeviceResponseSchema, pdaDeviceListRequestSchema, pdaDeviceListResponseSchema, createPdaDeviceRequestSchema, updatePdaDeviceRequestSchema, assignDeviceUserRequestSchema, recordSyncRequestSchema, registerFailedAttemptDeviceRequestSchema, pdaDeviceBlockedResponseSchema, unblockDeviceRequestSchema, documentGenerateRequestSchema, documentResponseSchema, documentVerifyRequestSchema, documentVerifyResponseSchema, documentCredentialRequestSchema, documentCredentialResponseSchema, credentialBatchRequestSchema, credentialBatchResponseSchema, documentCredentialVerifyRequestSchema, documentCredentialVerifyResponseSchema, documentStatusListResponseSchema, earTagResponseSchema, earTagListRequestSchema, earTagListResponseSchema, earTagTypeResponseSchema, earTagOrderResponseSchema, orderListRequestSchema, earTagOrderListResponseSchema, generateTagNumbersRequestSchema, generateTagNumbersResponseSchema, orderStatusTransitionSchema, collectOrderTagsRequestSchema, createDuplicateOrderRequestSchema, createOrderRequestSchema, updateOrderRequestSchema, cancelOrderRequestSchema, cancelOrderItemRequestSchema, appendToOrderRequestSchema, assignSupplierContingentRequestSchema, getTakeoverFileRequestSchema, takeoverFileResponseSchema, farmBookResponseSchema, createFarmBookRequestSchema, updateFarmBookStatusRequestSchema, farmResponseSchema, farmListRequestSchema, farmListResponseSchema, createFarmRequestSchema, updateFarmRequestSchema, geofenceResponseSchema, geofenceEventResponseSchema, createGeofenceRequestSchema, logGeofenceEventRequestSchema, settlementResponseSchema, declareDiseaseZoneRequestSchema, diseaseZoneListResponseSchema, diseaseResponseSchema, diseaseListRequestSchema, diseaseListResponseSchema, createDiseaseRequestSchema, updateDiseaseRequestSchema, vaccineResponseSchema, vaccineListRequestSchema, vaccineListResponseSchema, createVaccineRequestSchema, createVaccineBatchRequestSchema, vaccineBatchResponseSchema, vaccinationResponseSchema, vaccinationListRequestSchema, vaccinationListResponseSchema, recordVaccinationRequestSchema, treatmentResponseSchema, treatmentListRequestSchema, treatmentListResponseSchema, recordTreatmentRequestSchema, vaccineBatchListResponseSchema, labTestResponseSchema, labTestListRequestSchema, labTestListResponseSchema, recordLabTestRequestSchema, vaccineDiseaseListResponseSchema, linkVaccineDiseaseRequestSchema, vaccineDiseaseResponseSchema, unlinkVaccineDiseaseRequestSchema, vaccineDiseaseUnlinkResponseSchema, inspectionResponseSchema, inspectionListRequestSchema, inspectionListResponseSchema, createInspectionRequestSchema, scheduleInspectionRequestSchema, completeInspectionRequestSchema, printInspectionFormRequestSchema, riskAnalysisListResponseSchema, riskAnalysisRunResponseSchema, registerDeviceRequestSchema, iotDeviceResponseSchema, listDevicesRequestSchema, iotDeviceListResponseSchema, ingestReadingRequestSchema, sensorReadingResponseSchema, listReadingsRequestSchema, sensorReadingListResponseSchema, moduleListRequestSchema, moduleListResponseSchema, moduleResponseSchema, updateModuleSchema, movementResponseSchema, lineageRequestSchema, lineageGraphSchema, movementListRequestSchema, movementListResponseSchema, eudrDueDiligenceRequestSchema, eudrDueDiligenceResponseSchema, diseaseZoneCheckRequestSchema, diseaseZoneCheckResponseSchema, createMovementRequestSchema, recordDeathRequestSchema, declarePastureRequestSchema, declareAlpineRequestSchema, returnFromAlpineRequestSchema, recordSlaughterRequestSchema, importEURequestSchema, importThirdCountryRequestSchema, exportAnimalRequestSchema, recordMarketTransactionRequestSchema, recordMarketUnsoldRequestSchema, recordMarketSlaughterRequestSchema, notificationListRequestSchema, notificationOutputSchema, sendNotificationSchema, markAsReadSchema, confirmDeliverySchema, registerDeviceSchema, organizationResponseSchema, organizationSummarySchema, createOrganizationRequestSchema, passportResponseSchema, passportListRequestSchema, passportListResponseSchema, issuePassportRequestSchema, shipToVsPassportRequestSchema, deliverToKeeperPassportRequestSchema, seizePassportRequestSchema, reprintPassportRequestSchema, roleResponseSchema, roleWithPermissionsResponseSchema, permissionResponseSchema, assignRoleToUserRequestSchema, revokeRoleFromUserRequestSchema, subjectResponseSchema, subjectSummarySchema, createSubjectRequestSchema, updateSubjectRequestSchema, bindSubjectToFarmRequestSchema, farmSubjectBindingResponseSchema, unbindSubjectFromFarmRequestSchema, syncDownloadRequestSchema, syncDownloadResponseSchema, syncUploadRequestSchema, syncUploadResponseSchema, systemParameterListRequestSchema, systemParameterListResponseSchema, systemParameterResponseSchema, updateSystemParameterSchema, userResponseSchema, userListRequestSchema, userSummarySchema, createUserRequestSchema, updateUserRequestSchema, vsAssignmentResponseSchema, createVsAssignmentRequestSchema, updateVsAssignmentRequestSchema, vsContractResponseSchema, createVsContractRequestSchema, updateVsContractStatusRequestSchema } from "@rocky/validators/api/index.js";
 
 export const appRouter = t.router({
   animal: t.router({
@@ -236,8 +37,8 @@ export const appRouter = t.router({
     update: publicProcedure
       .input(updateAnimalRequestSchema)
       .output(animalResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   archive: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
@@ -266,14 +67,14 @@ export const appRouter = t.router({
     archiveInspectionForm: publicProcedure
       .input(archiveInspectionFormRequestSchema)
       .output(archiveDocumentResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   audit: t.router({
     list: publicProcedure
       .input(auditListRequestSchema)
       .output(auditListResponseSchema)
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   correction: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
@@ -302,8 +103,8 @@ export const appRouter = t.router({
     reject: publicProcedure
       .input(rejectCorrectionRequestSchema)
       .output(correctionResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   device: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
@@ -336,8 +137,8 @@ export const appRouter = t.router({
     unblock: publicProcedure
       .input(unblockDeviceRequestSchema)
       .output(pdaDeviceResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   document: t.router({
     generate: publicProcedure
       .input(documentGenerateRequestSchema)
@@ -366,8 +167,8 @@ export const appRouter = t.router({
     statusList: publicProcedure
       .input(z.object({}).optional())
       .output(documentStatusListResponseSchema)
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   earTag: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
@@ -440,8 +241,8 @@ export const appRouter = t.router({
     getTakeoverFile: publicProcedure
       .input(getTakeoverFileRequestSchema)
       .output(takeoverFileResponseSchema)
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   farmBook: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
@@ -458,8 +259,8 @@ export const appRouter = t.router({
     updateStatus: publicProcedure
       .input(z.strictObject({ id: z.uuid(), data: updateFarmBookStatusRequestSchema }))
       .output(farmBookResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   farm: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
@@ -476,8 +277,8 @@ export const appRouter = t.router({
     update: publicProcedure
       .input(z.object({ id: z.uuid() }).extend(updateFarmRequestSchema.shape))
       .output(farmResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   geo: t.router({
     listGeofences: publicProcedure
       .input(z.object({ farmId: z.uuid() }))
@@ -488,15 +289,13 @@ export const appRouter = t.router({
       .output(z.array(geofenceResponseSchema))
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listGeofenceEvents: publicProcedure
-      .input(
-        z.object({
-          animalId: z.uuid().optional(),
-          geofenceId: z.uuid().optional(),
-          farmId: z.uuid().optional(),
-          limit: z.int().min(1).max(1000).default(50),
-          offset: z.int().min(0).default(0),
-        }),
-      )
+      .input(z.object({
+			animalId: z.uuid().optional(),
+			geofenceId: z.uuid().optional(),
+			farmId: z.uuid().optional(),
+			limit: z.int().min(1).max(1000).default(50),
+			offset: z.int().min(0).default(0),
+		}))
       .output(z.array(geofenceEventResponseSchema))
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     createGeofence: publicProcedure
@@ -520,13 +319,11 @@ export const appRouter = t.router({
       .output(z.array(geofenceResponseSchema))
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listDiseaseZones: publicProcedure
-      .input(
-        z.object({
-          farmId: z.uuid().optional(),
-          limit: z.int().min(1).max(1000).default(50),
-          offset: z.int().min(0).default(0),
-        }),
-      )
+      .input(z.object({
+			farmId: z.uuid().optional(),
+			limit: z.int().min(1).max(1000).default(50),
+			offset: z.int().min(0).default(0),
+		}))
       .output(diseaseZoneListResponseSchema)
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     findGeofencesForAnimalPastures: publicProcedure
@@ -542,113 +339,93 @@ export const appRouter = t.router({
       .output(z.array(geofenceResponseSchema))
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     forwardGeocode: publicProcedure
-      .input(
-        z.object({
-          query: z.string(),
-          language: z.string().optional(),
-          limit: z.int().optional(),
-          proximity: z.array(z.number()).length(2).optional(),
-          bbox: z.array(z.number()).optional(),
-          country: z.array(z.string()).optional(),
-        }),
-      )
-      .output(
-        z.object({
-          features: z.array(
-            z.object({
-              id: z.string(),
-              name: z.string(),
-              placeName: z.string(),
-              center: z.tuple([z.number(), z.number()]),
-              relevance: z.number(),
-              placeType: z.array(z.string()),
-              countryCode: z.string().optional(),
-              bbox: z.array(z.number()).optional(),
-            }),
-          ),
-          attribution: z.string(),
-        }),
-      )
+      .input(z.object({
+			query: z.string(),
+			language: z.string().optional(),
+			limit: z.int().optional(),
+			proximity: z.array(z.number()).length(2).optional(),
+			bbox: z.array(z.number()).optional(),
+			country: z.array(z.string()).optional(),
+		}))
+      .output(z.object({
+	features: z.array(z.object({
+	id: z.string(),
+	name: z.string(),
+	placeName: z.string(),
+	center: z.tuple([z.number(), z.number()]),
+	relevance: z.number(),
+	placeType: z.array(z.string()),
+	countryCode: z.string().optional(),
+	bbox: z.array(z.number()).optional(),
+})),
+	attribution: z.string(),
+}))
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     reverseGeocode: publicProcedure
       .input(z.object({ lng: z.number(), lat: z.number(), language: z.string().optional(), limit: z.int().optional() }))
-      .output(
-        z.object({
-          features: z.array(
-            z.object({
-              id: z.string(),
-              name: z.string(),
-              placeName: z.string(),
-              center: z.tuple([z.number(), z.number()]),
-              relevance: z.number(),
-              placeType: z.array(z.string()),
-              countryCode: z.string().optional(),
-              bbox: z.array(z.number()).optional(),
-            }),
-          ),
-          attribution: z.string(),
-        }),
-      )
+      .output(z.object({
+	features: z.array(z.object({
+	id: z.string(),
+	name: z.string(),
+	placeName: z.string(),
+	center: z.tuple([z.number(), z.number()]),
+	relevance: z.number(),
+	placeType: z.array(z.string()),
+	countryCode: z.string().optional(),
+	bbox: z.array(z.number()).optional(),
+})),
+	attribution: z.string(),
+}))
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     staticMapUrl: publicProcedure
-      .input(
-        z.object({
-          mode: z.enum(["centered", "bounded", "automatic"]),
-          center: z.array(z.number()).length(2).optional(),
-          zoom: z.number().optional(),
-          bbox: z.array(z.number()).optional(),
-          width: z.number().optional(),
-          height: z.number().optional(),
-          hiDPI: z.boolean().optional(),
-          style: z.string().optional(),
-          path: z.array(z.array(z.number())).optional(),
-          marker: z.array(z.tuple([z.number(), z.number(), z.string()])).optional(),
-          pathStrokeColor: z.string().optional(),
-        }),
-      )
+      .input(z.object({
+			mode: z.enum(["centered", "bounded", "automatic"]),
+			center: z.array(z.number()).length(2).optional(),
+			zoom: z.number().optional(),
+			bbox: z.array(z.number()).optional(),
+			width: z.number().optional(),
+			height: z.number().optional(),
+			hiDPI: z.boolean().optional(),
+			style: z.string().optional(),
+			path: z.array(z.array(z.number())).optional(),
+			marker: z.array(z.tuple([z.number(), z.number(), z.string()])).optional(),
+			pathStrokeColor: z.string().optional(),
+		}))
       .output(z.string())
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     geolocation: publicProcedure
       .input(z.object({}))
-      .output(
-        z.object({
-          country: z.string().optional(),
-          countryCode: z.string().optional(),
-          city: z.string().optional(),
-          latitude: z.number().optional(),
-          longitude: z.number().optional(),
-          eu: z.boolean().optional(),
-        }),
-      )
+      .output(z.object({
+	country: z.string().optional(),
+	countryCode: z.string().optional(),
+	city: z.string().optional(),
+	latitude: z.number().optional(),
+	longitude: z.number().optional(),
+	eu: z.boolean().optional(),
+}))
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     assessDeforestation: publicProcedure
       .input(z.object({ geofenceId: z.uuid(), cutoffYear: z.number().int() }))
-      .output(
-        z.object({
-          geofenceId: z.string(),
-          source: z.enum(["sentinel2_ndvi", "land_cover_2020", "hansen_gfc"]),
-          cutoffYear: z.number(),
-          totalPixels: z.number(),
-          deforestedPixels: z.number(),
-          deforestationFreeSince: z.date().nullable(),
-          compliant: z.boolean(),
-        }),
-      )
+      .output(z.object({
+	geofenceId: z.string(),
+	source: z.enum(["sentinel2_ndvi", "land_cover_2020", "hansen_gfc"]),
+	cutoffYear: z.number(),
+	totalPixels: z.number(),
+	deforestedPixels: z.number(),
+	deforestationFreeSince: z.date().nullable(),
+	compliant: z.boolean(),
+}))
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     forestLayer: publicProcedure
       .input(z.object({ farmId: z.uuid(), cutoffYear: z.number().int().optional() }))
-      .output(
-        z.array(
-          z.object({
-            id: z.string(),
-            geometry: z.unknown(),
-            kind: z.enum(["geofence", "disease_zone", "deforested", "compliant"]).or(z.string()),
-            properties: z.record(z.string(), z.unknown()).optional(),
-          }),
-        ),
-      )
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .output(z.array(z.object({
+	id: z.string(),
+	geometry: z.unknown(),
+	kind: z.enum(["geofence", "disease_zone", "deforested", "compliant"]).or(z.string()),
+	properties: z.record(z.string(), z.unknown()).optional(),
+})))
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   health: t.router({
     getDisease: publicProcedure
       .input(z.object({ id: z.uuid() }))
@@ -707,13 +484,11 @@ export const appRouter = t.router({
       .output(treatmentResponseSchema)
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listBatches: publicProcedure
-      .input(
-        z.strictObject({
-          vaccineId: z.uuid().optional(),
-          limit: z.int().min(1).max(100).default(20),
-          offset: z.int().min(0).default(0),
-        }),
-      )
+      .input(z.strictObject({
+      vaccineId: z.uuid().optional(),
+      limit: z.int().min(1).max(100).default(20),
+      offset: z.int().min(0).default(0),
+    }))
       .output(vaccineBatchListResponseSchema)
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getLabTest: publicProcedure
@@ -739,8 +514,8 @@ export const appRouter = t.router({
     unlinkVaccineDisease: publicProcedure
       .input(unlinkVaccineDiseaseRequestSchema)
       .output(vaccineDiseaseUnlinkResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   inspection: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
@@ -767,27 +542,23 @@ export const appRouter = t.router({
       .output(z.any())
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listRiskAnalyses: publicProcedure
-      .input(
-        z.object({
-          year: z.int().optional(),
-          status: z.string().optional(),
-          limit: z.int().min(1).max(100).default(20),
-          offset: z.int().min(0).default(0),
-        }),
-      )
+      .input(z.object({
+      year: z.int().optional(),
+      status: z.string().optional(),
+      limit: z.int().min(1).max(100).default(20),
+      offset: z.int().min(0).default(0),
+    }))
       .output(riskAnalysisListResponseSchema)
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     runRiskAnalysis: publicProcedure
-      .input(
-        z.object({
-          year: z.int(),
-          quarter: z.string().optional(),
-          selectionPercentage: z.int().min(1).max(100).optional(),
-        }),
-      )
+      .input(z.object({
+      year: z.int(),
+      quarter: z.string().optional(),
+      selectionPercentage: z.int().min(1).max(100).optional(),
+    }))
       .output(riskAnalysisRunResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   iot: t.router({
     registerDevice: publicProcedure
       .input(registerDeviceRequestSchema)
@@ -812,8 +583,8 @@ export const appRouter = t.router({
     listReadings: publicProcedure
       .input(listReadingsRequestSchema)
       .output(sensorReadingListResponseSchema)
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   modules: t.router({
     list: publicProcedure
       .input(moduleListRequestSchema)
@@ -822,8 +593,8 @@ export const appRouter = t.router({
     update: publicProcedure
       .input(z.strictObject({ id: z.uuid(), data: updateModuleSchema }))
       .output(moduleResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   movement: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
@@ -892,8 +663,8 @@ export const appRouter = t.router({
     recordMarketSlaughter: publicProcedure
       .input(recordMarketSlaughterRequestSchema)
       .output(movementResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   notification: t.router({
     unreadCount: publicProcedure
       .output(z.object({ count: z.number() }))
@@ -917,8 +688,8 @@ export const appRouter = t.router({
     registerDevice: publicProcedure
       .input(registerDeviceSchema)
       .output(z.object({ ok: z.literal(true) }))
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   organization: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
@@ -934,8 +705,8 @@ export const appRouter = t.router({
     create: publicProcedure
       .input(createOrganizationRequestSchema)
       .output(organizationResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   passport: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
@@ -964,8 +735,8 @@ export const appRouter = t.router({
     reprint: publicProcedure
       .input(reprintPassportRequestSchema)
       .output(passportResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   rbac: t.router({
     listRoles: publicProcedure
       .output(z.array(roleResponseSchema))
@@ -986,27 +757,23 @@ export const appRouter = t.router({
       .output(z.object({ revoked: z.boolean() }))
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     myPermissions: publicProcedure
-      .output(
-        z.object({
-          permissions: z.array(z.string()),
-          roles: z.array(z.string()),
-        }),
-      )
-      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .output(z.object({
+  permissions: z.array(z.string()),
+  roles: z.array(z.string()),
+}))
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   subject: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
       .output(subjectResponseSchema)
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     search: publicProcedure
-      .input(
-        z.object({
-          q: z.string().min(1),
-          limit: z.int().min(1).max(100).default(20),
-          offset: z.int().min(0).default(0),
-        }),
-      )
+      .input(z.object({
+  q: z.string().min(1),
+  limit: z.int().min(1).max(100).default(20),
+  offset: z.int().min(0).default(0),
+}))
       .output(z.object({ data: z.array(subjectSummarySchema), total: z.number() }))
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     create: publicProcedure
@@ -1024,8 +791,8 @@ export const appRouter = t.router({
     unbindFromFarm: publicProcedure
       .input(unbindSubjectFromFarmRequestSchema)
       .output(z.object({ deleted: z.boolean() }))
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   sync: t.router({
     syncDownload: publicProcedure
       .input(syncDownloadRequestSchema)
@@ -1034,8 +801,8 @@ export const appRouter = t.router({
     syncUpload: publicProcedure
       .input(syncUploadRequestSchema)
       .output(syncUploadResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   systemParameters: t.router({
     list: publicProcedure
       .input(systemParameterListRequestSchema)
@@ -1044,8 +811,8 @@ export const appRouter = t.router({
     update: publicProcedure
       .input(z.strictObject({ code: z.string(), data: updateSystemParameterSchema }))
       .output(systemParameterResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   user: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
@@ -1062,8 +829,8 @@ export const appRouter = t.router({
     update: publicProcedure
       .input(z.object({ id: z.uuid() }).extend(updateUserRequestSchema.shape))
       .output(userResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   vsAssignment: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
@@ -1088,8 +855,8 @@ export const appRouter = t.router({
     unassign: publicProcedure
       .input(z.strictObject({ id: z.uuid(), data: updateVsAssignmentRequestSchema }))
       .output(vsAssignmentResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
   vsContract: t.router({
     getById: publicProcedure
       .input(z.object({ id: z.uuid() }))
@@ -1110,8 +877,8 @@ export const appRouter = t.router({
     updateStatus: publicProcedure
       .input(z.strictObject({ id: z.uuid(), data: updateVsContractStatusRequestSchema }))
       .output(vsContractResponseSchema)
-      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    })
 });
 
 export type AppRouter = typeof appRouter;
