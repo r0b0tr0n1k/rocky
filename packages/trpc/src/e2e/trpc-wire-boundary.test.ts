@@ -25,8 +25,8 @@ describe("tRPC <-> Zod wire boundary (input enforcement)", () => {
   });
 
   it("rejects an unknown enum value at the wire (movement.recordDeath)", async () => {
-    await expect(
-      caller.movement.recordDeath({ animalId: "not-a-uuid", cause: "NOPE" } as any),
-    ).rejects.toThrow(TRPCError);
+    await expect(caller.movement.recordDeath({ animalId: "not-a-uuid", cause: "NOPE" } as any)).rejects.toThrow(
+      TRPCError,
+    );
   });
 });

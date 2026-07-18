@@ -45,16 +45,15 @@ describe("tRPC wire boundary — every procedure (input enforcement)", () => {
     it(`accepts derived-good input: ${path}`, () => {
       const input = buildInput(routerAlias, parser);
       const parsed = parser.safeParse(input);
-      expect(
-        parsed.success,
-        `walker-derived input invalid for ${path}: ${JSON.stringify((parsed as any).error)}`,
-      ).toBe(true);
+      expect(parsed.success, `walker-derived input invalid for ${path}: ${JSON.stringify((parsed as any).error)}`).toBe(
+        true,
+      );
     });
 
     const neg = negativeFor(parser);
     if (neg.badKey !== "") {
       it(`rejects corrupted input: ${path}`, async () => {
-        const fn = ((caller as any)[routerAlias][method] as (i: unknown) => Promise<unknown>);
+        const fn = (caller as any)[routerAlias][method] as (i: unknown) => Promise<unknown>;
         await expect(fn(neg.input)).rejects.toThrow(TRPCError);
       });
     }
