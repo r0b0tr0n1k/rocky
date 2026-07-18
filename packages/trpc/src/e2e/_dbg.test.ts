@@ -1,5 +1,5 @@
 import { describe, it } from "vitest";
-import { appRouter } from "../index.js";
+import { appRouter } from "../generated/server.js";
 import { writeFileSync } from "node:fs";
 
 // biome-ignore-all lint/suspicious/noExplicitAny: debug only

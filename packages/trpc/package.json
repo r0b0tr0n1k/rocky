@@ -27,10 +27,6 @@
       "types": "./dist/unwrap.d.ts",
       "default": "./dist/unwrap.js"
     },
-    "./generated": {
-      "types": "./dist/generated/server.d.ts",
-      "default": "./dist/generated/server.js"
-    },
     "./*": {
       "types": "./dist/*.d.ts",
       "default": "./dist/*.js"

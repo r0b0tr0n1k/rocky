@@ -3,4 +3,3 @@ export { superjson, transformer } from "./superjson.js";
 export { createResultUnwrapper, toAppError } from "./unwrap.js";
 export { clientCan } from "./client-can.js";
 export type { AppRouter } from "./generated/server.js";
-export { appRouter } from "./generated/server.js";

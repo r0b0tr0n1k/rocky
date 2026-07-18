@@ -17,7 +17,7 @@
 
 import { describe, expect, it } from "vitest";
 import { TRPCError } from "@trpc/server";
-import { appRouter } from "../index.js";
+import { appRouter } from "../generated/server.js";
 import { buildInput } from "./input-builder.js";
 import { negativeFor } from "./schema-walker.js";
 

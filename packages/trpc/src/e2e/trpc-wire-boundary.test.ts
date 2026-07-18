@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { TRPCError } from "@trpc/server";
-import { appRouter } from "../index.js";
+import { appRouter } from "../generated/server.js";
 
 // ── tRPC <-> Zod wire boundary ──
 // The generated `appRouter` carries PLACEHOLDER resolvers (type-inference only);
