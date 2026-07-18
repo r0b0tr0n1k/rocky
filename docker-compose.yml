@@ -101,6 +101,10 @@ services:
       args:
         # Inlined at build (browser). Defaults to the Cloudflare api domain.
         - NEXT_PUBLIC_API_URL=${WEB_PUBLIC_API_URL:-https://api.${ROCKY_DOMAIN:-tehno.party}}
+        # SSR proxy target, baked into the image at build time. Internal Docker
+        # address (service name + container port) - the web container reaches the
+        # api directly over iotn-network, never via localhost/host-published port.
+        - API_URL=http://api:8000
     ports:
       - "3050:3000"
     environment:

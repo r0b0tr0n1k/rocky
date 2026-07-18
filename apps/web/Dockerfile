@@ -13,14 +13,21 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
 FROM deps AS build
 ARG NEXT_PUBLIC_API_URL=http://localhost:8080
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+# SSR proxy target - baked into the image at build time. Internal Docker address
+# (service name + container port) so the web container reaches the api directly
+# over iotn-network, not via localhost or the host-published port.
+ARG API_URL=http://api:8000
+ENV API_URL=${API_URL}
 RUN pnpm -r --filter web... build
 # ---- runtime
 FROM node:24-slim AS runtime
 WORKDIR /app
+ARG API_URL=http://api:8000
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     HOSTNAME=0.0.0.0 \
-    PORT=3000
+    PORT=3000 \
+    API_URL=${API_URL}
 RUN addgroup --system nodejs && adduser --system --ingroup nodejs appuser
 COPY --from=build --chown=appuser:nodejs /app/apps/web/.next/standalone ./
 COPY --from=build --chown=appuser:nodejs /app/apps/web/.next/static ./apps/web/.next/static
