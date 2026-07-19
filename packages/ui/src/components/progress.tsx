@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import type * as React from "react"
 import { Progress as ProgressPrimitive } from "radix-ui"
 
 import { cn } from "#lib/utils"
@@ -10,6 +10,7 @@ function Progress({
   value,
   ...props
 }: React.ComponentProps<typeof ProgressPrimitive.Root>) {
+  const valueText = props["aria-valuetext"] ?? (value != null ? `${value}% complete` : undefined);
   return (
     <ProgressPrimitive.Root
       data-slot="progress"
@@ -18,6 +19,7 @@ function Progress({
         className
       )}
       {...props}
+      aria-valuetext={valueText}
     >
       <ProgressPrimitive.Indicator
         data-slot="progress-indicator"
