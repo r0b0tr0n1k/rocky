@@ -3,29 +3,35 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 const AUTH_PATHS = ["/auth/sign-in", "/auth/sign-up", "/auth/forgot-password"];
+// Same default as next.config.ts rewrites (API_URL). Reaches Better Auth's
+// get-session endpoint on the NestJS host.
+const API_URL = process.env.API_URL ?? "http://localhost:8080";
 
 /**
- * Minimum structural check: a valid better-auth session token looks like
- * `<sessionId>.<signature>` with the signature being a 64-char hex.
- * We require at least 32 chars and a dot to reject obvious junk (e.g. "1").
- *
- * This is NOT a security check — it's a UX redirect. Authoritative auth
- * is enforced by the API backend on every request.
+ * Authoritative session check against the Better Auth host (the Superego at
+ * the edge). Replaces the previous structural cookie sniff: a revoked or
+ * expired token is now rejected BEFORE the React tree renders -- no flicker
+ * of the Imaginary. Authoritative RBAC is still enforced by the API.
  */
-function looksLikeSessionToken(value: string | undefined): boolean {
-  if (!value || value.length < 32) return false;
-  const dot = value.indexOf(".");
-  if (dot === -1) return false;
-  return dot > 0 && dot < value.length - 1;
+async function hasValidSession(request: NextRequest): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_URL}/api/auth/get-session`, {
+      headers: { cookie: request.headers.get("cookie") ?? "" },
+      cache: "no-store",
+    });
+    if (!res.ok) return false;
+    const data = (await res.json()) as { session?: unknown };
+    return Boolean(data.session);
+  } catch {
+    return false;
+  }
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  // Resolve the better-auth session cookie via its helper (correct cookie
-  // name, as configured) rather than a hard-coded name. This folds in the
-  // guard previously in middleware.ts, which Next.js 16 replaces with proxy.ts.
+  // Cheap fast-path: no cookie at all => not authenticated (skip the fetch).
   const sessionCookie = getSessionCookie(request, { cookiePrefix: "rocky" });
-  const isAuthenticated = looksLikeSessionToken(sessionCookie ?? undefined);
+  const isAuthenticated = sessionCookie ? await hasValidSession(request) : false;
 
   // Redirect unauthenticated users away from protected routes
   const isDashboardRoute =
@@ -44,5 +50,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|trpc|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|trpc|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };

@@ -1,6 +1,5 @@
 import { expoClient } from "@better-auth/expo/client";
-import { createAuthClient } from "better-auth/react";
-import { adminClient, organizationClient, twoFactorClient } from "better-auth/client/plugins";
+import { createRockyAuthClient } from "@rocky/auth/client";
 import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
@@ -22,13 +21,12 @@ const cfFetchOptions = (() => {
   };
 })();
 
-export const authClient = createAuthClient({
+export const authClient = createRockyAuthClient({
   baseURL: process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8080",
   fetchOptions: cfFetchOptions,
+  // React Native: bypass better-auth's default redirect plugin (docs rec).
+  disableDefaultFetchPlugins: true,
   plugins: [
-    adminClient(),
-    organizationClient({ dynamicAccessControl: { enabled: true } }),
-    twoFactorClient(),
     ...(Platform.OS !== "web"
       ? [
           expoClient({

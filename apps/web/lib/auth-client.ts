@@ -10,15 +10,13 @@
 // fetch resource". Going same-origin through the proxy removes that footgun entirely.
 // SSR (no window) falls back to the direct API URL.
 
-import { createAuthClient } from "better-auth/react";
-import { adminClient, organizationClient, twoFactorClient } from "better-auth/client/plugins";
+import { createRockyAuthClient } from "@rocky/auth/client";
 
 const _baseURL =
   typeof window !== "undefined" ? window.location.origin : (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080");
 
-export const authClient = createAuthClient({
-  plugins: [adminClient(), organizationClient({ dynamicAccessControl: { enabled: true } }), twoFactorClient()],
-  baseURL: _baseURL,
-});
+// Identity-only client (ADR-0021): no org/2FA plugins -- those belong to
+// @rocky/authorization's RBAC pipeline, not Better Auth's plugin surface.
+export const authClient = createRockyAuthClient({ baseURL: _baseURL });
 
 export const { signIn, signOut, signUp, useSession, getSession } = authClient;
