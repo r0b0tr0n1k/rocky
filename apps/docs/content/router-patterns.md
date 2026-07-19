@@ -34,7 +34,7 @@ The Router does **not** think. It does **not** decide. It does **not** contain b
 
 **Diamond Seal position:** Layer 5 (Application Layer) — between Frontend (L6) and Domain Services (L4).
 
-**Related panopticon rules:** `LAW1`, `LAW3I`, `LAW5S`, `LAW19B`, `law30` (NAPI: force `z.strictObject()` in api/ and events/ validators)
+**Related Panopticon rules:** `LAW1`, `LAW3I`, `LAW5S`, `LAW19B`, `LAW4`, `law30` — authoritative definitions and enforcement status are in the [Panopticon Rule Registry](./router-design.md).
 
 **Related documents:** `ROUTER_DESIGN.md` (ideological crimes + canonical blueprint), `result-monad-and-error-sovereignty.md` (Result pattern)
 
@@ -1019,12 +1019,16 @@ export class <Entity>Router {
 
 ## Panopticon Rules Summary
 
-| Rule          | What it Enforces                                                                                                                                           |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `LAW1`       | Import boundaries — routers can only import from `@rocky/validators/*`, `@rocky/domains-*`, `@rocky/trpc`, `@rocky/authorization` (Policy/Public), `@nestjs/common`, `nestjs-trpc`, `@trpc/server` |
-| `LAW3I`   | No hardcoded enum strings — use branded constants                                                                                                          |
-| `LAW5S` | Micro-router line limit — routers ≤200 lines                                                                                                               |
-| `LAW19B`   | Router unwrapping — must use `createResultUnwrapper`, no `result.data` access                                                                              |
+Authoritative source: [Panopticon Rule Registry](./router-design.md). ✅ = machine-enforced, ❌ = convention-only.
+
+| Rule          | What it Enforces                                                                                                                                           | Enforcement |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `LAW1`       | Import boundaries — routers can only import from `@rocky/validators/*`, `@rocky/domains-*`, `@rocky/trpc`, `@rocky/authorization` (Policy/Public), `@nestjs/common`, `nestjs-trpc`, `@trpc/server` | ✅ `check-layers.mjs` (Annex C) |
+| `LAW3I`   | No hardcoded enum strings — use branded constants                                                                                                          | ❌ convention-only |
+| `LAW5S` | Micro-router line limit — routers ≤200 lines                                                                                                               | ❌ convention-only |
+| `LAW19B`   | Router unwrapping — must use `createResultUnwrapper`, no `result.data` access                                                                              | ❌ convention-only |
+| `LAW4`    | Queue discipline                                                                                                                                              | ❌ convention-only |
+| `law30`   | NAPI: force `z.strictObject()` in `api/` and `events/` validators                                                                                        | ❌ convention-only |
 
 ---
 

@@ -11,6 +11,30 @@ This is the **canonical blueprint** for tRPC routers — the "what right looks l
 
 ---
 
+## Panopticon Rule Registry
+
+> **`Panopticon` is the codename for Rocky's standards/guard regime** — the CI guardians
+> (`pnpm ci:checks`) plus the doctrine docs that keep the router/import/error boundaries
+> from silently re-diverging. It is **not** a single tool or package; "`Panopticon LAW*`"
+> is shorthand for a rule whose enforcement lives in one of the real machines below.
+> Where a `LAW*` has no machine yet, it is marked **convention-only** — the symptom
+> returns if the guard is never built.
+
+| `LAW*`  | Rule | Real enforcement |
+| -------- | ----- | ---------------- |
+| `LAW1`  | Router import boundaries — routers may import only from `@rocky/validators/*`, `@rocky/domains-*`, `@rocky/trpc`, `@rocky/authorization` (Policy/Public), `@nestjs/common`, `nestjs-trpc`, `@trpc/server`; **never** `@rocky/database` (any subpath), `/events`, `/integrations` | ✅ `scripts/check-layers.mjs` — Visa Matrix Annex C router row. Run via `pnpm check:layers` (part of `pnpm ci:checks`). |
+| `LAW3I` | No hardcoded enum strings — use branded constants | ❌ convention-only (recommended in `packages/validators/AGENTS.md`; no machine guard yet) |
+| `LAW5S` | Micro-router line limit — routers ≤200 lines | ❌ convention-only (no `max-lines` rule yet) |
+| `LAW19B`| Router unwrapping — must use `createResultUnwrapper`, no `result.data` access | ❌ convention-only (doctrine: `result-monad-and-error-sovereignty.md` §7; not source-scanned by `check-layers`) |
+| `LAW4`  | Queue discipline | ❌ convention-only (`@rocky/execution` design) |
+| `law30` | NAPI: force `z.strictObject()` in `api/` and `events/` validators | ❌ convention-only (recommended in `packages/validators/AGENTS.md`; no lint rule yet) |
+
+The only machine-enforced `LAW*` today is **`LAW1`**. The other five are documented
+intent, not build gates — a future structural scan (extending `check-layers.mjs` or a
+lint rule) would promote them from convention to machine.
+
+---
+
 ## 1. Scope
 
 This blueprint specifies the canonical structure and obligations of tRPC routers in the Rocky `@rocky/*` monorepo. It is the "what right looks like" companion to [Router Patterns & Anti-Patterns](./router-patterns.md) and [Result Monad & Error Sovereignty](./result-monad-and-error-sovereignty.md). It does not cover domain service internals, schema design, or frontend consumption.
