@@ -1,0 +1,123 @@
+---
+title: Use a DESIGN.md Theme
+sidebarTitle: Use a DESIGN.md Theme
+---
+
+# Use a DESIGN.md Theme
+
+How to author, lint, harvest, apply, and **change** a standardized `DESIGN*.md` design system
+in the Rocky docs site (`apps/docs`). This is the operational recipe for
+[ADR-0109](/ADR/0109-design-md-theme-workflow).
+
+> The `DESIGN*.md` files (`DESIGN.sentry.md`, `DESIGN.wise.md`, `DESIGN.vercel.md`,
+> `DESIGN.opencode.md`, `DESIGN.clay.md`, `DESIGN.posthog.md`, `DESIGN.neobrutalsm.md`) are
+> **non-governing visual-token references** — they specify *look*, not *behaviour*. Rocky green
+> (hue 152) stays the primary brand color; a DESIGN system's accent is allowed only as a
+> secondary accent (e.g. the docs banner). See [ADR-0108](/ADR/0108-menu-navigation-ergonomics)
+> for the precedent.
+
+## Author a DESIGN file
+
+A `DESIGN*.md` is a YAML front-matter block (the `@google/design.md` format) describing a design
+system. Keys: `version`, `name`, `description`, `colors`, `typography`, `rounded`, `spacing`,
+`components`. Component entries reference tokens by name:
+
+```yaml
+colors:
+  background: "#0B0710"
+  foreground: "#F4F1F7"
+  primary: "#7C3AED"
+components:
+  Button:
+    backgroundColor: "{colors.primary}"
+    typography: "{typography.button-md}"
+    rounded: "{rounded.md}"
+    padding: "{spacing.md} {spacing.lg}"
+```
+
+> **Token-scale caveat:** scale names differ across files — Sentry uses `xxl` / `section`;
+> Wise uses `2xl` / `3xl`. Read the file you are harvesting from; do not assume a uniform scale.
+
+## Lint it
+
+```bash
+npx @google/design.md lint DESIGN.sentry.md
+```
+
+The linter (not installed in the repo) is fetched on demand via `npx`. It checks `broken-ref`,
+`contrast-ratio`, and `orphaned-tokens`. There is also a convenience script:
+
+```bash
+pnpm --filter docs exec lint:design   # lints every DESIGN*.md at the repo root
+```
+
+## Harvest tokens into the theme
+
+Tokens are **hand-mapped** into `apps/docs/app/theme.css` — there is no automated transform.
+The file uses Tailwind v4 CSS-first tokens:
+
+```css
+:root {
+  --sentry-violet: oklch(0.55 0.22 295);
+  --sentry-violet-deep: oklch(0.42 0.18 295);
+}
+.dark { /* mirror for dark mode */ }
+@theme inline {
+  --color-sentry-violet: var(--sentry-violet);
+}
+@layer base {
+  /* Rocky green stays primary; violet only as a secondary accent (docs banner)
+     — never as primary. Source: `DESIGN.sentry.md`. */
+}
+```
+
+Map only the tokens you actually use. Keep the **green primary** intact; add a DESIGN accent as
+a *secondary* token, never overwrite the primary.
+
+## Apply it
+
+- **Global theme** — `apps/docs/app/layout.tsx` sets the Nextra `<Head color={hue:152}>`
+  (green) and loads the Rubik font via `next/font/google`. Leave the green `color` prop alone.
+- **Component overrides** — `apps/docs/app/mdx-components.tsx` extends the Nextra theme
+  components and adds `Steps` / `Tabs`. Add token-driven overrides there, reusing `@rocky/ui`
+  primitives (satisfy `check:shadcn`).
+
+## Validate
+
+```bash
+pnpm check:md-links   # must report 0 broken
+```
+
+## Cite DESIGN files correctly (link rule)
+
+DESIGN files live at the **repo root, outside `content/`**. In any doc, cite them by
+**inline-code path**, never as a markdown link:
+
+```md
+✅  Harvest tokens from `DESIGN.sentry.md`.
+❌  See [DESIGN](/DESIGN.sentry.md) for tokens.   # fails check:md-links
+```
+
+A real link to a file outside `content/` resolves to a non-existent path and breaks
+`pnpm ci:checks`. Zero internal markdown links to DESIGN files exist today — keep it that way.
+
+## Change an existing theme
+
+1. Edit the source `DESIGN*.md` (or its harvested tokens in `theme.css`).
+2. Re-run `npx @google/design.md lint DESIGN.x.md`.
+3. Re-harvest changed tokens into `app/theme.css`.
+4. Re-run `pnpm check:md-links`.
+5. If the green-primary contract or the citation rule changes, update this how-to **and**
+   [ADR-0109](/ADR/0109-design-md-theme-workflow) in the same commit.
+
+## Hydration warning? Don't edit `layout.tsx`
+
+If `docs:dev` logs a React hydration error mentioning `data-rc-*` / `data-css-hash`, that is a
+**stale `.next` antd-cache phantom** (per `apps/docs/AGENTS.md`) — not a code bug. Fix it by
+purging the cache, not by touching the layout:
+
+```bash
+# stop docs:dev first (Ctrl+C)
+rm -rf apps/docs/.next
+pnpm --filter docs dev
+```

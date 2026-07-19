@@ -35,7 +35,7 @@ No child packages. `scripts/` holds doc-tests:
 
 Docs follow the **Diátaxis** taxonomy (see [ADR-0052](content/ADR/0052-documentation-architecture.md)):
 
-- `content/ADR/` — decision records (51 + this ADR), enforced by `check:adrs`
+- `content/ADR/` — decision records (enforced by `check:adrs`)
 - `content/tutorials/` — learning-oriented onboarding
 - `content/explanation/` — why/how-it-works narratives (the former flat prose links here)
 - `content/how-to/` — task recipes (add router / domain / validator / migration / guardian)
@@ -46,6 +46,7 @@ Docs follow the **Diátaxis** taxonomy (see [ADR-0052](content/ADR/0052-document
 
 - `docs/old/` — legacy Macedonian (MK) veterinary-system specs (`.md` + sibling PDFs); referenced from ADRs by **inline-code path**, never as markdown links (see ADR-0023 / 0030).
 - `docs/reference/` — external **primary-source law, standards, and guidance** (e.g. ESPR Reg (EU) 2024/1781 at `docs/reference/OJ_L_202401781_EN_TXT.pdf`; ISO/IEC 15459 guides + GS1 DPP white papers at `docs/reference/`). Referenced from ADRs by **inline-code path** (so `check:md-links` stays green — a real markdown link to a file outside `content/` would resolve to a non-existent path and fail `ci:checks`); the live Official Journal text is linked via its EUR-Lex ELI as an external `https://` link (also skipped by the guardian).
+- `DESIGN*.md` — standardized design-system specs (`@google/design.md` format: colors/typography/rounded/spacing/components) at the repo root. Referenced from docs/how-to/ADRs by **inline-code path** (e.g. `` `DESIGN.sentry.md` ``), never as markdown links (a real link to a file outside `content/` fails `check:md-links`). They are **non-governing visual-token references** — harvest tokens into `apps/docs/app/theme.css`; Rocky green (hue 152) stays primary. See [ADR-0109](/ADR/0109-design-md-theme-workflow) + [how-to](/how-to/use-design-md-theme).
 
 The root `_meta.ts` groups these via Nextra separators (Learn / Architecture / Build & Operate / Project).
 Every new doc is an asset (ADR-0033 D2); links are guarded by `check:md-links`.
@@ -113,4 +114,4 @@ the green theme. The real praxis is: **delete the cache, not the code.**
 - Docs Bot owns `apps/docs/` (per root Child RobotFarm Index).
 - Doc-tests follow `content/TESTING_DOCTRINE.md`.
 - ADRs are authored as MDX in `content/ADR/` (see ADR-0011 / 0018 / 0019 for architecture).
-- Docs changes keep `pnpm check:adrs` (52/52) and `pnpm check:md-links` (0 broken) green — they run in `pnpm ci:checks` alongside `check:agents`. The repo-wide standard is root `AGENTS.md` §Documentation Discipline; the operating recipes are `how-to/write-an-adr`, `how-to/add-a-doc-page`, `how-to/run-the-guardians`.
+- Docs changes keep `pnpm check:adrs` (109/109) and `pnpm check:md-links` (0 broken) green — they run in `pnpm ci:checks` alongside `check:agents`. The repo-wide standard is root `AGENTS.md` §Documentation Discipline; the operating recipes are `how-to/write-an-adr`, `how-to/add-a-doc-page`, `how-to/run-the-guardians`.

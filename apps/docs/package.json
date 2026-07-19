@@ -12,11 +12,13 @@
     "check-types": "tsc --noEmit",
     "test:doctrine": "node --test scripts/verify-result-doctrine.mjs",
     "test:offline": "TSX_TSCONFIG_PATH=scripts/tsconfig.offline-test.json node --import tsx --test scripts/verify-offline-doctrine.mjs",
-    "test:testing": "node --test scripts/verify-testing-doctrine.mjs"
+    "test:testing": "node --test scripts/verify-testing-doctrine.mjs",
+    "lint:design": "npx @google/design.md lint 'DESIGN*.md'"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
     "@tailwindcss/postcss": "^4.2.4",
+    "@theguild/remark-mermaid": "catalog:",
     "tailwindcss": "catalog:",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
