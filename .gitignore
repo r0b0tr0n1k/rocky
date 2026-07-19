@@ -81,3 +81,4 @@ backups/
 
 # mobile vitest cache
 apps/mob/.vitest-cache/
+temp

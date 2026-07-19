@@ -26,3 +26,9 @@ docker-compose*.yml
 .vscode
 .idea
 .DS_Store
+
+# BuildKit / pnpm cache mounts are ephemeral — never part of the context.
+.pnpm-store
+**/.pnpm-store
+tmp
+**/.turbo
