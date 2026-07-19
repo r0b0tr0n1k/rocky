@@ -96,13 +96,14 @@ Every architecture and documentation decision in this repo is governed by two AD
 
 ### Guardians (enforcement) — `pnpm ci:checks`
 
-`generate:trpc` → `check:trpc-boundary` → `check:adrs` → `check:md-links` → `check:standards` → `check:agents` → `check:layers` → `check:pdfa` → `check:web-parity` → `test`.
+`generate:trpc` → `check:trpc-boundary` → `check:adrs` → `check:md-links` → `check:standards` → `check:agents` → `check:layers` → `check:shadcn` → `check:pdfa` → `check:web-parity` → `test`.
 
 - `check:adrs` — every `NNNN-*.md` in `content/ADR/` conforms to ADR-0033.
 - `check:md-links` — every internal doc link resolves; no `../` escapes.
 - `check:standards` — `scripts/check-standards.mjs`: enforces governing-ADR back-links and other invariants on the standards/compliance layer (`apps/docs/content/compliance/`, `Standardization/`).
 - `check:agents` — every bot declared in the Child RobotFarm Index owns an `AGENTS.md`; no stale child-index references.
 - `check:layers` — `scripts/check-layers.mjs` (standard **ROCKY-DS 001:2026(E)**, Visa Matrix Annex C): fails the build on import-boundary violations — domain services↛`@rocky/database` (except `/constants`), repositories↛`@rocky/validators/api`+`/events`, routers↛`@rocky/database`+`/events`+`/integrations`, **and** domain layers↛`@trpc/(server|client)` / `@rocky/validators/errors` (Result-Monad & Error-Sovereignty doctrine Laws A & B).
+- `check:shadcn` — `scripts/check-shadcn-primitives.mjs`: fails the build if a hand-rolled component under `apps/web/components/**` duplicates a primitive that already ships in `@rocky/ui` (`packages/ui/src/components/**`); enforces the A-1 shadcn-hygiene finding — reuse `@rocky/ui` primitives via the `#components/shared/*` passthroughs instead of re-implementing them.
 - `check:pdfa` — `@rocky/pdf` emits a PDF/A-3 **and** PAdES-signed artifact (structurally asserts `/EmbeddedFile` + `/AF` + `pdfaid:part=3` + `OutputIntent` + `/Sig` + `/ByteRange`; `verapdf` is the heavy CI gate via `pnpm verify:pdfa`).
 
 > ⚠️ **Build gate ≠ `ci:checks`.** `ci:checks` = `generate:trpc` + the link/ADR/agent guardians + `pnpm test` (vitest, **no `tsc` build**). It does **not** run the production build: `next build` (docs) or `nest build` (api — which type-checks the `*.test.ts` files). The real gate that catches build-rot is the full **`pnpm build`** (turbo). A green `ci:checks` is **not** a green build — run `pnpm build` before declaring done. (Lived this session: a 4-layer rot — api test TS7023 → docs TSDoc `next-mdx-import-source-file` → `MDXComponents` TS2742 → `page.tsx` `<Wrapper>` TS2786 — was invisible to `ci:checks` and only surfaced at `pnpm build`.)
