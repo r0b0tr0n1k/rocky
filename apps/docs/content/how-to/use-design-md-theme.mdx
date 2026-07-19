@@ -58,16 +58,19 @@ The file uses Tailwind v4 CSS-first tokens:
 
 ```css
 :root {
-  --sentry-violet: oklch(0.55 0.22 295);
-  --sentry-violet-deep: oklch(0.42 0.18 295);
+  --vercel-ink: #171717;
+  --vercel-link: #0070f3;
+  --vercel-canvas-soft: #fafafa;
+  --vercel-hairline: #ebebeb;
 }
 .dark { /* mirror for dark mode */ }
 @theme inline {
-  --color-sentry-violet: var(--sentry-violet);
+  --color-vercel-link: var(--vercel-link);
+  --color-vercel-ink: var(--vercel-ink);
 }
 @layer base {
-  /* Rocky green stays primary; violet only as a secondary accent (docs banner)
-     — never as primary. Source: `DESIGN.sentry.md`. */
+  /* Rocky green stays primary; Vercel link-blue only as a secondary accent
+     (docs banner) — never as primary. Source: `DESIGN.vercel.md`. */
 }
 ```
 
