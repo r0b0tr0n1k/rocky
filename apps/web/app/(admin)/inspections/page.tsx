@@ -8,6 +8,14 @@ import { Button } from "@rocky/ui/components/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@rocky/ui/components/select";
 import { DataTable } from "#components/shared/data-table";
 import { PageHeader } from "#components/shared/page-header";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@rocky/ui/components/breadcrumb";
 import { TableCard, tableDensityClass } from "#components/shared/table-card";
 import { inspectionColumns, type InspectionResponse } from "#components/inspections/columns";
 import { INSPECTION_STATUS, type inspectionStatusType } from "@rocky/validators/enums";
@@ -56,7 +64,24 @@ export default function InspectionsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Inspections" description="On-spot inspections, risk analysis, and form generation." />
+      <PageHeader
+        eyebrow="Dashboard"
+        title="Inspections"
+        description="On-spot inspections, risk analysis, and form generation."
+        breadcrumb={
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Inspections</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        }
+      />
       <TableCard
         toolbarLeft={
           <Select
