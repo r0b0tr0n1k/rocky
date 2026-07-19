@@ -28,6 +28,7 @@ CMD ["pnpm", "--filter", "web", "dev", "--", "--hostname", "0.0.0.0"]
 
 FROM workspace AS build
 ARG NEXT_PUBLIC_API_URL
+ARG API_URL
 RUN test -n "${NEXT_PUBLIC_API_URL}" \
     && NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL}" pnpm -r --filter web... build
 
