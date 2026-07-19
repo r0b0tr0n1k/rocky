@@ -175,7 +175,10 @@ export const GeoMapView = React.forwardRef<HTMLDivElement, GeoMapViewProps>(func
 	const onPolygonDrawnRef = React.useRef(onPolygonDrawn);
 	const [ready, setReady] = React.useState(false);
 	const [webglError, setWebglError] = React.useState<string | null>(null);
+	const [mapError, setMapError] = React.useState<string | null>(null);
 	const [drawPts, setDrawPts] = React.useState<[number, number][]>([]);
+	const fellBackRef = React.useRef(false);
+	const errorSetRef = React.useRef(false);
 
 	// Keep mutable refs current so map event handlers read fresh values.
 	drawModeRef.current = drawMode;
@@ -211,6 +214,30 @@ export const GeoMapView = React.forwardRef<HTMLDivElement, GeoMapViewProps>(func
 			map.on("load", () => {
 				if (!cancelled) setReady(true);
 			});
+			map.on("error", (e) => {
+				if (cancelled) return;
+				const msg = (e as { error?: { message?: string } }).error?.message ?? String(e);
+				// Base style failed to load (offline / no MapTiler egress). Fall back once
+				// to a blank canvas so geofence drawing + features still work, and surface a notice.
+				if (map && !map.isStyleLoaded() && !fellBackRef.current) {
+					fellBackRef.current = true;
+					try {
+						map.setStyle({
+							version: 8,
+							sources: {},
+							layers: [{ id: "bg", type: "background", paint: { "background-color": "#0b1f33" } }],
+						});
+						errorSetRef.current = true;
+						setMapError("Map base style unavailable (no MapTiler egress) - shown without base tiles.");
+						return;
+					} catch {
+						/* fall through to generic error */
+					}
+				}
+				if (errorSetRef.current) return;
+				errorSetRef.current = true;
+				setMapError(msg);
+			});
 			mapRef.current = map;
 		})();
 
@@ -221,6 +248,9 @@ export const GeoMapView = React.forwardRef<HTMLDivElement, GeoMapViewProps>(func
 			mlRef.current = null;
 			setReady(false);
 			setWebglError(null);
+			setMapError(null);
+			fellBackRef.current = false;
+			errorSetRef.current = false;
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [styleUrl]);
@@ -426,7 +456,7 @@ export const GeoMapView = React.forwardRef<HTMLDivElement, GeoMapViewProps>(func
 				}}
 				style={{ height: "100%", width: "100%" }}
 			/>
-			{webglError ? (
+			{webglError || mapError ? (
 				<div
 					role="alert"
 					style={{
@@ -444,7 +474,7 @@ export const GeoMapView = React.forwardRef<HTMLDivElement, GeoMapViewProps>(func
 					}}
 				>
 					<strong>Map unavailable</strong>
-					<span style={{ fontSize: 13 }}>{webglError}</span>
+					<span style={{ fontSize: 13 }}>{webglError ?? mapError}</span>
 				</div>
 			) : null}
 		</div>
