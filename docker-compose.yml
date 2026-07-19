@@ -86,8 +86,19 @@ services:
       # (also inlined into the web build); alias it here rather than
       # duplicating the value as a second .env var.
       - MAPTILER_API_KEY=${NEXT_PUBLIC_MAPTILER_API_KEY}
-    # Liveness: handled by the image HEALTHCHECK (Dockerfile) — probes GET /health
-    # via node, since the distroless runtime ships no curl/nc.
+    # Liveness: distroless ships no curl/nc — use the bundled node binary.
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/nodejs/bin/node",
+          "-e",
+          "fetch('http://localhost:8000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     restart: unless-stopped
     networks:
       - iotn-network

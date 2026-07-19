@@ -19,7 +19,8 @@ import type { MiddlewareOptions, TRPCMiddleware } from "nestjs-trpc";
 @Injectable()
 export class ExecutionMiddleware implements TRPCMiddleware {
   constructor(
-    @Inject(AUTH_INSTANCE) private readonly auth: ReturnType<typeof Auth.getInstance>,
+    @Inject(AUTH_INSTANCE)
+    private readonly auth: ReturnType<typeof Auth.getInstance>,
     private readonly principalResolver: PrincipalResolver,
     private readonly pipeline: ExecutionPipeline,
     private readonly runtimeBuilder: RuntimeBuilder,
@@ -30,7 +31,9 @@ export class ExecutionMiddleware implements TRPCMiddleware {
 
     // 1. Resolve authentication from cookie
     const cookieHeader = ctx.headers?.get?.("cookie") ?? "";
+    console.info("[TRPC-AUTH] cookie header length:", cookieHeader.length, "prefix:", cookieHeader.slice(0, 60));
     const authResult = await AuthResolver.resolve(this.auth, cookieHeader);
+    console.info("[TRPC-AUTH] authResult:", authResult ? "session found" : "null");
 
     // 2. Resolve principal (handles anonymous automatically)
     const principal = await this.principalResolver.resolve(authResult);
@@ -47,7 +50,11 @@ export class ExecutionMiddleware implements TRPCMiddleware {
     return this.pipeline.run(principal, request, async (_principal) => {
       // Set execution context on the tRPC context for downstream middleware and routers
       const runtime = this.runtimeBuilder.resolve(request, _principal);
-      ctx.execution = { principal: _principal, request, runtime } satisfies ExecCtx;
+      ctx.execution = {
+        principal: _principal,
+        request,
+        runtime,
+      } satisfies ExecCtx;
 
       return next({ ctx });
     });

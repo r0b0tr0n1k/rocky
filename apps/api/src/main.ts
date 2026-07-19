@@ -24,8 +24,24 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Mount Better Auth HTTP handler — must come after CORS, before listen
-  app.getHttpAdapter().use("/api/auth", toNodeHandler(auth));
+  // Mount Better Auth HTTP handler — must come after CORS, before listen.
+  // Wrap with debug logging since toNodeHandler bypasses NestJS entirely.
+  const authHandler = toNodeHandler(auth);
+  app.getHttpAdapter().use("/api/auth", (req: any, res: any) => {
+    const start = Date.now();
+    const originalEnd = res.end.bind(res);
+    res.end = function (...args: any[]) {
+      const ms = Date.now() - start;
+      const log = `[AUTH] ${req.method} ${req.url} → ${res.statusCode} (${ms}ms)`;
+      if (res.statusCode >= 400) {
+        console.error(log);
+      } else {
+        console.info(log);
+      }
+      return originalEnd(...args);
+    } as any;
+    authHandler(req, res);
+  });
 
   // Lightweight liveness probe for the container HEALTHCHECK (GET /health -> 200).
   // Registered before listen(); the distroless runtime ships no curl/nc, so the

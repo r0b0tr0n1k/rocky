@@ -24,7 +24,7 @@ export function proxy(request: NextRequest) {
   // Resolve the better-auth session cookie via its helper (correct cookie
   // name, as configured) rather than a hard-coded name. This folds in the
   // guard previously in middleware.ts, which Next.js 16 replaces with proxy.ts.
-  const sessionCookie = getSessionCookie(request);
+  const sessionCookie = getSessionCookie(request, { cookiePrefix: "rocky" });
   const isAuthenticated = looksLikeSessionToken(sessionCookie ?? undefined);
 
   // Redirect unauthenticated users away from protected routes

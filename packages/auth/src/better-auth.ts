@@ -57,9 +57,27 @@ export type AuthResult = {
 // ── Role definitions for Better Auth admin plugin ──
 const _ac = createAccessControl(defaultStatements);
 const _authRoles = {
-  SUPER_ADMIN: _ac.newRole({ user: ["create","list","set-role","ban","impersonate","impersonate-admins","delete","set-password","set-email","get","update"], session: ["list","revoke","delete"] }),
-  VD_ADMIN: _ac.newRole({ user: ["create","list","set-role","ban","impersonate","delete","set-password","set-email","get","update"], session: ["list","revoke"] }),
-  VD_STAFF: _ac.newRole({ user: ["list","get","update"], session: ["list"] }),
+  SUPER_ADMIN: _ac.newRole({
+    user: [
+      "create",
+      "list",
+      "set-role",
+      "ban",
+      "impersonate",
+      "impersonate-admins",
+      "delete",
+      "set-password",
+      "set-email",
+      "get",
+      "update",
+    ],
+    session: ["list", "revoke", "delete"],
+  }),
+  VD_ADMIN: _ac.newRole({
+    user: ["create", "list", "set-role", "ban", "impersonate", "delete", "set-password", "set-email", "get", "update"],
+    session: ["list", "revoke"],
+  }),
+  VD_STAFF: _ac.newRole({ user: ["list", "get", "update"], session: ["list"] }),
   VETERINARIAN: _ac.newRole({ user: ["get"], session: [] }),
   TECHNICIAN: _ac.newRole({ user: ["get"], session: [] }),
   FARMER: _ac.newRole({ user: [], session: [] }),
@@ -91,7 +109,12 @@ export class Auth {
         // the parent from baseURL — it would otherwise pin the cookie to the raw
         // api hostname and break sharing with admin./docs. subdomains.
         ...(config.cookieDomain
-          ? { crossSubDomainCookies: { enabled: true, domain: config.cookieDomain } }
+          ? {
+              crossSubDomainCookies: {
+                enabled: true,
+                domain: config.cookieDomain,
+              },
+            }
           : {}),
       },
       emailAndPassword: {
@@ -110,7 +133,12 @@ export class Auth {
       plugins: [admin({ adminRoles: ["SUPER_ADMIN"], roles: _authRoles }), expo()],
     }) as unknown as ReturnType<typeof betterAuth>;
 
-    console.info("Better Auth initialized");
+    console.info("Better Auth initialized", {
+      baseURL: config.baseURL,
+      secretSet: !!config.secret,
+      trustedOrigins: config.trustedOrigins,
+      cookieDomain: config.cookieDomain ?? "(none)",
+    });
     return Auth.instance;
   }
 }
