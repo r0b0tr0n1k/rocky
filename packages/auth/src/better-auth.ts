@@ -48,6 +48,23 @@ export interface AuthConfig {
     url: string;
     token: string;
   }) => Promise<void>;
+  /**
+   * Called after a user's email is successfully verified. Implemented by the
+   * caller (apps/api) for audit logging. Defaults to a no-op.
+   */
+  afterEmailVerification?: (
+    user: { id: string; email: string; name?: string; [key: string]: unknown },
+    request?: unknown,
+  ) => Promise<void>;
+  /**
+   * Called when a sign-up attempt uses an email that already exists. Implemented
+   * by the caller (apps/api) to notify the existing user via @rocky/email.
+   * Defaults to a no-op.
+   */
+  onExistingUserSignUp?: (
+    data: { user: { id: string; email: string; name?: string; [key: string]: unknown } },
+    request?: unknown,
+  ) => Promise<void>;
 }
 
 export type AuthResult = {
@@ -138,11 +155,13 @@ export class Auth {
       emailAndPassword: {
         enabled: true,
         sendResetPassword: config.sendResetPassword ?? (async () => {}),
+        onExistingUserSignUp: config.onExistingUserSignUp ?? (async () => {}),
       },
       emailVerification: {
         sendOnSignUp: true,
         autoSignInAfterVerification: true,
         sendVerificationEmail: config.sendVerificationEmail ?? (async () => {}),
+        afterEmailVerification: config.afterEmailVerification ?? (async () => {}),
       },
       plugins: [admin({ adminRoles: ["SUPER_ADMIN"], roles: _authRoles }), expo()],
     }) as unknown as ReturnType<typeof betterAuth>;

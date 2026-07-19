@@ -6,7 +6,8 @@
 // times with the same config returns the same singleton.
 
 import { Auth, type AuthConfig } from "@rocky/auth";
-import { EmailService, PasswordResetEmail, VerificationEmail, renderReactEmail } from "@rocky/email";
+import { createPinoLogger } from "@rocky/logger";
+import { EmailService, PasswordResetEmail, VerificationEmail, DuplicateSignupEmail, renderReactEmail } from "@rocky/email";
 
 const secret = process.env.BETTER_AUTH_SECRET;
 if (!secret) {
@@ -28,6 +29,7 @@ const cookieDomain =
 // Reads SMTP_* / MAIL_FROM from env; when unset it falls back to a dev no-send
 // log so local dev needs no mail server.
 const emailService = new EmailService();
+const logger = createPinoLogger();
 
 export const authConfig: AuthConfig = {
   baseURL: process.env.BETTER_AUTH_URL ?? process.env.BASE_SERVICE_URL ?? "http://localhost:8080",
@@ -50,6 +52,18 @@ export const authConfig: AuthConfig = {
       subject: "Verify your Rocky account",
       text: `Verify your email: ${url}`,
       html: await renderReactEmail(VerificationEmail, { url, name: user.name, locale: "EN" }),
+    });
+  },
+  afterEmailVerification: async (user) => {
+    logger.log({ event: "email_verified", userId: user.id, email: user.email });
+  },
+  onExistingUserSignUp: async ({ user }) => {
+    await emailService.send({
+      to: [{ email: user.email, name: user.name }],
+      from: { email: process.env.MAIL_FROM ?? "noreply@rocky.gov.mk" },
+      subject: "Security alert: someone tried to sign up with your email",
+      text: `We received a sign-up request using your email (${user.email}). If this was you, no action is needed. If not, your account is safe.`,
+      html: await renderReactEmail(DuplicateSignupEmail, { email: user.email, name: user.name, locale: "EN" }),
     });
   },
 };
