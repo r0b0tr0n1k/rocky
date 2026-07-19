@@ -7,7 +7,7 @@
 **Status:** Active Doctrine
 **Date:** 2026-05-09
 **Author:** System Architecture Review
-**Decision:** The `Result` monad (`ok`, `err`, `isError`, `Result<T,E>`) and shared error codes (`SHARED_ERRORS`) are owned by `@rocky/domains-shared` (L4), NOT `@rocky/validators` (L1). Domain error codes live in `packages/domains/[domain]/src/`. TRPC error mappings live in `packages/validators/src/errors/`. These are separate concerns. The Panopticon enforces both.
+**Decision:** The `Result` monad (`ok`, `err`, `isError`, `Result<T,E>`) and shared error codes (`SHARED_ERRORS`) are owned by `@rocky/domains-shared` (L4), NOT `@rocky/validators` (L1). Domain error codes live in `packages/domains/[domain]/src/`. TRPC error mappings live in `packages/validators/src/errors/`. These are separate concerns, enforced by `scripts/check-layers.mjs` (Visa Matrix Annex C, `pnpm check:layers`) and the `verify-result-doctrine.mjs` doc-test.
 
 ---
 
@@ -20,7 +20,7 @@
 5. [The Branching Logic Test](#5-the-branching-logic-test)
 6. [The Great Consolidation](#6-the-great-consolidation)
 7. [The Architectural Split — Church and State](#7-the-architectural-split--church-and-state)
-8. [Panopticon Enforcement](#8-panopticon-enforcement)
+8. [Enforcement](#8-enforcement)
 9. [The Philosophical Victory](#9-the-philosophical-victory)
 
 ---
@@ -243,7 +243,7 @@ sequenceDiagram
 
 Domain error files currently contain an **ideological contradiction**: they mix the **Domain Truth** (error code strings) with the **API Translation** (TRPC error maps).
 
-This violates the Panopticon. Domains must not know about TRPC.
+This violates the import-boundary doctrine. Domains must not know about TRPC.
 
 ### The Split
 
@@ -399,5 +399,5 @@ The Domain Service does not change. Not one line. Whether you expose tRPC, Graph
 - [ ] Prune error code hyperinflation in all domain error files
 - [ ] Split mixed error files: domain codes → `packages/domains/[domain]/src/`, TRPC maps → `packages/validators/src/errors/`
 - [ ] Run `pnpm exec tsc --noEmit` — must pass
-- [ ] Run `panopticon check` — must pass
+- [ ] Run `pnpm check:layers` (part of `pnpm ci:checks`) — must pass
 - [ ] Commit with message: `feat(architecture): enforce Result monad sovereignty and error code parsimony`
