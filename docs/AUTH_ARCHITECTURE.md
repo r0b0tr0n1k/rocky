@@ -87,8 +87,7 @@ one Better Auth server for the whole monorepo. Configuration:
 - `advanced.crossSubDomainCookies` is enabled **only when an explicit shared parent domain is set**
   (`AUTH_COOKIE_DOMAIN` → `ROCKY_DOMAIN`). Better Auth does *not* derive the parent from `baseURL`,
   so without this the cookie is pinned to the raw `api` host and is invisible to `admin.`/`docs.`.
-- `emailAndPassword: { enabled: true, sendResetPassword }` — password reset is hooked (currently a
-  `console.info` placeholder; wire real email there).
+- `emailAndPassword: { enabled: true, sendResetPassword }` — password reset is wired to `@rocky/email` (Nodemailer + React Email `PasswordResetEmail`); a dev fallback logs without sending when SMTP is unset.
 - **Server plugins:** `admin({ adminRoles: ["SUPER_ADMIN"], roles: _authRoles })` and `expo()`.
 - **No `customSession` plugin.** The SM-profile/role/permission enrichment is *deliberately* not done
   here — it lives in `PrincipalResolver` (identity/auth boundary discipline). The admin-plugin role
@@ -240,7 +239,7 @@ flowchart TD
 
 | # | Packet | From → To | What happens | Where |
 |---|---------|-----------|--------------|-------|
-| 1 | `authClient.signIn.email({ email, password })` | Browser → Web client | Client plugin `twoFactorClient`/`adminClient` wrap the call; CSRF token read from `rocky_csrf` cookie and sent as `x-csrf-token` header | `apps/web/lib/auth-client.ts` → `createRockyAuthClient` |
+| 1 | `authClient.signIn.email({ email, password })` | Browser → Web client | Client plugin `adminClient()` wraps the call; CSRF token read from `rocky_csrf` cookie and sent as `x-csrf-token` header | `apps/web/lib/auth-client.ts` → `createRockyAuthClient` |
 | 2 | `POST /api/auth/sign-in` (body + `x-csrf-token`) | Web (relative) → Next.js → API | Next.js rewrite proxies to `API_URL/api/auth/*`; cookie header forwarded | `apps/web/next.config.ts` (`/api/auth/:path*` rewrite) |
 | 3 | Better Auth auth handler | API `/api/auth` | `toNodeHandler(auth)` dispatches; CSRF validated against `rocky_csrf` | `apps/api/src/main.ts` |
 | 4 | password verify | Better Auth → Postgres | argon2/bcrypt compare against `user` row | `@better-auth` core |
@@ -309,32 +308,40 @@ sequenceDiagram
 | Flow | Endpoint | Notes |
 |------|----------|-------|
 | Sign-up | `POST /api/auth/sign-up` | Creates the Better Auth `user`; Better Auth starts a session and sets the same `rocky_*` cookies. SM profile (roles/org) is provisioned separately. |
-| Forgot password | `POST /api/auth/forget-password` | Triggers `sendResetPassword` — currently a `console.info` placeholder in `better-auth.ts`; wire real email + token URL. |
+| Forgot password | `POST /api/auth/forget-password` | Triggers `sendResetPassword` — wired to `@rocky/email` (Nodemailer + React Email `PasswordResetEmail`); dev fallback logs without sending when SMTP is unset. |
 | Reset password | `POST /api/auth/reset-password` | Validates the token and updates the password hash. |
 | Sign-out | `POST /api/auth/sign-out` | Better Auth clears `rocky_session` + `rocky_csrf` (Set-Cookie with expired dates). |
 
 ### Web gateway specifics
 
 - `apps/web/next.config.ts` rewrites `/trpc/:path*` and `/api/auth/:path*` → `API_URL`.
-- `apps/web/proxy.ts` uses `getSessionCookie(request)` (the Better Auth helper, **not** a hard-coded
-  name) purely for UX redirects; it does **not** terminate auth.
+- `apps/web/proxy.ts` (Next 16 edge guard) verifies the session **authoritatively**: it reads the
+  `rocky` session cookie as a fast-path, then calls the API's `/api/auth/get-session` and redirects
+  unauthenticated users **before the React tree renders** (Superego at the edge). It does **not**
+  terminate auth — RBAC stays enforced by the API.
 - `apps/web/lib/trpc.ts` sets `credentials: "include"` so the browser forwards the session cookie on
   every `/trpc` call.
 
 ### Mobile (Expo) specifics
 
-- `apps/mob/lib/auth.ts` builds the client with `expoClient({ cookiePrefix: "rocky", storage: SecureStore })`.
+- `apps/mob/lib/auth.ts` consumes the shared `createRockyAuthClient` factory, passing
+  `expoClient({ cookiePrefix: "rocky", storage: SecureStore })` via `plugins` and setting
+  `disableDefaultFetchPlugins: true` (React Native: bypasses the default redirect plugin).
 - `apps/mob/providers/trpc-provider.tsx` calls `authClient.getCookie()` and sets `headers["cookie"]` on
   every request (web platform uses `credentials: "include"` instead). This is the cookie-forwarding
   mechanism the API's `ExecutionMiddleware` expects — **there is no `expo-origin` header**.
 - `apps/mob/providers/session-provider.tsx` surfaces the resolved session to React.
 
-### 2FA / Organization (current wiring note)
+### Client plugins — Identity-Only Boundary (ADR-0021)
 
-The **client** registers `twoFactorClient()` and `organizationClient()`, but the **server** instance
-currently enables only `admin` + `expo`. If 2FA or organization endpoints are required at runtime, add
-the matching server plugin (`twoFactor(...)` / `organization(...)`) in `better-auth.ts` — otherwise
-those client calls hit unimplemented routes.
+The shared `createRockyAuthClient` factory configures **only `adminClient()`**. `organizationClient()`
+and `twoFactorClient()` were **deliberately removed** (2026-07, Fork B): Better Auth is the
+**Identity-Only Boundary** — it answers *"who are you?"*, while organization membership / RBAC live in
+`@rocky/authorization` (`PrincipalResolver` + RLS `SET LOCAL app.current_org_id`). Registering Better
+Auth's `organization()` or `twoFactor()` **server** plugins would spawn competing `organization` /
+`member` / `twoFactors` tables and split the org source-of-truth. The server singleton therefore also
+registers only `admin()` + `expo()`. Org/2FA features are owned by the authorization/domain packages,
+not by Better Auth's plugin surface.
 
 ### Environment variables
 
@@ -348,7 +355,29 @@ those client calls hit unimplemented routes.
 | `BASE_SERVICE_URL` | `auth.ts` | Internal server→server base URL (Next.js SSR → API). |
 | `API_URL` / `NEXT_PUBLIC_API_URL` | web `next.config.ts` + `trpc.ts` | Gateway/rewrite target — where `/trpc` and `/api/auth` are proxied (the `API_URL` in the topology). |
 | `EXPO_PUBLIC_API_URL` | mobile `trpc-provider.tsx` / `auth.ts` | Direct API origin the Expo app calls (the mobile edge in the topology). |
+| `SESSION_LIFETIME_SECONDS` | `auth.ts` → singleton `expiresIn` | Session lifetime (default `604800` = 7d, sliding via `updateAge` 1d). |
+| `SESSION_FRESH_AGE_SECONDS` | `auth.ts` → singleton `freshAge` | Step-up freshness window (default `900` = 15m) for `RequireFreshSessionMiddleware`. |
+| `COOKIE_CACHE_MAX_AGE_SECONDS` | `auth.ts` → singleton `cookieCache.maxAge` | Compact cookie-cache duration (default `300` = 5m, mirrors `PrincipalCache` TTL). |
 
+
+
+### Session policy (2026-07)
+
+Server-side session hardening (env-driven from `apps/api/src/auth/auth.ts`; defaults live in the
+`packages/auth` singleton):
+
+- **Lifetime** — `expiresIn` **7 days**, sliding via `updateAge` **1 day** (Decision A: global, no role tiering).
+- **Freshness / step-up** — `freshAge` **15 minutes** (Decision B). The privileged role mutations
+  `rbac.assignRole` and `rbac.revokeRole` are gated by `RequireFreshSessionMiddleware`, which forces a
+  DB revalidation (`disableCookieCache`) and rejects (`FORBIDDEN SESSION_NOT_FRESH`) any session older
+  than `freshAge` measured against `createdAt` — *not* last activity. "Fresh" means "re-authenticated
+  within 15 minutes."
+- **Cookie cache** — `cookieCache` **compact, 300s** (Decision C), mirroring the 5-minute `PrincipalCache`
+  revocation lag so a de-provisioned user has a unified phantom-existence window.
+- **Redis** — deferred (Decision E): a single API instance uses PostgreSQL as the revocation engine;
+  Redis is invited only if the API horizontally scales to ~50 nodes.
+- **`revokeOtherSessions` on password change** (Decision F) is a *client* call-param on Better Auth
+  `changePassword`; it lands in the web/mobile UI phase, not the server singleton.
 
 ## Package Layout
 

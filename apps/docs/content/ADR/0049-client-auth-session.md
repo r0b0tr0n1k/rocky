@@ -33,7 +33,7 @@ The client side, however, had **no commensurate decision**. Two surfaces consume
   permission check at all.
 
 `packages/auth/src/client.ts` already provides `createRockyAuthClient()` — a transport-agnostic factory
-wrapping `createAuthClient` with `adminClient`, `organizationClient`, `twoFactorClient`, plus platform
+wrapping `createAuthClient` with `adminClient()` only — `organizationClient()`/`twoFactorClient()` are deliberately absent (Identity-Only Boundary, ADR-0021); platform differences are supplied via `plugins`
 plugins. So the *client factory* exists; what was missing was the **decision** that the client stays
 identity-only and gets permissions out-of-band.
 

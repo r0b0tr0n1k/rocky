@@ -54,8 +54,9 @@ package, router, or ADR that proves implementation. Standards references are
 ### 1. Authentication & session management
 
 - **What Rocky has:** Better Auth singleton (`Auth.getInstance()`), email/password
-  credential auth, `admin()` plugin (SUPER_ADMIN), `customSession` RBAC enrichment
-  (roles, permissions, orgId, language, status), `nextCookies()` / `expo()` plugins.
+  credential auth, `admin()` plugin (SUPER_ADMIN), `expo()` plugin (mobile session bridging).
+  Identity-only boundary — RBAC enrichment (roles, permissions, orgId, language, status) is
+  resolved downstream by `PrincipalResolver` (`@rocky/authorization`), **not** by a `customSession` plugin.
 - **Evidence:** `packages/auth`, `apps/api/src/auth/auth.ts`, `apps/web/lib/auth.ts`.
 - **Standards:** ISO 27001 A.5.17, A.8.5; ISO 27701 A.6.2 / A.9.2 (PII controller
   authentication); GDPR Art 32(1)(b) (pseudonymisation/encryption), Art 25.

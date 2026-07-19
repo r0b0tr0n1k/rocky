@@ -16,7 +16,8 @@ shield. Companion to [ADR-0021: Better Auth Configuration](../ADR/0021-better-au
   `cookiePrefix: "rocky"`, and terminates identity at `AuthResult` (only `userId` crosses to
   authorization — [ADR-0001](../ADR/0001-auth-vs-authorization-boundary.md)).
 - A recent change (PR #1) fixed the **web proxy session-cookie resolution** to use the `rocky`
-  cookie prefix and instrumented the whole auth path with debug logging.
+  cookie prefix; its debug instrumentation has since been removed, and `proxy.ts` now performs an
+  authoritative edge session check (see §2.1).
 - The **Cloudflare Access Service Token** lets the mobile (Expo) app and its Better Auth / tRPC
   clients clear the Cloudflare Access shield **without an interactive 2FA login** — a
   non-interactive "bypass" used for machine auth.
@@ -49,21 +50,36 @@ the current shape.)
 PR #1 was mostly **observability + one functional fix** on the auth path; the Better Auth core config
 above was already in place.
 
-### 2.1 Functional fix — web proxy session cookie
+### 2.1 Web edge guard — `proxy.ts` (Next 16) verifies the session
 
-Next.js 16 replaced `middleware.ts` with `proxy.ts`. The proxy resolves the Better Auth session
-cookie to gate protected routes. The fix passes the configured prefix so the cookie name actually
-matches what Better Auth set:
+Next.js 16 replaced `middleware.ts` with `proxy.ts`. The original fix passed the configured
+`cookiePrefix: "rocky"` so `getSessionCookie` finds the cookie Better Auth actually set (without it,
+the helper looks for the default `better-auth` prefix and silently treats authenticated users as
+anonymous). Since then `proxy.ts` was upgraded from a *structural* cookie sniff to an **authoritative**
+session check — the Superego at the edge:
 
 ```ts
-// apps/web/proxy.ts
-const sessionCookie = getSessionCookie(request, { cookiePrefix: "rocky" });
-const isAuthenticated = looksLikeSessionToken(sessionCookie ?? undefined);
+// apps/web/proxy.ts (Next 16 edge guard)
+const sessionCookie = getSessionCookie(request, { cookiePrefix: "rocky" });  // cheap fast-path
+const isAuthenticated = sessionCookie ? await hasValidSession(request) : false;
+
+async function hasValidSession(request: NextRequest): Promise<boolean> {
+  const res = await fetch(`${API_URL}/api/auth/get-session`, {
+    headers: { cookie: request.headers.get("cookie") ?? "" },
+    cache: "no-store",
+  });
+  if (!res.ok) return false;
+  const data = (await res.json()) as { session?: unknown };
+  return Boolean(data.session);
+}
 ```
 
-Without the `cookiePrefix: "rocky"` argument, `getSessionCookie` looks for the default `better-auth`
-prefix and fails to find the session — silently treating authenticated users as anonymous. This folds
-the guard that previously lived in `middleware.ts` into the new `proxy.ts`.
+- **Fast-path:** no `rocky` cookie ⇒ not authenticated, skip the fetch.
+- **Authoritative:** when a cookie *is* present, `proxy.ts` verifies it against the API's
+  `/api/auth/get-session` and redirects unauthenticated users **before the React tree renders** — no
+  flicker of the Imaginary. A revoked/expired token is rejected at the edge.
+- **RBAC still lives in the API** — `proxy.ts` only gates route entry; `PrincipalResolver` +
+  `@Policy()` enforce what the user may do.
 
 ### 2.2 Auth-path debug instrumentation
 

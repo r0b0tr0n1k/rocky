@@ -87,13 +87,12 @@ tRPC, cron, and future transports.
 export function createRockyAuthClient(options: RockyAuthClientOptions = {}) {
   return createAuthClient({
     baseURL: options.baseURL ?? (process.env.NEXT_PUBLIC_API_URL ?? process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8080"),
-    plugins: [adminClient(), organizationClient({ dynamicAccessControl: { enabled: true } }), twoFactorClient(), ...(options.plugins ?? [])],
+    plugins: [adminClient(), ...(options.plugins ?? [])],  // org/2FA plugins intentionally absent (Identity-Only Boundary)
   });
 }
 ```
 
-Both frontends use the **same factory**: Next.js server-side adds `nextCookies()` (per AGENTS.md);
-Expo passes `expoClient({ scheme, storage: SecureStore })`. No per-platform auth reimplementation.
+Both frontends use the **same factory**: mobile passes `expoClient({ scheme, storage: SecureStore })` via `plugins` and sets `disableDefaultFetchPlugins: true`; web relies on the gateway `proxy.ts` for cookie handling (no `nextCookies()` plugin). No per-platform auth reimplementation.
 
 ### D. The identity boundary (what crosses)
 
@@ -149,7 +148,7 @@ business RBAC.*
 
 ### Neutral
 
-- **`emailAndPassword.sendResetPassword`** is a `console.info` stub today — wire real email before GA.
+- **`emailAndPassword.sendResetPassword`** is wired to `@rocky/email` (Nodemailer + React Email `PasswordResetEmail`); dev fallback logs without sending when SMTP is unset.
 
 ## Implementation
 
