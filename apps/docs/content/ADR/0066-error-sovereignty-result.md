@@ -5,7 +5,7 @@
 
 | Key            | Value                                                                  |
 | -------------- | ---------------------------------------------------------------------- |
-| **Status**     | Proposed                                                               |
+| **Status**     | Accepted                                                               |
 | **Date**       | 2026-07-11                                                             |
 | **Author**     | Architecture Review                                                    |
 | **Supersedes** | None |

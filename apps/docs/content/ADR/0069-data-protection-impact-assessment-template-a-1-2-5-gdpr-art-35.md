@@ -5,7 +5,7 @@
 
 | Key            | Value                                                                  |
 | -------------- | ---------------------------------------------------------------------- |
-| **Status** | Proposed |
+| **Status** | Accepted |
 | **Phase**  | Phase 2 -- governance, pending expert review |
 | **Date**       | 2026-07-11                                                             |
 | **Author**     | Architecture Review (Compliance homework)                                    |
