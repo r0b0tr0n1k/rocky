@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",
-    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit"
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit",
+    "email:dev": "email dev --dir ./src/templates/react -p 3001",
+    "test": "vitest run"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -24,12 +26,19 @@
     }
   },
   "dependencies": {
+    "@nestjs/common": "catalog:",
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.1.0",
     "@rocky/validators": "workspace:*",
+    "nodemailer": "^9.0.3",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "react-email": "^6.9.0",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "@types/nodemailer": "^8.0.1",
     "typescript": "catalog:"
-  },
-  "optionalDependencies": {}
+  }
 }

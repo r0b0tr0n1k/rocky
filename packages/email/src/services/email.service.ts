@@ -1,205 +1,170 @@
+import { createTransport, type SentMessageInfo, type Transporter, type TransportOptions } from "nodemailer";
+import { render } from "@react-email/render";
+import { createElement, type ComponentType, type ReactElement } from "react";
 import { writeFile } from "node:fs/promises";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
-import type { SendEmailInput, EmailResponse, SendBatchEmailsInput } from "../types/email.types.js";
+import { Injectable } from "@nestjs/common";
+import {
+  type EmailResponse,
+  type SendBatchEmailsInput,
+  type SendEmailInput,
+  sendEmailSchema,
+} from "../types/email.types.js";
+import { EMAIL_TEMPLATES, renderTemplate, type EmailTemplate } from "../templates/index.js";
 
-/**
- * Email Service - Dummy Implementation for Development
- *
- * This service simulates email sending without requiring real SMTP credentials.
- * In production, replace this with SendGrid, AWS SES, or similar.
- *
- * Current Behavior:
- * - Logs email details to console
- * - Saves emails to ./emails/ directory (JSON format)
- * - Returns mock messageId
- *
- * TODO: Replace with real provider (SendGrid, AWS SES, etc.)
- */
+export interface SmtpConfig {
+  host?: string;
+  port?: number;
+  secure?: boolean;
+  user?: string;
+  pass?: string;
+  from?: string;
+  transport?: TransportOptions | Record<string, unknown>;
+}
+
+export interface EmailServiceOptions {
+  smtp?: SmtpConfig;
+  persistToFile?: boolean;
+  quiet?: boolean;
+}
+
+@Injectable()
 export class EmailService {
-  private emailsDir: string;
-  private emailCounter: number = 0;
+  private transporter?: Transporter;
+  private from: string;
+  private persistToFile: boolean;
+  private quiet: boolean;
 
-  constructor(readonly _options: EmailServiceOptions = {}) {
-    // Set up email storage directory
-    this.emailsDir = join(process.cwd(), "emails");
-    try {
-      mkdirSync(this.emailsDir, { recursive: true });
-    } catch (_error) {
-      // Directory might already exist
+  constructor(readonly options: EmailServiceOptions = {}) {
+    const cfg = options.smtp ?? EmailService.smtpFromEnv();
+    this.from = cfg.from ?? process.env.MAIL_FROM ?? "noreply@rocky.gov.mk";
+    this.persistToFile = options.persistToFile ?? false;
+    this.quiet = options.quiet ?? false;
+
+    if (cfg.transport) {
+      this.transporter = createTransport(cfg.transport as TransportOptions);
+    } else if (cfg.host) {
+      this.transporter = createTransport({
+        host: cfg.host,
+        port: cfg.port ?? (cfg.secure ? 465 : 587),
+        secure: cfg.secure ?? cfg.port === 465,
+        auth: cfg.user ? { user: cfg.user, pass: cfg.pass } : undefined,
+      });
     }
   }
 
-  /**
-   * Send a single email
-   */
-  async send(input: SendEmailInput): Promise<EmailResponse> {
-    this.emailCounter++;
+  static smtpFromEnv(): SmtpConfig {
+    const host = process.env.SMTP_HOST;
+    if (!host) return {};
+    return {
+      host,
+      port: Number(process.env.SMTP_PORT ?? (process.env.SMTP_SECURE === "true" ? 465 : 587)),
+      secure: process.env.SMTP_SECURE === "true",
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+      from: process.env.MAIL_FROM,
+    };
+  }
 
-    const messageId = `email_${Date.now()}_${this.emailCounter}`;
+  async send(input: SendEmailInput): Promise<EmailResponse> {
+    const parsed = sendEmailSchema.parse(input);
+    const messageId = `email_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const timestamp = new Date().toISOString();
 
-    // Log to console (development mode)
-    this.logToConsole(input, messageId);
+    const mail = {
+      from: parsed.from.email,
+      to: parsed.to.map((t) => (t.name ? `${t.name} <${t.email}>` : t.email)).join(", "),
+      cc: parsed.cc?.map((t) => (t.name ? `${t.name} <${t.email}>` : t.email)).join(", "),
+      bcc: parsed.bcc?.map((t) => (t.name ? `${t.name} <${t.email}>` : t.email)).join(", "),
+      replyTo: parsed.replyTo?.email,
+      subject: parsed.subject,
+      text: parsed.text,
+      html: parsed.html,
+      attachments: parsed.attachments?.map((a) => ({
+        filename: a.filename,
+        content: a.content,
+        contentType: a.contentType,
+      })),
+    };
 
-    // Save to file (for testing/verification)
-    await this.saveToFile(input, messageId, timestamp);
+    if (this.transporter) {
+      try {
+        const info: SentMessageInfo = await this.transporter.sendMail(mail);
+        return {
+          messageId: String(info.messageId ?? messageId),
+          status: "sent",
+          to: parsed.to.map((t) => t.email),
+          subject: parsed.subject,
+          timestamp,
+        };
+      } catch (error) {
+        return {
+          messageId,
+          status: "failed",
+          to: parsed.to.map((t) => t.email),
+          subject: parsed.subject,
+          timestamp,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    }
 
-    // Return mock response
+    if (!this.quiet) {
+      console.log(`[email] dev (not sent) [${messageId}] ${parsed.subject} -> ${parsed.to.map((t) => t.email).join(", ")}`);
+    }
+    if (this.persistToFile) await this.saveToFile(parsed, messageId, timestamp);
     return {
       messageId,
-      status: "sent",
-      to: input.to.map((t) => t.email),
-      subject: input.subject,
+      status: "queued",
+      to: parsed.to.map((t) => t.email),
+      subject: parsed.subject,
       timestamp,
     };
   }
 
-  /**
-   * Send multiple emails in batch
-   */
   async sendBatch(input: SendBatchEmailsInput): Promise<EmailResponse[]> {
     const responses: EmailResponse[] = [];
-
     for (const emailData of input.emails) {
-      const response = await this.send({
-        ...emailData,
-        to: [emailData.to],
-      });
-      responses.push(response);
+      responses.push(await this.send({ ...emailData, to: [emailData.to] }));
     }
-
     return responses;
   }
 
-  /**
-   * Send from template
-   */
   async sendFromTemplate(params: {
     to: Array<{ email: string; name?: string }>;
     templateId: string;
     dynamicTemplateData: Record<string, unknown>;
-    from: { email: string; name?: string };
+    from?: { email: string; name?: string };
+    language?: string;
   }): Promise<EmailResponse> {
-    // In production, this would use SendGrid's template system
-    // For now, we'll create a simple text representation
-
-    const subject = `[Template: ${params.templateId}] Email Notification`;
-    const text = this.renderTemplateText(params.dynamicTemplateData);
-
+    const template = (EMAIL_TEMPLATES as Record<string, EmailTemplate>)[params.templateId];
+    if (!template) throw new Error(`Unknown email template: ${params.templateId}`);
+    const { subject, body } = renderTemplate(template, params.language ?? "EN", params.dynamicTemplateData);
     return this.send({
       to: params.to,
-      from: params.from,
+      from: params.from ?? { email: this.from },
       subject,
-      text,
+      text: body,
       tag: params.templateId,
     });
   }
 
-  /**
-   * Log email to console
-   */
-  private logToConsole(input: SendEmailInput, messageId: string): void {
-    console.log(`\n${"=".repeat(70)}`);
-    console.log(`📧 EMAIL SENT [${messageId}]`);
-    console.log("=".repeat(70));
-    console.log(`From: ${this.formatAddress(input.from)}`);
-    console.log(`To: ${input.to.map((t) => this.formatAddress(t)).join(", ")}`);
-
-    if (input.cc && input.cc.length > 0) {
-      console.log(`Cc: ${input.cc.map((t) => this.formatAddress(t)).join(", ")}`);
-    }
-
-    console.log(`Subject: ${input.subject}`);
-    console.log("-".repeat(70));
-    console.log(input.text);
-
-    if (input.html) {
-      console.log("-".repeat(70));
-      console.log(`HTML: ${input.html.substring(0, 100)}...`);
-    }
-
-    if (input.attachments && input.attachments.length > 0) {
-      console.log(`Attachments: ${input.attachments.map((a) => a.filename).join(", ")}`);
-    }
-
-    if (input.tag) {
-      console.log(`Tag: ${input.tag}`);
-    }
-
-    if (input.templateId) {
-      console.log(`Template ID: ${input.templateId}`);
-    }
-
-    if (input.dynamicTemplateData) {
-      console.log(`Template Data:`, input.dynamicTemplateData);
-    }
-
-    console.log(`${"=".repeat(70)}\n`);
+  async renderReact(template: ReactElement): Promise<string> {
+    return (await render(template)) as string;
   }
 
-  /**
-   * Save email to file for testing
-   */
   private async saveToFile(input: SendEmailInput, messageId: string, timestamp: string): Promise<void> {
-    const filename = join(this.emailsDir, `${messageId}.json`);
-
-    const emailData = {
-      messageId,
-      timestamp,
-      from: input.from,
-      to: input.to,
-      cc: input.cc,
-      bcc: input.bcc,
-      subject: input.subject,
-      text: input.text,
-      html: input.html,
-      attachments: input.attachments,
-      tag: input.tag,
-      templateId: input.templateId,
-      dynamicTemplateData: input.dynamicTemplateData,
-    };
-
     try {
-      await writeFile(filename, JSON.stringify(emailData, null, 2), "utf-8");
+      const dir = join(process.cwd(), "emails");
+      mkdirSync(dir, { recursive: true });
+      await writeFile(join(dir, `${messageId}.json`), JSON.stringify({ messageId, timestamp, ...input }, null, 2), "utf-8");
     } catch (error) {
       console.error("Failed to save email to file:", error);
     }
   }
-
-  /**
-   * Format email address
-   */
-  private formatAddress(address: { email: string; name?: string }): string {
-    if (address.name) {
-      return `${address.name} <${address.email}>`;
-    }
-    return address.email;
-  }
-
-  /**
-   * Render template as text (mock)
-   */
-  private renderTemplateText(data: Record<string, unknown>): string {
-    const lines = Object.entries(data).map(([key, value]) => `${key}: ${JSON.stringify(value)}`);
-
-    return `Template Data:\n${lines.join("\n")}`;
-  }
 }
 
-export interface EmailServiceOptions {
-  /**
-   * Log level: 'verbose', 'normal', 'quiet'
-   */
-  logLevel?: "verbose" | "normal" | "quiet";
-
-  /**
-   * Save emails to file system
-   */
-  persistToFile?: boolean;
-
-  /**
-   * Custom emails directory
-   */
-  emailsDir?: string;
+export async function renderReactEmail(template: ComponentType<any>, props: Record<string, unknown>): Promise<string> {
+  return (await render(createElement(template, props))) as string;
 }

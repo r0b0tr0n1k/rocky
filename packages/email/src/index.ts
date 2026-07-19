@@ -1,35 +1,18 @@
 /**
- * Email Package - Dummy Email Service for Development
+ * @rocky/email — email transport + React Email template rendering.
  *
- * This package provides a mock email service for development and testing.
- * In production, replace with SendGrid, AWS SES, or similar.
- *
- * Current Behavior:
- * - Logs emails to console with full details
- * - Saves emails to ./emails/ directory (JSON format)
- * - Returns mock messageId for tracking
- *
- * Usage:
- * ```ts
- * import { EmailService } from '@rocky/email';
- *
- * const emailService = new EmailService();
- *
- * await emailService.send({
- *   to: [{ email: 'user@example.com', name: 'John Doe' }],
- *   from: { email: 'noreply@rocky.gov.mk', name: 'Rocky AIMCS' },
- *   subject: 'Test Email',
- *   text: 'This is a test email'
- * });
- * ```
- *
- * TODO: Replace with real provider
- * 1. Install @sendgrid/mail or @aws-sdk/client-ses
- * 2. Update email.service.ts to use real API
- * 3. Remove console logging and file saving
- * 4. Update notification-worker.service.ts to use new implementation
+ * Provides a framework-agnostic `EmailService` (Nodemailer transport with an
+ * env-driven SMTP config and a dev fallback), React Email `.tsx` templates, a
+ * standalone `renderReactEmail` helper, and a NestJS `EmailModule` for DI in apps/api.
  */
 
-export { EmailService } from "./services/email.service.js";
+export {
+  EmailService,
+  renderReactEmail,
+  type EmailServiceOptions,
+  type SmtpConfig,
+} from "./services/email.service.js";
+export { EmailModule } from "./email.module.js";
+export { PasswordResetEmail, type PasswordResetEmailProps } from "./templates/react/index.js";
 export * from "./types/email.types.js";
 export * from "./templates/index.js";

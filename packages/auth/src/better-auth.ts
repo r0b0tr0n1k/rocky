@@ -29,6 +29,16 @@ export interface AuthConfig {
    * Leave undefined for single-host / localhost dev (no cross-subdomain cookies).
    */
   cookieDomain?: string;
+  /**
+   * Delivers the password-reset email on behalf of Better Auth.
+   * Implemented by the caller (apps/api) via @rocky/email so this package
+   * stays free of any email-transport dependency. Defaults to a no-op.
+   */
+  sendResetPassword?: (params: {
+    user: { id: string; email: string; name?: string; [key: string]: unknown };
+    url: string;
+    token: string;
+  }) => Promise<void>;
 }
 
 export type AuthResult = {
@@ -103,7 +113,6 @@ export class Auth {
       trustedOrigins: config.trustedOrigins,
       advanced: {
         cookiePrefix: "rocky",
-        generateId: false,
         // Cross-subdomain sessions: only when an explicit shared parent domain is
         // configured (tertiary/subdomain deployments). Better Auth does NOT derive
         // the parent from baseURL — it would otherwise pin the cookie to the raw
@@ -119,7 +128,7 @@ export class Auth {
       },
       emailAndPassword: {
         enabled: true,
-        sendResetPassword: async () => {},
+        sendResetPassword: config.sendResetPassword ?? (async () => {}),
       },
       plugins: [admin({ adminRoles: ["SUPER_ADMIN"], roles: _authRoles }), expo()],
     }) as unknown as ReturnType<typeof betterAuth>;

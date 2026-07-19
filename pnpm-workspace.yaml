@@ -180,3 +180,8 @@ overrides:
   # the 4.1.x line (missing required z.custom key passes); rest stays on 4.4.3.
   "nextra>zod": 4.1.13
   "nextra-theme-docs>zod": 4.1.13
+
+pnpm:
+  overrides:
+    wrap-ansi: 7.0.0
+    string-width: 4.1.0

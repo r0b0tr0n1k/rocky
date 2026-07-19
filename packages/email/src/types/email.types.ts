@@ -56,6 +56,7 @@ export const emailResponseSchema = z.object({
   to: z.array(z.string()),
   subject: z.string(),
   timestamp: z.string(),
+  error: z.string().optional(),
 });
 
 export type EmailResponse = z.infer<typeof emailResponseSchema>;
