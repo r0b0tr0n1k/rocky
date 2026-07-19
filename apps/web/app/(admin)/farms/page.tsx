@@ -9,7 +9,15 @@ import { Button } from "@rocky/ui/components/button";
 import { StatCard } from "@rocky/ui/components/stat-card";
 import { farmColumns, type FarmSummary } from "#components/farms/columns";
 import { DataTable } from "#components/shared/data-table";
-import { PageHero } from "#components/shared/page-hero";
+import { PageHeader } from "#components/shared/page-header";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@rocky/ui/components/breadcrumb";
 import { TableCard, tableDensityClass } from "#components/shared/table-card";
 import { useTotals } from "#components/dashboard/analytics";
 import { useTRPC } from "#lib/trpc";
@@ -39,16 +47,47 @@ export default function FarmsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHero
+      <PageHeader
+        eyebrow="Dashboard"
         title="Farms"
         description="Registered holdings across the identification & registration system."
-        live
+        status={
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
+            <span className="size-1.5 rounded-full bg-primary" />
+            Live
+          </span>
+        }
+        breadcrumb={
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Farms</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        }
       />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Animals" value={totals.animals} hint="Registered cattle" icon={PawPrint} accent="primary" />
         <StatCard label="Farms" value={totals.farms} hint="Active holdings" icon={Building2} accent="emerald" />
-        <StatCard label="Movements" value={totals.movements} hint="Recorded transfers" icon={ArrowLeftRight} accent="amber" />
-        <StatCard label="Inspections" value={totals.inspections} hint="On-site visits" icon={ClipboardCheck} accent="violet" />
+        <StatCard
+          label="Movements"
+          value={totals.movements}
+          hint="Recorded transfers"
+          icon={ArrowLeftRight}
+          accent="amber"
+        />
+        <StatCard
+          label="Inspections"
+          value={totals.inspections}
+          hint="On-site visits"
+          icon={ClipboardCheck}
+          accent="violet"
+        />
       </div>
       <TableCard
         action={
