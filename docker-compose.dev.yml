@@ -1,0 +1,69 @@
+# docker-compose.dev.yml
+# =============================================================================
+# OPT-IN development stack. This file is NOT auto-merged — you must pass it
+# explicitly so that `docker compose up` (without -f) keeps building the small
+# PRODUCTION images by default.
+#
+# It switches api / web / docs to their `development` Docker target and
+# bind-mounts the source tree for hot reload. node_modules stay in named
+# volumes so the container-installed deps (matching the lockfile) are NOT
+# clobbered by the host.
+#
+#   # Production (default, small distroless images):
+#   docker compose up --build
+#
+#   # Development (hot reload, larger images):
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+#
+# If you change dependencies, refresh the volumes with:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml down -v \
+#     && docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+# =============================================================================
+
+services:
+  api:
+    build:
+      target: development
+    # node_modules volume shadows the install baked into the image, so
+    # install at runtime (cached in the volume after first run).
+    command: ["sh", "-c", "pnpm install && pnpm --filter @rocky/api dev"]
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./apps:/app/apps
+      - ./packages:/app/packages
+      - ./scripts:/app/scripts
+      - api_node_modules:/app/node_modules
+    depends_on:
+      - db
+
+  web:
+    build:
+      target: development
+    command: ["sh", "-c", "pnpm install && pnpm --filter web exec next dev --turbopack --port 3000 --hostname 0.0.0.0"]
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: ${WEB_PUBLIC_API_URL:-https://api.${ROCKY_DOMAIN:-tehno.party}}
+      API_URL: http://api:8000
+    volumes:
+      - ./apps:/app/apps
+      - ./packages:/app/packages
+      - web_node_modules:/app/node_modules
+    depends_on:
+      - api
+
+  docs:
+    build:
+      target: development
+    command: ["sh", "-c", "pnpm install && pnpm --filter docs exec next dev --turbopack --port 3002 --hostname 0.0.0.0"]
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./apps:/app/apps
+      - ./packages:/app/packages
+      - docs_node_modules:/app/node_modules
+
+volumes:
+  api_node_modules:
+  web_node_modules:
+  docs_node_modules:

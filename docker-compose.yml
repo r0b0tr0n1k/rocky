@@ -120,6 +120,7 @@ services:
       - "3050:3000"
     environment:
       - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED="1"
       # SSR: Next.js server calls the API via the SAME single HTTPS route the
       # browser uses (NEXT_PUBLIC_API_URL). One trpc route to the server.
       - ROCKY_DOMAIN=${ROCKY_DOMAIN:-tehno.party}
@@ -134,8 +135,9 @@ services:
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       # Public base URL of the auth server (Cloudflare admin domain)
       - AUTH_BASE_URL=${AUTH_BASE_URL:-https://${ROCKY_DOMAIN:-tehno.party}}
-    # web starts independently of api: api's container HEALTHCHECK is
-    # disabled, so a service_healthy gate could never resolve.
+    # web starts independently of api. api now exposes a /health check, but we
+    # intentionally do NOT gate web on service_healthy: web can serve its shell
+    # before api is ready, and SSR proxy calls to api fail gracefully until up.
     # Liveness: Next.js serves on 3000.
     healthcheck:
       test:
