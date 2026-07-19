@@ -82,121 +82,121 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </button>
       <TooltipProvider delayDuration={200}>
         <SidebarProvider>
-        <Sidebar collapsible="icon" role="navigation" aria-label="Main navigation">
-          <SidebarHeader>
-            <div className="flex items-center gap-2 px-2 py-1.5">
-              <div className="grid size-7 place-items-center rounded-md bg-primary text-sm font-semibold text-primary-foreground group-data-[collapsible=icon]:flex hidden">
-                A
+          <Sidebar collapsible="icon" role="navigation" aria-label="Main navigation">
+            <SidebarHeader>
+              <div className="flex items-center gap-2 px-2 py-1.5">
+                <div className="grid size-7 place-items-center rounded-md bg-primary text-sm font-semibold text-primary-foreground group-data-[collapsible=icon]:flex hidden">
+                  A
+                </div>
+                <img
+                  src="/rocky-goat.svg"
+                  alt="Rocky"
+                  className="h-7 w-auto group-data-[collapsible=icon]:hidden rocky-logo"
+                />
+                <span className="text-sm font-semibold tracking-tight group-data-[collapsible=icon]:hidden">AIMCS</span>
               </div>
-              <img
-                src="/rocky-goat.svg"
-                alt="Rocky"
-                className="h-7 w-auto group-data-[collapsible=icon]:hidden rocky-logo"
-              />
-              <span className="text-sm font-semibold tracking-tight group-data-[collapsible=icon]:hidden">AIMCS</span>
-            </div>
-          </SidebarHeader>
-          <SidebarContent>
-            {sections.map((section) => (
-              <SidebarGroup key={section.title}>
-                <SidebarGroupLabel>{section.title}</SidebarGroupLabel>
-                <SidebarMenu>
-                  {section.items.map((item) => (
-                    <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={pathname === item.href || pathname.startsWith(`${item.href}/`)}
-                        tooltip={item.title}
-                      >
-                        <Link href={item.href}>
-                          <item.icon data-icon="inline-start" />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroup>
-            ))}
-          </SidebarContent>
-          <SidebarFooter>
-            <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
-              <Avatar className="size-7">
-                <AvatarFallback>{initials}</AvatarFallback>
-              </Avatar>
-              <div className="min-w-0">
-                <div className="truncate font-medium">{displayName}</div>
-                <div className="truncate text-xs text-muted-foreground">{roles.join(", ") || "—"}</div>
+            </SidebarHeader>
+            <SidebarContent>
+              {sections.map((section) => (
+                <SidebarGroup key={section.title}>
+                  <SidebarGroupLabel>{section.title}</SidebarGroupLabel>
+                  <SidebarMenu>
+                    {section.items.map((item) => (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname === item.href || pathname.startsWith(`${item.href}/`)}
+                          tooltip={item.title}
+                        >
+                          <Link href={item.href}>
+                            <item.icon data-icon="inline-start" />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroup>
+              ))}
+            </SidebarContent>
+            <SidebarFooter>
+              <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
+                <Avatar className="size-7">
+                  <AvatarFallback>{initials}</AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <div className="truncate font-medium">{displayName}</div>
+                  <div className="truncate text-xs text-muted-foreground">{roles.join(", ") || "—"}</div>
+                </div>
               </div>
-            </div>
-          </SidebarFooter>
-        </Sidebar>
-        <SidebarInset>
-          <header
-            aria-label="Top bar"
-            className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-          >
-            <SidebarTrigger />
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full max-w-xs justify-start gap-2 text-muted-foreground"
-              onClick={() => setCmdOpen(true)}
+            </SidebarFooter>
+          </Sidebar>
+          <SidebarInset>
+            <header
+              aria-label="Top bar"
+              className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60"
             >
-              <SearchIcon data-icon="inline-start" />
-              <span>Search…</span>
-              <Kbd className="ml-auto">⌘K</Kbd>
-            </Button>
-            <div className="ml-auto flex items-center gap-1">
-              <ThemeToggle />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" aria-label="User menu">
-                    <Avatar className="size-7">
-                      <AvatarFallback>{initials}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel className="truncate">{displayName}</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => signOut()}>
-                    <LogOutIcon data-icon="inline-start" />
-                    Sign out
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onSelect={(e) => {
-                      e.preventDefault();
-                      setCookieOpen(true);
-                    }}
-                  >
-                    <CookieIcon data-icon="inline-start" />
-                    Cookie &amp; Tracking Notice
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </header>
-          <main id="main-content" tabIndex={-1} className="flex-1 p-4 sm:p-6">
-            {children}
-          </main>
-        </SidebarInset>
-        <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} />
-        <Dialog open={cookieOpen} onOpenChange={setCookieOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Cookie &amp; Tracking Notice</DialogTitle>
-              <DialogDescription>
-                Rocky sets only the strictly-necessary session cookie (Better Auth) required to keep you signed in.
-                Under ePrivacy Art 5(3) and GDPR Art 6(1)(e) (official authority) this cookie is exempt from consent.
-                Rocky sets no analytics, advertising, or cross-site tracking cookies. Full text: ROCKY-COOK-001.
-              </DialogDescription>
-            </DialogHeader>
-          </DialogContent>
-        </Dialog>
-      </SidebarProvider>
-    </TooltipProvider>
+              <SidebarTrigger />
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full max-w-xs justify-start gap-2 text-muted-foreground"
+                onClick={() => setCmdOpen(true)}
+              >
+                <SearchIcon data-icon="inline-start" />
+                <span>Search…</span>
+                <Kbd className="ml-auto">⌘K</Kbd>
+              </Button>
+              <div className="ml-auto flex items-center gap-1">
+                <ThemeToggle />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" aria-label="User menu">
+                      <Avatar className="size-7">
+                        <AvatarFallback>{initials}</AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel className="truncate">{displayName}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={() => signOut()}>
+                      <LogOutIcon data-icon="inline-start" />
+                      Sign out
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        setCookieOpen(true);
+                      }}
+                    >
+                      <CookieIcon data-icon="inline-start" />
+                      Cookie &amp; Tracking Notice
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </header>
+            <main id="main-content" tabIndex={-1} className="flex-1 p-4 sm:p-6">
+              {children}
+            </main>
+          </SidebarInset>
+          <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} />
+          <Dialog open={cookieOpen} onOpenChange={setCookieOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Cookie &amp; Tracking Notice</DialogTitle>
+                <DialogDescription>
+                  Rocky sets only the strictly-necessary session cookie (Better Auth) required to keep you signed in.
+                  Under ePrivacy Art 5(3) and GDPR Art 6(1)(e) (official authority) this cookie is exempt from consent.
+                  Rocky sets no analytics, advertising, or cross-site tracking cookies. Full text: ROCKY-COOK-001.
+                </DialogDescription>
+              </DialogHeader>
+            </DialogContent>
+          </Dialog>
+        </SidebarProvider>
+      </TooltipProvider>
     </>
   );
 }

@@ -38,20 +38,11 @@ const FORMAT_OPTIONS = [
   { value: "pdf", label: "PDF — signed PDF/A-3 (download)" },
 ];
 
-/** Decode a base64 PDF/A-3 response into an object URL for download/preview. */
-function pdfObjectUrl(base64: string): string {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
-}
-
 export default function DocumentsPage() {
   const trpc = useTRPC();
   const searchParams = useSearchParams();
   const [result, setResult] = React.useState<DocumentResponse | null>(null);
   const [query, setQuery] = React.useState<{ type: string; refId: string } | null>(null);
-  const [pdfUrl, setPdfUrl] = React.useState<string | null>(null);
   const submittedFromQuery = React.useRef(false);
 
   const types = useQuery(trpc.document.listTypes.queryOptions());
@@ -79,6 +70,29 @@ export default function DocumentsPage() {
     }));
   }, [types.data]);
 
+  // Derive the object URL from result so there's no stale-state race.
+  const pdfUrl = React.useMemo<string | null>(() => {
+    if (!result || result.format !== "pdf") return null;
+    const binary = atob(result.content);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+  }, [result]);
+
+  // Revoke the previous blob URL when result changes.
+  const prevResultRef = React.useRef<DocumentResponse | null>(null);
+  React.useEffect(() => {
+    const prev = prevResultRef.current;
+    prevResultRef.current = result;
+    if (prev && prev.format === "pdf" && prev !== result) {
+      const binary = atob(prev.content);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const staleUrl = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+      URL.revokeObjectURL(staleUrl);
+    }
+  }, [result]);
+
   // Deep-link support: per-entity "Generate PDF" buttons land here with
   // ?type=&refId=&format= (format defaults to pdf). Prefill the form and
   // auto-generate once.
@@ -93,8 +107,9 @@ export default function DocumentsPage() {
     }
     if (type && refId && !submittedFromQuery.current) {
       submittedFromQuery.current = true;
+      const f = format as "yaml" | "xml" | "pdf";
       generate
-        .mutateAsync({ type, refId, format: format as "yaml" | "xml" | "pdf" })
+        .mutateAsync({ type, refId, format: f })
         .then(setResult)
         .catch(() => {});
     }
@@ -102,21 +117,9 @@ export default function DocumentsPage() {
 
   const onValid = async (values: { type: string; refId: string; format?: "yaml" | "xml" | "pdf" }) => {
     setQuery({ type: values.type, refId: values.refId });
-    const previousPdfUrl = pdfUrl;
-    setPdfUrl(null);
     const res = await generate.mutateAsync(values);
     setResult(res);
-    if (res.format === "pdf") {
-      if (previousPdfUrl) URL.revokeObjectURL(previousPdfUrl);
-      setPdfUrl(pdfObjectUrl(res.content));
-    }
   };
-
-  React.useEffect(() => {
-    return () => {
-      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
-    };
-  }, [pdfUrl]);
 
   return (
     <div className="flex flex-col gap-6">

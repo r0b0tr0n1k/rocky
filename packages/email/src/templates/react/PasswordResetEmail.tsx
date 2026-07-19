@@ -1,15 +1,4 @@
-import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Heading,
-  Hr,
-  Html,
-  Preview,
-  Section,
-  Text,
-} from "@react-email/components";
+import { Body, Button, Container, Head, Heading, Hr, Html, Preview, Section, Text } from "@react-email/components";
 
 export interface PasswordResetEmailProps {
   url: string;
@@ -61,13 +50,22 @@ export function PasswordResetEmail({ url, name, locale = "EN" }: PasswordResetEm
       <Preview>{c.subject}</Preview>
       <Body style={{ margin: 0, padding: 0, backgroundColor: "#f4f4f5", fontFamily: "Arial, Helvetica, sans-serif" }}>
         <Container style={{ maxWidth: 480, margin: "0 auto", padding: "24px", backgroundColor: "#ffffff" }}>
-          <Heading as="h1" style={{ fontSize: 20, color: "#18181b" }}>{c.heading}</Heading>
+          <Heading as="h1" style={{ fontSize: 20, color: "#18181b" }}>
+            {c.heading}
+          </Heading>
           <Text style={{ color: "#27272a", fontSize: 14, lineHeight: "20px" }}>{greeting},</Text>
           <Text style={{ color: "#27272a", fontSize: 14, lineHeight: "20px" }}>{c.body}</Text>
           <Section style={{ margin: "24px 0" }}>
             <Button
               href={url}
-              style={{ backgroundColor: "#2563eb", color: "#ffffff", padding: "12px 20px", borderRadius: 6, textDecoration: "none", fontSize: 14 }}
+              style={{
+                backgroundColor: "#2563eb",
+                color: "#ffffff",
+                padding: "12px 20px",
+                borderRadius: 6,
+                textDecoration: "none",
+                fontSize: 14,
+              }}
             >
               {c.cta}
             </Button>

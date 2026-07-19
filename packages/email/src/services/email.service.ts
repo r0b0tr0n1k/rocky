@@ -111,7 +111,9 @@ export class EmailService {
     }
 
     if (!this.quiet) {
-      console.log(`[email] dev (not sent) [${messageId}] ${parsed.subject} -> ${parsed.to.map((t) => t.email).join(", ")}`);
+      console.log(
+        `[email] dev (not sent) [${messageId}] ${parsed.subject} -> ${parsed.to.map((t) => t.email).join(", ")}`,
+      );
     }
     if (this.persistToFile) await this.saveToFile(parsed, messageId, timestamp);
     return {
@@ -158,7 +160,11 @@ export class EmailService {
     try {
       const dir = join(process.cwd(), "emails");
       mkdirSync(dir, { recursive: true });
-      await writeFile(join(dir, `${messageId}.json`), JSON.stringify({ messageId, timestamp, ...input }, null, 2), "utf-8");
+      await writeFile(
+        join(dir, `${messageId}.json`),
+        JSON.stringify({ messageId, timestamp, ...input }, null, 2),
+        "utf-8",
+      );
     } catch (error) {
       console.error("Failed to save email to file:", error);
     }

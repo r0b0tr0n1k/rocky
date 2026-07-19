@@ -196,7 +196,8 @@ describe.skipIf(!networkOk)("renderTypst with per-type template", () => {
       {
         title: "Inspector's Note",
         type: "note",
-        content: "Routine slaughterhouse inspection. Animal was fit for transport at time of departure. Ear tag intact and legible.",
+        content:
+          "Routine slaughterhouse inspection. Animal was fit for transport at time of departure. Ear tag intact and legible.",
       },
     ];
 

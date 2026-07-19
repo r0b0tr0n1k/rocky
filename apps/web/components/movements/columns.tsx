@@ -42,10 +42,7 @@ export interface MovementColumnLookups {
 
 // Only "movementDate" and "createdAt" are valid server sort keys; the rest
 // would be rejected by movementListRequestSchema, so they are non-sortable.
-export function movementColumns({
-  animalLabel,
-  farmLabel,
-}: MovementColumnLookups): ColumnDef<MovementResponse>[] {
+export function movementColumns({ animalLabel, farmLabel }: MovementColumnLookups): ColumnDef<MovementResponse>[] {
   return [
     {
       accessorKey: "animalId",
@@ -81,11 +78,7 @@ export function movementColumns({
       header: "Active",
       enableSorting: false,
       cell: ({ row }) =>
-        row.original.isActive ? (
-          <Badge variant="default">Active</Badge>
-        ) : (
-          <Badge variant="secondary">Inactive</Badge>
-        ),
+        row.original.isActive ? <Badge variant="default">Active</Badge> : <Badge variant="secondary">Inactive</Badge>,
     },
     {
       accessorKey: "createdAt",
@@ -101,7 +94,11 @@ export function movementColumns({
           actions={[
             { label: "View", icon: PencilIcon, href: `/movements/${row.original.id}/edit` },
             { label: "Generate PDF", icon: FileDown, href: `/documents?type=movement&refId=${row.original.id}` },
-            { label: "Generate YAML", icon: FileText, href: `/documents?type=movement&refId=${row.original.id}&format=yaml` },
+            {
+              label: "Generate YAML",
+              icon: FileText,
+              href: `/documents?type=movement&refId=${row.original.id}&format=yaml`,
+            },
           ]}
         />
       ),
