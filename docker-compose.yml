@@ -139,11 +139,14 @@ services:
     # intentionally do NOT gate web on service_healthy: web can serve its shell
     # before api is ready, and SSR proxy calls to api fail gracefully until up.
     # Liveness: Next.js serves on 3000.
+    # Distroless has no /bin/sh — use CMD exec form with the bundled node binary.
     healthcheck:
       test:
         [
-          "CMD-SHELL",
-          'node -e "require(''net'').createConnection(3000,''localhost'').on(''connect'',()=>process.exit(0)).on(''error'',()=>process.exit(1))"',
+          "CMD",
+          "/nodejs/bin/node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
         ]
       interval: 30s
       timeout: 10s
