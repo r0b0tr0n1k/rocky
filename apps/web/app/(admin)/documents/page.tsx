@@ -12,10 +12,30 @@ import { ValidatedForm } from "#components/shared/validated-form";
 import { useTRPC } from "#lib/trpc";
 import { useValidatedForm } from "#lib/use-validated-form";
 
+// ── Human-friendly labels for registered document types ────────────
+const TYPE_LABELS: Record<string, string> = {
+  movement: "Movement / Transport Declaration",
+  passport: "Cattle Passport",
+  "inspection-form": "Inspection Form",
+  "ched-a": "CHED-A (Common Health Entry)",
+  eudr: "EUDR Due Diligence Statement",
+  "ear-tag": "Ear Tag Order",
+};
+
+/** Short description for the refId field per document type. */
+const REFID_HINTS: Record<string, string> = {
+  movement: "UUID of the movement record (e.g. from the Movements list)",
+  passport: "UUID of the passport record",
+  "inspection-form": "UUID of the inspection record",
+  "ched-a": "UUID of the CHED-A notification",
+  eudr: "UUID of the EUDR due diligence record",
+  "ear-tag": "UUID of the ear tag order",
+};
+
 const FORMAT_OPTIONS = [
-  { value: "yaml", label: "YAML" },
-  { value: "xml", label: "XML" },
-  { value: "pdf", label: "PDF (signed PDF/A-3)" },
+  { value: "yaml", label: "YAML — raw data view" },
+  { value: "xml", label: "XML — structured export" },
+  { value: "pdf", label: "PDF — signed PDF/A-3 (download)" },
 ];
 
 /** Decode a base64 PDF/A-3 response into an object URL for download/preview. */
@@ -44,8 +64,20 @@ export default function DocumentsPage() {
   );
 
   const form = useValidatedForm(documentGenerateRequestSchema, {
-    defaultValues: { format: "yaml" },
+    defaultValues: { format: "pdf" },
   });
+
+  const selectedType = form.watch("type");
+
+  /** Build dropdown options from the registered types list. */
+  const typeOptions = React.useMemo(() => {
+    const data = types.data ?? [];
+    if (data.length === 0) return [{ value: "", label: "No types available" }];
+    return data.map((t) => ({
+      value: t,
+      label: TYPE_LABELS[t] ?? t,
+    }));
+  }, [types.data]);
 
   // Deep-link support: per-entity "Generate PDF" buttons land here with
   // ?type=&refId=. Prefill the form and auto-generate once.
@@ -65,14 +97,13 @@ export default function DocumentsPage() {
 
   const onValid = async (values: { type: string; refId: string; format?: "yaml" | "xml" | "pdf" }) => {
     setQuery({ type: values.type, refId: values.refId });
+    const previousPdfUrl = pdfUrl;
+    setPdfUrl(null);
     const res = await generate.mutateAsync(values);
     setResult(res);
     if (res.format === "pdf") {
-      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+      if (previousPdfUrl) URL.revokeObjectURL(previousPdfUrl);
       setPdfUrl(pdfObjectUrl(res.content));
-    } else if (pdfUrl) {
-      URL.revokeObjectURL(pdfUrl);
-      setPdfUrl(null);
     }
   };
 
@@ -85,41 +116,51 @@ export default function DocumentsPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Documents" description="Generate official documents from domain entities." />
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Available types</CardTitle>
-            <CardDescription>Document templates registered in the PDF service.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {types.isLoading ? (
-              <p className="text-sm text-muted-foreground">Loading…</p>
-            ) : (types.data ?? []).length === 0 ? (
-              <p className="text-sm text-muted-foreground">No document types registered.</p>
-            ) : (
-              <ul className="list-inside list-disc text-sm">
-                {(types.data ?? []).map((t) => (
-                  <li key={t}>{t}</li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Generate</CardTitle>
-            <CardDescription>Produce a YAML / XML / signed PDF/A-3 document for a domain entity.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ValidatedForm form={form} onValid={onValid} submitting={generate.isPending} submitText="Generate">
-              <TextField control={form.control} name="type" label="Type" placeholder="e.g. inspection-form" />
-              <TextField control={form.control} name="refId" label="Reference ID (UUID)" placeholder="entity uuid" />
-              <SelectField control={form.control} name="format" label="Format" options={FORMAT_OPTIONS} />
-            </ValidatedForm>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Generate a document</CardTitle>
+          <CardDescription>
+            Pick the document type, enter the entity UUID, and choose a format.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ValidatedForm form={form} onValid={onValid} submitting={generate.isPending} submitText="Generate">
+            {types.isLoading ? (
+              <p className="text-sm text-muted-foreground">Loading document types…</p>
+            ) : (
+              <SelectField
+                control={form.control}
+                name="type"
+                label="Document type"
+                placeholder="Select a type…"
+                options={typeOptions}
+              />
+            )}
+
+            <TextField
+              control={form.control}
+              name="refId"
+              label={
+                selectedType && TYPE_LABELS[selectedType]
+                  ? `${TYPE_LABELS[selectedType]} — ID`
+                  : "Reference ID"
+              }
+              placeholder={
+                selectedType
+                  ? `Paste the ${selectedType} UUID here`
+                  : "Select a document type first, then paste the UUID"
+              }
+            />
+
+            {selectedType && REFID_HINTS[selectedType] ? (
+              <p className="-mt-2 text-xs text-muted-foreground">{REFID_HINTS[selectedType]}</p>
+            ) : null}
+
+            <SelectField control={form.control} name="format" label="Format" options={FORMAT_OPTIONS} />
+          </ValidatedForm>
+        </CardContent>
+      </Card>
 
       {result ? (
         <Card>
