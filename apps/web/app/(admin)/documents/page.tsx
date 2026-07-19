@@ -117,6 +117,7 @@ export default function DocumentsPage() {
 
   const onValid = async (values: { type: string; refId: string; format?: "yaml" | "xml" | "pdf" }) => {
     setQuery({ type: values.type, refId: values.refId });
+    setResult(null);
     const res = await generate.mutateAsync(values);
     setResult(res);
   };
@@ -206,7 +207,16 @@ export default function DocumentsPage() {
                 </object>
               </>
             ) : (
-              <pre className="max-h-96 overflow-auto rounded-md bg-muted p-4 text-xs">{result.content}</pre>
+              <>
+                <a
+                  href={URL.createObjectURL(new Blob([result.content], { type: "text/plain" }))}
+                  download={`${result.documentType}-${query?.refId ?? "doc"}.${result.format}`}
+                  className="inline-flex w-fit items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                >
+                  Download {result.format.toUpperCase()}
+                </a>
+                <pre className="max-h-96 overflow-auto rounded-md bg-muted p-4 text-xs">{result.content}</pre>
+              </>
             )}
           </CardContent>
         </Card>

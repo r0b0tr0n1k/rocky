@@ -53,3 +53,16 @@
 *::-webkit-scrollbar-thumb:hover {
   background-color: hsl(var(--muted-foreground));
 }
+
+/* Keyboard focus visibility (ISO 9241-161 §6: focused/unfocused is a state that
+   must be visually distinguishable; ISO 9241-171 §9.2.2: high-visibility keyboard
+   focus). Complements shadcn's per-component `ring` (box-shadow) with an explicit
+   outline that also covers raw links, the skip-link target (<main>), and custom controls. */
+*:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+/* Pointer focus should NOT show the outline (keyboard-only visibility). */
+:focus:not(:focus-visible) {
+  outline: none;
+}

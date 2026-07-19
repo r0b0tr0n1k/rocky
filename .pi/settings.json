@@ -9,8 +9,8 @@
     "observationsPoolTargetTokens": 10000,
     "agentMaxTurns": 16,
     "model": {
-      "provider": "openrouter",
-      "id": "tencent/hy3:free",
+      "provider": "kilo",
+      "id": "poolside/laguna-xs-2.1:free",
       "thinking": "low"
     },
     "passive": false,

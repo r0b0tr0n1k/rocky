@@ -33,13 +33,15 @@ import { Kbd } from "@rocky/ui/components/kbd";
 import { TooltipProvider } from "@rocky/ui/components/tooltip";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@rocky/ui/components/dialog";
 
-import { signOut, useSession } from "#lib/auth-client";
+import { authClient, useSession } from "#lib/auth-client";
+import { useRouter } from "next/navigation";
 import { filterNavByPermissions, navSections } from "#lib/nav-config";
 import { usePermissions } from "#lib/permissions";
 import { CommandPalette } from "#components/command-palette";
 import { ThemeToggle } from "#components/theme-toggle";
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const { data: session } = useSession();
   // Gate session-derived UI behind mount. During SSR and the client's initial
   // hydration render `session` is undefined, but `useSession` resolves
@@ -160,7 +162,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel className="truncate">{displayName}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={() => signOut()}>
+                    <DropdownMenuItem
+                      onSelect={async () => {
+                        await authClient.signOut();
+                        router.push("/auth/sign-in");
+                      }}
+                    >
                       <LogOutIcon data-icon="inline-start" />
                       Sign out
                     </DropdownMenuItem>

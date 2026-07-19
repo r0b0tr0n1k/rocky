@@ -85,8 +85,8 @@ Table 2 maps each obligation to its status, evidence and remediation Wave.
 | F-03 | Cookie / consent management | GDPR 7; ePrivacy; ISO 27701 6.3.x | EXEMPT | `rocky-cookie-notice.md`; honest disclosure added to admin shell (no consent banner) | 1 |
 | F-04 | DSR / erasure / access request UI | GDPR 12, 15–22; ISO 27701 | PLANNED | `rocky-dsr-procedure.md` (unwired) | 1 |
 | F-05 | Privacy notice + data minimization | GDPR 12–14, 25; A.5.34 | PARTIAL | notice exists; no form cues | 1 |
-| F-06 | Semantic landmarks + skip-link | WCAG 1.3.1 / 2.4.1; ISO 9241-210 | PLANNED | browser-verified gap | 2 |
-| F-07 | Contrast / keyboard / focus order | WCAG 1.4.3 / 2.1.1; ISO 9241-210 | PLANNED | none audited | 2 |
+| F-06 | Semantic landmarks + skip-link | WCAG 1.3.1 / 2.4.1; ISO 9241-210 | IMPLEMENTED | `admin-shell.tsx` (skip-link + `<main id="main-content">` + `role="navigation"`); closed by 2026-07-15-frontend-conformity T06/T16 | — (maintain) |
+| F-07 | Contrast / keyboard / focus order | WCAG 1.4.3 / 2.1.1; ISO 9241-210, 9241-161, 9241-171 | PARTIAL | landmarks + skip-link done (F-06); `:focus-visible` ring added to `globals.css` (9241-161 §6 + 9241-171 §9.2.2); contrast still needs audit | 2 |
 | F-08 | Localization MK↔EN (i18n) | GDPR 12(1); MK LPDP; ISO 25010 | PLANNED | none | 2 |
 | F-09 | E2E + component testing | ISO 29119; A.8.28 / .29 | PARTIAL | vitest unit only | 3 |
 | F-10 | Quality KPIs (SQuaRE 25010/25023) | ISO 25010 / 25023 | PLANNED | none | 3 |
@@ -103,6 +103,39 @@ afterthought: Wave 2 establishes landmarks, skip-link, focus order, contrast, an
 keyboard operability, and the browser harness (`browser_snapshot` + `browser_execute_js`
 a11y assertions) is the acceptance gate — not lint alone. MK LPDP requires the
 local language, so i18n (F-08) is a transparency obligation, not a nicety.
+
+## Governing ergonomics instruments (ISO-9241-* skills)
+
+Per ADR-0105, the repo's `iso-9241-*` skill suite is the canonical benchmark for the
+ergonomics workstream — not a parallel doc. Each ergonomics change cites its governing skill:
+
+| Skill (canonical authority) | Covers | Use |
+| --- | --- | --- |
+| `.agents/skills/iso-software-skills/skills/iso-9241-110/ISO-9241-110_SKILL.md` | Dialogue principles (suitability for task, self-descriptiveness, controllability, error tolerance, individualization) | Dialogues, undo/recovery, individualization |
+| `.agents/skills/iso-software-skills/skills/iso-9241-12/ISO-9241-12_SKILL.md` | Presentation of information (coding, contrast) | Contrast, coding |
+| `.agents/skills/iso-software-skills/skills/iso-9241-143/ISO-9241-143_SKILL.md` | Forms (labels, navigation, user control, validation) | Forms, destructive-action guards |
+| `.agents/skills/iso-software-skills/skills/iso-9241-151/ISO-9241-151_SKILL.md` | Web UI (navigation, site map) | Admin pages, breadcrumbs |
+| `.agents/skills/iso-software-skills/skills/iso-9241-161/ISO-9241-161_SKILL.md` | Visual UI elements (states, focus distinguishability) | Component states, focus-visible |
+| `.agents/skills/iso-software-skills/skills/iso-9241-171/ISO-9241-171_SKILL.md` | Software accessibility (WCAG 2.4.7 focus visible, keyboard) | a11y, focus-visible, reduced-motion |
+| `.agents/skills/iso-software-skills/skills/iso-9241-210/ISO-9241-210_SKILL.md` | Human-centred design | Process |
+| `.agents/skills/iso-software-skills/skills/iso-9241-410/ISO-9241-410_SKILL.md` | Physical input devices (keyboard) | Keyboard operability |
+| `.agents/skills/iso-software-skills/skills/iso-9241-420/ISO-9241-420_SKILL.md` | Selection of physical input devices | Input selection |
+| `.agents/skills/iso-software-skills/skills/iso-9241-920/ISO-9241-920_SKILL.md` | Tactile/haptic interaction | N/A (web) |
+| `.agents/skills/iso-software-skills/skills/iso-tr-9241-100/ISO-TR-9241-100_SKILL.md` | Intro to the 9241 series | Orientation |
+
+> **9241-500 (environments) was considered and rejected as out of scope** for the web admin
+> dashboard (no physical/environmental workplace ergonomics surface).
+
+### Ergonomics posture — verified 2026-07-19 (this plan)
+
+The `2026-07-19-frontend-iso-guidance` plan audited the working tree and found the prior
+`2026-07-15-frontend-conformity` (T06/T16) work — plus `table-card.tsx` — already
+**closed G1–G5** (reduced-motion + scrollbar, skip-link + `<main>` landmarks, breadcrumbs,
+standardized `PageHeader`, density + saved views). That plan therefore owns only the two genuinely
+open items: **focus-visible rings** (added to `globals.css`, satisfying 9241-161 §6 + 9241-171
+§9.2.2) and **high-risk-action Undo** (sonner Undo on RBAC revoke in `rbac/page.tsx`,
+satisfying 9241-110 §4.7/§4.8 + 9241-143 §6.5). The `documents` / `movement-detail`
+delete paths carry the same treatment as a follow-up once their in-flight WIP lands.
 
 ## Remediation program
 

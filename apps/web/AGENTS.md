@@ -14,6 +14,7 @@ Next.js admin panel for CPC/VD back-office workflows.
 - Wire tRPC queries/mutations to the NestJS backend.
 - Owns the Web Admin ADRs (per ADR-0033) in `apps/docs/content/ADR/`.
 - **ADR-0076** — Enterprise UX list-page law (Contain / Align / Control): `TableCard`, `SearchInput`, `appendRowActions`, `RowDetailsDialog`, `RowActionMenu`, `useDebounced` in `apps/web/components/shared/` + `apps/web/lib/`. Apply its canonical recipe to every admin list page.
+- **ADR-0105** — Frontend Conformity & UX Controls (governing). Ergonomics (ISO 9241-* / WCAG 2.1 AA) is a first-class workstream benchmarked against the repo's `iso-9241-*` skills; posture is recorded in `ROCKY-FE-001` (`apps/docs/content/compliance/frontend-conformity.md`). Every a11y/UX-control change (landmarks, skip-link, focus-visible, high-risk-action Undo) cites its governing skill.
 
 ## RobotFarm
 

@@ -58,11 +58,8 @@ export function DataTable<TData>({
   });
 
   const { density } = useTableDensity();
-  // Stable keys for the transient loading skeleton (no domain id available).
-  const skeletonRows = React.useMemo(
-    () => Array.from({ length: 8 }, () => ({ key: `sk-${Math.random().toString(36).slice(2, 8)}` })),
-    [],
-  );
+  // Stable, deterministic keys for the transient loading skeleton (no domain id available).
+  const skeletonRows = React.useMemo(() => Array.from({ length: 8 }, (_, i) => ({ key: `sk-${i}` })), []);
 
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const canPrev = page > 0;
@@ -114,8 +111,8 @@ export function DataTable<TData>({
             {isLoading ? (
               skeletonRows.slice(0, Math.min(pageSize, 8)).map((r) => (
                 <TableRow key={r.key}>
-                  {columns.map((col) => (
-                    <TableCell key={col.id ?? r.key}>
+                  {columns.map((col, i) => (
+                    <TableCell key={`${r.key}-${col.id ?? i}`}>
                       <Skeleton className="h-5 w-full" />
                     </TableCell>
                   ))}

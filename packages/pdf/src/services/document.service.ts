@@ -79,6 +79,8 @@ export class DocumentService {
   async generate(input: DocumentGenerateInput): Promise<Result<DocumentResponse, DocumentError>> {
     const { type, refId, format = "yaml" } = input;
 
+    console.log("[DOCUMENT] generate input:", { type, refId, format, inputKeys: Object.keys(input) });
+
     // 1. Validate format
     if (!isFormatSupported(format)) {
       return err(documentErr(DOCUMENT_ERRORS.UNSUPPORTED_FORMAT, { format, supportedFormats: ["yaml", "xml"] }));

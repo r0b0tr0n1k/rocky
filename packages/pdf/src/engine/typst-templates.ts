@@ -197,6 +197,26 @@ export function resolveTypstTemplate(type: string): string {
   return TEMPLATE_SOURCES.get(type) ?? GENERIC_FALLBACK_TYPST;
 }
 
+/** Convert an arbitrary value into a flat DocumentField array for Typst templates. */
+function toDocFields(value: unknown): DocumentField[] {
+  if (value === null || value === undefined) return [{ label: "Value", value: "" }];
+  if (typeof value === "object" && !Array.isArray(value)) {
+    return Object.entries(value as Record<string, unknown>).map(([k, v]) => ({
+      label: k.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase()),
+      value: v === null || v === undefined ? "" : typeof v === "object" ? JSON.stringify(v) : String(v),
+    }));
+  }
+  if (Array.isArray(value)) {
+    return value.length === 0
+      ? [{ label: "Value", value: "[]" }]
+      : value.map((item, i) => ({
+          label: `#${i + 1}`,
+          value: typeof item === "object" ? JSON.stringify(item) : String(item),
+        }));
+  }
+  return [{ label: "Value", value: String(value) }];
+}
+
 /**
  * Build the structured model for per-type Typst templates.
  *
@@ -221,20 +241,38 @@ export function buildSectionedModel(model: Record<string, unknown>, meta: Docume
     };
   }
 
-  // Fallback: auto-generate a single section from the flat model
-  const fields: DocumentField[] = Object.entries(model)
-    .filter(([key]) => key !== "sections" && key !== "language" && key !== "generatedAt")
-    .map(([label, value]) => ({
-      label,
-      value:
-        value === null || value === undefined ? "" : typeof value === "object" ? JSON.stringify(value) : String(value),
-    }));
+  // Fallback: auto-generate sections from the flat model.
+  // Templates like movement return { movementDeclaration: { ... } } — a single
+  // wrapper key. Unwrap it so each inner key becomes its own section with
+  // proper fields, instead of rendering the entire JSON dump as one field.
+  const topKeys = Object.keys(model).filter((k) => k !== "sections" && k !== "language" && k !== "generatedAt");
+  const firstKey = topKeys[0]!;
+  const hasSingleObjectWrapper =
+    topKeys.length === 1 &&
+    typeof model[firstKey] === "object" &&
+    model[firstKey] !== null &&
+    !Array.isArray(model[firstKey]);
+  const sourceModel: Record<string, unknown> = hasSingleObjectWrapper
+    ? (model[firstKey] as Record<string, unknown>)
+    : Object.fromEntries(topKeys.map((k) => [k, model[k]]));
+
+  const sections: DocumentSection[] = Object.entries(sourceModel).map(([label, value]) => {
+    const title = label.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase());
+    return {
+      title,
+      type: "fields",
+      fields:
+        typeof value === "object" && value !== null && !Array.isArray(value)
+          ? toDocFields(value)
+          : [{ label: title, value: value === null || value === undefined ? "" : String(value) }],
+    };
+  });
 
   return {
     title: meta.title,
     subtitle: meta.subtitle,
     language: (model.language as string) ?? "MK",
     generatedAt: (model.generatedAt as string) ?? new Date().toISOString(),
-    sections: [{ title: meta.title, type: "fields", fields }],
+    sections,
   };
 }

@@ -19,7 +19,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthUIProvider
       authClient={authClient as unknown as AuthClient}
-      redirectTo="/admin/dashboard"
+      redirectTo="/dashboard"
       navigate={({ to, replace }) => {
         if (replace) router.replace(to);
         else router.push(to);

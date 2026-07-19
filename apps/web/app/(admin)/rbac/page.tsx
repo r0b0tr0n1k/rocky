@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@rocky/ui/components/badge";
+import { toast } from "sonner";
 
 import {
   assignRoleToUserRequestSchema,
@@ -49,123 +50,136 @@ export default function RbacPage() {
     trpc.rbac.assignRole.mutationOptions({ onSuccess: () => invalidate(trpc.rbac.listRoles.queryKey()) }),
   );
   const revoke = useMutation(
-    trpc.rbac.revokeRole.mutationOptions({ onSuccess: () => invalidate(trpc.rbac.listRoles.queryKey()) }),
+    trpc.rbac.revokeRole.mutationOptions({
+      onSuccess: (_data, vars) => {
+        invalidate(trpc.rbac.listRoles.queryKey());
+        toast("Role revoked", {
+          description: "The role assignment was removed.",
+          action: {
+            label: "Undo",
+            onClick: () => assign.mutate({ userId: vars.userId, roleId: vars.roleId }),
+          },
+        });
+      },
+    }),
   );
 
-  const roleColumns: ColumnDef<RoleResponse>[] = appendRowActions([
-    { accessorKey: "name", header: "Name", enableSorting: false },
-    {
-      accessorKey: "description",
-      header: "Description",
-      enableSorting: false,
-      cell: ({ row }) => row.original.description ?? "—",
-    },
-    {
-      accessorKey: "priority",
-      header: "Priority",
-      enableSorting: false,
-      cell: ({ row }) => <Badge variant="outline">{row.original.priority}</Badge>,
-    },
-    {
-      accessorKey: "isSystem",
-      header: "System",
-      enableSorting: false,
-      cell: ({ row }) =>
-        row.original.isSystem ? <Badge variant="destructive">Yes</Badge> : <Badge variant="secondary">No</Badge>,
-    },
-  ], (row) => (
-    <RowActionMenu items={[{ type: "dialog", dialog: <RbacRoleDetails role={row} /> }]} />
-  ));
+  const roleColumns: ColumnDef<RoleResponse>[] = appendRowActions(
+    [
+      { accessorKey: "name", header: "Name", enableSorting: false },
+      {
+        accessorKey: "description",
+        header: "Description",
+        enableSorting: false,
+        cell: ({ row }) => row.original.description ?? "—",
+      },
+      {
+        accessorKey: "priority",
+        header: "Priority",
+        enableSorting: false,
+        cell: ({ row }) => <Badge variant="outline">{row.original.priority}</Badge>,
+      },
+      {
+        accessorKey: "isSystem",
+        header: "System",
+        enableSorting: false,
+        cell: ({ row }) =>
+          row.original.isSystem ? <Badge variant="destructive">Yes</Badge> : <Badge variant="secondary">No</Badge>,
+      },
+    ],
+    (row) => <RowActionMenu items={[{ type: "dialog", dialog: <RbacRoleDetails role={row} /> }]} />,
+  );
 
-  const permissionColumns: ColumnDef<PermissionResponse>[] = appendRowActions([
-    { accessorKey: "resource", header: "Resource", enableSorting: false },
-    { accessorKey: "action", header: "Action", enableSorting: false },
-    {
-      accessorKey: "description",
-      header: "Description",
-      enableSorting: false,
-      cell: ({ row }) => row.original.description ?? "—",
-    },
-    { accessorKey: "scope", header: "Scope", enableSorting: false, cell: ({ row }) => row.original.scope ?? "—" },
-  ], (row) => (
-    <RowActionMenu items={[{ type: "dialog", dialog: <RbacPermissionDetails permission={row} /> }]} />
-  ));
+  const permissionColumns: ColumnDef<PermissionResponse>[] = appendRowActions(
+    [
+      { accessorKey: "resource", header: "Resource", enableSorting: false },
+      { accessorKey: "action", header: "Action", enableSorting: false },
+      {
+        accessorKey: "description",
+        header: "Description",
+        enableSorting: false,
+        cell: ({ row }) => row.original.description ?? "—",
+      },
+      { accessorKey: "scope", header: "Scope", enableSorting: false, cell: ({ row }) => row.original.scope ?? "—" },
+    ],
+    (row) => <RowActionMenu items={[{ type: "dialog", dialog: <RbacPermissionDetails permission={row} /> }]} />,
+  );
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="RBAC" description="Roles and permissions governing access." />
       <div className="flex flex-wrap gap-2">
         {isSuperAdmin && (
-        <ActionDialog
-          triggerLabel="Assign role"
-          schema={assignRoleToUserRequestSchema}
-          mutation={assign}
-          title="Assign role to user"
-          description="Grant a role with optional scope and validity window."
-          fields={(form) => (
-            <>
-              <ComboboxField
-                control={form.control}
-                name="userId"
-                label="User"
-                placeholder="Search users…"
-                options={userOptions}
-              />
-              <ComboboxField
-                control={form.control}
-                name="roleId"
-                label="Role"
-                placeholder="Search roles…"
-                options={roleOptions}
-              />
-              <ComboboxField
-                control={form.control}
-                name="scopeOrgId"
-                label="Scope org (optional)"
-                placeholder="org uuid"
-                options={[]}
-              />
-              <ComboboxField
-                control={form.control}
-                name="scopeFarmId"
-                label="Scope farm (optional)"
-                placeholder="Search farms…"
-                options={farmOptions}
-              />
-              <DateField control={form.control} name="validFrom" label="Valid from (optional)" />
-              <DateField control={form.control} name="validTo" label="Valid to (optional)" />
-            </>
-          )}
-        />
+          <ActionDialog
+            triggerLabel="Assign role"
+            schema={assignRoleToUserRequestSchema}
+            mutation={assign}
+            title="Assign role to user"
+            description="Grant a role with optional scope and validity window."
+            fields={(form) => (
+              <>
+                <ComboboxField
+                  control={form.control}
+                  name="userId"
+                  label="User"
+                  placeholder="Search users…"
+                  options={userOptions}
+                />
+                <ComboboxField
+                  control={form.control}
+                  name="roleId"
+                  label="Role"
+                  placeholder="Search roles…"
+                  options={roleOptions}
+                />
+                <ComboboxField
+                  control={form.control}
+                  name="scopeOrgId"
+                  label="Scope org (optional)"
+                  placeholder="org uuid"
+                  options={[]}
+                />
+                <ComboboxField
+                  control={form.control}
+                  name="scopeFarmId"
+                  label="Scope farm (optional)"
+                  placeholder="Search farms…"
+                  options={farmOptions}
+                />
+                <DateField control={form.control} name="validFrom" label="Valid from (optional)" />
+                <DateField control={form.control} name="validTo" label="Valid to (optional)" />
+              </>
+            )}
+          />
         )}
         {isSuperAdmin && (
-        <ActionDialog
-          triggerLabel="Revoke role"
-          schema={revokeRoleFromUserRequestSchema}
-          mutation={revoke}
-          title="Revoke role"
-          description="Remove a role assignment from a user."
-          alert="This permanently removes the role assignment and its scope/validity window."
-          alertVariant="destructive"
-          fields={(form) => (
-            <>
-              <ComboboxField
-                control={form.control}
-                name="userId"
-                label="User"
-                placeholder="Search users…"
-                options={userOptions}
-              />
-              <ComboboxField
-                control={form.control}
-                name="roleId"
-                label="Role"
-                placeholder="Search roles…"
-                options={roleOptions}
-              />
-            </>
-          )}
-        />
+          <ActionDialog
+            triggerLabel="Revoke role"
+            schema={revokeRoleFromUserRequestSchema}
+            mutation={revoke}
+            title="Revoke role"
+            description="Remove a role assignment from a user."
+            alert="This permanently removes the role assignment and its scope/validity window."
+            alertVariant="destructive"
+            fields={(form) => (
+              <>
+                <ComboboxField
+                  control={form.control}
+                  name="userId"
+                  label="User"
+                  placeholder="Search users…"
+                  options={userOptions}
+                />
+                <ComboboxField
+                  control={form.control}
+                  name="roleId"
+                  label="Role"
+                  placeholder="Search roles…"
+                  options={roleOptions}
+                />
+              </>
+            )}
+          />
         )}
       </div>
 
@@ -226,5 +240,7 @@ function RbacPermissionDetails({ permission }: { permission: PermissionResponse 
     { label: "Description", value: permission.description ?? "—" },
     { label: "Created", value: new Date(permission.createdAt).toLocaleDateString() },
   ];
-  return <RowDetailsDialog title={`${permission.resource}:${permission.action}`} description="Permission" fields={fields} />;
+  return (
+    <RowDetailsDialog title={`${permission.resource}:${permission.action}`} description="Permission" fields={fields} />
+  );
 }
