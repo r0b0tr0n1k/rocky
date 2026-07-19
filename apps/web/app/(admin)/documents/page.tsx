@@ -80,16 +80,21 @@ export default function DocumentsPage() {
   }, [types.data]);
 
   // Deep-link support: per-entity "Generate PDF" buttons land here with
-  // ?type=&refId=. Prefill the form and auto-generate once.
+  // ?type=&refId=&format= (format defaults to pdf). Prefill the form and
+  // auto-generate once.
   React.useEffect(() => {
     const type = searchParams.get("type");
     const refId = searchParams.get("refId");
+    const format = searchParams.get("format") ?? "pdf";
     if (type) form.setValue("type", type);
     if (refId) form.setValue("refId", refId);
+    if (format === "yaml" || format === "xml" || format === "pdf") {
+      form.setValue("format", format);
+    }
     if (type && refId && !submittedFromQuery.current) {
       submittedFromQuery.current = true;
       generate
-        .mutateAsync({ type, refId, format: "pdf" })
+        .mutateAsync({ type, refId, format: format as "yaml" | "xml" | "pdf" })
         .then(setResult)
         .catch(() => {});
     }
@@ -120,9 +125,7 @@ export default function DocumentsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Generate a document</CardTitle>
-          <CardDescription>
-            Pick the document type, enter the entity UUID, and choose a format.
-          </CardDescription>
+          <CardDescription>Pick the document type, enter the entity UUID, and choose a format.</CardDescription>
         </CardHeader>
         <CardContent>
           <ValidatedForm form={form} onValid={onValid} submitting={generate.isPending} submitText="Generate">
@@ -141,11 +144,7 @@ export default function DocumentsPage() {
             <TextField
               control={form.control}
               name="refId"
-              label={
-                selectedType && TYPE_LABELS[selectedType]
-                  ? `${TYPE_LABELS[selectedType]} — ID`
-                  : "Reference ID"
-              }
+              label={selectedType && TYPE_LABELS[selectedType] ? `${TYPE_LABELS[selectedType]} — ID` : "Reference ID"}
               placeholder={
                 selectedType
                   ? `Paste the ${selectedType} UUID here`

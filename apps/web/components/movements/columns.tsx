@@ -3,7 +3,7 @@
 import { format } from "date-fns";
 import type { ComponentProps } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { PencilIcon } from "lucide-react";
+import { FileDown, FileText, PencilIcon } from "lucide-react";
 
 import { Badge } from "@rocky/ui/components/badge";
 import { RowActions } from "#components/shared/row-actions";
@@ -98,7 +98,11 @@ export function movementColumns({
       enableSorting: false,
       cell: ({ row }) => (
         <RowActions
-          actions={[{ label: "View", icon: PencilIcon, href: `/movements/${row.original.id}/edit` }]}
+          actions={[
+            { label: "View", icon: PencilIcon, href: `/movements/${row.original.id}/edit` },
+            { label: "Generate PDF", icon: FileDown, href: `/documents?type=movement&refId=${row.original.id}` },
+            { label: "Generate YAML", icon: FileText, href: `/documents?type=movement&refId=${row.original.id}&format=yaml` },
+          ]}
         />
       ),
     },
