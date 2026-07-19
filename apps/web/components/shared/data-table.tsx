@@ -1,12 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  type ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { ChevronLeft, ChevronRight, ChevronsUpDown } from "lucide-react";
 
 import { cn } from "@rocky/ui/lib/utils";
@@ -15,6 +10,7 @@ import { Empty } from "@rocky/ui/components/empty";
 import { Pagination, PaginationContent, PaginationItem } from "@rocky/ui/components/pagination";
 import { Skeleton } from "@rocky/ui/components/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@rocky/ui/components/table";
+import { densityCompactClass, useTableDensity } from "#components/shared/table-card";
 
 export interface DataTableProps<TData> {
   columns: ColumnDef<TData>[];
@@ -61,6 +57,13 @@ export function DataTable<TData>({
     state: { sorting: sort ? [{ id: sort.id, desc: sort.desc }] : [] },
   });
 
+  const { density } = useTableDensity();
+  // Stable keys for the transient loading skeleton (no domain id available).
+  const skeletonRows = React.useMemo(
+    () => Array.from({ length: 8 }, () => ({ key: `sk-${Math.random().toString(36).slice(2, 8)}` })),
+    [],
+  );
+
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const canPrev = page > 0;
   const canNext = page < pageCount - 1;
@@ -68,7 +71,7 @@ export function DataTable<TData>({
   return (
     <div className="flex flex-col gap-3">
       <div className={cn("rounded-md border", !bordered && "border-0 rounded-none")}>
-        <Table className={tableClassName}>
+        <Table className={density === "compact" ? densityCompactClass : tableClassName}>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>
@@ -77,11 +80,7 @@ export function DataTable<TData>({
                   const sorted = sort?.id === header.column.id ? sort.desc : null;
                   const meta = colMeta(header);
                   const alignCls =
-                    meta.align === "right"
-                      ? "text-right"
-                      : meta.align === "center"
-                        ? "text-center"
-                        : undefined;
+                    meta.align === "right" ? "text-right" : meta.align === "center" ? "text-center" : undefined;
                   return (
                     <TableHead
                       key={`${hg.id}-${header.index}`}
@@ -113,10 +112,10 @@ export function DataTable<TData>({
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              Array.from({ length: Math.min(pageSize, 8) }).map((_, i) => (
-                <TableRow key={`skeleton-${i}`}>
-                  {columns.map((_, j) => (
-                    <TableCell key={j}>
+              skeletonRows.slice(0, Math.min(pageSize, 8)).map((r) => (
+                <TableRow key={r.key}>
+                  {columns.map((col) => (
+                    <TableCell key={col.id ?? r.key}>
                       <Skeleton className="h-5 w-full" />
                     </TableCell>
                   ))}
@@ -131,24 +130,20 @@ export function DataTable<TData>({
             ) : (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => {
-                  const meta = colMeta(cell);
-                  const alignCls =
-                    meta.align === "right"
-                      ? "text-right"
-                      : meta.align === "center"
-                        ? "text-center"
-                        : undefined;
-                  return (
-                    <TableCell
-                      key={cell.id}
-                      style={meta.width ? { width: meta.width } : undefined}
-                      className={alignCls}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  );
-                })}
+                  {row.getVisibleCells().map((cell) => {
+                    const meta = colMeta(cell);
+                    const alignCls =
+                      meta.align === "right" ? "text-right" : meta.align === "center" ? "text-center" : undefined;
+                    return (
+                      <TableCell
+                        key={cell.id}
+                        style={meta.width ? { width: meta.width } : undefined}
+                        className={alignCls}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    );
+                  })}
                 </TableRow>
               ))
             )}
