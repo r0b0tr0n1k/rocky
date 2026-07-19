@@ -2,7 +2,7 @@
 
 # The Law of the Result Monad & Error Sovereignty
 
-> _"The philosophers have only interpreted the validators; the point is to move Result to domains-shared."_
+> *"The philosophers have only interpreted the validators; the point is to move Result to domains-shared."*
 
 **Status:** Active Doctrine
 **Date:** 2026-05-09
@@ -154,7 +154,7 @@ export const RIDE_ERRORS = {
 } as const;
 ```
 
-Does the frontend React application care if the database failed specifically on `LATE_ARRIVAL_CONFIG_CREATE_FAILED` versus `NO_SHOW_CONFIG_CREATE_FAILED`? **No.** The frontend displays a red toast: _"Failed to save settings."_
+Does the frontend React application care if the database failed specifically on `LATE_ARRIVAL_CONFIG_CREATE_FAILED` versus `NO_SHOW_CONFIG_CREATE_FAILED`? **No.** The frontend displays a red toast: *"Failed to save settings."*
 
 By creating a unique error code for every database operation, you:
 
@@ -223,6 +223,7 @@ Instead of `INVALID_TICKET_STATUS`, `INVALID_RIDE_STATUS`, `INVALID_PAYOUT_STATU
 ---
 
 ## 7. The Architectural Split — Church and State
+
 ```mermaid
 sequenceDiagram
   participant S as ⚙️ Domain Service
@@ -239,7 +240,6 @@ sequenceDiagram
     R-->>C: TRPCError (code + message)
   end
 ```
-
 
 Domain error files currently contain an **ideological contradiction**: they mix the **Domain Truth** (error code strings) with the **API Translation** (TRPC error maps).
 
@@ -307,9 +307,11 @@ export const RIDE_TRPC_ERROR_MAP: Record<
 
 ---
 
-## 8. Panopticon Enforcement
+## 8. Enforcement
 
-The following laws are enforced by `panopticon check`:
+> **Note:** there is **no** tool called `panopticon` in this repo — the name is a
+> placeholder carried over from the original Diamond Seal doctrine. The laws below are
+> guarded by two real machines, described at the end of this section.
 
 ### Law A: Transport Agnosticism (Import Ban)
 
@@ -327,16 +329,42 @@ All 5 Domain layers now ban these imports:
 
 Domain files may not import from `@rocky/validators/errors`. Error codes are owned by the domain.
 
-### Law C: Structural Content Scan (Pass Ia)
+### Law C: Structural Content Scan
 
-A new panopticon pass scans all `packages/domains/` files for forbidden patterns:
+A pass should scan all `packages/domains/` files for forbidden patterns:
 
 | Pattern          | Violation                                                     |
 | ---------------- | ------------------------------------------------------------- |
 | `TRPC_ERROR_MAP` | Domain knows about HTTP/tRPC error mappings                   |
 | `TRPCError`      | Domain throws HTTP errors instead of returning `Result<T, E>` |
 
-These are caught even if the import comes through a barrel export that bypasses the regex-based import checker.
+These should be caught even if the import comes through a barrel export that bypasses the
+regex-based import checker.
+
+### Enforcement status
+
+Two real machines guard these laws — neither is named `panopticon`:
+
+1. **Doc-test guard** — `apps/docs/scripts/verify-result-doctrine.mjs` (run via
+   `pnpm --filter docs test:doctrine`; see `TESTING_DOCTRINE.md`) re-parses the import
+   blocks in this doc and asserts every `@rocky/*` symbol resolves to a real export, and
+   that `createResultUnwrapper` maps a coded domain `Result<E>` to a `TRPCError`. It keeps
+   *this doc's* claims honest, but it does **not** scan domain source.
+2. **Layer-boundary guard** — `scripts/check-layers.mjs`, wired into `pnpm ci:checks` as
+   `check:layers` (standard **ROCKY-DS 001:2026(E)**, Visa Matrix Annex C). This is the
+   real machine that fails the build on import-boundary violations. Its encoded rows
+   currently cover the DB/validator bans:
+   - domain **services** SHALL NOT import `@rocky/database` (except `/constants`);
+   - domain **repositories** SHALL NOT import `@rocky/validators/api` or `/events`;
+   - **routers** SHALL NOT import `@rocky/database` (any subpath), `/events`, or `/integrations`.
+
+> **Implemented (2026-07):** Laws A–C are now machine-enforced. `scripts/check-layers.mjs`
+> (run via `pnpm check:layers`, part of `pnpm ci:checks`) gained a domain-scope row that bans
+> `@trpc/(server|client)` and `@rocky/validators/errors` inside `packages/domains/*/src`. A full
+> scan confirms zero violations in the real codebase, so the doctrine is now self-enforcing
+> rather than convention-held. While wiring this, the row regex anchoring was also corrected:
+> it had been matching a leading `/packages` that `path.relative()` does not emit, so the whole
+> guard was silently vacuous before — it now actually fires.
 
 ---
 
