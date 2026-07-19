@@ -1,36 +1,25 @@
 /**
- * Generic Typst document template (ADR-0082)
+ * Generic Typst document template (ADR-0082) — DEPRECATED
  *
- * A single, data-driven `.typ` layout used by `DocumentService.generate` for
- * `format: "pdf"`. It reads the document model as a JSON string passed via
- * `sys.inputs.model`, decodes it, and renders a title + metadata + a
- * key/value field list. Per-document-type `.typ` layouts are a future
- * refinement; this proves the render → embed → sign pipeline generically.
+ * @deprecated Use per-type templates from typst-templates.ts instead.
+ * The single flat GENERIC_DOCUMENT_TYPST remains as the fallback for
+ * document types without a custom .typ layout.
  *
- * The PDF/A-3 wrapper (@e-invoice-eu) and PAdES sign (HSM) are applied
- * downstream — this file only produces the visual PDF.
+ * Per-type templates live in packages/pdf/src/typst/templates/ and are
+ * imported string-constants via the TEMPLATE_SOURCES map. The pipeline
+ * selects them via resolveTypstTemplate(type).
+ *
+ * The PDF/A-3 wrapper and PAdES sign are applied downstream.
  */
 
-export const GENERIC_DOCUMENT_TYPST = `#set page(paper: "a4", margin: 2cm)
-#set text(font: "DejaVu Sans", size: 11pt)
-#set document(title: "Rocky Document")
+import { resolveTypstTemplate, buildSectionedModel } from "./typst-templates.js";
+import type { DocumentTypstModel } from "./typst-templates.js";
 
-#let raw = sys.inputs.at("model", default: "{}")
-#let data = json.decode(raw)
-
-#v(2.4cm)
-
-= #data.at("title", default: "Document")
-#text(size: 10pt, fill: rgb(90, 90, 90))[#data.at("subtitle", default: "")]
-
-#line(length: 100%, stroke: rgb(80%, 80%, 80%))
-
-#for field in data.at("fields", default: ()) [
-  #block[
-    *#field.at("label", default: ""):* #field.at("value", default: "")
-  ]
-]
-`;
+/**
+ * @deprecated Use resolveTypstTemplate(type) instead.
+ * Kept for backward compatibility with tests.
+ */
+export const GENERIC_DOCUMENT_TYPST = resolveTypstTemplate("__fallback__");
 
 export interface DocumentModelMeta {
   /** H1 title (usually the template's human-readable name). */
@@ -44,26 +33,28 @@ export interface DocumentField {
   value: string;
 }
 
+export type { DocumentTypstModel, DocumentSection } from "./typst-templates.js";
+
 /**
- * Flatten a document model into the shape the generic template expects and
- * serialize it to a single `sys.inputs` string (inputs are strings only).
- * Nested objects are JSON-stringified so they remain inspectable.
+ * Build structured model inputs for a per-type Typst template.
+ *
+ * ADR-0107: The model is passed as a sectioned JSON (not flat fields),
+ * allowing per-type .typ templates to render tables, key-value fields,
+ * and prose notes differently. Backward-compatible: types without
+ * sections get a single auto-generated section.
  */
 export function buildDocumentModelInputs(
   model: Record<string, unknown>,
   meta: DocumentModelMeta,
 ): Record<string, string> {
-  const fields: DocumentField[] = Object.entries(model).map(([label, value]) => ({
-    label,
-    value:
-      value === null || value === undefined
-        ? ""
-        : typeof value === "object"
-          ? JSON.stringify(value)
-          : String(value),
-  }));
-
+  const structured = buildSectionedModel(model, meta);
   return {
-    model: JSON.stringify({ title: meta.title, subtitle: meta.subtitle, fields }),
+    model: JSON.stringify(structured),
   };
 }
+
+/**
+ * Resolve the Typst template source for a document type.
+ * Delegates to typst-templates.ts TEMPLATE_SOURCES map.
+ */
+export { resolveTypstTemplate, TEMPLATE_SOURCES } from "./typst-templates.js";

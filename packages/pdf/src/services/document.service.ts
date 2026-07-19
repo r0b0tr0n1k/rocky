@@ -16,19 +16,14 @@ import { Inject, Injectable } from "@nestjs/common";
 import { AFRelationship } from "@cantoo/pdf-lib";
 import { err, ok, type Result } from "neverthrow";
 import { DocumentRegistry } from "../engine/document-registry.js";
-import {
-  type DocumentFormat,
-  isFormatSupported,
-  serializeToYaml,
-  serializeToXml,
-} from "../engine/yaml-serializer.js";
+import { type DocumentFormat, isFormatSupported, serializeToYaml, serializeToXml } from "../engine/yaml-serializer.js";
 import { DOCUMENT_ERRORS, documentErr, DocumentError } from "../errors/document.errors.js";
-import { buildDocumentModelInputs, GENERIC_DOCUMENT_TYPST } from "../engine/typst-document.template.js";
+import { buildDocumentModelInputs, resolveTypstTemplate } from "../engine/typst-document.template.js";
 import { renderTypst, loadLogoPng } from "../engine/typst-renderer.js";
 import { wrapPdfA3 } from "../engine/pdfa3.js";
 import { NoOpSigner, type PdfSigner, extractSignature, type SignatureInfo } from "../sign/index.js";
 import { CredentialService, type CredentialResponseView, type CredentialVerifyView } from "./credential.service.js";
-import { type CredentialBatchManifest } from "../credential/batch.js";
+import type { CredentialBatchManifest } from "../credential/batch.js";
 import { embedQrPng, embedLogoPng } from "../engine/pdf-embed.js";
 
 export interface DocumentGenerateInput {
@@ -135,7 +130,8 @@ export class DocumentService {
       });
       let pdf: Uint8Array;
       try {
-        pdf = await renderTypst({ template: GENERIC_DOCUMENT_TYPST, inputs });
+        const typstSource = resolveTypstTemplate(template.type);
+        pdf = await renderTypst({ template: typstSource, inputs });
       } catch (renderError) {
         return err(
           documentErr(DOCUMENT_ERRORS.SERIALIZATION_FAILED, {
@@ -181,9 +177,7 @@ export class DocumentService {
       // sign stage (ADR-0082 §2); the default NoOpSigner keeps non-prod
       // deterministic, but production must wire HsmSigner/Pkcs12Signer so no
       // unsigned PDF ever egresses.
-      const sourceBytes = new TextEncoder().encode(
-        yamlResult.isOk() ? yamlResult.value : "",
-      );
+      const sourceBytes = new TextEncoder().encode(yamlResult.isOk() ? yamlResult.value : "");
       let sealed: Uint8Array;
       try {
         const pdfa3 = await wrapPdfA3({
@@ -257,14 +251,14 @@ export class DocumentService {
     if (gen.isErr()) return err(gen.error);
     const pdf = Buffer.from(gen.value.content, "base64");
     const signature = extractSignature(pdf);
-      return ok({
-        documentType: gen.value.documentType,
-        documentName: gen.value.documentName,
-        modelVersion: gen.value.modelVersion,
-        generatedAt: gen.value.generatedAt,
-        refId: input.refId,
-        ...signature,
-      });
+    return ok({
+      documentType: gen.value.documentType,
+      documentName: gen.value.documentName,
+      modelVersion: gen.value.modelVersion,
+      generatedAt: gen.value.generatedAt,
+      refId: input.refId,
+      ...signature,
+    });
   }
 
   /**
@@ -286,9 +280,7 @@ export class DocumentService {
    * (ADR-0084 §6 — HSM bulk throughput) and return the digest-protected batch
    * manifest. Delegates to `CredentialService.signBatch`.
    */
-  credentialBatch(
-    inputs: { type: string; refId: string }[],
-  ): Promise<Result<CredentialBatchManifest, DocumentError>> {
+  credentialBatch(inputs: { type: string; refId: string }[]): Promise<Result<CredentialBatchManifest, DocumentError>> {
     return this.credentialService.signBatch(inputs);
   }
 
