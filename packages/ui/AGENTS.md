@@ -12,6 +12,7 @@ Shared shadcn/ui component library consumed by every app.
 - Follow the official shadcn monorepo pattern: `components.json`, `package.json#imports`, workspace `exports`.
 - Keep components framework-agnostic (React Native + web where feasible); no app-specific logic.
 - Coordinate new primitives with the app consumers (web + mobile).
+- **Primitive hygiene:** `@rocky/ui/components/*` is the single source of truth for shadcn primitives. Apps MUST NOT hand-roll a primitive that already ships here — consume it via the `#components/shared/*` passthroughs in `apps/web` (or `@rocky/ui/components/*` directly). `scripts/check-shadcn-primitives.mjs` (run via `pnpm check:shadcn`, wired into `ci:checks`) fails the build on a duplicate.
 
 ## RobotFarm
 
