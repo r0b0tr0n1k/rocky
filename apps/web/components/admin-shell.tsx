@@ -30,7 +30,7 @@ import {
   SidebarTrigger,
 } from "@rocky/ui/components/sidebar";
 import { Kbd } from "@rocky/ui/components/kbd";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@rocky/ui/components/tooltip";
+import { TooltipProvider } from "@rocky/ui/components/tooltip";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@rocky/ui/components/dialog";
 
 import { signOut, useSession } from "#lib/auth-client";
@@ -72,9 +72,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
-    <TooltipProvider delayDuration={200}>
-      <SidebarProvider>
-        <Sidebar collapsible="icon">
+    <>
+      <button
+        type="button"
+        onClick={() => document.getElementById("main-content")?.focus()}
+        className="sr-only rounded bg-background px-3 py-2 text-sm font-medium text-foreground shadow focus-visible:not-sr-only focus-visible:absolute focus-visible:left-2 focus-visible:top-2 focus-visible:z-50"
+      >
+        Skip to main content
+      </button>
+      <TooltipProvider delayDuration={200}>
+        <SidebarProvider>
+        <Sidebar collapsible="icon" role="navigation" aria-label="Main navigation">
           <SidebarHeader>
             <div className="flex items-center gap-2 px-2 py-1.5">
               <div className="grid size-7 place-items-center rounded-md bg-primary text-sm font-semibold text-primary-foreground group-data-[collapsible=icon]:flex hidden">
@@ -85,9 +93,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 alt="Rocky"
                 className="h-7 w-auto group-data-[collapsible=icon]:hidden rocky-logo"
               />
-              <span className="text-sm font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
-                AIMCS
-              </span>
+              <span className="text-sm font-semibold tracking-tight group-data-[collapsible=icon]:hidden">AIMCS</span>
             </div>
           </SidebarHeader>
           <SidebarContent>
@@ -126,7 +132,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </SidebarFooter>
         </Sidebar>
         <SidebarInset>
-          <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <header
+            aria-label="Top bar"
+            className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+          >
             <SidebarTrigger />
             <Button
               variant="outline"
@@ -169,7 +178,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               </DropdownMenu>
             </div>
           </header>
-          <main className="flex-1 p-4 sm:p-6">{children}</main>
+          <main id="main-content" tabIndex={-1} className="flex-1 p-4 sm:p-6">
+            {children}
+          </main>
         </SidebarInset>
         <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} />
         <Dialog open={cookieOpen} onOpenChange={setCookieOpen}>
@@ -186,5 +197,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </Dialog>
       </SidebarProvider>
     </TooltipProvider>
+    </>
   );
 }
