@@ -229,9 +229,9 @@ flowchart LR
   Y --> R2["@e-invoice-eu/core (library)<br/>UBL/CII XML"]
   R1 --> H["@e-invoice-eu hybrid wrap<br/>XML embedded → PDF/A-3"]
   R2 --> H
-  H --> S[PdfSigner<br/>PAdES-LTV (ETSI EN 319 142), server-side]
+  H --> S["PdfSigner<br/>PAdES-LTV (ETSI EN 319 142), server-side"]
   S -->|"RFC 3161 TSA + OCSP/CRL"| C["document.generate / pdf CLI<br/>ONLY egress = signed PDF/A-3"]
-  C -->|"download / print"| U[User: save or print = signed artifact<br/>(XML and/or PDF/A-3)]
+  C -->|"download / print"| U["User: save or print = signed artifact<br/>(XML and/or PDF/A-3)"]
   classDef rend fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
   classDef sign fill:#f8d7da,stroke:#b02a37,stroke-width:2px,color:#000
   classDef ego fill:#FFD700,stroke:#333,stroke-width:2px,color:black
