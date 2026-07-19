@@ -1,9 +1,9 @@
-import type { ReactNode } from "react";
-import Link from "next/link";
 import { Rubik } from "next/font/google";
-import { Footer, Layout, Navbar } from "nextra-theme-docs";
-import { Banner, Head } from "nextra/components";
+import Link from "next/link";
+import { Head } from "nextra/components";
 import { getPageMap } from "nextra/page-map";
+import { Footer, Layout, Navbar } from "nextra-theme-docs";
+import type { ReactNode } from "react";
 import "./globals.css";
 
 // Scoped Sentry visual-token reference (DESIGN.sentry.md): Rubik for UI/body,
@@ -54,12 +54,29 @@ export const metadata = {
 };
 
 const banner = (
-  <Banner storageKey="rocky-docs-banner">
-    <span style={{ display: "inline-flex", alignItems: "center", gap: ".4em" }}>
-      <InfoIcon />
-      Rocky Docs — work in progress
-    </span>
-  </Banner>
+  // Static, non-script banner: replaces Nextra's <Banner>, whose inline
+  // localStorage dismiss <script> triggers a React 19 "Encountered a script
+  // tag while rendering React component" warning. This keeps the WIP notice
+  // without emitting any <script>. (Docs Bot)
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: ".4em",
+      padding: ".5rem 1rem",
+      backgroundColor:
+        "hsl(var(--nextra-primary-hue) var(--nextra-primary-saturation) var(--nextra-primary-lightness) / 0.12)",
+      borderBottom:
+        "1px solid hsl(var(--nextra-primary-hue) var(--nextra-primary-saturation) var(--nextra-primary-lightness) / 0.25)",
+      color: "var(--nextra-text)",
+      fontSize: ".875rem",
+      textAlign: "center",
+    }}
+  >
+    <InfoIcon />
+    <span>Rocky Docs — work in progress</span>
+  </div>
 );
 const navbar = (
   <Navbar
