@@ -13,6 +13,7 @@ import { AppContextProvider } from "../app.context.js";
 import { ExecutionMiddleware } from "./middlewares/execution.middleware.js";
 import { LoggingMiddleware } from "./middlewares/logging.middleware.js";
 import { PolicyResolver } from "./middlewares/policy.resolver.js";
+import { RequireFreshSessionMiddleware } from "./middlewares/require-fresh-session.middleware.js";
 
 import { TrpcErrorHandler } from "./trpc-error.handler.js";
 
@@ -44,7 +45,13 @@ import { TrpcErrorHandler } from "./trpc-error.handler.js";
       inject: [AUTH_INSTANCE, PrincipalResolver, ExecutionPipeline, RuntimeBuilder],
     },
     PolicyResolver,
+    RequireFreshSessionMiddleware,
+    {
+      provide: RequireFreshSessionMiddleware,
+      useFactory: (auth: ReturnType<typeof Auth.getInstance>) => new RequireFreshSessionMiddleware(auth),
+      inject: [AUTH_INSTANCE],
+    },
   ],
-  exports: [TRPCModule, LoggingMiddleware, ExecutionMiddleware, PolicyResolver],
+  exports: [TRPCModule, LoggingMiddleware, ExecutionMiddleware, PolicyResolver, RequireFreshSessionMiddleware],
 })
 export class TrpcModule {}

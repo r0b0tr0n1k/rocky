@@ -18,7 +18,8 @@ import {
   roleWithPermissionsResponseSchema,
 } from "@rocky/validators/api/index.js";
 import { RBAC_TRPC_ERROR_MAP } from "@rocky/validators/errors/index.js";
-import { Input, Mutation, Query, Ctx, Router } from "nestjs-trpc";
+import { Input, Mutation, Query, Ctx, Router, UseMiddlewares } from "nestjs-trpc";
+import { RequireFreshSessionMiddleware } from "../trpc/middlewares/require-fresh-session.middleware.js";
 import { z } from "zod";
 import type { NoDrift, ActivateGuillotines } from "@rocky/validators/utils";
 
@@ -59,11 +60,13 @@ export class RbacRouter {
   }
 
   @Mutation({ input: assignRoleToUserRequestSchema, output: assignedResultSchema })
+  @UseMiddlewares(RequireFreshSessionMiddleware)
   async assignRole(@Input() input: AssignRoleToUserRequest): Promise<{ assigned: boolean }> {
     return unwrap(await this.rbacService.assignRoleToUser(input));
   }
 
   @Mutation({ input: revokeRoleFromUserRequestSchema, output: revokedResultSchema })
+  @UseMiddlewares(RequireFreshSessionMiddleware)
   async revokeRole(@Input() input: RevokeRoleFromUserRequest): Promise<{ revoked: boolean }> {
     return unwrap(await this.rbacService.revokeRoleFromUser(input));
   }

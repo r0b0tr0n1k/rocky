@@ -25,6 +25,13 @@ const trustedOrigins = process.env.TRUSTED_ORIGINS
 const cookieDomain =
   process.env.AUTH_COOKIE_DOMAIN ?? (process.env.ROCKY_DOMAIN ? `.${process.env.ROCKY_DOMAIN}` : undefined);
 
+// ── Session policy (Decision A/B/C) ──
+// Lifetime 7d (sliding 1d); freshness window 15min for step-up on privileged
+// mutations; compact cookie cache 300s (mirrors 5-min PrincipalCache TTL).
+const sessionLifetimeSeconds = Number(process.env.SESSION_LIFETIME_SECONDS ?? 60 * 60 * 24 * 7);
+const sessionFreshAgeSeconds = Number(process.env.SESSION_FRESH_AGE_SECONDS ?? 60 * 15);
+const cookieCacheMaxAgeSeconds = Number(process.env.COOKIE_CACHE_MAX_AGE_SECONDS ?? 300);
+
 // Password-reset email delivery via @rocky/email (Nodemailer + React Email).
 // Reads SMTP_* / MAIL_FROM from env; when unset it falls back to a dev no-send
 // log so local dev needs no mail server.
@@ -65,6 +72,16 @@ export const authConfig: AuthConfig = {
       text: `We received a sign-up request using your email (${user.email}). If this was you, no action is needed. If not, your account is safe.`,
       html: await renderReactEmail(DuplicateSignupEmail, { email: user.email, name: user.name, locale: "EN" }),
     });
+  },
+  session: {
+    expiresIn: sessionLifetimeSeconds,
+    updateAge: 60 * 60 * 24,
+    freshAge: sessionFreshAgeSeconds,
+    cookieCache: {
+      enabled: true,
+      maxAge: cookieCacheMaxAgeSeconds,
+      strategy: "compact",
+    },
   },
 };
 

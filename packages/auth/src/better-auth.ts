@@ -65,6 +65,34 @@ export interface AuthConfig {
     data: { user: { id: string; email: string; name?: string; [key: string]: unknown } },
     request?: unknown,
   ) => Promise<void>;
+  /**
+   * Session lifetime / freshness / cookie-cache policy. Injected by the caller
+   * (apps/api) from env so the singleton stays the owner and apps/api the env owner.
+   * @default expiresIn 7d, updateAge 1d, freshAge 15min, cookieCache compact 300s
+   */
+  session?: AuthSessionConfig;
+}
+
+/** Session configuration for the Better Auth singleton. */
+export interface AuthSessionConfig {
+  /** Session token lifetime in seconds (sliding via updateAge). @default 7 days */
+  expiresIn?: number;
+  /** How often the session expiration is refreshed, in seconds. @default 1 day */
+  updateAge?: number;
+  /**
+   * Freshness window in seconds for step-up on privileged mutations. A session is
+   * "fresh" only if issued within this window (measured vs `createdAt`, NOT last
+   * activity). The RequireFreshSessionMiddleware enforces this. @default 15 minutes
+   */
+  freshAge?: number;
+  /** Short-lived signed cookie cache for session data. */
+  cookieCache?: {
+    enabled?: boolean;
+    /** Cache duration in seconds. @default 300 (5 min, matches PrincipalCache TTL) */
+    maxAge?: number;
+    /** Encoding strategy. @default "compact" */
+    strategy?: "compact" | "jwt" | "jwe";
+  };
 }
 
 export type AuthResult = {
@@ -162,6 +190,20 @@ export class Auth {
         autoSignInAfterVerification: true,
         sendVerificationEmail: config.sendVerificationEmail ?? (async () => {}),
         afterEmailVerification: config.afterEmailVerification ?? (async () => {}),
+      },
+      // ── Session policy (env-driven from apps/api) ──
+      // freshAge default 15min: a privileged mutation requires a session issued
+      // within this window (vs createdAt, not last activity). cookieCache compact
+      // 300s mirrors the 5-min PrincipalCache revocation lag.
+      session: {
+        expiresIn: config.session?.expiresIn ?? 60 * 60 * 24 * 7,
+        updateAge: config.session?.updateAge ?? 60 * 60 * 24,
+        freshAge: config.session?.freshAge ?? 60 * 15,
+        cookieCache: {
+          enabled: config.session?.cookieCache?.enabled ?? true,
+          maxAge: config.session?.cookieCache?.maxAge ?? 300,
+          strategy: config.session?.cookieCache?.strategy ?? "compact",
+        },
       },
       plugins: [admin({ adminRoles: ["SUPER_ADMIN"], roles: _authRoles }), expo()],
     }) as unknown as ReturnType<typeof betterAuth>;
