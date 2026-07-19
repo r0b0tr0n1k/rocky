@@ -97,8 +97,18 @@ if [ "$DO_DUMP" = true ]; then
 	if [ "$DRY_RUN" = true ]; then
 		echo "  [dry-run] pg_dump -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -F c -f $BACKUP"
 	else
-		pg_dump -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -F c -f "$BACKUP" ||
-			fail "pg_dump failed — aborting BEFORE any wipe. Fix the connection and retry."
+		# Use the container's pg_dump to avoid host/server version mismatch
+		# (host pg_dump v13 can't dump a Postgres 18 server).
+		container_name="rokidb"
+		if docker ps --format '{{.Names}}' | grep -q "^${container_name}$"; then
+			docker exec "$container_name" pg_dump -U "$DB_USER" -d "$DB_NAME" -F c -f "/tmp/backup.dump" &&
+				docker cp "${container_name}:/tmp/backup.dump" "$BACKUP" &&
+				docker exec "$container_name" rm -f /tmp/backup.dump ||
+				fail "pg_dump failed — aborting BEFORE any wipe. Fix the connection and retry."
+		else
+			pg_dump -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -F c -f "$BACKUP" ||
+				fail "pg_dump failed — aborting BEFORE any wipe. Fix the connection and retry."
+		fi
 		ok "Backup written: $BACKUP"
 	fi
 else

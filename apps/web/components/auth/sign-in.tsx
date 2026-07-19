@@ -17,6 +17,12 @@ export function SignIn() {
 
   const { mutate: signInEmail, isPending } = useSignInEmail(authClient, {
     onError: (err) => {
+      console.error("[SIGN-IN ERROR]", {
+        message: err.error?.message ?? err.message,
+        status: err.status,
+        fullError: err,
+        errorBody: err.error,
+      });
       setError(err.error?.message ?? err.message);
       setPassword("");
     },
@@ -26,6 +32,7 @@ export function SignIn() {
   const handleSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
+    console.info("[SIGN-IN] Attempting sign-in with email:", email);
     signInEmail({ email, password });
   };
 
@@ -37,12 +44,8 @@ export function SignIn() {
           <img src="/rocky-goat.svg" alt="Rocky" className="h-8 w-auto rocky-logo" />
         </div>
         <div className="space-y-3">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Animal Identification &amp; Movement Control
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Sign in to manage farms, animals, movements and inspections.
-          </p>
+          <h1 className="text-2xl font-semibold tracking-tight">Animal Identification &amp; Movement Control</h1>
+          <p className="text-sm text-muted-foreground">Sign in to manage farms, animals, movements and inspections.</p>
         </div>
         <p className="text-xs text-muted-foreground/70">© 2026 AIMCS. All rights reserved.</p>
       </div>

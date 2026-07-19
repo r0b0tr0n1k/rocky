@@ -13,12 +13,16 @@
 import { createAuthClient } from "better-auth/react";
 import { adminClient, organizationClient, twoFactorClient } from "better-auth/client/plugins";
 
+const _baseURL =
+  typeof window !== "undefined" ? window.location.origin : (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080");
+
+if (typeof window !== "undefined") {
+  console.info("[AUTH-CLIENT] baseURL:", _baseURL);
+}
+
 export const authClient = createAuthClient({
   plugins: [adminClient(), organizationClient({ dynamicAccessControl: { enabled: true } }), twoFactorClient()],
-  baseURL:
-    typeof window !== "undefined"
-      ? window.location.origin
-      : (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080"),
+  baseURL: _baseURL,
 });
 
 export const { signIn, signOut, signUp, useSession, getSession } = authClient;
