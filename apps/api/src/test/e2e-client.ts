@@ -1,4 +1,4 @@
-import { createTRPCClient, httpLink } from "@trpc/client";
+import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import superjson from "superjson";
 import supertest from "supertest";
 import type { INestApplication } from "@nestjs/common";
@@ -23,7 +23,7 @@ export function createE2ETRPCClient(app: INestApplication, userCookie?: string) 
 
   return createTRPCClient<AppRouter>({
     links: [
-      httpLink({
+      httpBatchLink({
         transformer: superjson,
         url: "/trpc",
         async fetch(input, options) {
