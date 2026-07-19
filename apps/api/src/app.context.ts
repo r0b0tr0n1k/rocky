@@ -8,15 +8,6 @@ import type { TRPCContext } from "nestjs-trpc";
 @Injectable()
 export class AppContextProvider implements TRPCContext {
   create(opts: CreateExpressContextOptions): AppContext {
-    const cookie = (opts.req.headers as Record<string, string>)?.cookie;
-    console.info(
-      "[TRPC-CTX] headers count:",
-      Object.keys(opts.req.headers).length,
-      "cookie present:",
-      !!cookie,
-      "cookie len:",
-      cookie?.length ?? 0,
-    );
     return {
       headers: new Headers(opts.req.headers as Record<string, string>),
       user: null,

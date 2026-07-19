@@ -119,26 +119,11 @@ export class Auth {
       },
       emailAndPassword: {
         enabled: true,
-        sendResetPassword: async ({
-          user,
-          url,
-        }: {
-          user: { id: string; email: string };
-          url: string;
-          token?: string;
-        }) => {
-          console.info("Password reset requested", { userId: user.id, url });
-        },
+        sendResetPassword: async () => {},
       },
       plugins: [admin({ adminRoles: ["SUPER_ADMIN"], roles: _authRoles }), expo()],
     }) as unknown as ReturnType<typeof betterAuth>;
 
-    console.info("Better Auth initialized", {
-      baseURL: config.baseURL,
-      secretSet: !!config.secret,
-      trustedOrigins: config.trustedOrigins,
-      cookieDomain: config.cookieDomain ?? "(none)",
-    });
     return Auth.instance;
   }
 }

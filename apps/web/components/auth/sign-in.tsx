@@ -17,12 +17,6 @@ export function SignIn() {
 
   const { mutate: signInEmail, isPending } = useSignInEmail(authClient, {
     onError: (err) => {
-      console.error("[SIGN-IN ERROR]", {
-        message: err.error?.message ?? err.message,
-        status: err.status,
-        fullError: err,
-        errorBody: err.error,
-      });
       setError(err.error?.message ?? err.message);
       setPassword("");
     },
@@ -32,7 +26,6 @@ export function SignIn() {
   const handleSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
-    console.info("[SIGN-IN] Attempting sign-in with email:", email);
     signInEmail({ email, password });
   };
 

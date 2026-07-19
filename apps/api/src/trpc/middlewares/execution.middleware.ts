@@ -10,9 +10,9 @@
 
 import { Inject, Injectable } from "@nestjs/common";
 import { AUTH_INSTANCE, type Auth, AuthResolver } from "@rocky/auth";
-import { PrincipalResolver } from "@rocky/authorization/index.js";
+import type { PrincipalResolver } from "@rocky/authorization/index.js";
 import type { ExecutionContext as ExecCtx, RequestContext } from "@rocky/execution/index.js";
-import { ExecutionPipeline, RuntimeBuilder } from "@rocky/execution/index.js";
+import type { ExecutionPipeline, RuntimeBuilder } from "@rocky/execution/index.js";
 import type { AppContext } from "@rocky/trpc/context.js";
 import type { MiddlewareOptions, TRPCMiddleware } from "nestjs-trpc";
 
@@ -31,9 +31,7 @@ export class ExecutionMiddleware implements TRPCMiddleware {
 
     // 1. Resolve authentication from cookie
     const cookieHeader = ctx.headers?.get?.("cookie") ?? "";
-    console.info("[TRPC-AUTH] cookie header length:", cookieHeader.length, "prefix:", cookieHeader.slice(0, 60));
     const authResult = await AuthResolver.resolve(this.auth, cookieHeader);
-    console.info("[TRPC-AUTH] authResult:", authResult ? "session found" : "null");
 
     // 2. Resolve principal (handles anonymous automatically)
     const principal = await this.principalResolver.resolve(authResult);

@@ -67,8 +67,8 @@ the guard that previously lived in `middleware.ts` into the new `proxy.ts`.
 
 ### 2.2 Auth-path debug instrumentation
 
-The request path was instrumented with scoped `console.info` / `console.error` logs (all gated to the
-auth flow, not general app logging):
+PR #1 instrumented the request path with scoped `console.info` / `console.error` logs (all gated to the
+auth flow, not general app logging). **These have since been removed** (see the note below):
 
 - `apps/api/src/main.ts` — wraps `toNodeHandler(auth)` so every `/api/auth` request logs
   `[AUTH] <METHOD> <url> → <status> (<ms>)`, erroring (`console.error`) on `>= 400`.
@@ -82,8 +82,9 @@ auth flow, not general app logging):
 - `packages/auth/src/better-auth.ts` — init `console.info` now reports `baseURL`, `secretSet`,
   `trustedOrigins`, and `cookieDomain`.
 
-> These are debug logs added to trace the sign-in / proxy path. They should be gated behind an env
-> flag or removed before GA to honor the "no console output in production code" convention.
+> These debug logs were added to trace the sign-in / proxy path and have since been **removed** to honor the
+> "no console output in production code" convention — the `[SIGN-IN]` attempt log also printed the user's
+> email (PI I), and the `/api/auth` request logger was the only thing the `toNodeHandler` bypass left visible.
 
 ### 2.3 Web container healthcheck
 
