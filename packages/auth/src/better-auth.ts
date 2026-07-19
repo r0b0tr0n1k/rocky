@@ -39,6 +39,15 @@ export interface AuthConfig {
     url: string;
     token: string;
   }) => Promise<void>;
+  /**
+   * Delivers the email-verification message on behalf of Better Auth.
+   * Implemented by the caller (apps/api) via @rocky/email. Defaults to a no-op.
+   */
+  sendVerificationEmail?: (params: {
+    user: { id: string; email: string; name?: string; [key: string]: unknown };
+    url: string;
+    token: string;
+  }) => Promise<void>;
 }
 
 export type AuthResult = {
@@ -129,6 +138,11 @@ export class Auth {
       emailAndPassword: {
         enabled: true,
         sendResetPassword: config.sendResetPassword ?? (async () => {}),
+      },
+      emailVerification: {
+        sendOnSignUp: true,
+        autoSignInAfterVerification: true,
+        sendVerificationEmail: config.sendVerificationEmail ?? (async () => {}),
       },
       plugins: [admin({ adminRoles: ["SUPER_ADMIN"], roles: _authRoles }), expo()],
     }) as unknown as ReturnType<typeof betterAuth>;

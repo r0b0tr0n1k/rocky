@@ -6,7 +6,7 @@
 // times with the same config returns the same singleton.
 
 import { Auth, type AuthConfig } from "@rocky/auth";
-import { EmailService, PasswordResetEmail, renderReactEmail } from "@rocky/email";
+import { EmailService, PasswordResetEmail, VerificationEmail, renderReactEmail } from "@rocky/email";
 
 const secret = process.env.BETTER_AUTH_SECRET;
 if (!secret) {
@@ -22,8 +22,7 @@ const trustedOrigins = process.env.TRUSTED_ORIGINS
 // share the Better Auth session cookie. Override with AUTH_COOKIE_DOMAIN when the
 // app lives under a deeper tertiary domain (e.g. `.rocky.company.com`).
 const cookieDomain =
-  process.env.AUTH_COOKIE_DOMAIN ??
-  (process.env.ROCKY_DOMAIN ? `.${process.env.ROCKY_DOMAIN}` : undefined);
+  process.env.AUTH_COOKIE_DOMAIN ?? (process.env.ROCKY_DOMAIN ? `.${process.env.ROCKY_DOMAIN}` : undefined);
 
 // Password-reset email delivery via @rocky/email (Nodemailer + React Email).
 // Reads SMTP_* / MAIL_FROM from env; when unset it falls back to a dev no-send
@@ -42,6 +41,15 @@ export const authConfig: AuthConfig = {
       subject: "Reset your Rocky password",
       text: `Reset your password: ${url}`,
       html: await renderReactEmail(PasswordResetEmail, { url, name: user.name, locale: "EN" }),
+    });
+  },
+  sendVerificationEmail: async ({ user, url }) => {
+    await emailService.send({
+      to: [{ email: user.email, name: user.name }],
+      from: { email: process.env.MAIL_FROM ?? "noreply@rocky.gov.mk" },
+      subject: "Verify your Rocky account",
+      text: `Verify your email: ${url}`,
+      html: await renderReactEmail(VerificationEmail, { url, name: user.name, locale: "EN" }),
     });
   },
 };

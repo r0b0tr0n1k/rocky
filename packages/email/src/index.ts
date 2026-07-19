@@ -14,5 +14,6 @@ export {
 } from "./services/email.service.js";
 export { EmailModule } from "./email.module.js";
 export { PasswordResetEmail, type PasswordResetEmailProps } from "./templates/react/index.js";
+export { VerificationEmail, type VerificationEmailProps } from "./templates/react/index.js";
 export * from "./types/email.types.js";
 export * from "./templates/index.js";
