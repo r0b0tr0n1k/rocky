@@ -63,6 +63,22 @@ of access documented in the canonical Statement of Applicability:
 
 ## References
 
+### Project documentation standards
+
+- **ROCKY-DOC-STD-001** ([Writing Technical Documents](../how-to/writing-technical-documents.mdx)) —
+  the house standard for internal engineering documents (structure, controlled language, templates).
+  This ADR and its implementation artefacts (dashboard spec, UX rationale) follow its structure.
+- **Internal Standard Style** ([`Standardization/internal-standard-style.md`](../Standardization/internal-standard-style.md)) —
+  house style guide for formatting, clause numbering, and terminology. The dashboard labels, column
+  headings, and status chips follow its vocabulary conventions.
+- **ADR-0052** — Documentation Architecture (Diátaxis). The dashboards live under `reference/`
+  (factual description) and `how-to/` (operational use); this ADR is the decision record.
+- **Writing ISO-Compatible Documentation** ([`Standardization/writing-iso-compatible-documentation.md`](../Standardization/writing-iso-compatible-documentation.md)) —
+  discipline for formal regulatory documents that the dashboards may surface (e.g. disease reports,
+  inspection summaries rendered as ISO-style clauses).
+
+### External ergonomics & accessibility standards
+
 - **ISO 9241-110:2006** — Dialogue Principles (suitability for task, self-descriptiveness,
   conformity with user expectations, error tolerance). The vet dashboard prioritises task efficiency;
   the epidemiologist dashboard prioritises surveillance completeness — each role gets a dialogue
@@ -78,3 +94,13 @@ of access documented in the canonical Statement of Applicability:
   component palette for both dashboard views.
 - **ISO 9241-171:2008** — Guidance on Software Accessibility (keyboard navigation, colour contrast,
   screen-reader support). Mandatory for an admin tool used by diverse civil servants.
+
+### Supporting disciplines
+
+- **ISO 704:2009** — Terminology Work (concept analysis, term formation, definition drafting).
+  Dashboard labels, filter names, and status values must use consistent terminology across both
+  role views and with the underlying domain models to avoid confusing vet and epidemiologist users.
+- **ISO 9001:2015** — Quality Management Systems (clause 7.5: documented information). The
+  dashboard UI itself is not a QMS-documented output, but its design process follows
+  document-control discipline: versioned UX specs, review-and-approve gates, traceability to
+  user requirements.

@@ -152,6 +152,34 @@ pnpm build
 
 ## References
 
+### Project documentation standards
+
+- **ROCKY-DOC-STD-001** ([Writing Technical Documents](../how-to/writing-technical-documents.mdx)) —
+  the house standard for internal engineering documents. This ADR follows its structure; the
+  template catalog documentation and per-template specs also conform.
+- **Internal Standard Style** ([`Standardization/internal-standard-style.md`](../Standardization/internal-standard-style.md)) —
+  house style guide for formatting, clause numbering, and terminology. Generated documents (passport,
+  movement, inspection form) use its terminology conventions consistent with the domain models.
+- **ADR-0052** — Documentation Architecture (Diátaxis). The document template reference lives
+  under `reference/` (factual description of each template type and its format).
+- **Writing ISO-Compatible Documentation** ([`Standardization/writing-iso-compatible-documentation.md`](../Standardization/writing-iso-compatible-documentation.md)) —
+  discipline that generated PDFs may need to follow when they must meet regulatory formatting
+  requirements (e.g. CHED-A, sanitary certificates).
+
+### ISO quality & document management
+
+- **ISO 9001:2015** — Quality Management Systems (clause 7.5: Documented Information; clause 4.4:
+  QMS processes). Generated PDFs are controlled documented outputs — each template must have
+  documented creation (who produces it), review (who approves it), and revision tracking. The
+  catalog's `DocumentTypeMeta` includes version/revision metadata for this purpose.
+- **ISO 690:2010** — Bibliographic References. Generated documents may cite external regulations,
+  standards, or sources; this standard governs the citation format embedded in those PDFs.
+- **ISO 704:2009** — Terminology Work. Field labels, status values, and data groupings across all
+  document templates must use consistent terminology with the domain models to avoid ambiguity for
+  signatories and inspectors.
+
+### Information presentation & ergonomics
+
 - **ISO 9241-12:1998** — Presentation of Information (information organisation, grouping, sorting,
   visual coding). Directly applies to PDF document layout: table headers, data-grouping, header
   hierarchy, label consistency, colour-as-supplement-only.
