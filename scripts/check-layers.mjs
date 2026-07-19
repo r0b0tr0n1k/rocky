@@ -4,7 +4,10 @@
 // standard without a machine is fetishistic disavowal — the symptom (a service reaching
 // the DB directly) returns. This script fails the build if any SOURCE file violates the
 // matrix's load-bearing bans. It encodes the matrix ROWS EXACTLY (same scope + same
-// may/shall-not lists), so it is the faithful machine for Annex C.
+// may/shall-not lists), so it is the faithful machine for Annex C. It ALSO encodes the
+// Result-Monad & Error-Sovereignty doctrine bans (result-monad-and-error-sovereignty.md
+// Laws A & B) for the domain layer: no `@trpc/(server|client)` and no
+// `@rocky/validators/errors` imports inside `packages/domains/*/src`.
 //
 // Encoded rows (Annex C):
 //   packages/domains/*/services   MAY  @rocky/database/constants (Dictionary)
@@ -17,6 +20,10 @@
 //   apps/api/src/routers          MAY  @rocky/validators/api, /enums, /errors, @rocky/trpc, domain services
 //                                SHALL NOT  @rocky/database (ANY subpath), @rocky/database/zod,
 //                                           @rocky/validators/events (RESERVED), @rocky/validators/integrations (RESERVED)
+//   packages/domains/*/src         SHALL NOT  @trpc/(server|client), @rocky/validators/errors
+//                                (Result-Monad & Error-Sovereignty doctrine:
+//                                 result-monad-and-error-sovereignty.md Laws A & B — domain is
+//                                 transport-agnostic; error codes are owned by the domain)
 //
 // NOTE GEO: geo services may type-import @rocky/database types (e.g. `Coordinate`,
 // `PolygonGeometry`) because the foundational `geofences` schema owns `GeofenceGeometry`,
@@ -44,23 +51,21 @@ const root = resolve(__dirname, "..");
 const override = process.argv[2];
 
 // Scope matches Annex C rows EXACTLY
-const SERVICE_RE = /\/packages\/(domains|geo)\/[^/]+\/src\/services\/.*\.ts$/;
-const REPO_RE = /\/packages\/domains\/[^/]+\/src\/repositories\/.*\.ts$/;
-const ROUTER_RE = /\/apps\/api\/src\/routers\/.*\.ts$/;
+const SERVICE_RE = /packages\/(domains|geo)\/[^/]+\/src\/services\/.*\.ts$/;
+const REPO_RE = /packages\/domains\/[^/]+\/src\/repositories\/.*\.ts$/;
+const ROUTER_RE = /apps\/api\/src\/routers\/.*\.ts$/;
+// Doctrine scope (Laws A & B): every domain source file, regardless of sublayer.
+const DOMAIN_RE = /packages\/domains\/[^/]+\/src\/.*\.ts$/;
 const TEST_RE = /\.test\.ts$|\.spec\.ts$|\.workflow\.test\.ts$/;
 // static import (captures `type` keyword + spec); dynamic import() is treated as value
-const LINE_IMPORT_RE =
-  /^\s*import\s+(type\s+)?(?:[\s\S]*?)\s+from\s+["']([^"']+)["']\s*;?\s*$/;
+const LINE_IMPORT_RE = /^\s*import\s+(type\s+)?(?:[\s\S]*?)\s+from\s+["']([^"']+)["']\s*;?\s*$/;
 const DYN_IMPORT_RE = /import\s*\(\s*["']([^"']+)["']\s*\)/g;
 
-const isAllowedDb = (spec) =>
-  spec === "@rocky/database/constants" ||
-  spec.startsWith("@rocky/database/constants/");
+const isAllowedDb = (spec) => spec === "@rocky/database/constants" || spec.startsWith("@rocky/database/constants/");
 
 function walk(dir, out) {
   for (const entry of readdirSync(dir)) {
-    if (entry === "node_modules" || entry === ".git" || entry === "dist")
-      continue;
+    if (entry === "node_modules" || entry === ".git" || entry === "dist") continue;
     const p = resolve(dir, entry);
     if (statSync(p).isDirectory()) walk(p, out);
     else if (p.endsWith(".ts") && !TEST_RE.test(p)) out.push(p);
@@ -91,14 +96,26 @@ for (const f of files) {
   const isService = SERVICE_RE.test(rel);
   const isRepo = REPO_RE.test(rel);
   const isRouter = ROUTER_RE.test(rel);
-  if (!isService && !isRepo && !isRouter) continue;
-  const isGeoService = isService && rel.includes("/packages/geo/");
+  const isDomain = DOMAIN_RE.test(rel);
+  if (!isService && !isRepo && !isRouter && !isDomain) continue;
+  const isGeoService = isService && rel.startsWith("packages/geo/");
   const lines = readFileSync(f, "utf8").split("\n");
   for (const line of lines) {
     const m = LINE_IMPORT_RE.exec(line);
     if (m) {
       const isTypeOnly = !!m[1];
       const spec = m[2];
+      // Doctrine Law A (Transport Agnosticism): domain layers must not import the tRPC
+      // transport. Checked before the @rocky guard below because @trpc is not an @rocky
+      // spec and would otherwise be skipped by `if (!spec.startsWith("@rocky/"))`.
+      if (isDomain && /^@trpc\/(server|client)/.test(spec)) {
+        violations.push({
+          rel,
+          spec,
+          rule: "Doctrine Law A: domain layer must not import @trpc/(server|client) — domain is transport-agnostic",
+        });
+        continue;
+      }
       if (!spec.startsWith("@rocky/")) continue;
       if (isService) {
         // row 360 / geo carve-out: SHALL NOT import @rocky/database except /constants.
@@ -137,19 +154,45 @@ for (const f of files) {
           });
         }
       }
+      if (isDomain) {
+        // Doctrine Law B (Error Sovereignty): domain owns its error codes — no TRPC maps.
+        if (spec === "@rocky/validators/errors" || spec.startsWith("@rocky/validators/errors/")) {
+          violations.push({
+            rel,
+            spec,
+            rule: "Doctrine Law B: domain layer must not import @rocky/validators/errors — error codes are owned by the domain",
+          });
+        }
+      }
       continue;
     }
     // dynamic import() — treated as value import
-    let dm;
     DYN_IMPORT_RE.lastIndex = 0;
-    while ((dm = DYN_IMPORT_RE.exec(line))) {
+    let dm = DYN_IMPORT_RE.exec(line);
+    while (dm) {
       const spec = dm[1];
-      if (!spec.startsWith("@rocky/")) continue;
+      // Doctrine Laws A & B (Transport Agnosticism / Error Sovereignty): domain layers
+      // must not dynamically import tRPC transport or the TRPC error maps. Checked before
+      // the @rocky guard below because @trpc is not an @rocky spec.
       if (
-        isService &&
-        spec.startsWith("@rocky/database") &&
-        !isAllowedDb(spec)
+        isDomain &&
+        (/^@trpc\/(server|client)/.test(spec) ||
+          spec === "@rocky/validators/errors" ||
+          spec.startsWith("@rocky/validators/errors/"))
       ) {
+        violations.push({
+          rel,
+          spec,
+          rule: "Doctrine Law A/B: domain layer must not dynamically import @trpc/(server|client) or @rocky/validators/errors",
+        });
+        dm = DYN_IMPORT_RE.exec(line);
+        continue;
+      }
+      if (!spec.startsWith("@rocky/")) {
+        dm = DYN_IMPORT_RE.exec(line);
+        continue;
+      }
+      if (isService && spec.startsWith("@rocky/database") && !isAllowedDb(spec)) {
         violations.push({
           rel,
           spec,
@@ -165,18 +208,16 @@ for (const f of files) {
           rule: "Annex C router row: router must not import @rocky/database (any subpath)",
         });
       }
+      dm = DYN_IMPORT_RE.exec(line);
     }
   }
 }
 
 if (violations.length) {
-  console.error(
-    `[fail] Visa Matrix (Annex C) violated — ${violations.length} import(s):`,
-  );
-  for (const v of violations)
-    console.error(`  ${v.rel}\n    imports ${v.spec}  —  ${v.rule}`);
+  console.error(`[fail] Visa Matrix (Annex C) violated — ${violations.length} import(s):`);
+  for (const v of violations) console.error(`  ${v.rel}\n    imports ${v.spec}  —  ${v.rule}`);
   process.exit(1);
 }
 console.log(
-  `[ok] Visa Matrix clean: 0 layer-boundary violations across ${files.length} scanned source files (scope: packages/{domains,geo}/*/services + packages/domains/*/repositories + apps/api/src/routers)`,
+  `[ok] Visa Matrix + doctrine clean: 0 layer-boundary violations across ${files.length} scanned source files (scope: packages/{domains,geo}/*/services + packages/domains/*/repositories + packages/domains/*/src [doctrine @trpc/validators-errors ban] + apps/api/src/routers)`,
 );
