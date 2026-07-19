@@ -1,0 +1,121 @@
+# compose.production.yaml — production-like local run for the Rocky monorepo.
+#
+# Each service builds the `production` target of its apps/*/Dockerfile. The
+# images are distroless + non-root, so the healthchecks baked into the
+# Dockerfiles (web/docs -> "/", api -> "/health") work without a shell.
+#
+# For a managed database, delete the `database` service and api's `depends_on`,
+# then inject DATABASE_URL from your secret manager.
+
+name: rocky-prod
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: production
+      args:
+        NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL:-http://localhost:8000}"
+    init: true
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      API_URL: http://api:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    read_only: true
+    tmpfs:
+      - /tmp:uid=65532,gid=65532,mode=0700
+      - /app/apps/web/.next/cache:uid=65532,gid=65532,mode=0700
+    restart: unless-stopped
+    stop_grace_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 200
+    mem_limit: 768m
+    cpus: 1.0
+
+  docs:
+    build:
+      context: .
+      dockerfile: apps/docs/Dockerfile
+      target: production
+    init: true
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+    ports:
+      - "3002:3002"
+    read_only: true
+    tmpfs:
+      - /tmp:uid=65532,gid=65532,mode=0700
+      - /app/apps/docs/.next/cache:uid=65532,gid=65532,mode=0700
+    restart: unless-stopped
+    stop_grace_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 200
+    mem_limit: 512m
+    cpus: 1.0
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: production
+    init: true
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 8000
+      DATABASE_URL: "${DATABASE_URL:-postgresql://postgres:postgres@database:5432/app_db}"
+    ports:
+      - "8000:8000"
+    depends_on:
+      database:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:uid=65532,gid=65532,mode=0700
+    restart: unless-stopped
+    stop_grace_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 200
+    mem_limit: 768m
+    cpus: 1.0
+
+  database:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-app_db}"
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+    stop_grace_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    shm_size: 128mb
+    pids_limit: 200
+    mem_limit: 1g
+    cpus: 1.0
+
+volumes:
+  postgres_data:
