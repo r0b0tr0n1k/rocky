@@ -149,3 +149,20 @@ pnpm build
 - **ADR-0106** — State Vet capability; first specified the `sections?: string[]` design this ADR implements for `vet-visit-report`.
 - **ADR-0033** — ADR house standard (header table + required sections; Proposed→Accepted).
 - **ADR-0052** — docs taxonomy (this ADR lives under `content/ADR/`).
+
+## References
+
+- **ISO 9241-12:1998** — Presentation of Information (information organisation, grouping, sorting,
+  visual coding). Directly applies to PDF document layout: table headers, data-grouping, header
+  hierarchy, label consistency, colour-as-supplement-only.
+- **ISO 9241-110:2006** — Dialogue Principles (suitability for the task). A slaughterhouse movement
+  PDF and a disease-outbreak alert PDF serve different readers under different urgency — template
+  layout must match the task context.
+- **ISO 9241-210:2019** — Human-centred design for interactive systems (user needs analysis,
+  context-of-use, design evaluation). Informs the template catalog design process: who reads which
+  document, which data fields are needed, in what order.
+- **ISO 9241-151:2008** — Guidance on World Wide Web User Interfaces. Applies to the `/verify` and
+  `/documents` web pages that surface and present generated PDFs.
+- **ISO 9241-161:2016** — Visual User Interface Elements (labels, status indicators, reading order).
+  Applies to the credential/status UI embedded in PDF visual elements (QR legend, status badge
+  placement).

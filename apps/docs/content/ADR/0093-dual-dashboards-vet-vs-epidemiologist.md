@@ -60,3 +60,21 @@ of access documented in the canonical Statement of Applicability:
 - Existing: `apps/web` admin panel; `packages/geo` (LPIS/PostGIS, ADR-0053/0078);
   `packages/authorization` (Principal/@Policy); ADR-0088 (Component 4), ADR-0090/0091/0092 (data
   sources).
+
+## References
+
+- **ISO 9241-110:2006** — Dialogue Principles (suitability for task, self-descriptiveness,
+  conformity with user expectations, error tolerance). The vet dashboard prioritises task efficiency;
+  the epidemiologist dashboard prioritises surveillance completeness — each role gets a dialogue
+  suited to its work.
+- **ISO 9241-151:2008** — Guidance on World Wide Web User Interfaces (navigation structure, search,
+  content presentation). Applies to both dashboards as web admin surfaces.
+- **ISO 9241-12:1998** — Presentation of Information (information grouping, sorting, visual coding).
+  Both dashboards use data tables, KPI tiles, and maps — visual coding must not rely on colour alone
+  (legends + labels required).
+- **ISO 9241-143:2012** — Form-based dialogues (filters, search panels, date-range selectors common
+  to dashboard controls).
+- **ISO 9241-161:2016** — Visual User Interface Elements (buttons, menus, tabs, lists). The
+  component palette for both dashboard views.
+- **ISO 9241-171:2008** — Guidance on Software Accessibility (keyboard navigation, colour contrast,
+  screen-reader support). Mandatory for an admin tool used by diverse civil servants.
