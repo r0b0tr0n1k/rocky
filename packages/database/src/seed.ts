@@ -1597,7 +1597,7 @@ async function seed() {
         .where(inArray(animals.earTagNumber, ["10000001", "10000002", "10000003"]));
 
       // 8a. A Veterinary Station subject to own the VS contract (fixed UUID → idempotent).
-      const VS_SUBJECT_ID = "b6d5e300-0000-0000-0000-000000000001";
+      const VS_SUBJECT_ID = "b6d5e300-0000-4000-8000-000000000001";
       await tx
         .insert(subjects)
         .values({ id: VS_SUBJECT_ID, shortName: "Test Veterinary Station" })
@@ -1617,7 +1617,7 @@ async function seed() {
       });
 
       // 8c. VS contract + assignment binding it to the Test Farm.
-      const VS_CONTRACT_ID = "b6d5e300-0000-0000-0000-000000000002";
+      const VS_CONTRACT_ID = "b6d5e300-0000-4000-8000-000000000002";
       await tx
         .insert(vsContracts)
         .values({
@@ -1633,7 +1633,7 @@ async function seed() {
       await tx
         .insert(vsAssignments)
         .values({
-          id: "b6d5e300-0000-0000-0000-000000000003",
+          id: "b6d5e300-0000-4000-8000-000000000003",
           contractId: VS_CONTRACT_ID,
           farmId: testFarm.id,
           isPrimary: true,
@@ -1645,7 +1645,7 @@ async function seed() {
       await tx
         .insert(farmBooks)
         .values({
-          id: "b6d5e300-0000-0000-0000-000000000004",
+          id: "b6d5e300-0000-4000-8000-000000000004",
           farmId: testFarm.id,
           status: FARM_BOOK_STATUS.DELIVERED,
           deliveredAt: new Date("2026-07-16T00:00:00Z"),
@@ -1657,7 +1657,7 @@ async function seed() {
         .insert(errorCorrections)
         .values([
           {
-            id: "c0ffee00-0000-0000-0000-000000000001",
+            id: "c0ffee00-0000-4000-8000-000000000001",
             detectionSource: "field",
             farmId: testFarm.id,
             errorType: "tag_mismatch",
@@ -1665,7 +1665,7 @@ async function seed() {
             status: CORRECTION_STATUS.PENDING,
           },
           {
-            id: "c0ffee00-0000-0000-0000-000000000002",
+            id: "c0ffee00-0000-4000-8000-000000000002",
             detectionSource: "a_posteriori",
             farmId: seededAnimals[0]?.farmId ?? testFarm.id,
             animalId: seededAnimals[0]?.id,
@@ -1674,7 +1674,7 @@ async function seed() {
             status: CORRECTION_STATUS.UNDER_REVIEW,
           },
           {
-            id: "c0ffee00-0000-0000-0000-000000000003",
+            id: "c0ffee00-0000-4000-8000-000000000003",
             detectionSource: "a_priori",
             errorType: "missing_birth_notification",
             errorDescription: "Birth notification absent within the 20-day window",
@@ -1688,7 +1688,7 @@ async function seed() {
         .insert(pdaDevices)
         .values([
           {
-            id: "d00d0000-0000-0000-0000-000000000001",
+            id: "d00d0000-0000-4000-8000-000000000001",
             deviceIdentifier: "WEB-ADMIN-001",
             name: "Admin Web Session",
             deviceType: "web",
@@ -1699,7 +1699,7 @@ async function seed() {
         .onConflictDoNothing({ target: pdaDevices.deviceIdentifier });
 
       // 8g. IoT devices + sensor readings (net-new).
-      const IOT_DEVICE_ID = "10de0000-0000-0000-0000-000000000001";
+      const IOT_DEVICE_ID = "10de0000-0000-4000-8000-000000000001";
       await tx
         .insert(iotDevices)
         .values({
@@ -1718,7 +1718,7 @@ async function seed() {
         .insert(sensorReadings)
         .values([
           {
-            id: "5e5e0000-0000-0000-0000-000000000001",
+            id: "5e5e0000-0000-4000-8000-000000000001",
             deviceId: IOT_DEVICE_ID,
             farmId: testFarm.id,
             recordedAt: new Date("2026-07-16T08:00:00Z"),
@@ -1727,7 +1727,7 @@ async function seed() {
             unit: "C",
           },
           {
-            id: "5e5e0000-0000-0000-0000-000000000002",
+            id: "5e5e0000-0000-4000-8000-000000000002",
             deviceId: IOT_DEVICE_ID,
             animalId: seededAnimals[0]?.id,
             farmId: testFarm.id,
@@ -1745,7 +1745,7 @@ async function seed() {
         .insert(notifications)
         .values([
           {
-            id: "b00c0000-0000-0000-0000-000000000001",
+            id: "b00c0000-0000-4000-8000-000000000001",
             userId: adminId,
             type: NOTIFICATION_TYPE.IN_APP,
             category: NOTIFICATION_CATEGORY.SYSTEM_UPDATE,
@@ -1756,7 +1756,7 @@ async function seed() {
             source: EVENT_SOURCE.SYSTEM,
           },
           {
-            id: "b00c0000-0000-0000-0000-000000000002",
+            id: "b00c0000-0000-4000-8000-000000000002",
             userId: adminId,
             type: NOTIFICATION_TYPE.IN_APP,
             category: NOTIFICATION_CATEGORY.ANIMAL_HEALTH_ALERT,
@@ -1767,7 +1767,7 @@ async function seed() {
             source: EVENT_SOURCE.SYSTEM,
           },
           {
-            id: "b00c0000-0000-0000-0000-000000000003",
+            id: "b00c0000-0000-4000-8000-000000000003",
             userId: adminId,
             type: NOTIFICATION_TYPE.IN_APP,
             category: NOTIFICATION_CATEGORY.INSPECTION_DUE,
@@ -1785,7 +1785,7 @@ async function seed() {
         .insert(auditLog)
         .values([
           {
-            id: "a11ce000-0000-0000-0000-000000000001",
+            id: "a11ce000-0000-4000-8000-000000000001",
             userId: adminId,
             action: AUDIT_ACTION.CREATE,
             resource: "cattle_passports",
@@ -1793,7 +1793,7 @@ async function seed() {
             success: true,
           },
           {
-            id: "a11ce000-0000-0000-0000-000000000002",
+            id: "a11ce000-0000-4000-8000-000000000002",
             userId: adminId,
             action: AUDIT_ACTION.CREATE,
             resource: "vs_contracts",
@@ -1801,7 +1801,7 @@ async function seed() {
             success: true,
           },
           {
-            id: "a11ce000-0000-0000-0000-000000000003",
+            id: "a11ce000-0000-4000-8000-000000000003",
             userId: adminId,
             action: AUDIT_ACTION.UPDATE,
             resource: "farm_books",
