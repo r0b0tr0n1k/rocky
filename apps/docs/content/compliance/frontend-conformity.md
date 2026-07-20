@@ -137,6 +137,25 @@ open items: **focus-visible rings** (added to `globals.css`, satisfying 9241-161
 satisfying 9241-110 §4.7/§4.8 + 9241-143 §6.5). The `documents` / `movement-detail`
 delete paths carry the same treatment as a follow-up once their in-flight WIP lands.
 
+## Menu & navigation ergonomics (ADR-0108)
+
+Navigation & menu surfaces were out of scope for the initial conformity pass. **ADR-0108**
+([`0108-menu-navigation-ergonomics.md`](../ADR/0108-menu-navigation-ergonomics.md)) governs their
+ISO-9241-aligned redesign, benchmarked against the repo's `iso-9241-*` skills with `DESIGN.vercel.md`
+as a scoped, non-governing visual-token reference. Control rows:
+
+| ID | Surface / move | Standard | Status | Note |
+| --- | --- | --- | --- | --- |
+| M-01 | Nav labels never hidden (M1) | ISO 9241-110 §4.4, 9241-151 | PLANNED | icon-collapse → opt-in + label peek |
+| M-02 | Menu item state matrix (M2) | ISO 9241-161 §6, 9241-12 | PLANNED | rest/hover/focus/current/disabled, > color |
+| M-03 | One canonical `RowMenu` (M3) | ISO 9241-143, 9241-110 §4.4, 9241-12 | PLANNED | collapse `RowActions`+`RowActionMenu`; `kind` |
+| M-04 | Destructive via one path (M4) | ISO 9241-110 §4.8, 9241-143 §6.5 | PLANNED | `ActionDialog` alert + sonner Undo |
+| M-05 | Keyboard-first nav (M5) | ISO 9241-171, 9241-410/420 | PLANNED | arrow traversal, Escape, focus restore |
+| M-06 | Workflow regroup + ⌘K (M6) | ISO 9241-110 §4.2, 9241-151 | PLANNED | 29 items by workflow; palette deep-nav |
+
+Status definitions follow the control-mapping legend above. `apps/mob` is tracked separately
+(different navigation model).
+
 ## Remediation program
 
 The execution plan (`.pi/plans/2026-07-15-frontend-conformity/plan.md`) sequences

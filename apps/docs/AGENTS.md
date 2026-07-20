@@ -59,6 +59,14 @@ Every new doc is an asset (ADR-0033 D2); links are guarded by `check:md-links`.
 pattern and is correct — do **not** remove the `color` prop to "fix" a hydration warning
 (see below).
 
+### Typography
+
+**Rubik** (`next/font/google`, `--font-rubik`) is the UI/body sans; **Ioskeley Mono**
+(open-source Berkeley-Mono-alike, `next/font/local` self-hosted from `apps/fonts/IoskeleyMono`,
+`--font-ioskeley-mono`) is the mono for code/IDs/data tables. Scoped, non-governing per
+[ADR-0109](/ADR/0109-design-md-theme-workflow) / [ADR-0110](/ADR/0110-typography-ioskeley-mono).
+The `<html>` carries the font variable classes; `--font-mono` leads with `--font-ioskeley-mono`.
+
 ## Troubleshooting
 
 ### ⚠️ Stale `.next` hydration phantom (antd `data-rc-*` false positive)

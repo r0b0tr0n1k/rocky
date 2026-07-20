@@ -1,6 +1,6 @@
 # ADR Index
 
-All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 81 records total.
+All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 82 records total.
 
 ### Core Backend / Architecture (0001-0032)
 
@@ -117,5 +117,6 @@ All Architecture Decision Records for the Rocky monorepo, grouped by cluster. 81
 | ADR-0091 | Lab Test Chain-of-Custody Status + PDA/Lab Workflow |
 | ADR-0092 | Zone-of-Alienation Automation: LabTestCompletedEvent → Geofence Lockdown |
 | ADR-0093 | Dual Dashboards: Private Vet vs State Epidemiologist |
+| ADR-0110 | Typography — Ioskeley Mono (code/data) + per-app sans (Rubik docs / IBM Plex Sans web) |
 
 > Generated from `apps/docs/content/ADR/*.md` first-heading titles. Regenerate after adding an ADR.
