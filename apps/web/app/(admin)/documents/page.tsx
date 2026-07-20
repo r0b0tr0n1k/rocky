@@ -4,8 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@rock
 
 import { type DocumentResponse, documentGenerateRequestSchema } from "@rocky/validators/api";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import * as React from "react";
+import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
+import * as React from "react";
 import { SelectField, TextField } from "#components/shared/form-fields";
 import { PageHeader } from "#components/shared/page-header";
 import { ValidatedForm } from "#components/shared/validated-form";
@@ -37,6 +38,17 @@ const FORMAT_OPTIONS = [
   { value: "xml", label: "XML — structured export" },
   { value: "pdf", label: "PDF — signed PDF/A-3 (download)" },
 ];
+
+// Drop-in PDF viewer (EmbedPDF, MIT). Client-only (ssr:false) — it renders the
+// generated PDF in-browser with a built-in toolbar (print + download enabled).
+const DropInViewer = dynamic(() => import("#components/pdf/drop-in-viewer"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[640px] w-full items-center justify-center rounded-md border bg-muted text-sm text-muted-foreground">
+      Loading document viewer…
+    </div>
+  ),
+});
 
 export default function DocumentsPage() {
   const trpc = useTRPC();
@@ -70,28 +82,20 @@ export default function DocumentsPage() {
     }));
   }, [types.data]);
 
-  // Derive the object URL from result so there's no stale-state race.
-  const pdfUrl = React.useMemo<string | null>(() => {
-    if (!result || result.format !== "pdf") return null;
+  // Decode the base64 PDF into raw bytes for the viewer.
+  const pdfBytes = React.useMemo<Uint8Array | null>(() => {
+    if (result?.format !== "pdf") return null;
     const binary = atob(result.content);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    return URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+    return bytes;
   }, [result]);
 
-  // Revoke the previous blob URL when result changes.
-  const prevResultRef = React.useRef<DocumentResponse | null>(null);
-  React.useEffect(() => {
-    const prev = prevResultRef.current;
-    prevResultRef.current = result;
-    if (prev && prev.format === "pdf" && prev !== result) {
-      const binary = atob(prev.content);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      const staleUrl = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
-      URL.revokeObjectURL(staleUrl);
-    }
-  }, [result]);
+  // Download/display file name for the viewer tab + download button.
+  const pdfName = React.useMemo<string>(() => {
+    if (!result) return "document.pdf";
+    return `${result.documentType}-${query?.refId ?? "doc"}.pdf`;
+  }, [result, query]);
 
   // Deep-link support: per-entity "Generate PDF" buttons land here with
   // ?type=&refId=&format= (format defaults to pdf). Prefill the form and
@@ -191,21 +195,12 @@ export default function DocumentsPage() {
               </div>
             ) : null}
 
-            {result.format === "pdf" && pdfUrl ? (
-              <>
-                <a
-                  href={pdfUrl}
-                  download={`${result.documentType}-${query?.refId ?? "doc"}.pdf`}
-                  className="inline-flex w-fit items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                >
-                  Download PDF
-                </a>
-                <object data={pdfUrl} type="application/pdf" className="h-[640px] w-full rounded-md border bg-muted">
-                  <p className="p-4 text-sm text-muted-foreground">
-                    PDF preview unavailable in this browser. Use the Download button above.
-                  </p>
-                </object>
-              </>
+            {result.format === "pdf" && pdfBytes ? (
+              <DropInViewer
+                bytes={pdfBytes}
+                name={pdfName}
+                className="h-[640px] w-full overflow-hidden rounded-md border bg-muted"
+              />
             ) : (
               <>
                 <a
