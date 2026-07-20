@@ -1,14 +1,14 @@
-# Todos — Menu & Navigation Ergonomics (ADR-0106)
+# Todos — Menu & Navigation Ergonomics (ADR-0108)
 
 Sequential, worker-executable. Each todo: id, title, owner bot, files, acceptance.
 
 ## Wave 1 — v1 (contained, high value)
 
-- [ ] **T01** Raise ADR-0106 + ROCKY-FE-001 menu section
+- [ ] **T01** Raise ADR-0108 + ROCKY-FE-001 menu section
   - Owner: Admin Bot + Docs Bot
-  - Files: `apps/docs/content/ADR/0106-menu-navigation-ergonomics.md` (new, ADR-0033 header,
+  - Files: `apps/docs/content/ADR/0108-menu-navigation-ergonomics.md` (new, ADR-0033 header,
     Proposed->Accepted), `apps/docs/content/compliance/frontend-conformity.md`
-  - Acceptance: ADR-0106 validates under `pnpm check:adrs`; ROCKY-FE-001 gains a
+  - Acceptance: ADR-0108 validates under `pnpm check:adrs`; ROCKY-FE-001 gains a
     "Menu & Navigation ergonomics" section + control rows M-01..M-06 (each move -> ISO clause
     - status). `pnpm check:standards` green (invariant a: ADR back-link present).
 
@@ -64,5 +64,5 @@ Sequential, worker-executable. Each todo: id, title, owner bot, files, acceptanc
 
 ## RobotFarm pass (all waves)
 
-- `apps/web/AGENTS.md`: extend the ADR-0105 ergonomics note to cite ADR-0106 (menu ergonomics).
+- `apps/web/AGENTS.md`: extend the ADR-0105 ergonomics note to cite ADR-0108 (menu ergonomics).
 - `pnpm check:adrs` + `pnpm check:md-links` + `pnpm check:standards` green after each wave.

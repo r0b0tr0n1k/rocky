@@ -1,7 +1,7 @@
 # Plan — Menu & Navigation Ergonomics (Rocky Web Admin)
 
 - **Plan ID:** 2026-07-19-menu-navigation-ergonomics
-- **Governing ADR:** ADR-0105 (Accepted) — this plan raises sub-ADR **ADR-0106**
+- **Governing ADR:** ADR-0105 (Accepted) — this plan raises sub-ADR **ADR-0108**
 - **Posture paper:** ROCKY-FE-001 `compliance/frontend-conformity.md`
 - **Canonical SoA:** ROCKY-ISMS-001 `compliance/isms-policy.md`
 - **Date:** 2026-07-19
@@ -101,20 +101,20 @@ those would be fetishistic — the symptom, not the cure.
 
 ## 6. Governance
 
-- Raise **ADR-0106** (Menu & Navigation Ergonomics), Proposed → Accepted; it links from
+- Raise **ADR-0108** (Menu & Navigation Ergonomics), Proposed → Accepted; it links from
   ROCKY-FE-001 (satisfies `check:standards` invariant a) and stays single-source (invariant b).
 - ROCKY-FE-001 gains a **Menu & Navigation ergonomics** section + control rows M-01…M-06
   mapping each move to its ISO clause and current status.
-- **Visual reference:** `DESIGN.vercel.md` is cited in ADR-0106 as the *visual token* source (scoped subset, §5.1) — ISO-9241-* skills remain the governing
+- **Visual reference:** `DESIGN.vercel.md` is cited in ADR-0108 as the *visual token* source (scoped subset, §5.1) — ISO-9241-* skills remain the governing
   benchmark; `@rocky/ui` remains the primitive source (satisfies `check:shadcn`). No new design authority is introduced.
-- RobotFarm pass on `apps/web/AGENTS.md`: extend the ADR-0105 ergonomics note to cite ADR-0106.
+- RobotFarm pass on `apps/web/AGENTS.md`: extend the ADR-0105 ergonomics note to cite ADR-0108.
 - `check:adrs`, `check:md-links`, `check:standards` remain green.
 
 ## 7. Waves
 
 ### Wave 1 — v1 (contained, high value)
 
-- **T01** Raise ADR-0106 + ROCKY-FE-001 menu section (M-01…M-06).
+- **T01** Raise ADR-0108 + ROCKY-FE-001 menu section (M-01…M-06).
 - **T02** Menu item state matrix (M2) in `@rocky/ui` + apply to sidebar & dropdown items.
 - **T03** Unified `RowMenu` (M3) replacing `RowActions` + `RowActionMenu`; adopt across columns.
 - **T04** Route destructive items through Undo path (M4).

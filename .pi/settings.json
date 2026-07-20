@@ -9,8 +9,8 @@
     "observationsPoolTargetTokens": 10000,
     "agentMaxTurns": 16,
     "model": {
-      "provider": "kilo",
-      "id": "poolside/laguna-xs-2.1:free",
+      "provider": "zai",
+      "id": "glm-4.7",
       "thinking": "low"
     },
     "passive": false,
