@@ -1,15 +1,16 @@
 @import "tailwindcss";
 @import "@rocky/ui/globals.css";
 
-/* Typography: IBM Plex Sans (main) + IBM Plex Mono (code).
-   next/font exposes --font-plex-sans / --font-plex-mono on <html>. */
+/* Typography: IBM Plex Sans (main) + Ioskeley Mono (code, self-hosted WOFF2).
+   next/font exposes --font-plex-sans / --font-ioskeley-mono on <html>. */
 @theme {
   --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
+  --font-mono: var(--font-ioskeley-mono), ui-monospace, SFMono-Regular, monospace;
 }
 @layer base {
   body {
-    font-family: var(--font-sans);
+    /* Preview: full-mono eval — revert to var(--font-sans) when done */
+    font-family: var(--font-mono);
   }
 }
 
@@ -65,4 +66,24 @@
 /* Pointer focus should NOT show the outline (keyboard-only visibility). */
 :focus:not(:focus-visible) {
   outline: none;
+}
+
+/* Vercel/Geist destructive color steps (DESIGN.vercel.md §5.1 harvest).
+   Consumed by RowMenu's destructive items: soft-hover (--error-soft) and
+   deep-pressed (--error-deep) states layered over shadcn's destructive variant. */
+:root {
+  --error: #ee0000;
+  --error-soft: #f7d4d6;
+  --error-deep: #c50000;
+}
+
+/* RowMenu dropdown surface + Level-5 stacked shadow (DESIGN.vercel.md §5.1).
+   Unlayered so it overrides shadcn's `bg-popover` / `shadow-md` utilities.
+   `canvas-soft-2` (#f5f5f5) surface + Level-5 elevation with inset hairline. */
+.row-menu-surface {
+  background-color: #f5f5f5;
+  box-shadow:
+    0 1px 1px #00000005,
+    0 8px 16px -4px #0000000a,
+    0 24px 32px -8px #0000000f;
 }
