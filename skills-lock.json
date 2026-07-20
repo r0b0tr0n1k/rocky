@@ -31,6 +31,12 @@
       "skillPath": "SKILL.md",
       "computedHash": "3610d5b13abec895fe1676a917b1a8a94dfd1286adf99476697d4a31e09227ac"
     },
+    "documentation-and-adrs": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/documentation-and-adrs/SKILL.md",
+      "computedHash": "7464fd2950b99fb00bbf65cab27653e0a049eef00c98927713ffdfe232a9daa9"
+    },
     "eas-app-stores": {
       "source": "expo/skills",
       "sourceType": "github",
@@ -163,6 +169,18 @@
       "skillPath": "skills/frontend-design/SKILL.md",
       "computedHash": "4eabc66183767153e404b39d1b839b1c37f2d82d86f0a0d7e880a579d8d62336"
     },
+    "iso27001": {
+      "source": "sushegaad/claude-skills-governance-risk-and-compliance",
+      "sourceType": "github",
+      "skillPath": "plugins/iso27001/skills/iso27001/SKILL.md",
+      "computedHash": "e827c0598ae99d272ade5696ec66f37e3f411b3b9f2ad6ab8f61eb1de821ec0e"
+    },
+    "iso27701": {
+      "source": "sushegaad/claude-skills-governance-risk-and-compliance",
+      "sourceType": "github",
+      "skillPath": "plugins/iso27701/skills/iso27701/SKILL.md",
+      "computedHash": "2b9566e5ebb8487ca607adcae9ba2bf6769a8349f12affc2af1c8c50034158bd"
+    },
     "organization-best-practices": {
       "source": "better-auth/skills",
       "sourceType": "github",
@@ -192,6 +210,12 @@
       "sourceType": "github",
       "skillPath": "better-auth/twoFactor/SKILL.md",
       "computedHash": "7e297aaf887e11fdc03e52bdbf44974e161e8f7c393170ced7dc66cace4f6d46"
+    },
+    "typst": {
+      "source": "lucifer1004/claude-skill-typst",
+      "sourceType": "github",
+      "skillPath": "skills/typst/SKILL.md",
+      "computedHash": "f3f690343afa3de3a738f847d983523bd06c389e3ad14879b74898ed8b219e3a"
     },
     "vitest": {
       "source": "antfu/skills",

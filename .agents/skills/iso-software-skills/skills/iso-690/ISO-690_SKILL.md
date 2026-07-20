@@ -1,6 +1,6 @@
 ---
 name: iso-690
-description: Create bibliographic references and citations following ISO 690:2010 standard. Use when creating references for books, serials, electronic resources, patents, audiovisual materials, maps, music, or other information resources. Triggers: bibliographic reference, citation, ISO 690, reference format, cite this, bibliography, reference this source.
+description: "Create bibliographic references and citations following ISO 690:2010 standard. Use when creating references for books, serials, electronic resources, patents, audiovisual materials, maps, music, or other information resources. Triggers: bibliographic reference, citation, ISO 690, reference format, cite this, bibliography, reference this source."
 ---
 
 # ISO 690:2010 Bibliographic References

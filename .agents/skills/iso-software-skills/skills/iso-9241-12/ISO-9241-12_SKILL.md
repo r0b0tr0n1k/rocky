@@ -1,6 +1,6 @@
 ---
 name: iso-9241-12
-description: Ergonomic requirements for presentation of information on visual display terminals. Use when designing visual interfaces, organizing screen information, or creating display layouts. Triggers: presentation of information, visual display, screen layout, windows, lists, tables, fields, graphical objects, coding techniques, colour coding, ISO 9241-12.
+description: "Ergonomic requirements for presentation of information on visual display terminals. Use when designing visual interfaces, organizing screen information, or creating display layouts. Triggers: presentation of information, visual display, screen layout, windows, lists, tables, fields, graphical objects, coding techniques, colour coding, ISO 9241-12."
 ---
 
 # ISO 9241-12:1998 - Presentation of Information!

@@ -1,6 +1,6 @@
 ---
 name: iso-9241-151
-description: Guidance on World Wide Web user interfaces. Use when designing websites, web applications, navigation structures, or web content presentation. Triggers: web user interface, website design, web navigation, web content, web accessibility, ISO 9241-151, WCAG, web usability, site map, navigation structure, search functions.
+description: "Guidance on World Wide Web user interfaces. Use when designing websites, web applications, navigation structures, or web content presentation. Triggers: web user interface, website design, web navigation, web content, web accessibility, ISO 9241-151, WCAG, web usability, site map, navigation structure, search functions."
 ---
 
 # ISO 9241-151:2008 - Guidance on World Wide Web User Interfaces

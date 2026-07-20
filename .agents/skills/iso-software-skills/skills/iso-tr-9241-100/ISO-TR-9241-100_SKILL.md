@@ -1,6 +1,6 @@
 ---
 name: iso-tr-9241-100
-description: ISO/TR 9241-100:2010 Introduction to standards related to software ergonomics. Use when navigating ISO 9241 series, selecting software ergonomics standards, or understanding software ergonomics structure. Triggers: software ergonomics, ISO 9241 series, ISO/TR 9241-100, software usability standards, human-system interaction, ISO 9241 structure, ergonomics standards, software ergonomics overview, ISO 9241 subseries.
+description: "ISO/TR 9241-100:2010 Introduction to standards related to software ergonomics. Use when navigating ISO 9241 series, selecting software ergonomics standards, or understanding software ergonomics structure. Triggers: software ergonomics, ISO 9241 series, ISO/TR 9241-100, software usability standards, human-system interaction, ISO 9241 structure, ergonomics standards, software ergonomics overview, ISO 9241 subseries."
 ---
 
 # ISO/TR 9241-100:2010 - Introduction to Standards Related to Software Ergonomics#

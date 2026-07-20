@@ -1,6 +1,6 @@
 ---
 name: iso-9241-110
-description: Ergonomics of human-system interaction - Dialogue principles. Use when designing user interfaces, evaluating interactive systems, or applying dialogue principles. Triggers: dialogue principles, interactive systems, user interface design, ergonomics, usability, ISO 9241-110, dialogue requirements, self-descriptiveness, controllability, error tolerance, suitability for learning, suitability for individualization.
+description: "Ergonomics of human-system interaction - Dialogue principles. Use when designing user interfaces, evaluating interactive systems, or applying dialogue principles. Triggers: dialogue principles, interactive systems, user interface design, ergonomics, usability, ISO 9241-110, dialogue requirements, self-descriptiveness, controllability, error tolerance, suitability for learning, suitability for individualization."
 ---
 
 # ISO 9241-110:2006 - Dialogue Principles for Interactive Systems

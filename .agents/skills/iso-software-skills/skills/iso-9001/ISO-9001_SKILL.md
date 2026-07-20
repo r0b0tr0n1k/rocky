@@ -1,6 +1,6 @@
 ---
 name: iso-9001
-description: Quality management systems requirements. Use when implementing ISO 9001 QMS, preparing for certification, or auditing. Triggers: ISO 9001, quality management system, QMS implementation, certification audit, clause 4-10, PDCA cycle, risk-based thinking.
+description: "Quality management systems requirements. Use when implementing ISO 9001 QMS, preparing for certification, or auditing. Triggers: ISO 9001, quality management system, QMS implementation, certification audit, clause 4-10, PDCA cycle, risk-based thinking."
 ---
 
 # ISO 9001:2015 Quality Management Systems - Requirements

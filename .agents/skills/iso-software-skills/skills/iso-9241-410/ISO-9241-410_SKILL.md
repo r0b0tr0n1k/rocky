@@ -1,6 +1,6 @@
 ---
 name: iso-9241-410
-description: ISO 9241-410:2008 Design criteria for physical input devices. Use when designing keyboards, mice, trackballs, touchpads, touchscreens, or other physical input devices. Triggers: physical input devices, keyboard design, mouse design, input device ergonomics, ISO 9241-410, device usability, Fitts law, index of difficulty, biomechanical load, input device criteria, ISO 9241-400.
+description: "ISO 9241-410:2008 Design criteria for physical input devices. Use when designing keyboards, mice, trackballs, touchpads, touchscreens, or other physical input devices. Triggers: physical input devices, keyboard design, mouse design, input device ergonomics, ISO 9241-410, device usability, Fitts law, index of difficulty, biomechanical load, input device criteria, ISO 9241-400."
 ---
 
 # ISO 9241-410:2008 - Design Criteria for Physical Input Devices

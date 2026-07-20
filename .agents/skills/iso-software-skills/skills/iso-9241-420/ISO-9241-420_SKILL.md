@@ -1,6 +1,6 @@
 ---
 name: iso-9241-420
-description: ISO 9241-420:2011 Selection of physical input devices. Use when selecting keyboards, mice, trackballs, touchpads, touchscreens, or other input devices for specific tasks/user populations. Triggers: input device selection, selecting input devices, ISO 9241-420, device usability, task analysis, user tests, performance criterion, product description, ISO 9241-400, ISO 9241-410.
+description: "ISO 9241-420:2011 Selection of physical input devices. Use when selecting keyboards, mice, trackballs, touchpads, touchscreens, or other input devices for specific tasks/user populations. Triggers: input device selection, selecting input devices, ISO 9241-420, device usability, task analysis, user tests, performance criterion, product description, ISO 9241-400, ISO 9241-410."
 ---
 
 # ISO 9241-420:2011 - Selection of Physical Input Devices#

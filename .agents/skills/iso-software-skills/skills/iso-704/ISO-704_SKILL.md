@@ -1,6 +1,6 @@
 ---
 name: iso-704
-description: Create and manage terminology following ISO 704:2009 principles. Use when working with terms, appellations, definitions, concept systems, or terminology standardization. Triggers: terminology work, term creation, definition writing, concept system, ISO 704, terminological resource, concept relations, term formation, appellations, designations.
+description: "Create and manage terminology following ISO 704:2009 principles. Use when working with terms, appellations, definitions, concept systems, or terminology standardization. Triggers: terminology work, term creation, definition writing, concept system, ISO 704, terminological resource, concept relations, term formation, appellations, designations."
 ---
 
 # ISO 704:2009 Terminology Work - Principles and Methods

@@ -1,6 +1,6 @@
 ---
 name: iso-9241-210
-description: ISO 9241-210:2010 Human-centred design for interactive systems. Use when planning/managing interactive system design, implementing human-centred design processes, or aligning with ISO 13407:1999 replacement. Triggers: human-centred design, HCD, interactive systems design, usability engineering, user-centered design, ISO 9241-210, HCD process, context of use, user requirements, iterative design, multidisciplinary design team, usability evaluation, ISO 13407 replacement.
+description: "ISO 9241-210:2010 Human-centred design for interactive systems. Use when planning/managing interactive system design, implementing human-centred design processes, or aligning with ISO 13407:1999 replacement. Triggers: human-centred design, HCD, interactive systems design, usability engineering, user-centered design, ISO 9241-210, HCD process, context of use, user requirements, iterative design, multidisciplinary design team, usability evaluation, ISO 13407 replacement."
 ---
 
 # ISO 9241-210:2010 - Human-centred Design for Interactive Systems

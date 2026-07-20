@@ -1,6 +1,6 @@
 ---
 name: iso-9241-920
-description: ISO 9241-920:2009 Guidance on tactile and haptic interactions. Use when designing tactile/haptic interfaces, encoding information via touch, or implementing haptic feedback. Triggers: tactile interaction, haptic interaction, ISO 9241-920, vibrotactile feedback, force feedback, tactile encoding, haptic encoding, sensory substitution, tactile graphics, haptic controls, Braille display, vibrotactile display, spatial resolution, temporal pattern.
+description: "ISO 9241-920:2009 Guidance on tactile and haptic interactions. Use when designing tactile/haptic interfaces, encoding information via touch, or implementing haptic feedback. Triggers: tactile interaction, haptic interaction, ISO 9241-920, vibrotactile feedback, force feedback, tactile encoding, haptic encoding, sensory substitution, tactile graphics, haptic controls, Braille display, vibrotactile display, spatial resolution, temporal pattern."
 ---
 
 # ISO 9241-920:2009 - Guidance on Tactile and Haptic Interactions#

@@ -1,6 +1,6 @@
 ---
 name: iso-9000
-description: Quality management systems fundamentals and vocabulary. Use when working with QMS, quality management principles, or ISO 9001 implementation. Triggers: quality management, QMS, ISO 9000, quality principles, quality management system, customer focus, leadership, process approach, continual improvement, audit, nonconformity.
+description: "Quality management systems fundamentals and vocabulary. Use when working with QMS, quality management principles, or ISO 9001 implementation. Triggers: quality management, QMS, ISO 9000, quality principles, quality management system, customer focus, leadership, process approach, continual improvement, audit, nonconformity."
 ---
 
 # ISO 9000:2015 Quality Management Systems - Fundamentals and Vocabulary

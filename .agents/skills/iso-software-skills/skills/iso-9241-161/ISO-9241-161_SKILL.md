@@ -1,6 +1,6 @@
 ---
 name: iso-9241-161
-description: Guidance on visual user-interface elements. Use when selecting, designing, or implementing UI elements like buttons, lists, menus, forms, or other visual interface components. Triggers: visual user interface elements, UI elements, user interface design, ISO 9241-161, accordion, button, carousel, check box, date picker, dialogue box, dropdown, entry field, label, link, list, menu, pointer, progress indicator, radio button, scroll bar, table, tab set, toggle button, tooltip, window.
+description: "Guidance on visual user-interface elements. Use when selecting, designing, or implementing UI elements like buttons, lists, menus, forms, or other visual interface components. Triggers: visual user interface elements, UI elements, user interface design, ISO 9241-161, accordion, button, carousel, check box, date picker, dialogue box, dropdown, entry field, label, link, list, menu, pointer, progress indicator, radio button, scroll bar, table, tab set, toggle button, tooltip, window."
 ---
 
 # ISO 9241-161:2016 - Guidance on Visual User-Interface Elements

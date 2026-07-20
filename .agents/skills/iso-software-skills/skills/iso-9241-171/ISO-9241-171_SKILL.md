@@ -1,6 +1,6 @@
 ---
 name: iso-9241-171
-description: ISO 9241-171:2008 Software accessibility guidance. Use when designing accessible software, implementing assistive technology compatibility, ensuring accessibility compliance, or addressing requirements for users with sensory, motor, or cognitive disabilities. Triggers: software accessibility, accessible software, WCAG, assistive technology, screen reader, keyboard navigation, visual impairment, hearing impairment, motor impairment, cognitive accessibility, ISO 9241-171, accessibility features, StickyKeys, SlowKeys, BounceKeys, MouseKeys, ShowSounds, SoundSentry.
+description: "ISO 9241-171:2008 Software accessibility guidance. Use when designing accessible software, implementing assistive technology compatibility, ensuring accessibility compliance, or addressing requirements for users with sensory, motor, or cognitive disabilities. Triggers: software accessibility, accessible software, WCAG, assistive technology, screen reader, keyboard navigation, visual impairment, hearing impairment, motor impairment, cognitive accessibility, ISO 9241-171, accessibility features, StickyKeys, SlowKeys, BounceKeys, MouseKeys, ShowSounds, SoundSentry."
 ---
 
 # ISO 9241-171:2008 - Software Accessibility
