@@ -1,27 +1,16 @@
-// biome-ignore assist/source/organizeImports: Biome sorting sucks
-import { Inject, Module } from "@nestjs/common";
+import crypto from "node:crypto";
 import type { OnModuleInit } from "@nestjs/common";
+import { Inject, Module } from "@nestjs/common";
 import { ScheduleModule } from "@nestjs/schedule";
 import { AuthorizationModule } from "@rocky/authorization/index.js";
 import { DatabaseProvider } from "@rocky/database/index.js";
-import crypto from "node:crypto";
 // ── Repositories ─────────────────────────────────────────────────────
 // ── Domain Services ─────────────────────────────────────────────────
 import { AnimalRepository, AnimalService } from "@rocky/domains-animal";
-import { AuditRepository, AuditService } from "@rocky/domains-audit";
 import { ArchiveRepository, ArchiveService } from "@rocky/domains-archive";
+import { AuditRepository, AuditService } from "@rocky/domains-audit";
 import { CorrectionRepository, CorrectionService } from "@rocky/domains-correction";
-import { OutboxEventPublisher } from "@rocky/execution";
 import { DeviceRepository, DeviceService } from "@rocky/domains-device";
-import { IotRepository, IotService } from "@rocky/domains-iot";
-import {
-  DeforestationMonitor,
-  GeoRepository,
-  GeoService,
-  MapTilerMapService,
-  NoDataRasterSource,
-  PolygonService,
-} from "@rocky/geo";
 import { EarTagRepository, EarTagService } from "@rocky/domains-eartag";
 import {
   FarmBookRepository,
@@ -34,13 +23,13 @@ import {
   VsContractService,
 } from "@rocky/domains-farm";
 import { HealthRepository, HealthService } from "@rocky/domains-health";
-import { SyncRepository, SyncService } from "@rocky/domains-sync";
 import {
   InspectionRepository,
   InspectionService,
-  RiskAnalysisService,
   RiskAnalysisRepository,
+  RiskAnalysisService,
 } from "@rocky/domains-inspection";
+import { IotRepository, IotService } from "@rocky/domains-iot";
 import { MovementRepository, MovementService } from "@rocky/domains-movement";
 import {
   NotificationRepository,
@@ -51,53 +40,61 @@ import { OrganizationRepository, OrganizationService } from "@rocky/domains-orga
 import { PassportRepository, PassportService } from "@rocky/domains-passport";
 import { RbacRepository, RbacService } from "@rocky/domains-rbac/index.js";
 import { SubjectRepository, SubjectService } from "@rocky/domains-subject";
+import { SyncRepository, SyncService } from "@rocky/domains-sync";
 import { SystemRepository, SystemService } from "@rocky/domains-system";
 import { UserRepository, UserService } from "@rocky/domains-user/index.js";
+import { OutboxEventPublisher } from "@rocky/execution";
 import { ExecutionModule } from "@rocky/execution/index.js";
+import {
+  DeforestationMonitor,
+  GeoRepository,
+  GeoService,
+  MapTilerMapService,
+  NoDataRasterSource,
+  PolygonService,
+} from "@rocky/geo";
 import { LoggerModule } from "@rocky/logger/index.js";
 import {
-  PdfModule,
+  ChedTemplate,
+  CredentialService,
   DocumentRegistry,
   DocumentService,
-  CredentialService,
-  InspectionFormTemplate,
-  PassportTemplate,
-  MovementTemplate,
-  ChedTemplate,
-  EudrTemplate,
   EarTagTemplate,
+  EudrTemplate,
+  InspectionFormTemplate,
+  MovementTemplate,
+  PassportTemplate,
+  PdfModule,
 } from "@rocky/pdf/index.js";
-import { createConfiguredCredentialKey, createConfiguredSigner } from "./pdf/signer-bootstrap.js";
-import { ClsModule } from "nestjs-cls";
+import { ClsModule, ClsService } from "nestjs-cls";
 import { AuthCoreModule } from "./auth/auth-core.module.js";
+import { AuditRetentionJob } from "./jobs/audit-retention.job.js";
+import { BirthDeadlineJob } from "./jobs/birth-deadline.job.js";
 // ── Scheduled Jobs ─────────────────────────────────────────────────
 import { CorrectionConsistencyJob } from "./jobs/correction-consistency.job.js";
 import { OutboxEventHandlers } from "./jobs/outbox-handlers.js";
 import { OutboxProcessorJob } from "./jobs/outbox-processor.job.js";
 import { RetentionJob } from "./jobs/retention.job.js";
 import { RiskAnalysisJob } from "./jobs/risk-analysis.job.js";
-import { BirthDeadlineJob } from "./jobs/birth-deadline.job.js";
 import { VaccineReconciliationJob } from "./jobs/vaccine-reconciliation.job.js";
 import { DbModule } from "./modules/db.module.js";
+import { createConfiguredCredentialKey, createConfiguredSigner } from "./pdf/signer-bootstrap.js";
+import { CredentialStatusListService } from "./pdf/status-list.service.js";
 // ── tRPC Routers ────────────────────────────────────────────────────
 import { AnimalRouter } from "./routers/animal.router.js";
-import { AuditRouter } from "./routers/audit.router.js";
-import { ModulesRouter } from "./routers/modules.router.js";
-import { SystemParametersRouter } from "./routers/system-parameters.router.js";
 import { ArchiveRouter } from "./routers/archive.router.js";
+import { AuditRouter } from "./routers/audit.router.js";
 import { CorrectionRouter } from "./routers/correction.router.js";
 import { DeviceRouter } from "./routers/device.router.js";
-import { IotRouter } from "./routers/iot.router.js";
-import { GeoRouter } from "./routers/geo.router.js";
 import { DocumentRouter } from "./routers/document.router.js";
-import { CredentialStatusListService } from "./pdf/status-list.service.js";
 import { EarTagRouter } from "./routers/eartag.router.js";
-import { FarmBookRouter } from "./routers/farm-book.router.js";
 import { FarmRouter } from "./routers/farm.router.js";
-import { VsAssignmentRouter } from "./routers/vs-assignment.router.js";
-import { VsContractRouter } from "./routers/vs-contract.router.js";
+import { FarmBookRouter } from "./routers/farm-book.router.js";
+import { GeoRouter } from "./routers/geo.router.js";
 import { HealthRouter } from "./routers/health.router.js";
 import { InspectionRouter } from "./routers/inspection.router.js";
+import { IotRouter } from "./routers/iot.router.js";
+import { ModulesRouter } from "./routers/modules.router.js";
 import { MovementRouter } from "./routers/movement.router.js";
 import { NotificationRouter } from "./routers/notification.router.js";
 import { OrganizationRouter } from "./routers/organization.router.js";
@@ -105,7 +102,10 @@ import { PassportRouter } from "./routers/passport.router.js";
 import { RbacRouter } from "./routers/rbac.router.js";
 import { SubjectRouter } from "./routers/subject.router.js";
 import { SyncRouter } from "./routers/sync.router.js";
+import { SystemParametersRouter } from "./routers/system-parameters.router.js";
 import { UserRouter } from "./routers/user.router.js";
+import { VsAssignmentRouter } from "./routers/vs-assignment.router.js";
+import { VsContractRouter } from "./routers/vs-contract.router.js";
 import { TrpcModule } from "./trpc/trpc.module.js";
 
 @Module({
@@ -240,13 +240,14 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     // ── Domain Services (orchestrate repos, no direct DB) ──
     {
       provide: AnimalService,
-      useFactory: (repo: AnimalRepository, system: SystemService) => new AnimalService(repo, system),
-      inject: [AnimalRepository, SystemService],
+      useFactory: (repo: AnimalRepository, system: SystemService, auditService: AuditService) =>
+        new AnimalService(repo, system, undefined, auditService),
+      inject: [AnimalRepository, SystemService, AuditService],
     },
     {
       provide: AuditService,
-      useFactory: (repo: AuditRepository) => new AuditService(repo),
-      inject: [AuditRepository],
+      useFactory: (repo: AuditRepository, cls: ClsService) => new AuditService(repo, cls),
+      inject: [AuditRepository, ClsService],
     },
     {
       provide: SystemRepository,
@@ -289,7 +290,18 @@ import { TrpcModule } from "./trpc/trpc.module.js";
         geoService: GeoService,
         passportService?: PassportService,
         outboxPublisher?: import("@rocky/execution").OutboxEventPublisher,
-      ) => new MovementService(movRepo, animalRepo, system, geoRepo, geoService, passportService, outboxPublisher),
+        auditService?: AuditService,
+      ) =>
+        new MovementService(
+          movRepo,
+          animalRepo,
+          system,
+          geoRepo,
+          geoService,
+          passportService,
+          outboxPublisher,
+          auditService,
+        ),
       inject: [
         MovementRepository,
         AnimalRepository,
@@ -301,6 +313,7 @@ import { TrpcModule } from "./trpc/trpc.module.js";
           token: OutboxEventPublisher,
           optional: true,
         },
+        AuditService,
       ],
     },
     {
@@ -316,8 +329,9 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     },
     {
       provide: EarTagService,
-      useFactory: (repo: EarTagRepository, system: SystemService) => new EarTagService(repo, system),
-      inject: [EarTagRepository, SystemService],
+      useFactory: (repo: EarTagRepository, system: SystemService, auditService: AuditService) =>
+        new EarTagService(repo, system, auditService),
+      inject: [EarTagRepository, SystemService, AuditService],
     },
     {
       provide: UserService,
@@ -343,7 +357,8 @@ import { TrpcModule } from "./trpc/trpc.module.js";
         system: SystemService,
         outboxPublisher: OutboxEventPublisher,
         correctionService: CorrectionService,
-      ) => new HealthService(repo, subjectRepo, animalRepo, system, outboxPublisher, correctionService),
+        auditService: AuditService,
+      ) => new HealthService(repo, subjectRepo, animalRepo, system, outboxPublisher, correctionService, auditService),
       inject: [
         HealthRepository,
         SubjectRepository,
@@ -351,6 +366,7 @@ import { TrpcModule } from "./trpc/trpc.module.js";
         SystemService,
         OutboxEventPublisher,
         CorrectionService,
+        AuditService,
       ],
     },
     {
@@ -381,8 +397,9 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     },
     {
       provide: PassportService,
-      useFactory: (repo: PassportRepository, animalRepo: AnimalRepository) => new PassportService(repo, animalRepo),
-      inject: [PassportRepository, AnimalRepository],
+      useFactory: (repo: PassportRepository, animalRepo: AnimalRepository, auditService: AuditService) =>
+        new PassportService(repo, animalRepo, auditService),
+      inject: [PassportRepository, AnimalRepository, AuditService],
     },
     {
       provide: CorrectionService,
@@ -568,6 +585,7 @@ import { TrpcModule } from "./trpc/trpc.module.js";
 
     // ── Scheduled Jobs ──
     RetentionJob,
+    AuditRetentionJob,
     RiskAnalysisJob,
     CorrectionConsistencyJob,
     BirthDeadlineJob,

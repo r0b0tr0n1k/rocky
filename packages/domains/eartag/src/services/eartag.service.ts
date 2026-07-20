@@ -6,20 +6,26 @@
  */
 
 import { ANIMAL_STATUS, EAR_TAG_ORDER_STATUS, FARM_TYPE } from "@rocky/database/constants";
+import type { AuditService } from "@rocky/domains-audit";
 import { fromAsyncThrowable, type Result, toAppError } from "@rocky/domains-shared";
+import type { SystemService } from "@rocky/domains-system";
 import type {
   AssignSupplierContingentRequest,
   EarTagListRequest,
   EarTagListResponse,
-  EarTagResponse,
   EarTagOrderResponse,
+  EarTagResponse,
   EarTagTypeResponse,
   GetTakeoverFileRequest,
   TakeoverFileResponse,
 } from "@rocky/validators/api";
-import { earTagOrderResponseSchema, earTagResponseSchema, earTagTypeResponseSchema, takeoverFileResponseSchema } from "@rocky/validators/api";
+import {
+  earTagOrderResponseSchema,
+  earTagResponseSchema,
+  earTagTypeResponseSchema,
+  takeoverFileResponseSchema,
+} from "@rocky/validators/api";
 import { EARTAG_ERRORS, EarTagError } from "../errors/eartag.errors.js";
-import type { SystemService } from "@rocky/domains-system";
 import type { EarTagRepository } from "../repositories/eartag.repository.js";
 
 // ── Status State Machine ──────────────────────────────────────────
@@ -45,13 +51,16 @@ const ORDER_STATUS_TRANSITIONS: Record<string, Set<string>> = {
 const INVALID_TRANSITION = (from: string, to: string) =>
   new EarTagError(EARTAG_ERRORS.INVALID_STATUS_TRANSITION, { from, to });
 
-
 function daysBetween(a: Date, b: Date): number {
   return Math.floor((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 export class EarTagService {
-  constructor(private readonly repo: EarTagRepository, private readonly system: SystemService) {}
+  constructor(
+    private readonly repo: EarTagRepository,
+    private readonly system: SystemService,
+    private readonly auditService?: AuditService,
+  ) {}
 
   async getById(id: string): Promise<Result<EarTagResponse, Error>> {
     return fromAsyncThrowable(async () => {
@@ -104,6 +113,12 @@ export class EarTagService {
     return fromAsyncThrowable(async () => {
       const updated = await this.repo.updateOrder(input);
       if (!updated) throw new EarTagError(EARTAG_ERRORS.ORDER_NOT_FOUND, { id: input.orderId });
+      await this.auditService?.recordUpdate({
+        resource: "earTagOrder",
+        resourceId: updated.id,
+        oldValue: null,
+        newValue: updated,
+      });
       return earTagOrderResponseSchema.parse(updated);
     }, toAppError)();
   }
@@ -231,6 +246,12 @@ export class EarTagService {
         totalQuantity: input.quantity,
         description: input.description,
         status: EAR_TAG_ORDER_STATUS.DRAFT,
+      });
+
+      await this.auditService?.recordCreate({
+        resource: "earTagOrder",
+        resourceId: order.id,
+        newValue: order,
       });
 
       return earTagOrderResponseSchema.parse(order);

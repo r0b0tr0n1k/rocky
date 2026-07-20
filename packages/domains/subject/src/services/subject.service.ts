@@ -36,7 +36,11 @@ export class SubjectService {
     }, toAppError)();
   }
 
-  async search(query: string, limit = 20, offset = 0): Promise<Result<{ data: SubjectResponse[]; total: number }, Error>> {
+  async search(
+    query: string,
+    limit = 20,
+    offset = 0,
+  ): Promise<Result<{ data: SubjectResponse[]; total: number }, Error>> {
     return fromAsyncThrowable(async () => {
       const { data, total } = await this.repo.search(query, limit, offset);
       return { data: subjectResponseSchema.array().parse(data), total };
@@ -50,6 +54,12 @@ export class SubjectService {
         if (existing) throw new SubjectError(SUBJECT_ERRORS.DUPLICATE_PERSONAL_ID, { personalId: input.personalId });
       }
       const subject = await this.repo.insert(input);
+      await this.auditService.recordCreate({
+        resource: "subject",
+        resourceId: subject?.id ?? "",
+        newValue: subject,
+        userId: input.createdBy,
+      });
       return subjectResponseSchema.parse(subject);
     }, toAppError)();
   }

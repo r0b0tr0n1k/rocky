@@ -17,14 +17,15 @@
 import { Injectable } from "@nestjs/common";
 import { db, TX_KEY, type Tx } from "@rocky/database";
 import { sql } from "drizzle-orm";
-import { ClsService } from "nestjs-cls";
+import type { ClsService } from "nestjs-cls";
 import type { ExecutionContext } from "../execution-context.js";
+import { EXECUTION_CONTEXT_CLS_KEY } from "../execution-context.js";
 
 /**
  * RLS Stage configuration — the session variables to set.
  */
 export interface RlsStageConfig {
-  ctx: Pick<ExecutionContext, "principal" | "runtime">;
+  ctx: ExecutionContext;
 }
 
 /**
@@ -33,7 +34,7 @@ export interface RlsStageConfig {
  */
 @Injectable()
 export class RLSStage {
-  constructor(private readonly cls: ClsService) { }
+  constructor(private readonly cls: ClsService) {}
 
   /**
    * Execute a callback within an RLS-scoped transaction.
@@ -48,12 +49,23 @@ export class RLSStage {
         this.cls.set(TX_KEY, tx);
 
         await tx.execute(sql`SELECT set_config('app.current_user_id', ${config.ctx.principal.id}, true)`);
-        await tx.execute(sql`SELECT set_config('app.current_role', ${config.ctx.principal.roles[0] ?? "SYSTEM"}, true)`);
-        await tx.execute(sql`SELECT set_config('app.current_org_id', ${config.ctx.principal.organization?.id ?? ""}, true)`);
-        await tx.execute(sql`SELECT set_config('app.current_permissions', ${config.ctx.principal.permissions.join(",")}, true)`);
+        await tx.execute(
+          sql`SELECT set_config('app.current_role', ${config.ctx.principal.roles[0] ?? "SYSTEM"}, true)`,
+        );
+        await tx.execute(
+          sql`SELECT set_config('app.current_org_id', ${config.ctx.principal.organization?.id ?? ""}, true)`,
+        );
+        await tx.execute(
+          sql`SELECT set_config('app.current_permissions', ${config.ctx.principal.permissions.join(",")}, true)`,
+        );
         await tx.execute(sql`SELECT set_config('app.current_trace_id', ${config.ctx.runtime.traceId}, true)`);
         await tx.execute(sql`SELECT set_config('app.current_locale', ${config.ctx.runtime.locale}, true)`);
         await tx.execute(sql`SELECT set_config('app.current_tenant', ${config.ctx.runtime.tenant ?? ""}, true)`);
+
+        // Expose the full execution context on CLS so services (e.g. AuditService)
+        // can read request ip/userAgent and the per-request trace id without
+        // threading them through every call site (WO-159 Remediation B).
+        this.cls.set(EXECUTION_CONTEXT_CLS_KEY, config.ctx);
 
         try {
           return await callback(tx);

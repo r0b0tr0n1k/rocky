@@ -4,8 +4,17 @@
  * Orchestrates: validate → delegate to repository → return Result.
  */
 
-import { ANIMAL_STATUS, OUTBOX_AGGREGATE_TYPE, STATE_CODE, SPECIES } from "@rocky/database/constants";
+import { randomUUID } from "node:crypto";
+import { ANIMAL_STATUS, OUTBOX_AGGREGATE_TYPE, SPECIES, STATE_CODE } from "@rocky/database/constants";
+import type { AuditService } from "@rocky/domains-audit";
 import { fromAsyncThrowable, type Result, toAppError } from "@rocky/domains-shared";
+import type { SystemService } from "@rocky/domains-system";
+import {
+  SPECIES_TAGGING_RULE,
+  speciesTaggingMaxDays,
+  TraceabilityRuleEngine,
+  type TraceableSpecies,
+} from "@rocky/domains-system";
 import type { OutboxEventPublisher } from "@rocky/execution";
 import type {
   AnimalListRequest,
@@ -17,10 +26,7 @@ import type {
 import { animalResponseSchema, animalSummarySchema } from "@rocky/validators/api";
 import { validateEarTagFormat } from "@rocky/validators/utils/check-digit";
 import { ANIMAL_ERRORS, AnimalError } from "../errors/animal.errors.js";
-import type { SystemService } from "@rocky/domains-system";
-import { TraceabilityRuleEngine, speciesTaggingMaxDays, SPECIES_TAGGING_RULE, type TraceableSpecies } from "@rocky/domains-system";
 import type { AnimalRepository, AnimalRow } from "../repositories/animal.repository.js";
-import { randomUUID } from "node:crypto";
 
 /** System parameters for registration validation */
 
@@ -38,6 +44,7 @@ export class AnimalService {
     private readonly repo: AnimalRepository,
     private readonly system: SystemService,
     private readonly outboxPublisher?: OutboxEventPublisher,
+    private readonly auditService?: AuditService,
   ) {}
 
   async getById(id: string): Promise<Result<AnimalResponse, Error>> {
@@ -204,6 +211,13 @@ export class AnimalService {
         throw new AnimalError(ANIMAL_ERRORS.INVALID_INPUT, { reason: "Failed to create animal record" });
       }
 
+      await this.auditService?.recordCreate({
+        resource: "animal",
+        resourceId: animal.id,
+        newValue: animal,
+        userId: input.createdBy,
+      });
+
       if (this.outboxPublisher) {
         await this.outboxPublisher.publish({
           type: "animal_registered",
@@ -259,11 +273,14 @@ export class AnimalService {
         }
       }
 
-      const animal = await this.repo.update(
-        id,
-        input as Partial<AnimalRow>,
-      );
+      const animal = await this.repo.update(id, input as Partial<AnimalRow>);
       if (!animal) throw new AnimalError(ANIMAL_ERRORS.NOT_FOUND, { id });
+      await this.auditService?.recordUpdate({
+        resource: "animal",
+        resourceId: animal.id,
+        oldValue: null,
+        newValue: animal,
+      });
       return animalResponseSchema.parse(animal);
     }, toAppError)();
   }

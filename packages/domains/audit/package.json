@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "NODE_OPTIONS='--max-old-space-size=30720' tsc -p tsconfig.build.json",
-    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit"
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=16384' tsc --noEmit",
+    "test": "vitest run"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -26,10 +27,16 @@
   "dependencies": {
     "@rocky/database": "workspace:*",
     "@rocky/domains-shared": "workspace:*",
+    "@rocky/execution": "workspace:*",
+    "@rocky/validators": "workspace:*",
     "drizzle-orm": "catalog:",
+    "nestjs-cls": "catalog:",
     "neverthrow": "catalog:"
   },
   "devDependencies": {
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vite-tsconfig-paths": "catalog:",
+    "vitest": "catalog:",
+    "postgres": "catalog:"
   }
 }

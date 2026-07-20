@@ -6,8 +6,9 @@
 
 import { PASSPORT_STATUS, STATE_CODE } from "@rocky/database/constants";
 import type { AnimalRepository } from "@rocky/domains-animal";
-import { fromAsyncThrowable, toAppError, type Result } from "@rocky/domains-shared";
-import { passportResponseSchema, type PassportResponse } from "@rocky/validators/api";
+import type { AuditService } from "@rocky/domains-audit";
+import { fromAsyncThrowable, type Result, toAppError } from "@rocky/domains-shared";
+import { type PassportResponse, passportResponseSchema } from "@rocky/validators/api";
 import { PASSPORT_ERRORS, PassportError } from "../errors/passport.errors.js";
 import type { PassportRepository } from "../repositories/passport.repository.js";
 
@@ -24,7 +25,8 @@ export class PassportService {
   constructor(
     private readonly repo: PassportRepository,
     private readonly animalRepo: AnimalRepository,
-  ) { }
+    private readonly auditService?: AuditService,
+  ) {}
 
   // ── CRUD ──
 
@@ -36,14 +38,29 @@ export class PassportService {
     }, toAppError)();
   }
 
-  async list(input: { farmId?: string; status?: string; limit: number; offset: number }): Promise<Result<{ data: PassportResponse[]; total: number; limit: number; offset: number }, Error>> {
+  async list(input: {
+    farmId?: string;
+    status?: string;
+    limit: number;
+    offset: number;
+  }): Promise<Result<{ data: PassportResponse[]; total: number; limit: number; offset: number }, Error>> {
     return fromAsyncThrowable(async () => {
       if (input.farmId) {
         const { data, total } = await this.repo.findByFarmId(input.farmId, input);
-        return { data: data.map((d: unknown) => passportResponseSchema.parse(d)), total, limit: input.limit, offset: input.offset };
+        return {
+          data: data.map((d: unknown) => passportResponseSchema.parse(d)),
+          total,
+          limit: input.limit,
+          offset: input.offset,
+        };
       }
       const { data, total } = await this.repo.findSeized(input);
-      return { data: data.map((d: unknown) => passportResponseSchema.parse(d)), total, limit: input.limit, offset: input.offset };
+      return {
+        data: data.map((d: unknown) => passportResponseSchema.parse(d)),
+        total,
+        limit: input.limit,
+        offset: input.offset,
+      };
     }, toAppError)();
   }
 
@@ -53,7 +70,11 @@ export class PassportService {
    * Rule 1: Issue passport for an error-free registered animal.
    * Creates an ISSUED passport. Only one active passport per animal.
    */
-  async issueForAnimal(input: { animalId: string; farmId: string; createdBy?: string }): Promise<Result<PassportResponse, Error>> {
+  async issueForAnimal(input: {
+    animalId: string;
+    farmId: string;
+    createdBy?: string;
+  }): Promise<Result<PassportResponse, Error>> {
     return fromAsyncThrowable(async () => {
       // Verify animal exists
       const animal = await this.animalRepo.findById(input.animalId);
@@ -85,6 +106,12 @@ export class PassportService {
       });
 
       if (!passport) throw new PassportError(PASSPORT_ERRORS.INVALID_INPUT, { reason: "Failed to create passport" });
+      await this.auditService?.recordCreate({
+        resource: "passport",
+        resourceId: passport.id,
+        newValue: passport,
+        userId: input.createdBy,
+      });
       return passportResponseSchema.parse(passport);
     }, toAppError)();
   }

@@ -5,20 +5,7 @@
  * Cross-table logic (animal existence check + farm update) stays in service.
  */
 
-import { movementListRequestSchema } from "@rocky/validators/api";
-import { movementResponseSchema } from "@rocky/validators/api";
-import type { LineageGraph } from "@rocky/validators/api";
-
-import type {
-  MovementResponse,
-  MovementListResponse,
-  CreateMovementRequest,
-  MovementListRequest,
-} from "@rocky/validators/api/index.js";
-import type { SystemService } from "@rocky/domains-system";
-import { TraceabilityRuleEngine, EU_TRACEABILITY_FLOORS } from "@rocky/domains-system";
-import type { DiseaseZoneCheckResult, GeoRepository, GeoService } from "@rocky/geo";
-import { runEudrDueDiligence, type EudrDueDiligenceResult } from "./eudr-due-diligence.js";
+import crypto from "node:crypto";
 import {
   ANIMAL_STATUS,
   FARM_TYPE,
@@ -29,14 +16,26 @@ import {
   PASTURE_TYPE,
   STATE_CODE,
 } from "@rocky/database/constants";
-import { type Result, fromAsyncThrowable, toAppError } from "@rocky/domains-shared";
-import { MovementError, MOVEMENT_ERRORS } from "../errors/movement.errors.js";
-import type { MovementRepository, MovementRow, AnimalRow } from "../repositories/movement.repository.js";
 import type { AnimalRepository } from "@rocky/domains-animal";
-import type { OutboxEventPublisher } from "@rocky/execution";
+import type { AuditService } from "@rocky/domains-audit";
 import { EVENT_TYPE_IDS } from "@rocky/domains-notification/index.js";
-import crypto from "node:crypto";
 import type { PassportService } from "@rocky/domains-passport";
+import { fromAsyncThrowable, type Result, toAppError } from "@rocky/domains-shared";
+import type { SystemService } from "@rocky/domains-system";
+import { EU_TRACEABILITY_FLOORS, TraceabilityRuleEngine } from "@rocky/domains-system";
+import type { OutboxEventPublisher } from "@rocky/execution";
+import type { DiseaseZoneCheckResult, GeoRepository, GeoService } from "@rocky/geo";
+import type { LineageGraph } from "@rocky/validators/api";
+import { movementListRequestSchema, movementResponseSchema } from "@rocky/validators/api";
+import type {
+  CreateMovementRequest,
+  MovementListRequest,
+  MovementListResponse,
+  MovementResponse,
+} from "@rocky/validators/api/index.js";
+import { MOVEMENT_ERRORS, MovementError } from "../errors/movement.errors.js";
+import type { AnimalRow, MovementRepository, MovementRow } from "../repositories/movement.repository.js";
+import { type EudrDueDiligenceResult, runEudrDueDiligence } from "./eudr-due-diligence.js";
 
 /** System parameters for movement validation */
 const DEFAULT_PARAMS = {
@@ -69,6 +68,7 @@ export class MovementService {
     private readonly geoService: GeoService,
     private readonly passportService?: PassportService,
     private readonly outboxPublisher?: OutboxEventPublisher,
+    private readonly auditService?: AuditService,
   ) {}
 
   // ── WO-115: EUDR 2023/1115 due-diligence (R1) ──
@@ -341,6 +341,13 @@ export class MovementService {
       ) {
         await this.animalRepo.updateFarm(input.animalId, toFarmId);
       }
+
+      await this.auditService?.recordCreate({
+        resource: "movement",
+        resourceId: mov?.id ?? "",
+        newValue: mov,
+        userId: input.createdBy,
+      });
 
       return movementResponseSchema.parse(mov);
     }, toAppError)();
@@ -916,7 +923,7 @@ export class MovementService {
       }
 
       const movementGroupId = crypto.randomUUID();
-      const legs: (MovementRow)[] = [];
+      const legs: MovementRow[] = [];
 
       // Leg 1: Seller → Market (MARKET_SALE)
       legs.push({

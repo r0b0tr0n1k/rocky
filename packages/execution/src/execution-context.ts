@@ -4,6 +4,14 @@
 import type { Principal } from "@rocky/authorization";
 
 /**
+ * CLS key under which the full ExecutionContext is stored during a pipeline run
+ * (set by the RLS stage). Services such as AuditService read it to capture
+ * request context (ip / userAgent / trace id) without threading it through every
+ * call site (WO-159 Remediation B).
+ */
+export const EXECUTION_CONTEXT_CLS_KEY = "rocky.executionContext";
+
+/**
  * Transport protocol of the incoming request.
  */
 export type TransportProtocol = "trpc" | "rest" | "graphql" | "rabbitmq" | "cron" | "cli";

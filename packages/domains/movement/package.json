@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@rocky/database": "workspace:*",
+    "@rocky/domains-audit": "workspace:*",
     "@rocky/domains-system": "workspace:*",
     "@rocky/geo": "workspace:*",
     "@rocky/domains-animal": "workspace:*",

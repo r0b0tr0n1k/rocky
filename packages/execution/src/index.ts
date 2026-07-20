@@ -20,6 +20,7 @@ export type {
   RuntimeContext,
   TransportProtocol,
 } from "./execution-context.js";
+export { EXECUTION_CONTEXT_CLS_KEY } from "./execution-context.js";
 export {
   ExecutionPipeline,
   type ExecutionStage,

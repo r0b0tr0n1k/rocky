@@ -25,7 +25,7 @@ export class FarmService {
     private readonly repo: FarmRepository,
     private readonly auditService: AuditService,
     private readonly outboxPublisher?: OutboxEventPublisher,
-  ) { }
+  ) {}
 
   async getById(id: string): Promise<Result<FarmResponse, Error>> {
     return fromAsyncThrowable(async () => {
@@ -57,6 +57,12 @@ export class FarmService {
         if (existing) throw new FarmError(FARM_ERRORS.DUPLICATE_FARM_ID, { farmId: input.farmId });
       }
       const farm = await this.repo.insert(input as FarmRow);
+      await this.auditService?.recordCreate({
+        resource: "farm",
+        resourceId: farm?.id ?? input.farmId ?? "",
+        newValue: farm ?? {},
+        userId: input.createdBy,
+      });
       return farmResponseSchema.parse(farm);
     }, toAppError)();
   }

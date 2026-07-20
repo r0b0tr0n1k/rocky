@@ -5,25 +5,32 @@
  * Validates vet authorization on farm before recording health events.
  */
 
-import { ok, err, fromAsyncThrowable, toAppError, type Result } from "@rocky/domains-shared";
-import type { SubjectRepository } from "@rocky/domains-subject";
+import {
+  ANIMAL_STATUS,
+  CORRECTION_CASE_TYPE,
+  DETECTION_SOURCE,
+  DISEASE_CATEGORY,
+  OUTBOX_AGGREGATE_TYPE,
+  SUBJECT_ROLE,
+} from "@rocky/database/constants";
 import type { AnimalRepository } from "@rocky/domains-animal";
-import type { HealthRepository } from "../repositories/health.repository.js";
-import { HealthError, HEALTH_ERRORS } from "../errors/health.errors.js";
+import type { AuditService } from "@rocky/domains-audit";
+import { err, fromAsyncThrowable, ok, type Result, toAppError } from "@rocky/domains-shared";
+import type { SubjectRepository } from "@rocky/domains-subject";
 import type { SystemService } from "@rocky/domains-system";
-import { ANIMAL_STATUS, CORRECTION_CASE_TYPE, DETECTION_SOURCE, DISEASE_CATEGORY, OUTBOX_AGGREGATE_TYPE, SUBJECT_ROLE } from "@rocky/database/constants";
 import {
   diseaseResponseSchema,
-  vaccineResponseSchema,
-  vaccineBatchResponseSchema,
-  vaccinationResponseSchema,
-  treatmentResponseSchema,
   labTestResponseSchema,
+  treatmentResponseSchema,
+  vaccinationResponseSchema,
+  vaccineBatchResponseSchema,
   vaccineDiseaseResponseSchema,
+  vaccineResponseSchema,
 } from "@rocky/validators/api";
+import { HEALTH_ERRORS, HealthError } from "../errors/health.errors.js";
+import type { HealthRepository } from "../repositories/health.repository.js";
 
 export type { HealthError, HealthErrorCode } from "../errors/health.errors.js";
-
 
 function daysBetween(a: Date, b: Date): number {
   const ms = Math.abs(b.getTime() - a.getTime());
@@ -116,6 +123,7 @@ export class HealthService {
     private readonly system: SystemService,
     private readonly outboxPublisher?: import("@rocky/execution").OutboxEventPublisher,
     private readonly correctionService?: import("@rocky/domains-correction").CorrectionService,
+    private readonly auditService?: AuditService,
   ) {}
 
   /** Vet authorization — binding must exist for one of the jurisdiction's administer roles (ADR-0030 WO-014). */
@@ -144,12 +152,24 @@ export class HealthService {
 
   async listDiseases(input: { search?: string; notifiable?: boolean; limit: number; offset: number }) {
     const { data, total } = await this.repo.listDiseases(input);
-    return ok({ data: data.map((d: unknown) => diseaseResponseSchema.parse(d)), total, limit: input.limit, offset: input.offset });
+    return ok({
+      data: data.map((d: unknown) => diseaseResponseSchema.parse(d)),
+      total,
+      limit: input.limit,
+      offset: input.offset,
+    });
   }
 
   async createDisease(input: CreateDiseaseInput) {
-    const diseaseCategory = input.diseaseCategory ?? (input.notifiable ? DISEASE_CATEGORY.CATEGORY_A : DISEASE_CATEGORY.CATEGORY_C);
-    const disease = await this.repo.createDisease({ name: input.name, diseaseCategory, diseaseCategories: [diseaseCategory], notifiable: input.notifiable ?? false, description: input.description });
+    const diseaseCategory =
+      input.diseaseCategory ?? (input.notifiable ? DISEASE_CATEGORY.CATEGORY_A : DISEASE_CATEGORY.CATEGORY_C);
+    const disease = await this.repo.createDisease({
+      name: input.name,
+      diseaseCategory,
+      diseaseCategories: [diseaseCategory],
+      notifiable: input.notifiable ?? false,
+      description: input.description,
+    });
     if (!disease) return err(new HealthError(HEALTH_ERRORS.INVALID_INPUT));
     return ok(diseaseResponseSchema.parse(disease));
   }
@@ -177,11 +197,20 @@ export class HealthService {
 
   async listVaccines(input: { search?: string; type?: string; limit: number; offset: number }) {
     const { data, total } = await this.repo.listVaccines(input);
-    return ok({ data: data.map((d: unknown) => vaccineResponseSchema.parse(d)), total, limit: input.limit, offset: input.offset });
+    return ok({
+      data: data.map((d: unknown) => vaccineResponseSchema.parse(d)),
+      total,
+      limit: input.limit,
+      offset: input.offset,
+    });
   }
 
   async createVaccine(input: CreateVaccineInput) {
-    const vaccine = await this.repo.createVaccine({ name: input.name, manufacturer: input.manufacturer, type: input.type });
+    const vaccine = await this.repo.createVaccine({
+      name: input.name,
+      manufacturer: input.manufacturer,
+      type: input.type,
+    });
     if (!vaccine) return err(new HealthError(HEALTH_ERRORS.INVALID_INPUT));
     return ok(vaccineResponseSchema.parse(vaccine));
   }
@@ -192,18 +221,31 @@ export class HealthService {
     const batch = await this.repo.createBatch({
       vaccineId: input.vaccineId,
       batchNo: input.batchNo,
-      productionDate: input.productionDate instanceof Date ? input.productionDate.toISOString().split("T")[0] : input.productionDate ?? undefined,
+      productionDate:
+        input.productionDate instanceof Date
+          ? input.productionDate.toISOString().split("T")[0]
+          : (input.productionDate ?? undefined),
       expiryDate: new Date(input.expiryDate).toISOString().split("T")[0]!,
       quantityReceived: input.quantityReceived,
       quantityRemaining: input.quantityReceived,
     });
     if (!batch) return err(new HealthError(HEALTH_ERRORS.INVALID_INPUT));
+    await this.auditService?.recordCreate({
+      resource: "vaccineBatch",
+      resourceId: batch.id,
+      newValue: batch,
+    });
     return ok(vaccineBatchResponseSchema.parse(batch));
   }
 
   async listBatches(input: { vaccineId?: string; limit: number; offset: number }) {
     const { data, total } = await this.repo.listBatches(input);
-    return ok({ data: data.map((d: unknown) => vaccineBatchResponseSchema.parse(d)), total, limit: input.limit, offset: input.offset });
+    return ok({
+      data: data.map((d: unknown) => vaccineBatchResponseSchema.parse(d)),
+      total,
+      limit: input.limit,
+      offset: input.offset,
+    });
   }
 
   // ── Vaccination (with vet authorization) ──
@@ -216,20 +258,33 @@ export class HealthService {
     // 2. Animal validation — alive + age check (Rules 7, 2)
     const animal = await this.animalRepo.findById(input.animalId);
     if (!animal) return err(new HealthError(HEALTH_ERRORS.NOT_FOUND, { animalId: input.animalId }));
-    if (animal.status !== ANIMAL_STATUS.ALIVE) return err(new HealthError(HEALTH_ERRORS.ANIMAL_NOT_ALIVE, { animalId: input.animalId }));
+    if (animal.status !== ANIMAL_STATUS.ALIVE)
+      return err(new HealthError(HEALTH_ERRORS.ANIMAL_NOT_ALIVE, { animalId: input.animalId }));
     const adminDate = typeof input.adminDate === "string" ? new Date(input.adminDate) : input.adminDate;
     const animalBirthDate = new Date(animal.birthDate);
     const ageDays = daysBetween(animalBirthDate, adminDate);
     const ruleSet = await this.system.getRuleSet();
-    if (ruleSet.isErr()) return err(new HealthError(HEALTH_ERRORS.INVALID_INPUT, { reason: "RuleSet unavailable", detail: ruleSet.error.message }));
+    if (ruleSet.isErr())
+      return err(
+        new HealthError(HEALTH_ERRORS.INVALID_INPUT, { reason: "RuleSet unavailable", detail: ruleSet.error.message }),
+      );
     const minVaccinationAgeDays = ruleSet.value.thresholds.minVaccinationAgeDays;
-    if (ageDays < minVaccinationAgeDays) return err(new HealthError(HEALTH_ERRORS.ANIMAL_TOO_YOUNG, { animalId: input.animalId, ageDays, minDays: minVaccinationAgeDays }));
+    if (ageDays < minVaccinationAgeDays)
+      return err(
+        new HealthError(HEALTH_ERRORS.ANIMAL_TOO_YOUNG, {
+          animalId: input.animalId,
+          ageDays,
+          minDays: minVaccinationAgeDays,
+        }),
+      );
 
     // 3. Batch validity — expiry + stock
     const batchRow = await this.repo.findBatchById(input.batchId);
     if (!batchRow) return err(new HealthError(HEALTH_ERRORS.NOT_FOUND, { batchId: input.batchId }));
-    if (new Date(batchRow.expiryDate) < adminDate) return err(new HealthError(HEALTH_ERRORS.VACCINE_EXPIRED, { batchId: input.batchId }));
-    if (batchRow.quantityRemaining <= 0) return err(new HealthError(HEALTH_ERRORS.BATCH_DEPLETED, { batchId: input.batchId }));
+    if (new Date(batchRow.expiryDate) < adminDate)
+      return err(new HealthError(HEALTH_ERRORS.VACCINE_EXPIRED, { batchId: input.batchId }));
+    if (batchRow.quantityRemaining <= 0)
+      return err(new HealthError(HEALTH_ERRORS.BATCH_DEPLETED, { batchId: input.batchId }));
 
     // 4. Create vaccination record
     const vaccination = await this.repo.createVaccination({
@@ -248,6 +303,13 @@ export class HealthService {
     // 5. Decrement batch quantity
     await this.repo.decrementBatchQuantity(input.batchId);
 
+    await this.auditService?.recordCreate({
+      resource: "vaccination",
+      resourceId: vaccination.id,
+      newValue: vaccination,
+      userId: input.createdBy,
+    });
+
     return ok(vaccinationResponseSchema.parse(vaccination));
   }
 
@@ -257,9 +319,21 @@ export class HealthService {
     return ok(vaccinationResponseSchema.parse(vaccination));
   }
 
-  async listVaccinations(input: { animalId?: string; farmId?: string; vaccineId?: string; vetId?: string; limit: number; offset: number }) {
+  async listVaccinations(input: {
+    animalId?: string;
+    farmId?: string;
+    vaccineId?: string;
+    vetId?: string;
+    limit: number;
+    offset: number;
+  }) {
     const { data, total } = await this.repo.listVaccinations(input);
-    return ok({ data: data.map((d: unknown) => vaccinationResponseSchema.parse(d)), total, limit: input.limit, offset: input.offset });
+    return ok({
+      data: data.map((d: unknown) => vaccinationResponseSchema.parse(d)),
+      total,
+      limit: input.limit,
+      offset: input.offset,
+    });
   }
 
   // ── Treatment (with vet authorization) ──
@@ -272,7 +346,8 @@ export class HealthService {
     // 2. Animal alive check (Rule 7)
     const animal = await this.animalRepo.findById(input.animalId);
     if (!animal) return err(new HealthError(HEALTH_ERRORS.NOT_FOUND, { animalId: input.animalId }));
-    if (animal.status !== ANIMAL_STATUS.ALIVE) return err(new HealthError(HEALTH_ERRORS.ANIMAL_NOT_ALIVE, { animalId: input.animalId }));
+    if (animal.status !== ANIMAL_STATUS.ALIVE)
+      return err(new HealthError(HEALTH_ERRORS.ANIMAL_NOT_ALIVE, { animalId: input.animalId }));
 
     // 3. Check if disease is notifiable (for alert triggering)
     let isNotifiable = false;
@@ -291,7 +366,9 @@ export class HealthService {
       farmId: input.farmId,
       diseaseId: input.diseaseId ?? undefined,
       vetId: input.vetId,
-      diagnosisDate: (input.diagnosisDate instanceof Date ? input.diagnosisDate : new Date(input.diagnosisDate)).toISOString().split("T")[0]!,
+      diagnosisDate: (input.diagnosisDate instanceof Date ? input.diagnosisDate : new Date(input.diagnosisDate))
+        .toISOString()
+        .split("T")[0]!,
       treatmentDesc: input.treatmentDesc ?? undefined,
       isolated: input.isolated ?? false,
       createdBy: input.createdBy,
@@ -319,6 +396,13 @@ export class HealthService {
       // The OutboxProcessorJob will dispatch asynchronously.
     }
 
+    await this.auditService?.recordCreate({
+      resource: "treatment",
+      resourceId: treatment.id,
+      newValue: treatment,
+      userId: input.createdBy,
+    });
+
     return ok(treatmentResponseSchema.parse(treatment));
   }
 
@@ -328,9 +412,21 @@ export class HealthService {
     return ok(treatmentResponseSchema.parse(treatment));
   }
 
-  async listTreatments(input: { animalId?: string; farmId?: string; diseaseId?: string; vetId?: string; limit: number; offset: number }) {
+  async listTreatments(input: {
+    animalId?: string;
+    farmId?: string;
+    diseaseId?: string;
+    vetId?: string;
+    limit: number;
+    offset: number;
+  }) {
     const { data, total } = await this.repo.listTreatments(input);
-    return ok({ data: data.map((d: unknown) => treatmentResponseSchema.parse(d)), total, limit: input.limit, offset: input.offset });
+    return ok({
+      data: data.map((d: unknown) => treatmentResponseSchema.parse(d)),
+      total,
+      limit: input.limit,
+      offset: input.offset,
+    });
   }
 
   // ── Lab Test ──
@@ -348,8 +444,12 @@ export class HealthService {
       interpretation: input.interpretation ?? undefined,
       labName: input.labName ?? undefined,
       labSampleId: input.labSampleId ?? undefined,
-      sampleDate: (input.sampleDate instanceof Date ? input.sampleDate : new Date(input.sampleDate)).toISOString().split("T")[0]!,
-      resultDate: (input.resultDate instanceof Date ? input.resultDate : new Date(input.resultDate)).toISOString().split("T")[0]!,
+      sampleDate: (input.sampleDate instanceof Date ? input.sampleDate : new Date(input.sampleDate))
+        .toISOString()
+        .split("T")[0]!,
+      resultDate: (input.resultDate instanceof Date ? input.resultDate : new Date(input.resultDate))
+        .toISOString()
+        .split("T")[0]!,
       certificateRef: input.certificateRef ?? undefined,
       createdBy: input.createdBy,
     });
@@ -378,6 +478,13 @@ export class HealthService {
       });
     }
 
+    await this.auditService?.recordCreate({
+      resource: "labTest",
+      resourceId: labTest.id,
+      newValue: labTest,
+      userId: input.createdBy,
+    });
+
     return ok(labTestResponseSchema.parse(labTest));
   }
 
@@ -387,9 +494,22 @@ export class HealthService {
     return ok(labTestResponseSchema.parse(labTest));
   }
 
-  async listLabTests(input: { animalId?: string; farmId?: string; diseaseId?: string; testType?: string; result?: string; limit: number; offset: number }) {
+  async listLabTests(input: {
+    animalId?: string;
+    farmId?: string;
+    diseaseId?: string;
+    testType?: string;
+    result?: string;
+    limit: number;
+    offset: number;
+  }) {
     const { data, total } = await this.repo.listLabTests(input);
-    return ok({ data: data.map((d: unknown) => labTestResponseSchema.parse(d)), total, limit: input.limit, offset: input.offset });
+    return ok({
+      data: data.map((d: unknown) => labTestResponseSchema.parse(d)),
+      total,
+      limit: input.limit,
+      offset: input.offset,
+    });
   }
 
   // ── Vaccine-Disease Links ──
@@ -397,9 +517,19 @@ export class HealthService {
   async linkVaccineDisease(input: LinkVaccineDiseaseInput) {
     // Check if link already exists
     const existing = await this.repo.findVaccineDiseaseLink(input.vaccineId, input.diseaseId);
-    if (existing) return err(new HealthError(HEALTH_ERRORS.VACCINE_DISEASE_CONFLICT, { vaccineId: input.vaccineId, diseaseId: input.diseaseId }));
+    if (existing)
+      return err(
+        new HealthError(HEALTH_ERRORS.VACCINE_DISEASE_CONFLICT, {
+          vaccineId: input.vaccineId,
+          diseaseId: input.diseaseId,
+        }),
+      );
 
-    const link = await this.repo.linkVaccineToDisease({ vaccineId: input.vaccineId, diseaseId: input.diseaseId, createdBy: input.createdBy });
+    const link = await this.repo.linkVaccineToDisease({
+      vaccineId: input.vaccineId,
+      diseaseId: input.diseaseId,
+      createdBy: input.createdBy,
+    });
     if (!link) return err(new HealthError(HEALTH_ERRORS.INVALID_INPUT));
     return ok(vaccineDiseaseResponseSchema.parse(link));
   }
@@ -422,17 +552,22 @@ export class HealthService {
   /**
    * Download all master data for PDA offline use.
    */
-  async syncDownload(): Promise<Result<{
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    diseases: any[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vaccines: any[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    batches: any[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vaccineDiseases: any[];
-    syncedAt: Date;
-  }, Error>> {
+  async syncDownload(): Promise<
+    Result<
+      {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        diseases: any[];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vaccines: any[];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        batches: any[];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vaccineDiseases: any[];
+        syncedAt: Date;
+      },
+      Error
+    >
+  > {
     return fromAsyncThrowable(async () => {
       const [diseases, vaccines, batches, vaccineDiseases] = await Promise.all([
         this.repo.listAllDiseases(),
@@ -449,38 +584,14 @@ export class HealthService {
       };
     }, toAppError)();
   }
-  private async createSyncErrorCorrection(
-    record: { idempotencyKey: string; type: string; data: Record<string, unknown> },
-    errorMessage: string,
-    createdBy: string,
-  ): Promise<void> {
-    if (!this.correctionService) return;
-
-    try {
-      await this.correctionService.create({
-        detectionSource: DETECTION_SOURCE.FIELD,
-        errorType: `sync_upload_${record.type}_failed`,
-        errorDescription: `PDA sync failed: ${errorMessage}`,
-        originalData: {
-          idempotencyKey: record.idempotencyKey,
-          type: record.type,
-          data: record.data,
-        },
-        caseType: "TECHNICIAN_RESOLVABLE",
-        createdBy,
-      });
-    } catch (e) {
-      // Log but don't fail the sync — correction creation is secondary
-      console.error(`Failed to create sync error correction for ${record.idempotencyKey}:`, e);
-    }
-  }
-
   /**
    * WO-020 — Vaccine mass-balance reconciliation (TRACES / AMR anti-black-market protocol).
    * Any batch where quantity_received != quantity_remaining + administered doses is drift; an
    * a-posteriori COMPLEX correction case is opened so a Veterinary Inspector physically audits the VS fridge.
    */
-  async reconcileVaccineStock(createdBy = "system"): Promise<Result<{ driftedCount: number; correctionsCreated: number }, HealthError>> {
+  async reconcileVaccineStock(
+    createdBy = "system",
+  ): Promise<Result<{ driftedCount: number; correctionsCreated: number }, HealthError>> {
     if (!this.correctionService) return ok({ driftedCount: 0, correctionsCreated: 0 });
     try {
       const drifted = await this.repo.findDriftedVaccineBatches();
@@ -507,9 +618,11 @@ export class HealthService {
       }
       return ok({ driftedCount: drifted.length, correctionsCreated });
     } catch (error) {
-      return err(new HealthError(HEALTH_ERRORS.INVALID_INPUT, {
-        reason: error instanceof Error ? error.message : String(error),
-      }));
+      return err(
+        new HealthError(HEALTH_ERRORS.INVALID_INPUT, {
+          reason: error instanceof Error ? error.message : String(error),
+        }),
+      );
     }
   }
 }
