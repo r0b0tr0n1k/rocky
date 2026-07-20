@@ -2,13 +2,14 @@
 @import "./theme.css";
 @import "nextra-theme-docs/style.css";
 
-/* Typography: Rubik (main) + Monaco-first mono (code).
+/* Typography: Rubik (main) + Ioskeley Mono (code, self-hosted WOFF2).
    Scoped Vercel visual-token reference (DESIGN.vercel.md). Rubik loaded via
-   next/font as --font-rubik; Monaco is a system face (no webfont) so a system
-   stack is used. Non-governing — Rocky green stays the primary brand (ADR-0109). */
+   next/font as --font-rubik; Ioskeley Mono is self-hosted from
+   apps/fonts/IoskeleyMono via next/font/local as --font-ioskeley-mono.
+   Non-governing — Rocky green stays the primary brand (ADR-0109). */
 @theme {
   --font-sans: var(--font-rubik), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: Monaco, Menlo, Ubuntu Mono, ui-monospace, SFMono-Regular, monospace;
+  --font-mono: var(--font-ioskeley-mono), Monaco, Menlo, Ubuntu Mono, ui-monospace, SFMono-Regular, monospace;
 }
 /* Scoped Vercel accent: link-blue applied to the docs banner only.
    Green remains the Rocky primary brand (non-governing, per DESIGN.vercel.md / ADR-0109). */

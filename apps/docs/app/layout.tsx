@@ -1,4 +1,5 @@
 import { Rubik } from "next/font/google";
+import localFont from "next/font/local";
 import Link from "next/link";
 import { Head } from "nextra/components";
 import { getPageMap } from "nextra/page-map";
@@ -7,11 +8,28 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 // Scoped Sentry visual-token reference (DESIGN.sentry.md): Rubik for UI/body,
-// Monaco-first mono stack for code. Non-governing — Rocky green stays primary.
+// Rubik (UI/body). Ioskeley Mono (code) is self-hosted below. Non-governing — Rocky green stays primary.
 const rubik = Rubik({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-rubik",
+  display: "swap",
+});
+
+// Ioskeley Mono — open-source Berkeley-Mono-alike, self-hosted WOFF2 from
+// apps/fonts/IoskeleyMono. Exposed as --font-ioskeley-mono for --font-mono.
+const ioskeleyMono = localFont({
+  src: [
+    { path: "../../fonts/IoskeleyMono/IoskeleyMono-Medium.woff2", weight: "500", style: "normal" },
+    { path: "../../fonts/IoskeleyMono/IoskeleyMono-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "../../fonts/IoskeleyMono/IoskeleyMono-Bold.woff2", weight: "700", style: "normal" },
+    { path: "../../fonts/IoskeleyMono/IoskeleyMono-Black.woff2", weight: "800", style: "normal" },
+    { path: "../../fonts/IoskeleyMono/IoskeleyMono-MediumItalic.woff2", weight: "500", style: "italic" },
+    { path: "../../fonts/IoskeleyMono/IoskeleyMono-SemiBoldItalic.woff2", weight: "600", style: "italic" },
+    { path: "../../fonts/IoskeleyMono/IoskeleyMono-BoldItalic.woff2", weight: "700", style: "italic" },
+    { path: "../../fonts/IoskeleyMono/IoskeleyMono-BlackItalic.woff2", weight: "800", style: "italic" },
+  ],
+  variable: "--font-ioskeley-mono",
   display: "swap",
 });
 
@@ -105,7 +123,7 @@ const footer = (
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning className={`${rubik.variable}`}>
+    <html lang="en" dir="ltr" suppressHydrationWarning className={`${rubik.variable} ${ioskeleyMono.variable}`}>
       <Head
         color={{
           hue: { light: 152, dark: 150 },
