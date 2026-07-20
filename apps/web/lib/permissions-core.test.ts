@@ -1,12 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { NavSection } from "./nav-config";
 import { Permissions, formatPermission } from "@rocky/validators/api";
-import {
-  clientCan,
-  clientCanAny,
-  clientCanRole,
-  filterNavByPermissions,
-} from "./permissions-core";
+import { clientCan, clientCanAny, clientCanRole, filterNavByPermissions } from "./permissions-core";
 
 // Nav fixture built from the existing `Permissions` catalog — no magic strings.
 const navFixture = [
@@ -35,9 +30,7 @@ describe("clientCan / clientCanAny / clientCanRole", () => {
   });
 
   it("clientCanAny: any-of", () => {
-    expect(
-      clientCanAny([Permissions.AnimalRead], [Permissions.MovementRead, Permissions.AnimalRead]),
-    ).toBe(true);
+    expect(clientCanAny([Permissions.AnimalRead], [Permissions.MovementRead, Permissions.AnimalRead])).toBe(true);
     expect(clientCanAny([Permissions.AnimalRead], [Permissions.MovementRead])).toBe(false);
   });
 
@@ -60,7 +53,7 @@ describe("filterNavByPermissions (fail-closed)", () => {
   it("empty => only always-visible items (fail-closed)", () => {
     const out = filterNavByPermissions(navFixture, []);
     expect(out).toHaveLength(1);
-    expect(out[0].items.map((i) => i.title)).toEqual(["Dashboard"]);
+    expect(out[0]?.items.map((i) => i.title)).toEqual(["Dashboard"]);
   });
 
   it("partial => ungranted hidden, granted + always-visible kept", () => {
@@ -82,8 +75,9 @@ describe("factory-generated permissions (Diamond Seal factories)", () => {
     ];
     const strings = recs.map((r) => formatPermission(r.resource, r.action));
     for (const s of strings) expect(s).toMatch(/^[^:]+:[^:]+$/); // `resource:action`
-    const perms = [strings[0], Permissions.AnimalRead];
-    expect(clientCan(perms, strings[0])).toBe(true);
+    const firstStr = strings[0] ?? "";
+    const perms = [firstStr, Permissions.AnimalRead];
+    expect(clientCan(perms, firstStr)).toBe(true);
     expect(clientCan(perms, Permissions.MovementRead)).toBe(false);
   });
 });

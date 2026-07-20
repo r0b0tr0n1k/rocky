@@ -10,7 +10,7 @@ import { Empty } from "@rocky/ui/components/empty";
 import { Pagination, PaginationContent, PaginationItem } from "@rocky/ui/components/pagination";
 import { Skeleton } from "@rocky/ui/components/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@rocky/ui/components/table";
-import { densityCompactClass, useTableDensity } from "#components/shared/table-card";
+import { useTableDensity } from "#components/shared/table-card";
 
 export interface DataTableProps<TData> {
   columns: ColumnDef<TData>[];
@@ -28,7 +28,15 @@ export interface DataTableProps<TData> {
   tableClassName?: string;
 }
 
-type ColumnMeta = { width?: number; align?: "left" | "right" | "center" };
+type ColumnMeta = { width?: number; align?: "left" | "right" | "center"; density?: "compact" | "comfortable" };
+
+/** Per-column row density (M1 · ISO 9241-110 suitability for individualization).
+ *  A column may declare `meta.density` to tighten its own cells; otherwise it
+ *  inherits the route-level density toggle. Compact tightens padding and
+ *  shrinks text; comfortable leaves the column at its natural height. */
+function densityCellClass(d: "compact" | "comfortable"): string {
+  return d === "compact" ? "!py-1.5 text-xs" : "";
+}
 
 function colMeta(col: unknown): ColumnMeta {
   const def = (col as { columnDef?: { meta?: unknown } } | undefined)?.columnDef;
@@ -68,7 +76,7 @@ export function DataTable<TData>({
   return (
     <div className="flex flex-col gap-3">
       <div className={cn("rounded-md border", !bordered && "border-0 rounded-none")}>
-        <Table className={density === "compact" ? densityCompactClass : tableClassName}>
+        <Table className={tableClassName}>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>
@@ -76,13 +84,14 @@ export function DataTable<TData>({
                   const canSort = header.column.getCanSort();
                   const sorted = sort?.id === header.column.id ? sort.desc : null;
                   const meta = colMeta(header);
+                  const headDensity = meta.density ?? (density === "compact" ? "compact" : "comfortable");
                   const alignCls =
                     meta.align === "right" ? "text-right" : meta.align === "center" ? "text-center" : undefined;
                   return (
                     <TableHead
                       key={`${hg.id}-${header.index}`}
                       style={meta.width ? { width: meta.width } : undefined}
-                      className={alignCls}
+                      className={cn(alignCls, densityCellClass(headDensity))}
                     >
                       {header.isPlaceholder ? null : canSort ? (
                         <button
@@ -112,7 +121,10 @@ export function DataTable<TData>({
               skeletonRows.slice(0, Math.min(pageSize, 8)).map((r) => (
                 <TableRow key={r.key}>
                   {columns.map((col, i) => (
-                    <TableCell key={`${r.key}-${col.id ?? i}`}>
+                    <TableCell
+                      key={`${r.key}-${col.id ?? i}`}
+                      className={densityCellClass(density === "compact" ? "compact" : "comfortable")}
+                    >
                       <Skeleton className="h-5 w-full" />
                     </TableCell>
                   ))}
@@ -129,13 +141,14 @@ export function DataTable<TData>({
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => {
                     const meta = colMeta(cell);
+                    const eff = meta.density ?? (density === "compact" ? "compact" : "comfortable");
                     const alignCls =
                       meta.align === "right" ? "text-right" : meta.align === "center" ? "text-center" : undefined;
                     return (
                       <TableCell
                         key={cell.id}
                         style={meta.width ? { width: meta.width } : undefined}
-                        className={alignCls}
+                        className={cn(alignCls, densityCellClass(eff))}
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>

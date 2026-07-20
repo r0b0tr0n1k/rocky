@@ -1,16 +1,8 @@
 "use client";
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
-import { MoreHorizontalIcon } from "lucide-react";
+import type * as React from "react";
 
-import { Button } from "@rocky/ui/components/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@rocky/ui/components/dropdown-menu";
+import { RowMenu, type RowMenuItem } from "#components/shared/row-menu";
 
 export interface RowActionItem {
   label: string;
@@ -19,29 +11,21 @@ export interface RowActionItem {
 }
 
 /**
- * Per-row kebab menu (shadcn canonical data-table pattern).
- * Right-aligned; renders nothing when there are no actions.
+ * Per-row kebab menu of navigation links (shadcn canonical data-table
+ * pattern). Thin adapter over `RowMenu` — every row kebab now flows through
+ * the one canonical renderer. Right-aligned; renders nothing when empty.
  */
 export function RowActions({ actions, label = "Actions" }: { actions: RowActionItem[]; label?: string }) {
-  const router = useRouter();
   if (actions.length === 0) return null;
+  const items: RowMenuItem[] = actions.map((a) => ({
+    kind: "navigation",
+    label: a.label,
+    href: a.href,
+    icon: a.icon,
+  }));
   return (
     <div className="flex justify-end">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" aria-label={label}>
-            <MoreHorizontalIcon data-icon="inline-start" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {actions.map((a) => (
-            <DropdownMenuItem key={a.label} onSelect={() => router.push(a.href)}>
-              {a.icon ? <a.icon data-icon="inline-start" /> : null}
-              {a.label}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <RowMenu items={items} label={label} align="end" />
     </div>
   );
 }

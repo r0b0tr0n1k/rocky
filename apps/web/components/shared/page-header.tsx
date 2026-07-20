@@ -21,7 +21,7 @@ export function PageHeader({ title, eyebrow, description, breadcrumb, status, ac
         <div className="space-y-1">
           {eyebrow ? <p className="text-sm font-medium text-muted-foreground">{eyebrow}</p> : null}
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{title}</h1>
+            <h1 className="font-mono text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{title}</h1>
             {status ? <div className="inline-flex items-center">{status}</div> : null}
           </div>
           {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}

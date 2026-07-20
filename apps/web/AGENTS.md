@@ -15,6 +15,8 @@ Next.js admin panel for CPC/VD back-office workflows.
 - Owns the Web Admin ADRs (per ADR-0033) in `apps/docs/content/ADR/`.
 - **ADR-0076** — Enterprise UX list-page law (Contain / Align / Control): `TableCard`, `SearchInput`, `appendRowActions`, `RowDetailsDialog`, `RowActionMenu`, `useDebounced` in `apps/web/components/shared/` + `apps/web/lib/`. Apply its canonical recipe to every admin list page.
 - **ADR-0105** — Frontend Conformity & UX Controls (governing). Ergonomics (ISO 9241-* / WCAG 2.1 AA) is a first-class workstream benchmarked against the repo's `iso-9241-*` skills; posture is recorded in `ROCKY-FE-001` (`apps/docs/content/compliance/frontend-conformity.md`). Every a11y/UX-control change (landmarks, skip-link, focus-visible, high-risk-action Undo) cites its governing skill.
+- **ADR-0108** — Menu & Navigation Ergonomics (governing, sub-ADR of ADR-0105). The web-admin navigation & menu surfaces (sidebar nav, row kebabs, user menu) are ISO-9241-aligned; `DESIGN.vercel.md` is the scoped, non-governing visual-token reference. Compose on `@rocky/ui`; no second design authority.
+- **ADR-0110** — Typography: IBM Plex Sans (UI/body) + Ioskeley Mono (code/data, self-hosted WOFF2 via `next/font/local` from `apps/fonts/IoskeleyMono`). Mono applied to page titles (`PageHeader`) + data tables (`TableCard`); scoped, non-governing per ADR-0109.
 
 ## RobotFarm
 

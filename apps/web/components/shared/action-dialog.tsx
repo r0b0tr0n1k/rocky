@@ -2,24 +2,17 @@
 
 import * as React from "react";
 import type { ComponentType, ReactNode } from "react";
-import { useRouter } from "next/navigation";
-import { MoreHorizontalIcon } from "lucide-react";
 import type { DefaultValues, FieldValues, UseFormReturn } from "react-hook-form";
 import type { z } from "zod";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@rocky/ui/components/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@rocky/ui/components/dropdown-menu";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@rocky/ui/components/dialog";
+import { DropdownMenuItem } from "@rocky/ui/components/dropdown-menu";
 import { Button } from "@rocky/ui/components/button";
 import { Alert, AlertDescription, AlertTitle } from "@rocky/ui/components/alert";
 
 import { ValidatedForm } from "#components/shared/validated-form";
 import { useValidatedForm } from "#lib/use-validated-form";
+import { RowMenu, type RowMenuItem as CanonicalRowMenuItem } from "#components/shared/row-menu";
 
 type IconComponent = ComponentType<{ className?: string; "data-icon"?: string }>;
 
@@ -38,6 +31,8 @@ export interface ActionDialogProps<TInput extends FieldValues> {
   defaultValues?: DefaultValues<TInput>;
   fields: (form: UseFormReturn<TInput>) => ReactNode;
   submitText?: string;
+  /** Optional error summary rendered above the form (e.g. a failed mutation). */
+  error?: ReactNode;
 }
 
 /**
@@ -59,12 +54,27 @@ export function ActionDialog<TInput extends FieldValues>({
   defaultValues,
   fields,
   submitText,
+  error,
 }: ActionDialogProps<TInput>) {
   const [open, setOpen] = React.useState(false);
   const form = useValidatedForm(schema as unknown as z.ZodType<unknown, TInput>, { defaultValues });
 
+  // M4 · shadcn Form: focus the first field when the overlay opens.
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!open) return;
+    const id = requestAnimationFrame(() => {
+      const root = contentRef.current;
+      const focusable = root?.querySelector<HTMLElement>(
+        "input:not([type=hidden]):not([disabled]), textarea:not([disabled]), select:not([disabled]), [role=combobox], [contenteditable=true]",
+      );
+      focusable?.focus();
+    });
+    return () => cancelAnimationFrame(id);
+  }, [open]);
+
   const content = (
-    <DialogContent className="flex flex-col gap-4">
+    <DialogContent ref={contentRef} className="flex flex-col gap-4">
       <DialogHeader>
         <DialogTitle>{title}</DialogTitle>
         {description ? <DialogDescription>{description}</DialogDescription> : null}
@@ -73,6 +83,12 @@ export function ActionDialog<TInput extends FieldValues>({
         <Alert variant={alertVariant}>
           <AlertTitle>Heads up</AlertTitle>
           <AlertDescription>{alert}</AlertDescription>
+        </Alert>
+      ) : null}
+      {error ? (
+        <Alert variant="destructive">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
       <ValidatedForm
@@ -116,36 +132,26 @@ export type RowMenuItem =
   | { type: "dialog"; dialog: ReactNode }
   | { type: "action"; label: string; icon?: IconComponent; onClick: () => void };
 
-/** Kebab menu that hosts link actions and ActionDialog triggers. */
+/** Kebab menu that hosts link actions and ActionDialog triggers.
+ *  Thin adapter over `RowMenu` — every row kebab now flows through the one
+ *  canonical renderer. */
 export function RowActionMenu({ items, label = "Actions" }: { items: RowMenuItem[]; label?: string }) {
-  const router = useRouter();
   if (items.length === 0) return null;
+  const menuItems: CanonicalRowMenuItem[] = items.map((item) => {
+    switch (item.type) {
+      case "link":
+        return { kind: "navigation", label: item.label, href: item.href, icon: item.icon };
+      case "dialog":
+        return { kind: "dialog", dialog: item.dialog };
+      case "action":
+        return { kind: "action", label: item.label, icon: item.icon, onClick: item.onClick };
+      default:
+        throw new Error(`Unhandled RowActionMenu item type: ${(item as { type: string }).type}`);
+    }
+  });
   return (
     <div className="flex justify-end">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" aria-label={label}>
-            <MoreHorizontalIcon data-icon="inline-start" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {items.map((item, i) =>
-            item.type === "link" ? (
-              <DropdownMenuItem key={item.label} onSelect={() => router.push(item.href)}>
-                {item.icon ? <item.icon data-icon="inline-start" /> : null}
-                {item.label}
-              </DropdownMenuItem>
-            ) : item.type === "action" ? (
-              <DropdownMenuItem key={item.label} onSelect={item.onClick}>
-                {item.icon ? <item.icon data-icon="inline-start" /> : null}
-                {item.label}
-              </DropdownMenuItem>
-            ) : (
-              <React.Fragment key={i}>{item.dialog}</React.Fragment>
-            ),
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <RowMenu items={menuItems} label={label} align="end" />
     </div>
   );
 }

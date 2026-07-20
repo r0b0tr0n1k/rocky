@@ -194,7 +194,7 @@ export function TableCard({
             </div>
           </div>
         ) : null}
-        <CardContent>{children}</CardContent>
+        <CardContent className="font-mono">{children}</CardContent>
       </Card>
     </TableDensityContext.Provider>
   );
