@@ -1,17 +1,10 @@
 "use client";
 
-import * as React from "react";
-import type { ReactNode } from "react";
-import { EyeIcon } from "lucide-react";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@rocky/ui/components/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@rocky/ui/components/dialog";
 import { DropdownMenuItem } from "@rocky/ui/components/dropdown-menu";
+import { EyeIcon } from "lucide-react";
+import type { ReactNode } from "react";
+import * as React from "react";
 
 export interface DetailField {
   label: string;

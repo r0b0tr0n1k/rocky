@@ -1,20 +1,21 @@
 "use client";
 
-import { format } from "date-fns";
+import type { IotDeviceResponse, SensorReadingResponse } from "@rocky/validators/api";
 import type { ColumnDef } from "@tanstack/react-table";
-
+import { format } from "date-fns";
 import { StatusBadge } from "#components/shared/status-badge";
-import type {
-  IotDeviceResponse,
-  SensorReadingResponse,
-} from "@rocky/validators/api";
 
 export type { IotDeviceResponse, SensorReadingResponse } from "@rocky/validators/api";
 
 export function deviceColumns(farmLabel: (id: string | null | undefined) => string): ColumnDef<IotDeviceResponse>[] {
   return [
     { accessorKey: "deviceEui", header: "EUI", enableSorting: false, cell: ({ row }) => row.original.deviceEui ?? "—" },
-    { accessorKey: "manufacturer", header: "Manufacturer", enableSorting: false, cell: ({ row }) => row.original.manufacturer ?? "—" },
+    {
+      accessorKey: "manufacturer",
+      header: "Manufacturer",
+      enableSorting: false,
+      cell: ({ row }) => row.original.manufacturer ?? "—",
+    },
     { accessorKey: "model", header: "Model", enableSorting: false, cell: ({ row }) => row.original.model ?? "—" },
     {
       accessorKey: "status",
@@ -22,7 +23,12 @@ export function deviceColumns(farmLabel: (id: string | null | undefined) => stri
       enableSorting: false,
       cell: ({ row }) => <StatusBadge value={row.original.status} />,
     },
-    { accessorKey: "assignedToFarmId", header: "Farm", enableSorting: false, cell: ({ row }) => farmLabel(row.original.assignedToFarmId) },
+    {
+      accessorKey: "assignedToFarmId",
+      header: "Farm",
+      enableSorting: false,
+      cell: ({ row }) => farmLabel(row.original.assignedToFarmId),
+    },
     {
       accessorKey: "batteryLevel",
       header: "Battery",
@@ -43,15 +49,30 @@ export function sensorReadingColumns(
   animalLabel: (id: string | null | undefined) => string,
 ): ColumnDef<SensorReadingResponse>[] {
   return [
-    { accessorKey: "deviceId", header: "Device", enableSorting: false, cell: ({ row }) => deviceLabel(row.original.deviceId) },
-    { accessorKey: "animalId", header: "Animal", enableSorting: false, cell: ({ row }) => animalLabel(row.original.animalId) },
+    {
+      accessorKey: "deviceId",
+      header: "Device",
+      enableSorting: false,
+      cell: ({ row }) => deviceLabel(row.original.deviceId),
+    },
+    {
+      accessorKey: "animalId",
+      header: "Animal",
+      enableSorting: false,
+      cell: ({ row }) => animalLabel(row.original.animalId),
+    },
     {
       accessorKey: "readingType",
       header: "Type",
       enableSorting: false,
       cell: ({ row }) => <StatusBadge value={row.original.readingType} />,
     },
-    { accessorKey: "valueNumeric", header: "Value", enableSorting: false, cell: ({ row }) => row.original.valueNumeric ?? "—" },
+    {
+      accessorKey: "valueNumeric",
+      header: "Value",
+      enableSorting: false,
+      cell: ({ row }) => row.original.valueNumeric ?? "—",
+    },
     { accessorKey: "unit", header: "Unit", enableSorting: false, cell: ({ row }) => row.original.unit ?? "—" },
     {
       accessorKey: "recordedAt",
@@ -67,4 +88,3 @@ export function sensorReadingColumns(
     },
   ];
 }
-

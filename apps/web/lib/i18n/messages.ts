@@ -1,0 +1,115 @@
+// ── Message catalog (WO-086) ──
+// Centralized user-facing strings. Starts with the shell/navigation vocabulary
+// (nav sections, page titles, common actions); domain screens are migrated to
+// `t()` incrementally. Keys are namespaced ("nav.*", "action.*", "shell.*").
+//
+// Add a string here → provide it for every locale in MESSAGES. Missing keys fall
+// back to DEFAULT_LOCALE, then to the raw key, so the UI never blanks.
+
+import type { Locale } from "./dir.js";
+
+type Dict = Record<string, string>;
+
+const en: Dict = {
+  "nav.overview": "Overview",
+  "nav.dashboard": "Dashboard",
+  "nav.livestock": "Livestock",
+  "nav.animals": "Animals",
+  "nav.movements": "Movements",
+  "nav.movementLineage": "Movement Lineage",
+  "nav.passports": "Passports",
+  "nav.earTags": "Ear Tags",
+  "nav.vsContracts": "VS Contracts",
+  "nav.vsAssignments": "VS Assignments",
+  "nav.health": "Health",
+  "nav.inspections": "Inspections",
+  "nav.corrections": "Corrections",
+  "nav.infrastructure": "Infrastructure",
+  "nav.farms": "Farms",
+  "nav.farmBooks": "Farm Books",
+  "nav.organizations": "Organizations",
+  "nav.subjects": "Subjects",
+  "nav.pdaDevices": "PDA Devices",
+  "nav.iot": "IoT",
+  "nav.geo": "Geo & EUDR",
+  "nav.offlineSync": "Offline Sync",
+  "nav.administration": "Administration",
+  "nav.notifications": "Notifications",
+  "nav.archive": "Archive",
+  "nav.documents": "Documents",
+  "nav.verifyDocument": "Verify document",
+  "nav.rolesPermissions": "Roles & Permissions",
+  "nav.users": "Users",
+  "nav.audit": "Audit",
+  "nav.featureFlags": "Feature Flags",
+  "nav.systemParameters": "System Parameters",
+  "action.save": "Save",
+  "action.cancel": "Cancel",
+  "action.create": "Create",
+  "action.delete": "Delete",
+  "action.edit": "Edit",
+  "action.search": "Search",
+  "action.export": "Export",
+  "shell.appTitle": "AIMCS Admin",
+  "shell.appDescription": "Animal Identification & Movement Control System",
+};
+
+const mk: Dict = {
+  "nav.overview": "Преглед",
+  "nav.dashboard": "Контролна табла",
+  "nav.livestock": "Стока",
+  "nav.animals": "Животни",
+  "nav.movements": "Движења",
+  "nav.movementLineage": "Лоза на движење",
+  "nav.passports": "Пасоши",
+  "nav.earTags": "Ушни маркици",
+  "nav.vsContracts": "ВС договори",
+  "nav.vsAssignments": "ВС назначувања",
+  "nav.health": "Здравје",
+  "nav.inspections": "Инспекции",
+  "nav.corrections": "Корекции",
+  "nav.infrastructure": "Инфраструктура",
+  "nav.farms": "Фарми",
+  "nav.farmBooks": "Фармерски книги",
+  "nav.organizations": "Организации",
+  "nav.subjects": "Субјекти",
+  "nav.pdaDevices": "PDA уреди",
+  "nav.iot": "IoT",
+  "nav.geo": "Гео & EUDR",
+  "nav.offlineSync": "Офлајн синхронизација",
+  "nav.administration": "Администрација",
+  "nav.notifications": "Известувања",
+  "nav.archive": "Архива",
+  "nav.documents": "Документи",
+  "nav.verifyDocument": "Потврди документ",
+  "nav.rolesPermissions": "Улоги и дозволи",
+  "nav.users": "Корисници",
+  "nav.audit": "Аудит",
+  "nav.featureFlags": "Функционални означувачи",
+  "nav.systemParameters": "Системски параметри",
+  "action.save": "Зачувај",
+  "action.cancel": "Откажи",
+  "action.create": "Креирај",
+  "action.delete": "Избриши",
+  "action.edit": "Уреди",
+  "action.search": "Пребарај",
+  "action.export": "Извези",
+  "shell.appTitle": "AIMCS Админ",
+  "shell.appDescription": "Систем за идентификација и контрола на движење на животни",
+};
+
+const al: Dict = {
+  ...en,
+  "nav.dashboard": "Paneli",
+  "nav.animals": "Kafshët",
+  "nav.movements": "Lëvizjet",
+  "nav.earTags": "Etiketat",
+  "nav.health": "Shëndeti",
+  "nav.inspections": "Inspektimet",
+  "nav.farms": "Fermat",
+  "action.save": "Ruaj",
+  "action.cancel": "Anulo",
+  "action.create": "Krijo",
+};
+
+export const MESSAGES: Record<Locale, Dict> = { EN: en, MK: mk, AL: al };

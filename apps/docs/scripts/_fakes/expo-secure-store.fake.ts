@@ -8,8 +8,8 @@ declare global {
   // eslint-disable-next-line no-var
   var __fakeSecureStore: Map<string, string>;
 }
-const store: Map<string, string> =
-  (globalThis.__fakeSecureStore ??= new Map<string, string>());
+globalThis.__fakeSecureStore ??= new Map<string, string>();
+const store: Map<string, string> = globalThis.__fakeSecureStore;
 
 /** Clears the store. Called in `beforeEach` so functional tests stay isolated. */
 export function __resetSecureStore(): void {

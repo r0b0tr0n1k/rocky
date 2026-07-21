@@ -1,29 +1,22 @@
 "use client";
 
-import * as React from "react";
-import { format } from "date-fns";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ColumnDef } from "@tanstack/react-table";
-
 import { Badge } from "@rocky/ui/components/badge";
 import { Button } from "@rocky/ui/components/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@rocky/ui/components/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@rocky/ui/components/dialog";
 import { FieldGroup } from "@rocky/ui/components/field";
+import { type SystemParameterResponse, updateSystemParameterSchema } from "@rocky/validators/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
+import * as React from "react";
 import { DataTable } from "#components/shared/data-table";
+import { SwitchField, TextField } from "#components/shared/form-fields";
 import { PageHeader } from "#components/shared/page-header";
 import { TableCard, tableDensityClass } from "#components/shared/table-card";
-import { SwitchField, TextField } from "#components/shared/form-fields";
 import { ValidatedForm } from "#components/shared/validated-form";
-import { useTRPC } from "#lib/trpc";
 import { useCan } from "#lib/permissions";
+import { useTRPC } from "#lib/trpc";
 import { useValidatedForm } from "#lib/use-validated-form";
-import { type SystemParameterResponse, updateSystemParameterSchema } from "@rocky/validators/api";
 
 export default function SystemParametersPage() {
   const trpc = useTRPC();
@@ -44,27 +37,20 @@ export default function SystemParametersPage() {
       accessorKey: "value",
       header: "Value",
       enableSorting: false,
-      cell: ({ row }) => (
-        <code className="rounded bg-muted px-1 py-0.5 text-xs">{row.original.value}</code>
-      ),
+      cell: ({ row }) => <code className="rounded bg-muted px-1 py-0.5 text-xs">{row.original.value}</code>,
     },
     {
       accessorKey: "isActive",
       header: "Active",
       enableSorting: false,
       cell: ({ row }) =>
-        row.original.isActive ? (
-          <Badge variant="secondary">Yes</Badge>
-        ) : (
-          <Badge variant="destructive">No</Badge>
-        ),
+        row.original.isActive ? <Badge variant="secondary">Yes</Badge> : <Badge variant="destructive">No</Badge>,
     },
     {
       accessorKey: "updatedAt",
       header: "Updated",
       enableSorting: false,
-      cell: ({ row }) =>
-        row.original.updatedAt ? format(new Date(row.original.updatedAt), "PP") : "—",
+      cell: ({ row }) => (row.original.updatedAt ? format(new Date(row.original.updatedAt), "PP") : "—"),
     },
   ];
 

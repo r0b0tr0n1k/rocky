@@ -1,13 +1,12 @@
 "use client";
 
-import * as React from "react";
-import { Download } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-
 import { Button } from "@rocky/ui/components/button";
-import { Input } from "@rocky/ui/components/input";
-import { PageHeader } from "#components/shared/page-header";
 import { Card, CardContent } from "@rocky/ui/components/card";
+import { Input } from "@rocky/ui/components/input";
+import { useQuery } from "@tanstack/react-query";
+import { Download } from "lucide-react";
+import * as React from "react";
+import { PageHeader } from "#components/shared/page-header";
 import { useTRPC } from "#lib/trpc";
 
 export default function SyncPage() {
@@ -69,9 +68,7 @@ export default function SyncPage() {
                 <div className="text-xs text-muted-foreground">Synced at</div>
                 <div className="text-sm">{new Date(d.syncedAt).toLocaleString()}</div>
                 <div className="mt-1 text-xs text-muted-foreground">Watermark</div>
-                <div className="text-sm">
-                  {d.watermark ? new Date(d.watermark).toLocaleString() : "—"}
-                </div>
+                <div className="text-sm">{d.watermark ? new Date(d.watermark).toLocaleString() : "—"}</div>
               </div>
             </div>
           ) : null}

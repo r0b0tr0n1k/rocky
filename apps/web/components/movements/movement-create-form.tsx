@@ -1,14 +1,11 @@
 "use client";
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
+import { FieldGroup } from "@rocky/ui/components/field";
+import { type AnimalSummary, createMovementRequestSchema, type FarmResponse } from "@rocky/validators/api";
 
 import { DEATH_CAUSE, MOVEMENT_TYPE } from "@rocky/validators/enums";
-import {
-  createMovementRequestSchema,
-  type AnimalSummary,
-  type FarmResponse,
-} from "@rocky/validators/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import {
   ComboboxField,
   DateField,
@@ -18,11 +15,9 @@ import {
   TextField,
 } from "#components/shared/form-fields";
 import { ValidatedForm } from "#components/shared/validated-form";
-import { FieldGroup } from "@rocky/ui/components/field";
-import { enumToOptions } from "#lib/options";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTRPC } from "#lib/trpc";
 import { notifyError, notifySuccess } from "#lib/notify";
+import { enumToOptions } from "#lib/options";
+import { useTRPC } from "#lib/trpc";
 import { useValidatedForm } from "#lib/use-validated-form";
 
 export function MovementCreateForm() {
@@ -35,14 +30,16 @@ export function MovementCreateForm() {
   const queryClient = useQueryClient();
   const farms = useQuery(trpc.farm.list.queryOptions({ limit: 100 }));
   const animals = useQuery(trpc.animal.list.queryOptions({ limit: 100 }));
-  const create = useMutation(trpc.movement.create.mutationOptions({
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: trpc.movement.list.queryKey() });
-      notifySuccess("Movement created");
-      router.push("/movements");
-    },
-    onError: (error) => notifyError(error, "Failed to create movement"),
-  }));
+  const create = useMutation(
+    trpc.movement.create.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: trpc.movement.list.queryKey() });
+        notifySuccess("Movement created");
+        router.push("/movements");
+      },
+      onError: (error) => notifyError(error, "Failed to create movement"),
+    }),
+  );
 
   const farmOptions = ((farms.data?.data ?? []) as FarmResponse[]).map((f) => ({
     value: f.id,
@@ -99,6 +96,6 @@ export function MovementCreateForm() {
         <SwitchField control={form.control} name="isVerified" label="Verified" />
         <SwitchField control={form.control} name="isActive" label="Active" />
       </FieldGroup>
-</ValidatedForm>
+    </ValidatedForm>
   );
 }

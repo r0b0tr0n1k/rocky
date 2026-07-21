@@ -1,0 +1,10 @@
+{
+  "nav.home": "Home",
+  "nav.explore": "Explore",
+  "auth.signIn": "Sign in",
+  "auth.signUp": "Sign up",
+  "common.save": "Save",
+  "common.cancel": "Cancel",
+  "common.loading": "Loading",
+  "common.error": "Error"
+}

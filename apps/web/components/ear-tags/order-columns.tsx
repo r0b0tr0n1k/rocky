@@ -1,11 +1,10 @@
 "use client";
 
-import { type ColumnDef } from "@tanstack/react-table";
-import { Eye } from "lucide-react";
-
-import { StatusBadge } from "#components/shared/status-badge";
 import { Button } from "@rocky/ui/components/button";
 import type { EarTagOrderResponse } from "@rocky/validators/api";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Eye } from "lucide-react";
+import { StatusBadge } from "#components/shared/status-badge";
 
 export function earTagOrderColumns({
   onViewLifecycle,
@@ -23,8 +22,7 @@ export function earTagOrderColumns({
     {
       accessorKey: "createdAt",
       header: "Created",
-      cell: ({ row }) =>
-        row.original.createdAt ? new Date(row.original.createdAt).toLocaleDateString() : "—",
+      cell: ({ row }) => (row.original.createdAt ? new Date(row.original.createdAt).toLocaleDateString() : "—"),
     },
     {
       id: "actions",

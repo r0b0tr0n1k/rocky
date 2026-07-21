@@ -1,10 +1,9 @@
 "use client";
 
-import { type ColumnDef } from "@tanstack/react-table";
-import { Eye } from "lucide-react";
-
 import { Badge } from "@rocky/ui/components/badge";
 import type { VsContractResponse } from "@rocky/validators/api";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Eye } from "lucide-react";
 import { RowActionMenu } from "#components/shared/action-dialog";
 import { RowDetailsDialog } from "#components/shared/row-details-dialog";
 
@@ -29,8 +28,7 @@ export function vsContractColumns({
     {
       accessorKey: "endDate",
       header: "End",
-      cell: ({ row }) =>
-        row.original.endDate ? new Date(row.original.endDate).toLocaleDateString() : "—",
+      cell: ({ row }) => (row.original.endDate ? new Date(row.original.endDate).toLocaleDateString() : "—"),
     },
     {
       id: "actions",
@@ -50,7 +48,10 @@ export function vsContractColumns({
                     { label: "Region", value: row.original.region },
                     { label: "Status", value: row.original.status },
                     { label: "Start", value: new Date(row.original.startDate).toLocaleDateString() },
-                    { label: "End", value: row.original.endDate ? new Date(row.original.endDate).toLocaleDateString() : "—" },
+                    {
+                      label: "End",
+                      value: row.original.endDate ? new Date(row.original.endDate).toLocaleDateString() : "—",
+                    },
                     { label: "Created", value: new Date(row.original.createdAt).toLocaleDateString() },
                   ]}
                 />

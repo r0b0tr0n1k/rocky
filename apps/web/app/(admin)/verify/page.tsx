@@ -4,9 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@rock
 
 import { documentVerifyRequestSchema } from "@rocky/validators/api";
 import { useQuery } from "@tanstack/react-query";
-import * as React from "react";
 import { useSearchParams } from "next/navigation";
 import QRCode from "qrcode";
+import * as React from "react";
 import { TextField } from "#components/shared/form-fields";
 import { PageHeader } from "#components/shared/page-header";
 import { ValidatedForm } from "#components/shared/validated-form";
@@ -30,9 +30,7 @@ export default function VerifyPage() {
   const [params, setParams] = React.useState<{ type: string; refId: string } | null>(null);
   const [qr, setQr] = React.useState<string | null>(null);
 
-  const verify = useQuery(
-    trpc.document.verify.queryOptions(params!, { enabled: !!params }),
-  );
+  const verify = useQuery(trpc.document.verify.queryOptions(params!, { enabled: !!params }));
 
   const form = useValidatedForm(documentVerifyRequestSchema, {
     defaultValues: {
@@ -57,9 +55,7 @@ export default function VerifyPage() {
   // ── ADR-0084: verify a raw scanned credential QR string offline ──
   const [credQr, setCredQr] = React.useState("");
   const [credRun, setCredRun] = React.useState<string | null>(null);
-  const verifyCred = useQuery(
-    trpc.document.verifyCredential.queryOptions({ qr: credRun! }, { enabled: !!credRun }),
-  );
+  const verifyCred = useQuery(trpc.document.verifyCredential.queryOptions({ qr: credRun! }, { enabled: !!credRun }));
 
   // ── ADR-0084 §4: surface credential status-list freshness ──
   const statusList = useQuery(trpc.document.statusList.queryOptions());
@@ -103,7 +99,9 @@ export default function VerifyPage() {
                       {r.valid ? "VALID (PAdES-LTV)" : "INVALID"}
                     </span>
                   </p>
-                  <p>Document: {r.documentType} · v{r.modelVersion}</p>
+                  <p>
+                    Document: {r.documentType} · v{r.modelVersion}
+                  </p>
                   {r.signerSubject ? <p>Signer: {r.signerSubject}</p> : null}
                   {r.signerIssuer ? <p>Issuer: {r.signerIssuer}</p> : null}
                   {r.serialNumber ? <p>Serial: {r.serialNumber}</p> : null}
@@ -111,8 +109,7 @@ export default function VerifyPage() {
                   {r.signedAt ? <p>Signed: {r.signedAt}</p> : null}
                   <p>
                     Timestamp: {r.hasTimestamp ? "yes" : "no"}
-                    {r.timestampedAt ? ` (${r.timestampedAt})` : ""} · Revocation data:{" "}
-                    {r.hasRevocation ? "yes" : "no"}
+                    {r.timestampedAt ? ` (${r.timestampedAt})` : ""} · Revocation data: {r.hasRevocation ? "yes" : "no"}
                   </p>
                   {r.message ? <p className="text-muted-foreground">Note: {r.message}</p> : null}
                 </div>
@@ -157,7 +154,9 @@ export default function VerifyPage() {
                         {days === 0 ? "today" : `${days} day${days === 1 ? "" : "s"} ago`}
                       </span>
                     </p>
-                    <p>{list.entries.length} credentials tracked · publisher {list.publisher}</p>
+                    <p>
+                      {list.entries.length} credentials tracked · publisher {list.publisher}
+                    </p>
                     <p className={stale ? "text-red-700" : "text-muted-foreground"}>
                       {stale
                         ? "STALE — re-sync the status list before trusting offline verification."
@@ -217,9 +216,13 @@ export default function VerifyPage() {
                       </span>
                       {c.expired ? " · EXPIRED" : ""}
                     </p>
-                    <p>Type: {c.payload.typ} · Subject: {c.payload.sub}</p>
+                    <p>
+                      Type: {c.payload.typ} · Subject: {c.payload.sub}
+                    </p>
                     {c.payload.farmId ? <p>Farm: {c.payload.farmId}</p> : null}
-                    <p>Key id: {c.kid} · Alg: {c.algorithm}</p>
+                    <p>
+                      Key id: {c.kid} · Alg: {c.algorithm}
+                    </p>
                     <p>
                       Issued: {new Date(c.payload.iat * 1000).toISOString()} · Expires:{}
                       {new Date(c.payload.exp * 1000).toISOString()}

@@ -1,8 +1,6 @@
 "use client";
 
 import { Badge } from "@rocky/ui/components/badge";
-import { toast } from "sonner";
-
 import {
   assignRoleToUserRequestSchema,
   type PermissionResponse,
@@ -11,14 +9,15 @@ import {
 } from "@rocky/validators/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
+import { toast } from "sonner";
 import { ActionDialog, RowActionMenu } from "#components/shared/action-dialog";
 import { DataTable } from "#components/shared/data-table";
 import { ComboboxField, DateField } from "#components/shared/form-fields";
 import { PageHeader } from "#components/shared/page-header";
-import { RowDetailsDialog, type DetailField } from "#components/shared/row-details-dialog";
-import { TableCard, tableDensityClass, appendRowActions } from "#components/shared/table-card";
-import { useTRPC } from "#lib/trpc";
+import { type DetailField, RowDetailsDialog } from "#components/shared/row-details-dialog";
+import { appendRowActions, TableCard, tableDensityClass } from "#components/shared/table-card";
 import { usePermissions } from "#lib/permissions";
+import { useTRPC } from "#lib/trpc";
 
 const PAGE_SIZE = 20;
 

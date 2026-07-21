@@ -1,9 +1,7 @@
 "use client";
 
-import * as React from "react";
-import { Check } from "lucide-react";
-
 import { cn } from "@rocky/ui/lib/utils";
+import { Check } from "lucide-react";
 
 export type StepStatus = "done" | "current" | "upcoming";
 

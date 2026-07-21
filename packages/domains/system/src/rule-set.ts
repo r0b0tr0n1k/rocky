@@ -90,6 +90,15 @@ export interface RuleSetEudr {
   deforestationCutoffDate: string;
 }
 
+/** Per-jurisdiction feature flags (WO-060 IoT gate, etc.). Defaults are
+ *  backward-safe (true) so existing behaviour is preserved until a jurisdiction
+ *  opts out. Each flag can be toggled via a `system_parameters` row
+ *  (`<FEATURE>_ENABLED` = "true" | "false"). */
+export interface RuleSetFeatures {
+  /** IoT device-registry + sensor-readings surfaces (WO-060). Default true. */
+  iot: boolean;
+}
+
 export interface RuleSetTag {
   /** Ear-tag format for the jurisdiction (WO-118, R2): ISO_11784_15 (15-digit ISO 11784/11785) or MK_8 (8-digit MK national). */
   format: string;
@@ -137,6 +146,8 @@ export interface RuleSet {
   imsoc: RuleSetImsoc;
   /** EUDR 2023/1115 due-diligence config (WO-115, R1). */
   eudr: RuleSetEudr;
+  /** Per-jurisdiction feature flags (WO-060 IoT gate, etc.). Default-on, opt-out. */
+  features: RuleSetFeatures;
   /** Whether this jurisdiction aligns with EU cattle I&R mandates (R8). When true, birth deadlines may not be loosened below the EU floor. */
   euAligned: boolean;
 }
@@ -212,10 +223,7 @@ export const REQUIRED_RULESET_CODES = [
  * Build a typed RuleSet from seeded parameter rows. Pure + synchronous so it can
  * be unit-tested without a DB. Throws on any missing or non-numeric required code.
  */
-export function buildRuleSet(
-  jurisdiction: string,
-  rows: ReadonlyArray<RuleSetParamRow>,
-): RuleSet {
+export function buildRuleSet(jurisdiction: string, rows: ReadonlyArray<RuleSetParamRow>): RuleSet {
   const byCode = new Map(rows.map((r) => [r.code, r]));
   const num = (code: string): number => {
     const row = byCode.get(code);
@@ -243,7 +251,10 @@ export function buildRuleSet(
       vi: num("RETENTION_YEARS_VI"),
       bip: num("RETENTION_YEARS_BIP"),
     },
-    roleVocab: (byCode.get("ROLE_VOCAB")?.value ?? "owner,keeper,veterinarian,trader,slaughterhouse_op,market_op,technician,guardian").split(","),
+    roleVocab: (
+      byCode.get("ROLE_VOCAB")?.value ??
+      "owner,keeper,veterinarian,trader,slaughterhouse_op,market_op,technician,guardian"
+    ).split(","),
     administerRoles: (byCode.get("ADMINISTER_ROLES")?.value ?? "veterinarian").split(","),
     thresholds: {
       orderIntervalDays: num("ORDER_INTERVAL_DAYS"),
@@ -301,11 +312,17 @@ export function buildRuleSet(
       enabled: byCode.get("EUDR_ENABLED")?.value !== "false",
       deforestationCutoffDate: byCode.get("EUDR_DEFORESTATION_CUTOFF_DATE")?.value ?? "2020-12-31",
     },
+    features: {
+      // WO-060: IoT surfaces. Default true (backward-safe) so existing behaviour
+      // is preserved; a jurisdiction opts out via IOT_ENABLED = "false". The IOT
+      // `modules` seed row (isActive=false) drives this flag via the
+      // IOT_ENABLED system parameter in production.
+      iot: byCode.get("IOT_ENABLED")?.value !== "false",
+    },
   };
   validateSovereignLimits(ruleSet);
   return ruleSet;
 }
-
 
 /**
  * WO-120 — Sovereign RuleSet guard (R8). When a jurisdiction aligns with EU cattle

@@ -1,18 +1,7 @@
 "use client";
 
-import * as React from "react";
-import { Plus } from "lucide-react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { z } from "zod";
-
 import { Badge } from "@rocky/ui/components/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@rocky/ui/components/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@rocky/ui/components/dialog";
 import { Input } from "@rocky/ui/components/input";
 import {
   createVsContractRequestSchema,
@@ -20,11 +9,15 @@ import {
   type VsContractResponse,
 } from "@rocky/validators/api";
 import { VS_CONTRACT_STATUS, type vsContractStatusType } from "@rocky/validators/enums";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
+import * as React from "react";
+import { z } from "zod";
 import { ActionDialog } from "#components/shared/action-dialog";
+import { DataTable } from "#components/shared/data-table";
 import { DateField, SelectField, TextareaField, TextField } from "#components/shared/form-fields";
 import { PageHeader } from "#components/shared/page-header";
 import { Stepper } from "#components/shared/stepper";
-import { DataTable } from "#components/shared/data-table";
 import { TableCard, tableDensityClass } from "#components/shared/table-card";
 import { vsContractColumns } from "#components/vs-contracts/columns";
 import { useTRPC } from "#lib/trpc";
@@ -33,10 +26,7 @@ import { useTRPC } from "#lib/trpc";
 // NEVER inline this array; the Single Source of Truth is @rocky/validators/enums.
 const VS_STATUS_ORDER = Object.values(VS_CONTRACT_STATUS);
 
-function statusStep(
-  s: vsContractStatusType,
-  current: vsContractStatusType,
-): "done" | "current" | "upcoming" {
+function statusStep(s: vsContractStatusType, current: vsContractStatusType): "done" | "current" | "upcoming" {
   const curIdx = VS_STATUS_ORDER.indexOf(current);
   const idx = VS_STATUS_ORDER.indexOf(s);
   if (s === current) return "current";
@@ -56,9 +46,7 @@ export default function VsContractsPage() {
   const [region, setRegion] = React.useState("");
   const [selected, setSelected] = React.useState<VsContractResponse | null>(null);
 
-  const listQuery = useQuery(
-    trpc.vsContract.getByRegion.queryOptions({ region }, { enabled: region.length > 0 }),
-  );
+  const listQuery = useQuery(trpc.vsContract.getByRegion.queryOptions({ region }, { enabled: region.length > 0 }));
   const rows = (listQuery.data ?? []) as VsContractResponse[];
 
   const invalidate = () =>
@@ -67,18 +55,13 @@ export default function VsContractsPage() {
     });
 
   const create = useMutation(trpc.vsContract.create.mutationOptions({ onSuccess: invalidate }));
-  const updateStatus = useMutation(
-    trpc.vsContract.updateStatus.mutationOptions({ onSuccess: invalidate }),
-  );
+  const updateStatus = useMutation(trpc.vsContract.updateStatus.mutationOptions({ onSuccess: invalidate }));
 
   const columns = React.useMemo(() => vsContractColumns({ onView: setSelected }), []);
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="VS Contracts"
-        description="Veterinary service contracts and their lifecycle."
-      />
+      <PageHeader title="VS Contracts" description="Veterinary service contracts and their lifecycle." />
 
       <Input
         value={region}
@@ -99,12 +82,7 @@ export default function VsContractsPage() {
             description="Creates a veterinary service contract for a subject."
             fields={(form) => (
               <>
-                <TextField
-                  control={form.control}
-                  name="subjectId"
-                  label="Subject ID (UUID)"
-                  placeholder="uuid"
-                />
+                <TextField control={form.control} name="subjectId" label="Subject ID (UUID)" placeholder="uuid" />
                 <TextField
                   control={form.control}
                   name="contractNumber"
@@ -120,17 +98,17 @@ export default function VsContractsPage() {
           />
         }
       >
-      <DataTable
-        columns={columns}
-        data={rows}
-        total={rows.length}
-        isLoading={listQuery.isLoading}
-        page={0}
-        pageSize={Math.max(rows.length, 20)}
-        onPageChange={() => {}}
-        bordered={false}
-        tableClassName={tableDensityClass}
-      />
+        <DataTable
+          columns={columns}
+          data={rows}
+          total={rows.length}
+          isLoading={listQuery.isLoading}
+          page={0}
+          pageSize={Math.max(rows.length, 20)}
+          onPageChange={() => {}}
+          bordered={false}
+          tableClassName={tableDensityClass}
+        />
       </TableCard>
 
       <Dialog
@@ -185,4 +163,3 @@ export default function VsContractsPage() {
     </div>
   );
 }
-

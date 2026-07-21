@@ -23,6 +23,8 @@
     "@rocky/database": "workspace:*",
     "@rocky/domains-audit": "workspace:*",
     "@rocky/domains-shared": "workspace:*",
+    "@rocky/execution": "workspace:*",
+    "@rocky/geo": "workspace:*",
     "@rocky/trpc": "workspace:*",
     "@rocky/validators": "workspace:*",
     "drizzle-orm": "catalog:",

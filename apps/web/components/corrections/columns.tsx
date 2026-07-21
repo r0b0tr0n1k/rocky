@@ -1,22 +1,19 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
-import type { ComponentProps } from "react";
-import type { z } from "zod";
-import { EyeIcon } from "lucide-react";
-
 import { Badge } from "@rocky/ui/components/badge";
 import {
+  type CorrectionResponse,
   escalateCorrectionRequestSchema,
   rejectCorrectionRequestSchema,
   resolveCorrectionRequestSchema,
   reviewCorrectionRequestSchema,
-  type CorrectionResponse,
 } from "@rocky/validators/api";
-import { CORRECTION_STATUS, DETECTION_SOURCE } from "@rocky/validators/enums";
-import { enumToOptions } from "#lib/options";
-import { SelectField, TextareaField, TextField } from "#components/shared/form-fields";
+import { CORRECTION_STATUS } from "@rocky/validators/enums";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { ComponentProps } from "react";
+import type { z } from "zod";
 import { ActionDialog, RowActionMenu, type RowMenuItem } from "#components/shared/action-dialog";
+import { TextareaField, TextField } from "#components/shared/form-fields";
 import { RowDetailsDialog } from "#components/shared/row-details-dialog";
 
 export type { CorrectionResponse } from "@rocky/validators/api";
@@ -54,7 +51,12 @@ export function correctionColumns(opts: {
       cell: ({ row }) => <Badge variant="outline">{row.original.detectionSource}</Badge>,
     },
     { accessorKey: "farmId", header: "Farm", enableSorting: false, cell: ({ row }) => row.original.farmId ?? "\u2014" },
-    { accessorKey: "animalId", header: "Animal", enableSorting: false, cell: ({ row }) => row.original.animalId ?? "\u2014" },
+    {
+      accessorKey: "animalId",
+      header: "Animal",
+      enableSorting: false,
+      cell: ({ row }) => row.original.animalId ?? "\u2014",
+    },
     {
       id: "actions",
       header: () => <span className="sr-only">Actions</span>,
@@ -72,9 +74,7 @@ export function correctionColumns(opts: {
                 title="Review correction"
                 description="Marks the case as reviewed and assigns it for resolution."
                 defaultValues={{ id: row.original.id }}
-                fields={() => (
-                  <p className="text-sm text-muted-foreground">Confirm review of this correction case.</p>
-                )}
+                fields={() => <p className="text-sm text-muted-foreground">Confirm review of this correction case.</p>}
               />
             ),
           },
@@ -107,7 +107,12 @@ export function correctionColumns(opts: {
                 defaultValues={{ id: row.original.id }}
                 fields={(form) => (
                   <>
-                    <TextField control={form.control} name="escalatedTo" label="Escalated to (subject ID)" placeholder="UUID" />
+                    <TextField
+                      control={form.control}
+                      name="escalatedTo"
+                      label="Escalated to (subject ID)"
+                      placeholder="UUID"
+                    />
                     <TextareaField control={form.control} name="reason" label="Reason" />
                   </>
                 )}

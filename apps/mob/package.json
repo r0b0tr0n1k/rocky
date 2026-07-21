@@ -78,6 +78,8 @@
     "expo-splash-screen": "~56.0.11",
     "expo-sqlite": "~56.0.5",
     "expo-status-bar": "~56.0.4",
+    "i18next": "catalog:",
+    "react-i18next": "catalog:",
     "expo-system-ui": "~56.0.5",
     "expo-task-manager": "~56.0.21",
     "expo-updates": "~56.0.20",

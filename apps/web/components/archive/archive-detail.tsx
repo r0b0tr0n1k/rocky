@@ -1,19 +1,9 @@
 "use client";
 
-import type * as React from "react";
-import { format } from "date-fns";
-import { z } from "zod";
-
 import { Alert, AlertDescription, AlertTitle } from "@rocky/ui/components/alert";
 import { Badge } from "@rocky/ui/components/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@rocky/ui/components/card";
 import { Skeleton } from "@rocky/ui/components/skeleton";
-import { StatusBadge } from "#components/shared/status-badge";
-import { ActionDialog } from "#components/shared/action-dialog";
-import {
-  ARCHIVE_DOCUMENT_TYPE_VARIANT,
-  ARCHIVE_LOCATION_VARIANT,
-} from "#components/archive/columns";
 import type {
   AnimalSummary,
   ArchiveDocumentResponse,
@@ -22,8 +12,14 @@ import type {
   PassportResponse,
 } from "@rocky/validators/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTRPC } from "#lib/trpc";
+import { format } from "date-fns";
+import type * as React from "react";
+import { z } from "zod";
+import { ARCHIVE_DOCUMENT_TYPE_VARIANT, ARCHIVE_LOCATION_VARIANT } from "#components/archive/columns";
+import { ActionDialog } from "#components/shared/action-dialog";
+import { StatusBadge } from "#components/shared/status-badge";
 import { notifyError, notifySuccess } from "#lib/notify";
+import { useTRPC } from "#lib/trpc";
 
 const idOnlySchema = z.object({ id: z.uuid() });
 
@@ -51,8 +47,7 @@ export function ArchiveDetail({ id }: { id: string }) {
   const passports = useQuery(trpc.passport.list.queryOptions({ limit: 100 }));
   const inspections = useQuery(trpc.inspection.list.queryOptions({ limit: 100 }));
 
-  const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: trpc.archive.getById.queryKey({ id }) });
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: trpc.archive.getById.queryKey({ id }) });
   const markArchived = useMutation(
     trpc.archive.markArchived.mutationOptions({
       onSuccess: () => {
@@ -79,9 +74,7 @@ export function ArchiveDetail({ id }: { id: string }) {
     return (
       <Alert variant="destructive">
         <AlertTitle>Archive document not found</AlertTitle>
-        <AlertDescription>
-          This document does not exist or you lack permission to view it.
-        </AlertDescription>
+        <AlertDescription>This document does not exist or you lack permission to view it.</AlertDescription>
       </Alert>
     );
   }
@@ -89,13 +82,21 @@ export function ArchiveDetail({ id }: { id: string }) {
   const m = getQuery.data as ArchiveDocumentResponse;
 
   const farmMap = new Map<string, FarmResponse>();
-  ((farms.data?.data ?? []) as FarmResponse[]).forEach((f) => farmMap.set(f.id, f));
+  for (const f of (farms.data?.data ?? []) as FarmResponse[]) {
+    farmMap.set(f.id, f);
+  }
   const animalMap = new Map<string, AnimalSummary>();
-  ((animals.data?.data ?? []) as AnimalSummary[]).forEach((a) => animalMap.set(a.id, a));
+  for (const a of (animals.data?.data ?? []) as AnimalSummary[]) {
+    animalMap.set(a.id, a);
+  }
   const passportMap = new Map<string, PassportResponse>();
-  ((passports.data?.data ?? []) as PassportResponse[]).forEach((p) => passportMap.set(p.id, p));
+  for (const p of (passports.data?.data ?? []) as PassportResponse[]) {
+    passportMap.set(p.id, p);
+  }
   const inspectionMap = new Map<string, InspectionResponse>();
-  ((inspections.data?.data ?? []) as InspectionResponse[]).forEach((i) => inspectionMap.set(i.id, i));
+  for (const i of (inspections.data?.data ?? []) as InspectionResponse[]) {
+    inspectionMap.set(i.id, i);
+  }
 
   const farmLabel = (fid?: string | null) => {
     if (!fid) return "—";

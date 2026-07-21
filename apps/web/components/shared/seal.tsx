@@ -29,9 +29,7 @@ export function Seal({
         strokeWidth={variant === "filled" ? 0 : 2}
         strokeLinejoin="round"
       />
-      {variant === "filled" ? (
-        <path d="M12 7 17 12 12 17 7 12Z" fill="currentColor" fillOpacity={0.35} />
-      ) : null}
+      {variant === "filled" ? <path d="M12 7 17 12 12 17 7 12Z" fill="currentColor" fillOpacity={0.35} /> : null}
     </svg>
   );
 }

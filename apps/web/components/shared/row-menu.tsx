@@ -1,17 +1,5 @@
 "use client";
 
-import * as React from "react";
-import { MoreHorizontalIcon, AlertTriangleIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@rocky/ui/components/dropdown-menu";
-import { Button } from "@rocky/ui/components/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,8 +10,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@rocky/ui/components/alert-dialog";
-
+import { Button } from "@rocky/ui/components/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@rocky/ui/components/dropdown-menu";
 import { cn } from "@rocky/ui/lib/utils";
+import { AlertTriangleIcon, MoreHorizontalIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import * as React from "react";
+import { toast } from "sonner";
 
 /**
  * Canonical row action menu. Sublates the two prior primitives —
@@ -111,14 +109,14 @@ export function RowMenu({
     switch (item.kind) {
       case "navigation":
         return (
-          <DropdownMenuItem key={"navigation-" + index} onSelect={() => router.push(item.href)}>
+          <DropdownMenuItem key={`navigation-${index}`} onSelect={() => router.push(item.href)}>
             {item.icon ? <item.icon className="size-4" /> : null}
             <span>{item.label}</span>
           </DropdownMenuItem>
         );
       case "action":
         return (
-          <DropdownMenuItem key={"action-" + index} disabled={item.disabled} onSelect={() => item.onClick()}>
+          <DropdownMenuItem key={`action-${index}`} disabled={item.disabled} onSelect={() => item.onClick()}>
             {item.icon ? <item.icon className="size-4" /> : null}
             <span>{item.label}</span>
           </DropdownMenuItem>
@@ -126,7 +124,7 @@ export function RowMenu({
       case "destructive":
         return (
           <DropdownMenuItem
-            key={"destructive-" + index}
+            key={`destructive-${index}`}
             variant="destructive"
             disabled={item.disabled}
             onSelect={() => setConfirmItem(item)}
@@ -138,7 +136,7 @@ export function RowMenu({
         );
       case "dialog":
         // Dialog items render their own trigger (ActionDialog / details).
-        return <React.Fragment key={"dialog-" + index}>{item.dialog}</React.Fragment>;
+        return <React.Fragment key={`dialog-${index}`}>{item.dialog}</React.Fragment>;
     }
   };
 

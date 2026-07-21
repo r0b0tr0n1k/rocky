@@ -15,8 +15,8 @@ declare global {
 // State lives on globalThis so every instance of this fake module (the test
 // file and the redirected `db.ts` import resolve to separate module instances
 // under tsx) shares ONE store. Reset clears it in place.
-const tables: Map<string, Row[]> =
-  (globalThis.__fakeSqliteTables ??= new Map<string, Row[]>());
+globalThis.__fakeSqliteTables ??= new Map<string, Row[]>();
+const tables: Map<string, Row[]> = globalThis.__fakeSqliteTables;
 
 /** Clears all tables. Called in `beforeEach` so functional tests stay isolated. */
 export function __resetFakeDb(): void {

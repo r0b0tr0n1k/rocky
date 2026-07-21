@@ -1,8 +1,8 @@
-import type { LucideIcon } from "lucide-react";
-
 import { Card, CardContent } from "@rocky/ui/components/card";
-import { Seal } from "#components/shared/seal";
 import { cn } from "@rocky/ui/lib/utils";
+import type { LucideIcon } from "lucide-react";
+import Link from "next/link";
+import { Seal } from "#components/shared/seal";
 
 /**
  * A contained metric — a sealed record. The diamond mark (top-right) makes the
@@ -14,16 +14,18 @@ export function DashboardStat({
   value,
   hint,
   icon: Icon,
+  href,
   className,
 }: {
   label: string;
   value: number | string;
   hint?: string;
   icon: LucideIcon;
+  href?: string;
   className?: string;
 }) {
-  return (
-    <Card className={cn("relative overflow-hidden", className)}>
+  const content = (
+    <>
       <span className="absolute right-3 top-3 text-seal" aria-hidden>
         <Seal variant="filled" className="size-5" />
       </span>
@@ -39,6 +41,16 @@ export function DashboardStat({
         </div>
         {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
       </CardContent>
-    </Card>
+    </>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className={cn("group relative block overflow-hidden rounded-lg", className)}>
+        {content}
+      </Link>
+    );
+  }
+
+  return <Card className={cn("relative overflow-hidden", className)}>{content}</Card>;
 }

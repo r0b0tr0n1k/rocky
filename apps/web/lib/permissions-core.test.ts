@@ -1,6 +1,6 @@
+import { formatPermission, Permissions } from "@rocky/validators/api";
 import { describe, expect, it } from "vitest";
 import type { NavSection } from "./nav-config";
-import { Permissions, formatPermission } from "@rocky/validators/api";
 import { clientCan, clientCanAny, clientCanRole, filterNavByPermissions } from "./permissions-core";
 
 // Nav fixture built from the existing `Permissions` catalog — no magic strings.

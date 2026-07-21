@@ -1,8 +1,6 @@
-import type * as React from "react";
 import type { LucideIcon } from "lucide-react";
-
-import { cn } from "#lib/utils";
 import { Card, CardContent } from "#components/card";
+import { cn } from "#lib/utils";
 
 const accentStyles: Record<string, string> = {
   primary: "bg-primary/10 text-primary",

@@ -1,14 +1,7 @@
 import type { AppRouter } from "@rocky/trpc";
-import type { TRPCLink } from "@trpc/client";
-import {
-  createTRPCClient,
-  httpBatchLink,
-  httpSubscriptionLink,
-  loggerLink,
-  splitLink,
-} from "@trpc/client";
-import { createTRPCContext } from "@trpc/tanstack-react-query";
 import { transformer } from "@rocky/trpc/superjson";
+import { createTRPCClient, httpBatchLink, httpSubscriptionLink, loggerLink, splitLink } from "@trpc/client";
+import { createTRPCContext } from "@trpc/tanstack-react-query";
 
 // -- GATEWAY ARCHITECTURE --
 // Browser calls Next.js (relative URL), Next.js proxies to API.

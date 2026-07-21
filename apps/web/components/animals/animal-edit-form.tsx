@@ -1,17 +1,24 @@
 "use client";
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
+import { FieldGroup } from "@rocky/ui/components/field";
+import { type AnimalSummary, type FarmResponse, updateAnimalRequestSchema } from "@rocky/validators/api";
 
 import { ANIMAL_STATUS, BIRTH_TYPE } from "@rocky/validators/enums";
-import { updateAnimalRequestSchema, type FarmResponse, type AnimalSummary } from "@rocky/validators/api";
-import { ComboboxField, DateField, NumberField, SelectField, SwitchField, TextField } from "#components/shared/form-fields";
-import { ValidatedForm } from "#components/shared/validated-form";
-import { FieldGroup } from "@rocky/ui/components/field";
-import { enumToOptions } from "#lib/options";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTRPC } from "#lib/trpc";
+import { useRouter } from "next/navigation";
+import * as React from "react";
+import {
+  ComboboxField,
+  DateField,
+  NumberField,
+  SelectField,
+  SwitchField,
+  TextField,
+} from "#components/shared/form-fields";
+import { ValidatedForm } from "#components/shared/validated-form";
 import { notifyError, notifySuccess } from "#lib/notify";
+import { enumToOptions } from "#lib/options";
+import { useTRPC } from "#lib/trpc";
 import { useValidatedForm } from "#lib/use-validated-form";
 
 export function AnimalEditForm({ id }: { id: string }) {
@@ -21,14 +28,16 @@ export function AnimalEditForm({ id }: { id: string }) {
   const getQuery = useQuery(trpc.animal.getById.queryOptions({ id }));
   const farms = useQuery(trpc.farm.list.queryOptions({ limit: 100 }));
   const animals = useQuery(trpc.animal.list.queryOptions({ limit: 100 }));
-  const update = useMutation(trpc.animal.update.mutationOptions({
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: trpc.animal.list.queryKey() });
-      notifySuccess("Animal updated");
-      router.push("/animals");
-    },
-    onError: (error) => notifyError(error, "Failed to update animal"),
-  }));
+  const update = useMutation(
+    trpc.animal.update.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: trpc.animal.list.queryKey() });
+        notifySuccess("Animal updated");
+        router.push("/animals");
+      },
+      onError: (error) => notifyError(error, "Failed to update animal"),
+    }),
+  );
 
   const animal = getQuery.data;
 
@@ -74,14 +83,36 @@ export function AnimalEditForm({ id }: { id: string }) {
     <ValidatedForm form={form} submitting={update.isPending} onValid={(values) => update.mutate(values)}>
       <FieldGroup>
         <TextField control={form.control} name="breed" label="Breed" placeholder="Limousine" />
-        <SelectField control={form.control} name="birthType" label="Birth type" options={enumToOptions(Object.values(BIRTH_TYPE))} />
+        <SelectField
+          control={form.control}
+          name="birthType"
+          label="Birth type"
+          options={enumToOptions(Object.values(BIRTH_TYPE))}
+        />
         <NumberField control={form.control} name="birthWeight" label="Birth weight (g)" placeholder="40000" />
-        <SelectField control={form.control} name="status" label="Status" options={enumToOptions(Object.values(ANIMAL_STATUS))} />
-        <ComboboxField control={form.control} name="currentFarmId" label="Current farm" placeholder="Search farms…" options={farmOptions} />
-        <ComboboxField control={form.control} name="motherId" label="Mother" placeholder="Search animals…" options={motherOptions} />
+        <SelectField
+          control={form.control}
+          name="status"
+          label="Status"
+          options={enumToOptions(Object.values(ANIMAL_STATUS))}
+        />
+        <ComboboxField
+          control={form.control}
+          name="currentFarmId"
+          label="Current farm"
+          placeholder="Search farms…"
+          options={farmOptions}
+        />
+        <ComboboxField
+          control={form.control}
+          name="motherId"
+          label="Mother"
+          placeholder="Search animals…"
+          options={motherOptions}
+        />
         <DateField control={form.control} name="taggingDate" label="Tagging date" />
         <SwitchField control={form.control} name="isFirstTagging" label="First tagging campaign" />
       </FieldGroup>
-</ValidatedForm>
+    </ValidatedForm>
   );
 }

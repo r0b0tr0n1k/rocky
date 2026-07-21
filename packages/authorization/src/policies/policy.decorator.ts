@@ -26,6 +26,8 @@ export interface PolicyMetadata {
   roles?: string[];
   /** Require admin access (shortcut) */
   admin?: boolean;
+  /** Require a RuleSet feature flag to be enabled (e.g. "iot" for WO-060). */
+  feature?: string;
 }
 
 /**
@@ -67,7 +69,6 @@ export function Policy(options: PolicyMetadata): MethodDecorator & ClassDecorato
  * Returns merged metadata: method-level overrides class-level.
  */
 
-
 /**
  * Fully REPLACE the class-level @Policy() for a single method — no merge.
  *
@@ -92,11 +93,7 @@ export function Policy(options: PolicyMetadata): MethodDecorator & ClassDecorato
  * ```
  */
 export function OverridePolicy(options: PolicyMetadata): MethodDecorator {
-  return (
-    _target: object | Function,
-    _propertyKey: string | symbol,
-    descriptor?: PropertyDescriptor,
-  ) => {
+  return (_target: object | Function, _propertyKey: string | symbol, descriptor?: PropertyDescriptor) => {
     if (descriptor) {
       Reflect.defineMetadata(POLICY_OVERRIDE_KEY, options, descriptor.value);
     }

@@ -1,8 +1,8 @@
 "use client";
 
-import { TriangleAlert } from "lucide-react";
 import { Button } from "@rocky/ui/components/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@rocky/ui/components/empty";
+import { TriangleAlert } from "lucide-react";
 
 export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (

@@ -10,10 +10,7 @@ import { Policy, RegisterPolicy } from "@rocky/authorization/index.js";
 import { IotService } from "@rocky/domains-iot/index.js";
 import type { AppContext } from "@rocky/trpc/context.js";
 import { createResultUnwrapper } from "@rocky/trpc/index.js";
-import type {
-  IngestReadingRequest,
-  RegisterDeviceRequest,
-} from "@rocky/validators/api/index.js";
+import type { IngestReadingRequest, RegisterDeviceRequest } from "@rocky/validators/api/index.js";
 import {
   ingestReadingRequestSchema,
   listDevicesRequestSchema,
@@ -31,16 +28,15 @@ import type { SubtypeGuillotine, ActivateGuillotines } from "@rocky/validators/u
 
 const unwrap = createResultUnwrapper(IOT_TRPC_ERROR_MAP);
 
-
 // Named output schemas (were inline) — required so Bridge 2b can reference
 // `z.output<typeof X>` and prove the declared contract vs the service Result.
 const sensorReadingArraySchema = z.array(sensorReadingResponseSchema);
 @Router({ alias: "iot" })
 @RegisterPolicy("iot")
-@Policy({ authenticated: true })
+@Policy({ authenticated: true, feature: "iot" })
 @Injectable()
 export class IotRouter {
-  constructor(@Inject(IotService) private readonly iotService: IotService) { }
+  constructor(@Inject(IotService) private readonly iotService: IotService) {}
 
   // -- Devices --
 
@@ -75,7 +71,6 @@ export class IotRouter {
   async listReadings(@Input() input: z.infer<typeof listReadingsRequestSchema>) {
     return unwrap(await this.iotService.listReadings(input));
   }
-
 }
 
 // SubtypeGuillotine (one-directional: schema output ⊆ return type) — response
@@ -106,11 +101,13 @@ type _verify_listReadingsOutput = SubtypeGuillotine<
   Awaited<ReturnType<IotRouter["listReadings"]>>
 >;
 
-export type _IotGuillotines = ActivateGuillotines<[
-  _verify_registerDeviceOutput,
-  _verify_listDevicesOutput,
-  _verify_getDeviceOutput,
-  _verify_ingestReadingOutput,
-  _verify_ingestReadingsOutput,
-  _verify_listReadingsOutput,
-]>;
+export type _IotGuillotines = ActivateGuillotines<
+  [
+    _verify_registerDeviceOutput,
+    _verify_listDevicesOutput,
+    _verify_getDeviceOutput,
+    _verify_ingestReadingOutput,
+    _verify_ingestReadingsOutput,
+    _verify_listReadingsOutput,
+  ]
+>;

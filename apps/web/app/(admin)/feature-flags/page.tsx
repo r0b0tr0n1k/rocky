@@ -1,16 +1,14 @@
 "use client";
 
-import * as React from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
 import { Badge } from "@rocky/ui/components/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@rocky/ui/components/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@rocky/ui/components/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@rocky/ui/components/empty";
 import { Switch } from "@rocky/ui/components/switch";
+import type { ModuleResponse } from "@rocky/validators/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "#components/shared/page-header";
-import { useTRPC } from "#lib/trpc";
 import { useCan } from "#lib/permissions";
-import { type ModuleResponse } from "@rocky/validators/api";
+import { useTRPC } from "#lib/trpc";
 
 export default function FeatureFlagsPage() {
   const trpc = useTRPC();
@@ -28,10 +26,7 @@ export default function FeatureFlagsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Feature Flags"
-        description="Globally enable or disable application modules."
-      />
+      <PageHeader title="Feature Flags" description="Globally enable or disable application modules." />
       {rows.length === 0 && !listQuery.isLoading ? (
         <Empty>
           <EmptyHeader>

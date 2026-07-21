@@ -20,7 +20,7 @@ import {
   EAR_TAG_STATUS,
   SEX,
   SORT_BY_EARTAG,
-  SORT_ORDER
+  SORT_ORDER,
 } from "@rocky/database/constants";
 import { BaseRepository } from "@rocky/domains-shared";
 import { and, asc, desc, eq, gte, ilike, inArray, lte, or, type SQL, sql } from "drizzle-orm";
@@ -54,7 +54,6 @@ export interface EarTagOrderFilter {
 // ── Repository ──────────────────────────────────────────────────────
 
 export class EarTagRepository extends BaseRepository {
-
   // ─── Tags ────────────────────────────────────────────────────────
 
   async findById(id: string) {
@@ -305,6 +304,33 @@ export class EarTagRepository extends BaseRepository {
       .update(earTags)
       .set({ orderId: null, status: EAR_TAG_STATUS.AVAILABLE as string })
       .where(eq(earTags.id, earTagId));
+  }
+
+  /**
+   * Replace the visual code of the currently-applied ear tag for an animal
+   * (Implementing Reg (EU) 2021/520 Art. 19(4) — dual-code on replacement).
+   * The `ear_tags` table carries a single visual `tagNumber` per applied tag;
+   * the electronic identifier is validated by the service but stored at the
+   * jurisdiction's registry layer. Returns the updated tag row, or null if the
+   * animal has no applied tag.
+   */
+  async replaceTagForAnimal(
+    animalId: string,
+    newVisualCode: string,
+    createdBy?: string,
+  ): Promise<typeof earTags.$inferSelect | null> {
+    const [updated] = await this.client
+      .update(earTags)
+      .set({
+        tagNumber: newVisualCode,
+        status: EAR_TAG_STATUS.APPLIED as string,
+        appliedDate: new Date(),
+        updatedAt: new Date(),
+        ...(createdBy ? { createdBy } : {}),
+      })
+      .where(and(eq(earTags.animalId, animalId), eq(earTags.status, EAR_TAG_STATUS.APPLIED as string)))
+      .returning();
+    return updated ?? null;
   }
 
   /** Real assigned tags for an order (set by collectOrderTags → assignTagsToOrder). WO-001: takeover file emits these, never synthetic numbers. */

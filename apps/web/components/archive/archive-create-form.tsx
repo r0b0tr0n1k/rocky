@@ -1,28 +1,21 @@
 "use client";
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
-
+import { FieldGroup } from "@rocky/ui/components/field";
 import {
-  createArchiveDocumentRequestSchema,
   type AnimalSummary,
+  createArchiveDocumentRequestSchema,
   type FarmResponse,
   type InspectionResponse,
   type PassportResponse,
 } from "@rocky/validators/api";
-import {
-  ComboboxField,
-  DateField,
-  SelectField,
-  TextField,
-} from "#components/shared/form-fields";
-import { ValidatedForm } from "#components/shared/validated-form";
-import { FieldGroup } from "@rocky/ui/components/field";
 import { ARCHIVE_DOCUMENT_TYPE, ARCHIVE_LOCATION } from "@rocky/validators/enums";
-import { enumToOptions } from "#lib/options";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTRPC } from "#lib/trpc";
+import { useRouter } from "next/navigation";
+import { ComboboxField, DateField, SelectField, TextField } from "#components/shared/form-fields";
+import { ValidatedForm } from "#components/shared/validated-form";
 import { notifyError, notifySuccess } from "#lib/notify";
+import { enumToOptions } from "#lib/options";
+import { useTRPC } from "#lib/trpc";
 import { useValidatedForm } from "#lib/use-validated-form";
 
 export function ArchiveCreateForm() {
@@ -37,14 +30,16 @@ export function ArchiveCreateForm() {
   const animals = useQuery(trpc.animal.list.queryOptions({ limit: 100 }));
   const passports = useQuery(trpc.passport.list.queryOptions({ limit: 100 }));
   const inspections = useQuery(trpc.inspection.list.queryOptions({ limit: 100 }));
-  const create = useMutation(trpc.archive.create.mutationOptions({
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: trpc.archive.list.queryKey() });
-      notifySuccess("Archive entry created");
-      router.push("/archive");
-    },
-    onError: (error) => notifyError(error, "Failed to create archive entry"),
-  }));
+  const create = useMutation(
+    trpc.archive.create.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: trpc.archive.list.queryKey() });
+        notifySuccess("Archive entry created");
+        router.push("/archive");
+      },
+      onError: (error) => notifyError(error, "Failed to create archive entry"),
+    }),
+  );
 
   const farmOptions = ((farms.data?.data ?? []) as FarmResponse[]).map((f) => ({
     value: f.id,
@@ -79,12 +74,7 @@ export function ArchiveCreateForm() {
           label="Archive location"
           options={enumToOptions(Object.values(ARCHIVE_LOCATION))}
         />
-        <TextField
-          control={form.control}
-          name="physicalLocation"
-          label="Physical location"
-          placeholder="Optional"
-        />
+        <TextField control={form.control} name="physicalLocation" label="Physical location" placeholder="Optional" />
         <ComboboxField
           control={form.control}
           name="animalId"
@@ -115,6 +105,6 @@ export function ArchiveCreateForm() {
         />
         <DateField control={form.control} name="retentionExpiry" label="Retention expiry" />
       </FieldGroup>
-</ValidatedForm>
+    </ValidatedForm>
   );
 }

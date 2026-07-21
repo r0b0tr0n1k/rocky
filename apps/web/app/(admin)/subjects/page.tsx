@@ -1,23 +1,21 @@
 "use client";
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
-import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
 import { Button } from "@rocky/ui/components/button";
 import { Input } from "@rocky/ui/components/input";
-import { subjectColumns, type SubjectSummary } from "#components/subjects/columns";
-import { DataTable } from "#components/shared/data-table";
-import { PageHeader } from "#components/shared/page-header";
-import { TableCard, tableDensityClass } from "#components/shared/table-card";
-import { useTRPC } from "#lib/trpc";
 import { bindSubjectToFarmRequestSchema } from "@rocky/validators/api";
 import { SUBJECT_ROLE } from "@rocky/validators/enums";
-import { enumToOptions } from "#lib/options";
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import * as React from "react";
 import { ActionDialog, RowActionMenu } from "#components/shared/action-dialog";
+import { DataTable } from "#components/shared/data-table";
 import { ComboboxField, SelectField } from "#components/shared/form-fields";
-import { appendRowActions } from "#components/shared/table-card";
+import { PageHeader } from "#components/shared/page-header";
+import { appendRowActions, TableCard, tableDensityClass } from "#components/shared/table-card";
+import { type SubjectSummary, subjectColumns } from "#components/subjects/columns";
+import { enumToOptions } from "#lib/options";
+import { useTRPC } from "#lib/trpc";
 
 export default function SubjectsPage() {
   const router = useRouter();
@@ -29,9 +27,7 @@ export default function SubjectsPage() {
 
   // subject.search requires q (min 1); skip the query until the user types.
   const searchQuery = useQuery(
-    trpc.subject.search.queryOptions(
-      q.trim() ? { q: q.trim(), limit: pageSize, offset: page * pageSize } : skipToken,
-    ),
+    trpc.subject.search.queryOptions(q.trim() ? { q: q.trim(), limit: pageSize, offset: page * pageSize } : skipToken),
   );
 
   const farms = useQuery(trpc.farm.list.queryOptions({ limit: 100 }));
@@ -39,19 +35,18 @@ export default function SubjectsPage() {
     value: f.id,
     label: `${f.farmId} · ${f.name}`,
   }));
-  const bindToFarm = useMutation(trpc.subject.bindToFarm.mutationOptions({
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: trpc.subject.search.queryKey() }),
-  }));
+  const bindToFarm = useMutation(
+    trpc.subject.bindToFarm.mutationOptions({
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: trpc.subject.search.queryKey() }),
+    }),
+  );
 
   const rows = (searchQuery.data?.data ?? []) as SubjectSummary[];
   const total = searchQuery.data?.total ?? 0;
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Subjects"
-        description="Farmers, vets, and other human agents in the I&R system."
-      />
+      <PageHeader title="Subjects" description="Farmers, vets, and other human agents in the I&R system." />
       <TableCard
         toolbarLeft={
           <Input
@@ -86,8 +81,19 @@ export default function SubjectsPage() {
                       defaultValues={{ subjectId: row.id }}
                       fields={(form) => (
                         <>
-                          <ComboboxField control={form.control} name="farmId" label="Farm" placeholder="Search farms…" options={farmOptions} />
-                          <SelectField control={form.control} name="role" label="Role" options={enumToOptions(Object.values(SUBJECT_ROLE))} />
+                          <ComboboxField
+                            control={form.control}
+                            name="farmId"
+                            label="Farm"
+                            placeholder="Search farms…"
+                            options={farmOptions}
+                          />
+                          <SelectField
+                            control={form.control}
+                            name="role"
+                            label="Role"
+                            options={enumToOptions(Object.values(SUBJECT_ROLE))}
+                          />
                         </>
                       )}
                     />

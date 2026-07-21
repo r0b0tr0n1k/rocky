@@ -1,32 +1,15 @@
 "use client";
 
-import * as React from "react";
-import { Plus } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@rocky/ui/components/select";
+import { createVsAssignmentRequestSchema, type FarmSummary, type VsAssignmentResponse } from "@rocky/validators/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
+import * as React from "react";
 import { z } from "zod";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@rocky/ui/components/select";
-
-import {
-  createVsAssignmentRequestSchema,
-  type FarmSummary,
-  type VsAssignmentResponse,
-} from "@rocky/validators/api";
 import { ActionDialog } from "#components/shared/action-dialog";
-import {
-  ComboboxField,
-  DateField,
-  SwitchField,
-  TextareaField,
-  TextField,
-} from "#components/shared/form-fields";
-import { PageHeader } from "#components/shared/page-header";
 import { DataTable } from "#components/shared/data-table";
+import { ComboboxField, DateField, SwitchField, TextareaField, TextField } from "#components/shared/form-fields";
+import { PageHeader } from "#components/shared/page-header";
 import { TableCard, tableDensityClass } from "#components/shared/table-card";
 import { vsAssignmentColumns } from "#components/vs-assignments/columns";
 import { useTRPC } from "#lib/trpc";
@@ -54,9 +37,7 @@ export default function VsAssignmentsPage() {
     label: f.name ?? f.farmId,
   }));
 
-  const listQuery = useQuery(
-    trpc.vsAssignment.getByFarm.queryOptions({ farmId: farmId ?? "" }, { enabled: !!farmId }),
-  );
+  const listQuery = useQuery(trpc.vsAssignment.getByFarm.queryOptions({ farmId: farmId ?? "" }, { enabled: !!farmId }));
   const rows = (listQuery.data ?? []) as VsAssignmentResponse[];
 
   const invalidate = () =>
@@ -65,40 +46,35 @@ export default function VsAssignmentsPage() {
     });
 
   const assign = useMutation(trpc.vsAssignment.assign.mutationOptions({ onSuccess: invalidate }));
-  const unassign = useMutation(
-    trpc.vsAssignment.unassign.mutationOptions({ onSuccess: invalidate }),
-  );
+  const unassign = useMutation(trpc.vsAssignment.unassign.mutationOptions({ onSuccess: invalidate }));
 
   const columns = React.useMemo(
     () =>
       vsAssignmentColumns({
         renderUnassign: (row) => (
-            <ActionDialog
-              as="menuitem"
-              triggerLabel="Unassign"
-              schema={unassignFormSchema}
-              mutation={unassign}
-              defaultValues={{ id: row.id, data: {} }}
-              title="Unassign farm"
-              description="Ends this veterinary-service assignment for the farm."
-              fields={(form) => (
-                <>
-                  <DateField control={form.control} name="data.endDate" label="End date" />
-                  <TextareaField control={form.control} name="data.notes" label="Notes" />
-                </>
-              )}
-            />
-          ),
-        }),
+          <ActionDialog
+            as="menuitem"
+            triggerLabel="Unassign"
+            schema={unassignFormSchema}
+            mutation={unassign}
+            defaultValues={{ id: row.id, data: {} }}
+            title="Unassign farm"
+            description="Ends this veterinary-service assignment for the farm."
+            fields={(form) => (
+              <>
+                <DateField control={form.control} name="data.endDate" label="End date" />
+                <TextareaField control={form.control} name="data.notes" label="Notes" />
+              </>
+            )}
+          />
+        ),
+      }),
     [unassign],
   );
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="VS Assignments"
-        description="Which farms are covered by which veterinary-service contracts."
-      />
+      <PageHeader title="VS Assignments" description="Which farms are covered by which veterinary-service contracts." />
 
       <Select value={farmId ?? "all"} onValueChange={(v) => setFarmId(v === "all" ? undefined : v)}>
         <SelectTrigger className="w-[280px]">
@@ -148,19 +124,18 @@ export default function VsAssignmentsPage() {
           />
         }
       >
-      <DataTable
-        columns={columns}
-        data={rows}
-        total={rows.length}
-        isLoading={listQuery.isLoading}
-        page={0}
-        pageSize={Math.max(rows.length, 20)}
-        onPageChange={() => {}}
-        bordered={false}
-        tableClassName={tableDensityClass}
-      />
+        <DataTable
+          columns={columns}
+          data={rows}
+          total={rows.length}
+          isLoading={listQuery.isLoading}
+          page={0}
+          pageSize={Math.max(rows.length, 20)}
+          onPageChange={() => {}}
+          bordered={false}
+          tableClassName={tableDensityClass}
+        />
       </TableCard>
     </div>
   );
 }
-

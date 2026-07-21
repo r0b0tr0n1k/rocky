@@ -1,14 +1,13 @@
 "use client";
 
-import type { ComponentProps } from "react";
-import type { ColumnDef } from "@tanstack/react-table";
-
-import { StatusBadge } from "#components/shared/status-badge";
+import type { Badge } from "@rocky/ui/components/badge";
 import type { AnimalSummary } from "@rocky/validators/api";
 import { ANIMAL_STATUS } from "@rocky/validators/enums";
-import { Badge } from "@rocky/ui/components/badge";
+import type { ColumnDef } from "@tanstack/react-table";
 import { PencilIcon } from "lucide-react";
+import type { ComponentProps } from "react";
 import { RowActions } from "#components/shared/row-actions";
+import { StatusBadge } from "#components/shared/status-badge";
 
 export type { AnimalSummary } from "@rocky/validators/api";
 

@@ -1,9 +1,8 @@
 "use client";
 
+import { Button } from "@rocky/ui/components/button";
 import { MoonIcon, SunIcon } from "lucide-react";
 import { useTheme } from "next-themes";
-
-import { Button } from "@rocky/ui/components/button";
 
 export function ThemeToggle() {
   const { setTheme, resolvedTheme } = useTheme();

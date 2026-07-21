@@ -1,35 +1,27 @@
 "use client";
 
-import type * as React from "react";
-import { format } from "date-fns";
-
 import { Alert, AlertDescription, AlertTitle } from "@rocky/ui/components/alert";
-import { Badge } from "@rocky/ui/components/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@rocky/ui/components/card";
 import { Skeleton } from "@rocky/ui/components/skeleton";
-import { StatusBadge } from "#components/shared/status-badge";
-import { ActionDialog } from "#components/shared/action-dialog";
-import {
-  DateField,
-  SelectField,
-  SwitchField,
-  TextareaField,
-  TextField,
-} from "#components/shared/form-fields";
-import { INSPECTION_STATUS_VARIANT } from "#components/inspections/columns";
-import { enumToOptions } from "#lib/options";
-import { LANGUAGE } from "@rocky/validators/enums";
 import {
   completeInspectionRequestSchema,
-  printInspectionFormRequestSchema,
-  scheduleInspectionRequestSchema,
   type FarmResponse,
   type InspectionResponse,
+  printInspectionFormRequestSchema,
+  scheduleInspectionRequestSchema,
   type UserSummary,
 } from "@rocky/validators/api";
+import { LANGUAGE } from "@rocky/validators/enums";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTRPC } from "#lib/trpc";
+import { format } from "date-fns";
+import type * as React from "react";
+import { INSPECTION_STATUS_VARIANT } from "#components/inspections/columns";
+import { ActionDialog } from "#components/shared/action-dialog";
+import { DateField, SelectField, SwitchField, TextareaField, TextField } from "#components/shared/form-fields";
+import { StatusBadge } from "#components/shared/status-badge";
 import { notifyError, notifySuccess } from "#lib/notify";
+import { enumToOptions } from "#lib/options";
+import { useTRPC } from "#lib/trpc";
 
 function fmt(value: Date | string | null | undefined): string {
   if (!value) return "—";
@@ -53,8 +45,7 @@ export function InspectionDetail({ id }: { id: string }) {
   const farms = useQuery(trpc.farm.list.queryOptions({ limit: 100 }));
   const users = useQuery(trpc.user.list.queryOptions({ limit: 100 }));
 
-  const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: trpc.inspection.getById.queryKey({ id }) });
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: trpc.inspection.getById.queryKey({ id }) });
   const schedule = useMutation(
     trpc.inspection.schedule.mutationOptions({
       onSuccess: () => {
@@ -90,9 +81,7 @@ export function InspectionDetail({ id }: { id: string }) {
     return (
       <Alert variant="destructive">
         <AlertTitle>Inspection not found</AlertTitle>
-        <AlertDescription>
-          This inspection does not exist or you lack permission to view it.
-        </AlertDescription>
+        <AlertDescription>This inspection does not exist or you lack permission to view it.</AlertDescription>
       </Alert>
     );
   }
@@ -100,9 +89,13 @@ export function InspectionDetail({ id }: { id: string }) {
   const m = getQuery.data as InspectionResponse;
 
   const farmMap = new Map<string, FarmResponse>();
-  ((farms.data?.data ?? []) as FarmResponse[]).forEach((f) => farmMap.set(f.id, f));
+  for (const f of (farms.data?.data ?? []) as FarmResponse[]) {
+    farmMap.set(f.id, f);
+  }
   const userMap = new Map<string, UserSummary>();
-  ((users.data ?? []) as UserSummary[]).forEach((u) => userMap.set(u.id, u));
+  for (const u of (users.data ?? []) as UserSummary[]) {
+    userMap.set(u.id, u);
+  }
 
   const farmLabel = (fid: string) => {
     const f = farmMap.get(fid);
@@ -131,9 +124,7 @@ export function InspectionDetail({ id }: { id: string }) {
             title="Schedule inspection"
             description="Set the on-spot inspection date."
             defaultValues={{ id: m.id }}
-            fields={(form) => (
-              <DateField control={form.control} name="scheduledDate" label="Scheduled date" />
-            )}
+            fields={(form) => <DateField control={form.control} name="scheduledDate" label="Scheduled date" />}
           />
           <ActionDialog
             triggerLabel="Complete"
@@ -176,18 +167,12 @@ export function InspectionDetail({ id }: { id: string }) {
           <Field label="Status" value={m.status} />
           <Field label="Risk score" value={m.riskScore ?? "—"} />
           <Field label="Risk criteria" value={m.riskCriteria ?? "—"} />
-          <Field
-            label="Selected by risk analysis"
-            value={m.selectedByRiskAnalysis ? "Yes" : "No"}
-          />
+          <Field label="Selected by risk analysis" value={m.selectedByRiskAnalysis ? "Yes" : "No"} />
           <Field label="Scheduled date" value={fmt(m.scheduledDate)} />
           <Field label="Inspection date" value={fmt(m.inspectionDate)} />
           <Field label="Result" value={m.result ?? "—"} />
           <Field label="Notes" value={m.notes ?? "—"} />
-          <Field
-            label="Discrepancies found"
-            value={m.discrepanciesFound ? "Yes" : "No"}
-          />
+          <Field label="Discrepancies found" value={m.discrepanciesFound ? "Yes" : "No"} />
           <Field label="Form printed" value={m.formPrinted ? "Yes" : "No"} />
           <Field label="Form returned" value={m.formReturned ? "Yes" : "No"} />
           <Field label="Keeper signed" value={m.keeperSigned ? "Yes" : "No"} />

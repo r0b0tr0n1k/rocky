@@ -7,6 +7,7 @@ export const AUDIT_ACTION = {
   LOGIN: "LOGIN",
   EXPORT: "EXPORT",
   IMPORT: "IMPORT",
+  ARCHIVE: "ARCHIVE",
 } as const;
 
 export const AUDIT_ACTION_VALUES = createEnumValues([
@@ -16,4 +17,5 @@ export const AUDIT_ACTION_VALUES = createEnumValues([
   AUDIT_ACTION.LOGIN,
   AUDIT_ACTION.EXPORT,
   AUDIT_ACTION.IMPORT,
+  AUDIT_ACTION.ARCHIVE,
 ] as const);

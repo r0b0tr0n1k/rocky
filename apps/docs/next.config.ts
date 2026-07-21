@@ -1,6 +1,6 @@
-import nextra from "nextra";
 import { existsSync } from "node:fs";
 import path from "node:path";
+import nextra from "nextra";
 
 // Monorepo root = the directory containing pnpm-workspace.yaml, found by
 // walking up from cwd. Next/Turbopack's OWN root inference also walks up, but

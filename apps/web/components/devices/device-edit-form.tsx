@@ -1,15 +1,14 @@
 "use client";
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
+import { FieldGroup } from "@rocky/ui/components/field";
+import { type UserSummary, updatePdaDeviceRequestSchema } from "@rocky/validators/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
-import { updatePdaDeviceRequestSchema, type UserSummary } from "@rocky/validators/api";
+import { useRouter } from "next/navigation";
+import * as React from "react";
 import { ComboboxField, TextField } from "#components/shared/form-fields";
 import { ValidatedForm } from "#components/shared/validated-form";
-import { FieldGroup } from "@rocky/ui/components/field";
-import { useTRPC } from "#lib/trpc";
 import { notifyError, notifySuccess } from "#lib/notify";
+import { useTRPC } from "#lib/trpc";
 import { useValidatedForm } from "#lib/use-validated-form";
 
 export function DeviceEditForm({ id }: { id: string }) {
@@ -63,8 +62,14 @@ export function DeviceEditForm({ id }: { id: string }) {
         <TextField control={form.control} name="name" label="Name" placeholder="Field tablet A" />
         <TextField control={form.control} name="appVersion" label="App version" placeholder="1.4.2" />
         <TextField control={form.control} name="osVersion" label="OS version" placeholder="17.5" />
-        <ComboboxField control={form.control} name="currentUserId" label="Assigned user" placeholder="Search users…" options={userOptions} />
+        <ComboboxField
+          control={form.control}
+          name="currentUserId"
+          label="Assigned user"
+          placeholder="Search users…"
+          options={userOptions}
+        />
       </FieldGroup>
-</ValidatedForm>
+    </ValidatedForm>
   );
 }

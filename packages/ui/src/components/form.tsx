@@ -54,7 +54,8 @@ const useFormField = () => {
   // (Path A) wraps FormControl without a FormItem, so fall back to a
   // generated id instead of throwing. This keeps aria wiring working for
   // both the legacy FormItem and the new Field primitives.
-  const id = itemContext?.id ?? React.useId();
+  const fallbackId = React.useId();
+  const id = itemContext?.id ?? fallbackId;
   const fieldState = getFieldState(fieldContext.name, formState);
 
   return {

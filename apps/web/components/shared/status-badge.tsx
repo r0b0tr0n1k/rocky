@@ -1,6 +1,5 @@
-import { type ComponentProps } from "react";
-
 import { Badge } from "@rocky/ui/components/badge";
+import type { ComponentProps } from "react";
 
 type BadgeVariant = ComponentProps<typeof Badge>["variant"];
 

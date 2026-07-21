@@ -1,15 +1,14 @@
 "use client";
 
-import { format } from "date-fns";
-import type { ComponentProps } from "react";
+import type { Badge } from "@rocky/ui/components/badge";
+import type { InspectionResponse } from "@rocky/validators/api";
+import { INSPECTION_STATUS } from "@rocky/validators/enums";
 import type { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
 import { EyeIcon, FileDown } from "lucide-react";
-
-import { Badge } from "@rocky/ui/components/badge";
+import type { ComponentProps } from "react";
 import { RowActions } from "#components/shared/row-actions";
 import { StatusBadge } from "#components/shared/status-badge";
-import { INSPECTION_STATUS } from "@rocky/validators/enums";
-import type { InspectionResponse } from "@rocky/validators/api";
 
 export type { InspectionResponse } from "@rocky/validators/api";
 
@@ -56,15 +55,13 @@ export function inspectionColumns({
       accessorKey: "scheduledDate",
       header: "Scheduled",
       enableSorting: false,
-      cell: ({ row }) =>
-        row.original.scheduledDate ? format(row.original.scheduledDate, "PP") : "—",
+      cell: ({ row }) => (row.original.scheduledDate ? format(row.original.scheduledDate, "PP") : "—"),
     },
     {
       accessorKey: "inspectionDate",
       header: "Inspected",
       enableSorting: false,
-      cell: ({ row }) =>
-        row.original.inspectionDate ? format(row.original.inspectionDate, "PP") : "—",
+      cell: ({ row }) => (row.original.inspectionDate ? format(row.original.inspectionDate, "PP") : "—"),
     },
     {
       accessorKey: "riskScore",

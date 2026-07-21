@@ -1,19 +1,12 @@
 "use client";
 
-import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@rocky/ui/components/select";
-
-import type { AnimalSummary } from "@rocky/validators/api";
-import { Timeline, type TimelineItem } from "#components/shared/timeline";
-import { PageHeader } from "#components/shared/page-header";
 import { Card, CardContent } from "@rocky/ui/components/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@rocky/ui/components/select";
+import type { AnimalSummary } from "@rocky/validators/api";
+import { useQuery } from "@tanstack/react-query";
+import * as React from "react";
+import { PageHeader } from "#components/shared/page-header";
+import { Timeline, type TimelineItem } from "#components/shared/timeline";
 import { useTRPC } from "#lib/trpc";
 
 export default function MovementLineagePage() {
@@ -41,9 +34,7 @@ export default function MovementLineagePage() {
       .sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""));
     return movements.map((e, i) => ({
       title: e.type ?? "movement",
-      description: [e.from ? labelOf.get(e.from) : null, e.to ? labelOf.get(e.to) : null]
-        .filter(Boolean)
-        .join(" → "),
+      description: [e.from ? labelOf.get(e.from) : null, e.to ? labelOf.get(e.to) : null].filter(Boolean).join(" → "),
       timestamp: e.date ? new Date(e.date).toLocaleDateString() : undefined,
       // The most recent movement is "current"; the rest are completed.
       status: i === movements.length - 1 ? ("current" as const) : ("done" as const),

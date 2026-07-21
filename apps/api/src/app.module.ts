@@ -277,8 +277,9 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     },
     {
       provide: FarmService,
-      useFactory: (repo: FarmRepository, auditService: AuditService) => new FarmService(repo, auditService),
-      inject: [FarmRepository, AuditService],
+      useFactory: (repo: FarmRepository, auditService: AuditService, geoService: GeoService) =>
+        new FarmService(repo, auditService, undefined, geoService),
+      inject: [FarmRepository, AuditService, GeoService],
     },
     {
       provide: MovementService,
@@ -381,8 +382,9 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     },
     {
       provide: ArchiveService,
-      useFactory: (repo: ArchiveRepository, system: SystemService) => new ArchiveService(repo, system),
-      inject: [ArchiveRepository, SystemService],
+      useFactory: (repo: ArchiveRepository, system: SystemService, auditService: AuditService) =>
+        new ArchiveService(repo, system, auditService),
+      inject: [ArchiveRepository, SystemService, AuditService],
     },
     {
       provide: RiskAnalysisRepository,

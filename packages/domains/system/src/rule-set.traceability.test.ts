@@ -40,26 +40,14 @@ describe("buildRuleSet — traceability rules engine (ADR-0085)", () => {
     const rs = buildRuleSet("MK", baseRows());
     expect(rs.traceabilityRules).toHaveLength(DEFAULT_TRACABILITY_RULES.length);
     for (const rule of DEFAULT_TRACABILITY_RULES) {
-      expect(
-        TraceabilityRuleEngine.isEnabled(rs.traceabilityRules, rule.id),
-      ).toBe(true);
+      expect(TraceabilityRuleEngine.isEnabled(rs.traceabilityRules, rule.id)).toBe(true);
     }
     expect(
-      TraceabilityRuleEngine.getParam(
-        rs.traceabilityRules,
-        "ART3_TRANSMISSION_WINDOW",
-        "transmissionDeadlineDays",
-        0,
-      ),
+      TraceabilityRuleEngine.getParam(rs.traceabilityRules, "ART3_TRANSMISSION_WINDOW", "transmissionDeadlineDays", 0),
     ).toBe(EU_TRACEABILITY_FLOORS.transmissionMaxDays);
-    expect(
-      TraceabilityRuleEngine.getParam(
-        rs.traceabilityRules,
-        "ART12_NUMERIC_CODE",
-        "animalCodeMaxLength",
-        0,
-      ),
-    ).toBe(EU_TRACEABILITY_FLOORS.animalCodeMaxLength);
+    expect(TraceabilityRuleEngine.getParam(rs.traceabilityRules, "ART12_NUMERIC_CODE", "animalCodeMaxLength", 0)).toBe(
+      EU_TRACEABILITY_FLOORS.animalCodeMaxLength,
+    );
   });
 
   it("honours per-Article enable/disable + re-parameterisation via system_parameters", () => {
@@ -69,22 +57,11 @@ describe("buildRuleSet — traceability rules engine (ADR-0085)", () => {
       { code: "ART3_TRANSMISSION_WINDOW_PARAM_transmissionDeadlineDays", value: "14" },
       { code: "ART13_TAG_BEFORE_MOVE_ENABLED", value: "false" },
     ]);
+    expect(TraceabilityRuleEngine.isEnabled(rs.traceabilityRules, "ART3_TRANSMISSION_WINDOW")).toBe(false);
+    expect(TraceabilityRuleEngine.isEnabled(rs.traceabilityRules, "ART13_TAG_BEFORE_MOVE")).toBe(false);
+    expect(TraceabilityRuleEngine.isEnabled(rs.traceabilityRules, "ART12_NUMERIC_CODE")).toBe(true);
     expect(
-      TraceabilityRuleEngine.isEnabled(rs.traceabilityRules, "ART3_TRANSMISSION_WINDOW"),
-    ).toBe(false);
-    expect(
-      TraceabilityRuleEngine.isEnabled(rs.traceabilityRules, "ART13_TAG_BEFORE_MOVE"),
-    ).toBe(false);
-    expect(
-      TraceabilityRuleEngine.isEnabled(rs.traceabilityRules, "ART12_NUMERIC_CODE"),
-    ).toBe(true);
-    expect(
-      TraceabilityRuleEngine.getParam(
-        rs.traceabilityRules,
-        "ART3_TRANSMISSION_WINDOW",
-        "transmissionDeadlineDays",
-        0,
-      ),
+      TraceabilityRuleEngine.getParam(rs.traceabilityRules, "ART3_TRANSMISSION_WINDOW", "transmissionDeadlineDays", 0),
     ).toBe(14);
   });
 });
@@ -116,10 +93,7 @@ describe("buildRuleSet — per-species first-identification rules (multi-species
 
   it("sovereign guard rejects a loosened per-species tagging deadline at build time", () => {
     expect(() =>
-      buildRuleSet("MK", [
-        ...baseRows(),
-        { code: "ART21_EQUINE_TAGGING_PARAM_taggingDays", value: "999" },
-      ]),
+      buildRuleSet("MK", [...baseRows(), { code: "ART21_EQUINE_TAGGING_PARAM_taggingDays", value: "999" }]),
     ).toThrow(/Sovereign limit violated/);
   });
 });
@@ -150,5 +124,22 @@ describe("EU_TRACEABILITY_FLOORS", () => {
     expect(EU_TRACEABILITY_FLOORS.animalCodeMaxLength).toBe(12);
     expect(EU_TRACEABILITY_FLOORS.animalCodeNumericOnly).toBe(true);
     expect(EU_BIRTH_DEADLINES.notificationMaxDays).toBe(7);
+  });
+});
+
+describe("buildRuleSet — RuleSet.features (WO-060 IoT gate)", () => {
+  it("defaults features.iot = true when IOT_ENABLED is absent (backward-safe)", () => {
+    const rs = buildRuleSet("MK", baseRows());
+    expect(rs.features.iot).toBe(true);
+  });
+
+  it("honours IOT_ENABLED = false", () => {
+    const rs = buildRuleSet("MK", [...baseRows(), { code: "IOT_ENABLED", value: "false" }]);
+    expect(rs.features.iot).toBe(false);
+  });
+
+  it("honours IOT_ENABLED = true", () => {
+    const rs = buildRuleSet("MK", [...baseRows(), { code: "IOT_ENABLED", value: "true" }]);
+    expect(rs.features.iot).toBe(true);
   });
 });

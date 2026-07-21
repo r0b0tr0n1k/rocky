@@ -2,19 +2,19 @@
 
 import { Badge } from "@rocky/ui/components/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@rocky/ui/components/card";
-import { markAsReadSchema, notificationOutputSchema, sendNotificationSchema } from "@rocky/validators/api";
-import { z } from "zod";
-import { type ColumnDef } from "@tanstack/react-table";
-import { DataTable } from "#components/shared/data-table";
-import { TableCard, tableDensityClass } from "#components/shared/table-card";
+import { markAsReadSchema, type notificationOutputSchema, sendNotificationSchema } from "@rocky/validators/api";
 import { NOTIFICATION_CATEGORY, NOTIFICATION_PRIORITY, NOTIFICATION_TYPE } from "@rocky/validators/enums";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { z } from "zod";
 import { ActionDialog } from "#components/shared/action-dialog";
+import { DataTable } from "#components/shared/data-table";
 import { SelectField, TextareaField, TextField } from "#components/shared/form-fields";
 import { PageHeader } from "#components/shared/page-header";
+import { TableCard, tableDensityClass } from "#components/shared/table-card";
 import { enumToOptions } from "#lib/options";
-import { useTRPC } from "#lib/trpc";
 import { clientCanRole, usePermissions } from "#lib/permissions";
+import { useTRPC } from "#lib/trpc";
 
 type NotificationOutput = z.infer<typeof notificationOutputSchema>;
 
@@ -79,43 +79,48 @@ export default function NotificationsPage() {
         </CardContent>
       </Card>
       <div className="flex flex-wrap gap-2">
-{canSend && (
-        <ActionDialog
-          triggerLabel="Send notification"
-          schema={sendNotificationSchema.omit({ userId: true })}
-          mutation={send}
-          title="Send notification"
-          description="Dispatch a notification to the current user's channels."
-          fields={(form) => (
-            <>
-              <SelectField
-                control={form.control}
-                name="type"
-                label="Type"
-                options={enumToOptions(Object.values(NOTIFICATION_TYPE))}
-              />
-              <SelectField
-                control={form.control}
-                name="category"
-                label="Category"
-                options={enumToOptions(Object.values(NOTIFICATION_CATEGORY))}
-              />
-              <TextField control={form.control} name="subject" label="Subject" placeholder="e.g. Inspection overdue" />
-              <TextareaField
-                control={form.control}
-                name="message"
-                label="Message"
-                placeholder="Body of the notification"
-              />
-              <SelectField
-                control={form.control}
-                name="priority"
-                label="Priority"
-                options={enumToOptions(Object.values(NOTIFICATION_PRIORITY))}
-              />
-            </>
-          )}
-        />
+        {canSend && (
+          <ActionDialog
+            triggerLabel="Send notification"
+            schema={sendNotificationSchema.omit({ userId: true })}
+            mutation={send}
+            title="Send notification"
+            description="Dispatch a notification to the current user's channels."
+            fields={(form) => (
+              <>
+                <SelectField
+                  control={form.control}
+                  name="type"
+                  label="Type"
+                  options={enumToOptions(Object.values(NOTIFICATION_TYPE))}
+                />
+                <SelectField
+                  control={form.control}
+                  name="category"
+                  label="Category"
+                  options={enumToOptions(Object.values(NOTIFICATION_CATEGORY))}
+                />
+                <TextField
+                  control={form.control}
+                  name="subject"
+                  label="Subject"
+                  placeholder="e.g. Inspection overdue"
+                />
+                <TextareaField
+                  control={form.control}
+                  name="message"
+                  label="Message"
+                  placeholder="Body of the notification"
+                />
+                <SelectField
+                  control={form.control}
+                  name="priority"
+                  label="Priority"
+                  options={enumToOptions(Object.values(NOTIFICATION_PRIORITY))}
+                />
+              </>
+            )}
+          />
         )}
         <ActionDialog
           triggerLabel="Mark as read"

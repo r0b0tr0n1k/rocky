@@ -1,12 +1,8 @@
 "use client";
 
-import * as React from "react";
-import { type Control, type FieldValues, type Path } from "react-hook-form";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-
-import { cn } from "@rocky/ui/lib/utils";
 import { Button } from "@rocky/ui/components/button";
+import { Calendar } from "@rocky/ui/components/calendar";
+import { Checkbox } from "@rocky/ui/components/checkbox";
 import {
   Combobox,
   ComboboxContent,
@@ -15,27 +11,17 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@rocky/ui/components/combobox";
-import { Calendar } from "@rocky/ui/components/calendar";
-import { Checkbox } from "@rocky/ui/components/checkbox";
-import {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@rocky/ui/components/field";
+import { Field, FieldContent, FieldDescription, FieldError, FieldLabel } from "@rocky/ui/components/field";
 import { FormControl, FormField } from "@rocky/ui/components/form";
 import { Input } from "@rocky/ui/components/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@rocky/ui/components/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@rocky/ui/components/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@rocky/ui/components/select";
 import { Switch } from "@rocky/ui/components/switch";
 import { Textarea } from "@rocky/ui/components/textarea";
+import { cn } from "@rocky/ui/lib/utils";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import type { Control, FieldValues, Path } from "react-hook-form";
 
 export interface FieldOption {
   label: string;
@@ -138,9 +124,7 @@ export function NumberField<TValues extends FieldValues>({
               onBlur={field.onBlur}
               name={field.name}
               ref={field.ref}
-              onChange={(e) =>
-                field.onChange(e.target.value === "" ? undefined : e.target.valueAsNumber)
-              }
+              onChange={(e) => field.onChange(e.target.value === "" ? undefined : e.target.valueAsNumber)}
             />
           </FormControl>
           {description ? <FieldDescription>{description}</FieldDescription> : null}
@@ -188,12 +172,7 @@ export function SelectField<TValues extends FieldValues>({
   );
 }
 
-export function CheckboxField<TValues extends FieldValues>({
-  control,
-  name,
-  label,
-  description,
-}: BaseProps<TValues>) {
+export function CheckboxField<TValues extends FieldValues>({ control, name, label, description }: BaseProps<TValues>) {
   return (
     <FormField
       control={control}
@@ -218,12 +197,7 @@ export function CheckboxField<TValues extends FieldValues>({
   );
 }
 
-export function SwitchField<TValues extends FieldValues>({
-  control,
-  name,
-  label,
-  description,
-}: BaseProps<TValues>) {
+export function SwitchField<TValues extends FieldValues>({ control, name, label, description }: BaseProps<TValues>) {
   return (
     <FormField
       control={control}
@@ -253,12 +227,7 @@ export function SwitchField<TValues extends FieldValues>({
  * wire). This satisfies z.date() request inputs and is also accepted by
  * z.coerce.date<string>() fields (coercion passes a Date through).
  */
-export function DateField<TValues extends FieldValues>({
-  control,
-  name,
-  label,
-  description,
-}: BaseProps<TValues>) {
+export function DateField<TValues extends FieldValues>({ control, name, label, description }: BaseProps<TValues>) {
   return (
     <FormField
       control={control}
@@ -268,10 +237,7 @@ export function DateField<TValues extends FieldValues>({
         const selected: Date | undefined =
           raw instanceof Date ? raw : raw ? new Date(raw as string | number) : undefined;
         return (
-          <Field
-            data-invalid={fieldState.error ? true : undefined}
-            className="flex flex-col gap-1"
-          >
+          <Field data-invalid={fieldState.error ? true : undefined} className="flex flex-col gap-1">
             <FieldLabel>{label}</FieldLabel>
             <Popover>
               <PopoverTrigger asChild>
@@ -279,10 +245,7 @@ export function DateField<TValues extends FieldValues>({
                   <Button
                     type="button"
                     variant="outline"
-                    className={cn(
-                      "w-full pl-3 text-left font-normal",
-                      !field.value && "text-muted-foreground",
-                    )}
+                    className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
                   >
                     {selected ? format(selected, "PPP") : <span>Pick a date</span>}
                     <CalendarIcon data-icon="inline-start" className="ml-auto opacity-50" />
@@ -290,11 +253,7 @@ export function DateField<TValues extends FieldValues>({
                 </FormControl>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={selected}
-                  onSelect={(d) => field.onChange(d ?? undefined)}
-                />
+                <Calendar mode="single" selected={selected} onSelect={(d) => field.onChange(d ?? undefined)} />
               </PopoverContent>
             </Popover>
             {description ? <FieldDescription>{description}</FieldDescription> : null}

@@ -1,48 +1,32 @@
 "use client";
 
-import * as React from "react";
-import { Plus } from "lucide-react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { z } from "zod";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@rocky/ui/components/select";
-
 import { Badge } from "@rocky/ui/components/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@rocky/ui/components/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@rocky/ui/components/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@rocky/ui/components/select";
 import {
   createFarmBookRequestSchema,
-  updateFarmBookStatusRequestSchema,
   type FarmBookResponse,
   type FarmSummary,
+  updateFarmBookStatusRequestSchema,
 } from "@rocky/validators/api";
 import { FARM_BOOK_STATUS, type farmBookStatusType } from "@rocky/validators/enums";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
+import * as React from "react";
+import { z } from "zod";
+import { farmBookColumns } from "#components/farm-books/columns";
 import { ActionDialog } from "#components/shared/action-dialog";
+import { DataTable } from "#components/shared/data-table";
 import { ComboboxField, SelectField, TextField } from "#components/shared/form-fields";
 import { PageHeader } from "#components/shared/page-header";
 import { Stepper } from "#components/shared/stepper";
-import { DataTable } from "#components/shared/data-table";
 import { TableCard, tableDensityClass } from "#components/shared/table-card";
-import { farmBookColumns } from "#components/farm-books/columns";
 import { useTRPC } from "#lib/trpc";
 
 // Imported enum — drives the lifecycle Stepper AND the status <select>.
 const FARM_BOOK_STATUS_ORDER = Object.values(FARM_BOOK_STATUS);
 
-function statusStep(
-  s: farmBookStatusType,
-  current: farmBookStatusType,
-): "done" | "current" | "upcoming" {
+function statusStep(s: farmBookStatusType, current: farmBookStatusType): "done" | "current" | "upcoming" {
   const curIdx = FARM_BOOK_STATUS_ORDER.indexOf(current);
   const idx = FARM_BOOK_STATUS_ORDER.indexOf(s);
   if (s === current) return "current";
@@ -68,9 +52,7 @@ export default function FarmBooksPage() {
     label: f.name ?? f.farmId,
   }));
 
-  const listQuery = useQuery(
-    trpc.farmBook.getByFarmId.queryOptions({ farmId: farmId ?? "" }, { enabled: !!farmId }),
-  );
+  const listQuery = useQuery(trpc.farmBook.getByFarmId.queryOptions({ farmId: farmId ?? "" }, { enabled: !!farmId }));
   const rows = (listQuery.data ?? []) as FarmBookResponse[];
 
   const invalidate = () =>
@@ -79,18 +61,13 @@ export default function FarmBooksPage() {
     });
 
   const create = useMutation(trpc.farmBook.create.mutationOptions({ onSuccess: invalidate }));
-  const updateStatus = useMutation(
-    trpc.farmBook.updateStatus.mutationOptions({ onSuccess: invalidate }),
-  );
+  const updateStatus = useMutation(trpc.farmBook.updateStatus.mutationOptions({ onSuccess: invalidate }));
 
   const columns = React.useMemo(() => farmBookColumns({ onView: setSelected }), []);
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Farm Books"
-        description="Physical farm-book documents and their production lifecycle."
-      />
+      <PageHeader title="Farm Books" description="Physical farm-book documents and their production lifecycle." />
 
       <Select value={farmId ?? "all"} onValueChange={(v) => setFarmId(v === "all" ? undefined : v)}>
         <SelectTrigger className="w-[280px]">
@@ -128,17 +105,17 @@ export default function FarmBooksPage() {
           />
         }
       >
-      <DataTable
-        columns={columns}
-        data={rows}
-        total={rows.length}
-        isLoading={listQuery.isLoading}
-        page={0}
-        pageSize={Math.max(rows.length, 20)}
-        onPageChange={() => {}}
-        bordered={false}
-        tableClassName={tableDensityClass}
-      />
+        <DataTable
+          columns={columns}
+          data={rows}
+          total={rows.length}
+          isLoading={listQuery.isLoading}
+          page={0}
+          pageSize={Math.max(rows.length, 20)}
+          onPageChange={() => {}}
+          bordered={false}
+          tableClassName={tableDensityClass}
+        />
       </TableCard>
 
       <Dialog
@@ -185,12 +162,7 @@ export default function FarmBooksPage() {
                       label="Status"
                       options={FARM_BOOK_STATUS_ORDER.map((s) => ({ label: s, value: s }))}
                     />
-                    <TextField
-                      control={form.control}
-                      name="data.vsId"
-                      label="VS ID (optional)"
-                      placeholder="uuid"
-                    />
+                    <TextField control={form.control} name="data.vsId" label="VS ID (optional)" placeholder="uuid" />
                   </>
                 )}
               />
@@ -201,4 +173,3 @@ export default function FarmBooksPage() {
     </div>
   );
 }
-

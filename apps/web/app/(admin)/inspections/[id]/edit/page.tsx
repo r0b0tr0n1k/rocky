@@ -1,11 +1,9 @@
 "use client";
 
-import * as React from "react";
-import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-
-import { InspectionDetail } from "#components/inspections/inspection-detail";
 import { Button } from "@rocky/ui/components/button";
+import { ArrowLeft } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { InspectionDetail } from "#components/inspections/inspection-detail";
 import { PageHeader } from "#components/shared/page-header";
 
 export default function EditInspectionPage() {

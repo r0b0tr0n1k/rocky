@@ -1,26 +1,26 @@
 "use client";
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@rocky/ui/components/tabs";
 import {
-  ingestReadingRequestSchema,
-  registerDeviceRequestSchema,
   type AnimalSummary,
   type FarmResponse,
   type IotDeviceResponse,
   type IotDeviceSummary,
+  ingestReadingRequestSchema,
+  registerDeviceRequestSchema,
   type SensorReadingResponse,
 } from "@rocky/validators/api";
 import { READING_TYPE, TRANSMISSION_TYPE } from "@rocky/validators/enums";
-import { ComboboxField, NumberField, SelectField, TextField } from "#components/shared/form-fields";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { deviceColumns, sensorReadingColumns } from "#components/iot/columns";
 import { ActionDialog, RowActionMenu } from "#components/shared/action-dialog";
 import { DataTable } from "#components/shared/data-table";
-import { appendRowActions, TableCard, tableDensityClass } from "#components/shared/table-card";
-import { RowDetailsDialog, type DetailField } from "#components/shared/row-details-dialog";
+import { ComboboxField, NumberField, SelectField, TextField } from "#components/shared/form-fields";
 import { PageHeader } from "#components/shared/page-header";
-import { deviceColumns, sensorReadingColumns } from "#components/iot/columns";
+import { type DetailField, RowDetailsDialog } from "#components/shared/row-details-dialog";
+import { appendRowActions, TableCard, tableDensityClass } from "#components/shared/table-card";
 import { enumToOptions } from "#lib/options";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "#lib/trpc";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@rocky/ui/components/tabs";
 
 const PAGE_SIZE = 20;
 

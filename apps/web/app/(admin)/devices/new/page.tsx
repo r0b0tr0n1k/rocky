@@ -1,13 +1,11 @@
 "use client";
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-
-import { DeviceCreateForm } from "#components/devices/device-create-form";
 import { Button } from "@rocky/ui/components/button";
-import { PageHeader } from "#components/shared/page-header";
 import { Card, CardContent } from "@rocky/ui/components/card";
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { DeviceCreateForm } from "#components/devices/device-create-form";
+import { PageHeader } from "#components/shared/page-header";
 
 export default function NewDevicePage() {
   const router = useRouter();

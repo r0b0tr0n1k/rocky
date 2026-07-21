@@ -5,11 +5,11 @@
 
 | Key | Value |
 | --- | --- |
-| **Status** | Proposed |
+| **Status** | Superseded |
 | **Date** | 2026-07-17 |
 | **Author** | Architecture Review |
 | **Supersedes** | None |
-| **Superseded** | None |
+| **Superseded** | 0082/0084 (the Typst render path shipped the `DocumentTemplate` registry pattern; re-open as a fresh Proposed template-catalog ADR only if the typed `DOCUMENT_TYPES` catalog + `sections` selector is still wanted) |
 
 ---
 

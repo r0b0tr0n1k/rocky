@@ -6,6 +6,7 @@ import { ArchiveDocumentFactory } from "@rocky/testing";
 import { archiveDocumentResponseSchema } from "@rocky/validators/api";
 import { ArchiveError, ARCHIVE_ERRORS } from "../errors/archive.errors.js";
 import type { SystemService } from "@rocky/domains-system";
+import type { AuditService } from "@rocky/domains-audit";
 
 /**
  * WO-030 workflow test — pure unit test (Scenario B): mock the repository,
@@ -16,6 +17,7 @@ describe("ArchiveService — document lifecycle state machine (workflow)", () =>
   const farmId = "88888888-8888-4888-8888-888888888888";
   let service: ArchiveService;
   let repo: ArchiveRepository;
+  let auditService: AuditService;
 
   beforeEach(() => {
     repo = {
@@ -25,7 +27,9 @@ describe("ArchiveService — document lifecycle state machine (workflow)", () =>
     } as unknown as ArchiveRepository;
     // system is required by the constructor; markArchived/markDestroyed don't call it.
     const system = { getRuleSet: vi.fn().mockResolvedValue(ok({ jurisdiction: "MK" })) } as unknown as SystemService;
-    service = new ArchiveService(repo, system);
+    // WO-159 Part 4 — archive lifecycle events must be mirrored to the audit trail.
+    auditService = { recordArchiveAction: vi.fn().mockResolvedValue(ok(undefined)) } as unknown as AuditService;
+    service = new ArchiveService(repo, system, auditService);
   });
 
   describe("markArchived", () => {
@@ -41,6 +45,20 @@ describe("ArchiveService — document lifecycle state machine (workflow)", () =>
         expect(res.value.isArchived).toBe(true);
         expect(() => archiveDocumentResponseSchema.parse(res.value)).not.toThrow();
       }
+      // WO-159 Part 4 — the archive transition must be recorded as an ARCHIVE action.
+      expect(auditService.recordArchiveAction).toHaveBeenCalledWith(
+        expect.objectContaining({ resource: "archiveDocument", resourceId: doc.id }),
+      );
+    });
+
+    it("does NOT record an audit event when archiving is rejected", async () => {
+      const doc = new ArchiveDocumentFactory(farmId).createArchived();
+      repo.findById = vi.fn().mockResolvedValue(doc);
+
+      const res = await service.markArchived(doc.id);
+
+      expect(res.isErr()).toBe(true);
+      expect(auditService.recordArchiveAction).not.toHaveBeenCalled();
     });
 
     it("rejects archiving an already-archived document", async () => {

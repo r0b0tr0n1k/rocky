@@ -28,11 +28,12 @@ ADR-0054 already specifies the rule path `ruleset.thresholds.protectionZoneKm` (
    `surveillanceZoneKm` (default 10) + `diseaseZoneEnabled` (default true). Read via `buildRuleSet`,
    never hardcoded (ADR-0054 mandate).
 3. **Spatial intersection via `ST_DWithin` on cast-to-geography.** `movement` asks
-   `IotRepository.findActiveDiseaseZonesNearFarm(farmId, radiusMeters)`, which joins
+   `GeoService.findActiveDiseaseZonesNearFarm(farmId, radiusMeters)` (extracted from IoT into
+   `packages/geo` per ADR-0078), which joins
    `geofences.polygon::geography` against `farms.location::geography` with `ST_DWithin(..., meters)`.
    The geography cast is mandatory: a SRID-4326 *geometry* `ST_DWithin` would measure in **degrees**,
    silently turning 3 km into ~0.027°, a classic GIS bug.
-4. **Shared, reusable check.** `runDiseaseZoneCheck(iotRepo, ruleSet, fromFarmId)` returns
+4. **Shared, reusable check.** `runDiseaseZoneCheck(geoService, ruleSet, fromFarmId)` returns
    `{ enabled, inProtectionZone, inSurveillanceZone, protectionZones, surveillanceZones }`. The
    `MovementService.create()` gate consumes it (protection → block all cross-farm moves; surveillance
    → block EXPORT), and WO-121's CHED exporter can consume it for `imsoc.requireDiseaseClear`.

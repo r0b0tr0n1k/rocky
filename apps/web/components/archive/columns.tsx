@@ -1,17 +1,15 @@
 "use client";
 
-import { format } from "date-fns";
-import type { ComponentProps } from "react";
-import type { ColumnDef } from "@tanstack/react-table";
-import type { z } from "zod";
-import { EyeIcon } from "lucide-react";
-
 import { Badge } from "@rocky/ui/components/badge";
-import { RowActions } from "#components/shared/row-actions";
+import { type ArchiveDocumentResponse, markDestroyedArchiveRequestSchema } from "@rocky/validators/api";
+import { ARCHIVE_DOCUMENT_TYPE, ARCHIVE_LOCATION } from "@rocky/validators/enums";
+import type { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
+import { EyeIcon } from "lucide-react";
+import type { ComponentProps } from "react";
+import type { z } from "zod";
 import { ActionDialog, RowActionMenu, type RowMenuItem } from "#components/shared/action-dialog";
 import { StatusBadge } from "#components/shared/status-badge";
-import { ARCHIVE_DOCUMENT_TYPE, ARCHIVE_LOCATION } from "@rocky/validators/enums";
-import { markDestroyedArchiveRequestSchema, type ArchiveDocumentResponse } from "@rocky/validators/api";
 
 export type { ArchiveDocumentResponse } from "@rocky/validators/api";
 

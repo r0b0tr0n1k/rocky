@@ -1,14 +1,7 @@
-import Link from "next/link";
-import { FileQuestion } from "lucide-react";
 import { Button } from "@rocky/ui/components/button";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@rocky/ui/components/empty";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@rocky/ui/components/empty";
+import { FileQuestion } from "lucide-react";
+import Link from "next/link";
 
 export default function NotFound() {
   return (
@@ -19,9 +12,7 @@ export default function NotFound() {
             <FileQuestion className="size-4" />
           </EmptyMedia>
           <EmptyTitle>Page not found</EmptyTitle>
-          <EmptyDescription>
-            The page you are looking for does not exist or has been moved.
-          </EmptyDescription>
+          <EmptyDescription>The page you are looking for does not exist or has been moved.</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <Button asChild>

@@ -9,7 +9,7 @@
 
 import type { Principal } from "../principal/principal.js";
 import type { PolicyMetadata } from "./policy.decorator.js";
-import { SystemService } from "@rocky/domains-system";
+import type { SystemService } from "@rocky/domains-system";
 import type { RuleSet } from "@rocky/domains-system";
 
 export interface PolicyDecision {
@@ -47,6 +47,17 @@ export class PolicyEngine {
     }
     if (ruleSet && !ruleSet.farmerCanAdminister && principal.hasRole("FARMER")) {
       return { allowed: false, reason: "Farmer administration is disabled for this jurisdiction" };
+    }
+
+    // ── feature-flag gate (WO-060) ──
+    // When a policy names a RuleSet feature (e.g. "iot"), the feature must be
+    // enabled for the jurisdiction. Disabled features deny access regardless of
+    // role/permission — they are an opt-out kill-switch for entire surfaces.
+    if (policy.feature) {
+      const enabled = ruleSet?.features?.[policy.feature as keyof typeof ruleSet.features] ?? false;
+      if (!enabled) {
+        return { allowed: false, reason: `Feature ${policy.feature} disabled for this jurisdiction` };
+      }
     }
 
     // ── admin check (shortcut) ──

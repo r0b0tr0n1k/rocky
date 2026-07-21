@@ -1,36 +1,6 @@
 "use client";
 
-import * as React from "react";
-
-import {
-  appendToOrderRequestSchema,
-  assignSupplierContingentRequestSchema,
-  cancelOrderItemRequestSchema,
-  cancelOrderRequestSchema,
-  collectOrderTagsRequestSchema,
-  createDuplicateOrderRequestSchema,
-  createOrderRequestSchema,
-  orderStatusTransitionSchema,
-  updateOrderRequestSchema,
-  type AnimalSummary,
-  type EarTagOrderResponse,
-  type EarTagResponse,
-  type EarTagTypeResponse,
-} from "@rocky/validators/api";
-import { EAR_TAG_ORDER_STATUS, ORDER_STATUS, contingentTypeSchema } from "@rocky/validators/enums";
-import { ComboboxField, NumberField, SelectField, TextareaField, TextField } from "#components/shared/form-fields";
-import { ActionDialog, RowActionMenu } from "#components/shared/action-dialog";
-import { DataTable } from "#components/shared/data-table";
-import { PageHeader } from "#components/shared/page-header";
-import { RowDetailsDialog, type DetailField } from "#components/shared/row-details-dialog";
-import { TableCard, appendRowActions, tableDensityClass } from "#components/shared/table-card";
-import { earTagColumns, earTagTypeColumns } from "#components/ear-tags/columns";
-import { earTagOrderColumns } from "#components/ear-tags/order-columns";
-import { Stepper } from "#components/shared/stepper";
-import { enumToOptions } from "#lib/options";
-import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTRPC } from "#lib/trpc";
-import { useCan } from "#lib/permissions";
+import { Button } from "@rocky/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -40,9 +10,38 @@ import {
   DialogTrigger,
 } from "@rocky/ui/components/dialog";
 import { DropdownMenuItem } from "@rocky/ui/components/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@rocky/ui/components/tabs";
-import { Button } from "@rocky/ui/components/button";
 import { Input } from "@rocky/ui/components/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@rocky/ui/components/tabs";
+import {
+  type AnimalSummary,
+  appendToOrderRequestSchema,
+  assignSupplierContingentRequestSchema,
+  cancelOrderItemRequestSchema,
+  cancelOrderRequestSchema,
+  collectOrderTagsRequestSchema,
+  createDuplicateOrderRequestSchema,
+  createOrderRequestSchema,
+  type EarTagOrderResponse,
+  type EarTagResponse,
+  type EarTagTypeResponse,
+  orderStatusTransitionSchema,
+  updateOrderRequestSchema,
+} from "@rocky/validators/api";
+import { contingentTypeSchema, EAR_TAG_ORDER_STATUS, ORDER_STATUS } from "@rocky/validators/enums";
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as React from "react";
+import { earTagColumns, earTagTypeColumns } from "#components/ear-tags/columns";
+import { earTagOrderColumns } from "#components/ear-tags/order-columns";
+import { ActionDialog, RowActionMenu } from "#components/shared/action-dialog";
+import { DataTable } from "#components/shared/data-table";
+import { ComboboxField, NumberField, SelectField, TextareaField, TextField } from "#components/shared/form-fields";
+import { PageHeader } from "#components/shared/page-header";
+import { type DetailField, RowDetailsDialog } from "#components/shared/row-details-dialog";
+import { Stepper } from "#components/shared/stepper";
+import { appendRowActions, TableCard, tableDensityClass } from "#components/shared/table-card";
+import { enumToOptions } from "#lib/options";
+import { useCan } from "#lib/permissions";
+import { useTRPC } from "#lib/trpc";
 
 const PAGE_SIZE = 20;
 

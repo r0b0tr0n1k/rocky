@@ -1,21 +1,18 @@
 "use client";
 
-import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeftRight, Building2, ClipboardCheck, PawPrint, PieChart, TrendingUp, Users } from "lucide-react";
-
-import { useTRPC } from "#lib/trpc";
-import { useSession } from "#lib/auth-client";
-import type { AnimalSummary, MovementSummary } from "@rocky/validators/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@rocky/ui/components/card";
 import {
+  type ChartConfig,
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
 } from "@rocky/ui/components/chart";
+import type { AnimalSummary, MovementSummary } from "@rocky/validators/api";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeftRight, Building2, ClipboardCheck, PawPrint, PieChart, TrendingUp, Users } from "lucide-react";
+import * as React from "react";
 import {
   Area,
   AreaChart,
@@ -27,8 +24,9 @@ import {
   PieChart as PieChartPrimitive,
   XAxis,
 } from "recharts";
-
 import { DashboardStat } from "#components/dashboard/stat-tile";
+import { useSession } from "#lib/auth-client";
+import { useTRPC } from "#lib/trpc";
 
 const prettify = (value: string) => value.charAt(0) + value.slice(1).toLowerCase();
 
@@ -39,18 +37,20 @@ export interface DashboardTotals {
   farms: number;
   movements: number;
   inspections: number;
+  activeDiseaseZones: number;
+  openGeofenceEvents: number;
 }
 
 export function DashboardAnalytics({
   animals,
   movements,
   totals,
-  isLoading,
+  _isLoading,
 }: {
   animals: AnimalSummary[];
   movements: MovementSummary[];
   totals: DashboardTotals;
-  isLoading?: boolean;
+  _isLoading?: boolean;
 }) {
   const statusCounts = React.useMemo(() => {
     const map = new Map<string, number>();
@@ -222,12 +222,15 @@ export function useTotals() {
   const movements = useQuery(trpc.movement.list.queryOptions({ limit: 1, offset: 0 }, { enabled }));
   const farms = useQuery(trpc.farm.list.queryOptions({ limit: 1, offset: 0 }, { enabled }));
   const inspections = useQuery(trpc.inspection.list.queryOptions({ limit: 1, offset: 0 }, { enabled }));
+  const geoCounts = useQuery(trpc.geo.counts.queryOptions({}, { enabled }));
 
   return {
     animals: animals.data?.total ?? 0,
     farms: farms.data?.total ?? 0,
     movements: movements.data?.total ?? 0,
     inspections: inspections.data?.total ?? 0,
+    activeDiseaseZones: geoCounts.data?.activeDiseaseZones ?? 0,
+    openGeofenceEvents: geoCounts.data?.openGeofenceEvents ?? 0,
   };
 }
 

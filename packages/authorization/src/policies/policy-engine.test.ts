@@ -93,8 +93,44 @@ describe("PolicyEngine — authorization decisions", () => {
   it("enforces organization membership", async () => {
     const engine = makeEngine();
     expect((await engine.evaluate(principal({ organization: null }), { organization: true })).allowed).toBe(false);
-    expect(
-      (await engine.evaluate(principal({ organization: { id: "org-1" } }), { organization: true })).allowed,
-    ).toBe(true);
+    expect((await engine.evaluate(principal({ organization: { id: "org-1" } }), { organization: true })).allowed).toBe(
+      true,
+    );
+  });
+
+  // ── WO-060: RuleSet feature-flag gate ──
+  describe("feature gate (WO-060)", () => {
+    function makeEngineWithFeatures(features: { iot: boolean }) {
+      const system = {
+        getRuleSet: vi.fn().mockResolvedValue({
+          isOk: () => true,
+          value: {
+            jurisdiction: "MK",
+            farmerCanAdminister: true,
+            features,
+          },
+        }),
+      } as unknown as SystemService;
+      return new PolicyEngine(system);
+    }
+
+    it("DENIES when the named feature is disabled", async () => {
+      const engine = makeEngineWithFeatures({ iot: false });
+      const decision = await engine.evaluate(principal(), { authenticated: true, feature: "iot" });
+      expect(decision.allowed).toBe(false);
+      expect(decision.reason).toMatch(/feature iot disabled/i);
+    });
+
+    it("ALLOWS when the named feature is enabled", async () => {
+      const engine = makeEngineWithFeatures({ iot: true });
+      const decision = await engine.evaluate(principal(), { authenticated: true, feature: "iot" });
+      expect(decision.allowed).toBe(true);
+    });
+
+    it("does not gate when no feature is named (backward-safe)", async () => {
+      const engine = makeEngineWithFeatures({ iot: false });
+      const decision = await engine.evaluate(principal(), { authenticated: true });
+      expect(decision.allowed).toBe(true);
+    });
   });
 });

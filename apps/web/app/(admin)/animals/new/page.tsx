@@ -1,13 +1,11 @@
 "use client";
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-
-import { AnimalCreateForm } from "#components/animals/animal-create-form";
 import { Button } from "@rocky/ui/components/button";
-import { PageHeader } from "#components/shared/page-header";
 import { Card, CardContent } from "@rocky/ui/components/card";
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { AnimalCreateForm } from "#components/animals/animal-create-form";
+import { PageHeader } from "#components/shared/page-header";
 
 export default function NewAnimalPage() {
   const router = useRouter();

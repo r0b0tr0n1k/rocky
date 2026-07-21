@@ -211,6 +211,28 @@ export class AuditService {
   }
 
   /**
+   * WO-159 Part 4 — archive lifecycle events. Records the archive / unarchive /
+   * destroy / restore transition of an archive document as a dedicated ARCHIVE
+   * action (kept distinct from UPDATE so the audit trail can isolate custody
+   * changes of physical/digital records).
+   */
+  async recordArchiveAction(params: {
+    resource: string;
+    resourceId: string;
+    oldValue: Record<string, unknown> | null;
+    newValue: Record<string, unknown> | null;
+    userId?: string;
+    sessionId?: string;
+    source?: string;
+    request?: AuditRequestContext;
+  }): Promise<Result<void, Error>> {
+    return fromAsyncThrowable(
+      () => this.persist(AUDIT_ACTION.ARCHIVE, { ...params, oldValue: params.oldValue, newValue: params.newValue }),
+      toAppError,
+    )();
+  }
+
+  /**
    * WO-159 Part 3 — retention prune. Deletes audit records older than `cutoff`
    * (epidemiology-law window; animal-owner erasure is void). Delegates to the
    * repository, which opens a transaction and arms `app.audit_retention = 'on'`

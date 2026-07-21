@@ -35,7 +35,7 @@ const unwrap = createResultUnwrapper(DEVICE_TRPC_ERROR_MAP);
 
 @Router({ alias: "device" })
 @RegisterPolicy("device")
-@Policy({ authenticated: true })
+@Policy({ authenticated: true, feature: "iot" })
 @Injectable()
 export class DeviceRouter {
   constructor(@Inject(DeviceService) private readonly deviceService: DeviceService) {}
@@ -118,13 +118,15 @@ type _verify_unblockOutput = SubtypeGuillotine<
   Awaited<ReturnType<DeviceRouter["unblock"]>>
 >;
 
-export type _DeviceGuillotines = ActivateGuillotines<[
-  _verify_getByIdOutput,
-  _verify_listOutput,
-  _verify_createOutput,
-  _verify_updateOutput,
-  _verify_assignUserOutput,
-  _verify_recordSyncOutput,
-  _verify_registerFailedAttemptOutput,
-  _verify_unblockOutput
-]>;
+export type _DeviceGuillotines = ActivateGuillotines<
+  [
+    _verify_getByIdOutput,
+    _verify_listOutput,
+    _verify_createOutput,
+    _verify_updateOutput,
+    _verify_assignUserOutput,
+    _verify_recordSyncOutput,
+    _verify_registerFailedAttemptOutput,
+    _verify_unblockOutput,
+  ]
+>;

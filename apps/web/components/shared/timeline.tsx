@@ -1,9 +1,7 @@
 "use client";
 
-import * as React from "react";
-import { AlertCircle, Check } from "lucide-react";
-
 import { cn } from "@rocky/ui/lib/utils";
+import { AlertCircle, Check } from "lucide-react";
 
 export type TimelineStatus = "done" | "current" | "upcoming" | "error";
 
@@ -67,12 +65,8 @@ export function Timeline({ items, className }: TimelineProps) {
               >
                 {item.title}
               </span>
-              {item.description ? (
-                <span className="text-xs text-muted-foreground">{item.description}</span>
-              ) : null}
-              {item.timestamp ? (
-                <span className="text-xs text-muted-foreground/70">{item.timestamp}</span>
-              ) : null}
+              {item.description ? <span className="text-xs text-muted-foreground">{item.description}</span> : null}
+              {item.timestamp ? <span className="text-xs text-muted-foreground/70">{item.timestamp}</span> : null}
             </div>
           </li>
         );

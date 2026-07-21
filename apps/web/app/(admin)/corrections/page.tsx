@@ -1,28 +1,29 @@
 "use client";
 
-import * as React from "react";
-import { Plus } from "lucide-react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@rocky/ui/components/select";
 import {
-  createCorrectionRequestSchema,
-  escalateCorrectionRequestSchema,
-  rejectCorrectionRequestSchema,
-  resolveCorrectionRequestSchema,
-  reviewCorrectionRequestSchema,
   type AnimalSummary,
   type CorrectionResponse,
+  createCorrectionRequestSchema,
   type FarmSummary,
-  type RejectCorrectionRequest,
 } from "@rocky/validators/api";
-import { CORRECTION_STATUS, CORRECTION_CASE_TYPE, DETECTION_SOURCE, type correctionStatusType, type detectionSourceType } from "@rocky/validators/enums";
-import { enumToOptions } from "#lib/options";
+import {
+  CORRECTION_CASE_TYPE,
+  CORRECTION_STATUS,
+  type correctionStatusType,
+  DETECTION_SOURCE,
+  type detectionSourceType,
+} from "@rocky/validators/enums";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
+import * as React from "react";
 import { correctionColumns } from "#components/corrections/columns";
-import { DataTable } from "#components/shared/data-table";
-import { PageHeader } from "#components/shared/page-header";
 import { ActionDialog } from "#components/shared/action-dialog";
-import { TableCard, tableDensityClass } from "#components/shared/table-card";
+import { DataTable } from "#components/shared/data-table";
 import { ComboboxField, SelectField, TextareaField, TextField } from "#components/shared/form-fields";
+import { PageHeader } from "#components/shared/page-header";
+import { TableCard, tableDensityClass } from "#components/shared/table-card";
+import { enumToOptions } from "#lib/options";
 import { useTRPC } from "#lib/trpc";
 
 export default function CorrectionsPage() {
@@ -33,7 +34,9 @@ export default function CorrectionsPage() {
   const [page, setPage] = React.useState(0);
   const pageSize = 20;
 
-  const listQuery = useQuery(trpc.correction.list.queryOptions({ status, detectionSource: source, limit: pageSize, offset: page * pageSize }));
+  const listQuery = useQuery(
+    trpc.correction.list.queryOptions({ status, detectionSource: source, limit: pageSize, offset: page * pageSize }),
+  );
   const rows = (listQuery.data?.data ?? []) as CorrectionResponse[];
   const total = listQuery.data?.total ?? 0;
 
@@ -46,28 +49,55 @@ export default function CorrectionsPage() {
 
   const animals = useQuery(trpc.animal.list.queryOptions({ limit: 100, offset: 0 }));
   const farms = useQuery(trpc.farm.list.queryOptions({ limit: 100, offset: 0 }));
-  const animalOptions = ((animals.data?.data ?? []) as AnimalSummary[]).map((a) => ({ value: a.id, label: a.earTagNumber }));
-  const farmOptions = ((farms.data?.data ?? []) as FarmSummary[]).map((f) => ({ value: f.id, label: f.name ?? f.farmId }));
+  const animalOptions = ((animals.data?.data ?? []) as AnimalSummary[]).map((a) => ({
+    value: a.id,
+    label: a.earTagNumber,
+  }));
+  const farmOptions = ((farms.data?.data ?? []) as FarmSummary[]).map((f) => ({
+    value: f.id,
+    label: f.name ?? f.farmId,
+  }));
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Corrections"
-        description="Error-correction cases: review, resolve, escalate."
-      />
+      <PageHeader title="Corrections" description="Error-correction cases: review, resolve, escalate." />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-        <Select value={status ?? "all"} onValueChange={(v) => { setStatus(v === "all" ? undefined : (v as correctionStatusType)); setPage(0); }}>
-          <SelectTrigger className="w-[200px]"><SelectValue placeholder="All statuses" /></SelectTrigger>
+        <Select
+          value={status ?? "all"}
+          onValueChange={(v) => {
+            setStatus(v === "all" ? undefined : (v as correctionStatusType));
+            setPage(0);
+          }}
+        >
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="All statuses" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
-            {Object.values(CORRECTION_STATUS).map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            {Object.values(CORRECTION_STATUS).map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
-        <Select value={source ?? "all"} onValueChange={(v) => { setSource(v === "all" ? undefined : (v as detectionSourceType)); setPage(0); }}>
-          <SelectTrigger className="w-[200px]"><SelectValue placeholder="All sources" /></SelectTrigger>
+        <Select
+          value={source ?? "all"}
+          onValueChange={(v) => {
+            setSource(v === "all" ? undefined : (v as detectionSourceType));
+            setPage(0);
+          }}
+        >
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="All sources" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All sources</SelectItem>
-            {Object.values(DETECTION_SOURCE).map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            {Object.values(DETECTION_SOURCE).map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -83,12 +113,22 @@ export default function CorrectionsPage() {
             description="Log a data error for a-priori or a-posteriori correction."
             fields={(form) => (
               <>
-                <SelectField control={form.control} name="detectionSource" label="Detection source" options={enumToOptions(Object.values(DETECTION_SOURCE))} />
+                <SelectField
+                  control={form.control}
+                  name="detectionSource"
+                  label="Detection source"
+                  options={enumToOptions(Object.values(DETECTION_SOURCE))}
+                />
                 <TextField control={form.control} name="errorType" label="Error type" placeholder="e.g. WRONG_BREED" />
                 <TextareaField control={form.control} name="errorDescription" label="Error description" />
                 <ComboboxField control={form.control} name="farmId" label="Farm" options={farmOptions} />
                 <ComboboxField control={form.control} name="animalId" label="Animal" options={animalOptions} />
-                <SelectField control={form.control} name="caseType" label="Case type" options={enumToOptions(Object.values(CORRECTION_CASE_TYPE))} />
+                <SelectField
+                  control={form.control}
+                  name="caseType"
+                  label="Case type"
+                  options={enumToOptions(Object.values(CORRECTION_CASE_TYPE))}
+                />
               </>
             )}
           />
@@ -109,4 +149,3 @@ export default function CorrectionsPage() {
     </div>
   );
 }
-

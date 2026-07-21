@@ -4,6 +4,8 @@ import { NAV_THEME } from "@/lib/theme";
 import { TRPCProvider } from "@/providers/trpc-provider";
 import { PermissionsProvider } from "@/providers/permissions-provider";
 import { SessionProvider } from "@/providers/session-provider";
+import { I18nextProvider } from "react-i18next";
+import i18nInstance from "@/i18n";
 import { ActiveFarmProvider } from "@/providers/active-farm-provider";
 import { OfflineProvider } from "@/providers/offline-provider";
 import { NotificationProvider } from "@/providers/notification-provider";
@@ -40,6 +42,7 @@ export default function RootLayout() {
   }
 
   return (
+    <I18nextProvider i18n={i18nInstance}>
     <TRPCProvider apiUrl={config.apiUrl}>
       <OfflineProvider>
         <SessionProvider>
@@ -60,5 +63,6 @@ export default function RootLayout() {
         </SessionProvider>
       </OfflineProvider>
     </TRPCProvider>
+    </I18nextProvider>
   );
 }

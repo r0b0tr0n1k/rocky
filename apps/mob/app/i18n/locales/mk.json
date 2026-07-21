@@ -1,0 +1,10 @@
+{
+  "nav.home": "Дома",
+  "nav.explore": "Истражи",
+  "auth.signIn": "Најави се",
+  "auth.signUp": "Регистрирај се",
+  "common.save": "Зачувај",
+  "common.cancel": "Откажи",
+  "common.loading": "Вчитување",
+  "common.error": "Грешка"
+}

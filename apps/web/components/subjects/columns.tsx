@@ -1,10 +1,10 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@rocky/ui/components/badge";
+import type { SubjectSummary } from "@rocky/validators/api";
+import type { ColumnDef } from "@tanstack/react-table";
 import { PencilIcon } from "lucide-react";
 import { RowActions } from "#components/shared/row-actions";
-import type { SubjectSummary } from "@rocky/validators/api";
 
 export type { SubjectSummary } from "@rocky/validators/api";
 
@@ -39,11 +39,7 @@ export const subjectColumns: ColumnDef<SubjectSummary>[] = [
     header: "Active",
     enableSorting: false,
     cell: ({ row }) =>
-      row.original.isActive ? (
-        <Badge variant="default">Active</Badge>
-      ) : (
-        <Badge variant="secondary">Inactive</Badge>
-      ),
+      row.original.isActive ? <Badge variant="default">Active</Badge> : <Badge variant="secondary">Inactive</Badge>,
   },
   {
     id: "edit",

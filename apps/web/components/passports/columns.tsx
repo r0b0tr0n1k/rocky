@@ -1,18 +1,22 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
-import type { ComponentProps } from "react";
-import type { z } from "zod";
-import { BanIcon, CopyIcon } from "lucide-react";
-
 import { Badge } from "@rocky/ui/components/badge";
 import type { PassportSummary } from "@rocky/validators/api";
-import { deliverToKeeperPassportRequestSchema, reprintPassportRequestSchema, seizePassportRequestSchema, shipToVsPassportRequestSchema } from "@rocky/validators/api";
+import {
+  deliverToKeeperPassportRequestSchema,
+  reprintPassportRequestSchema,
+  seizePassportRequestSchema,
+  shipToVsPassportRequestSchema,
+} from "@rocky/validators/api";
 import { DEATH_CAUSE, PASSPORT_STATUS } from "@rocky/validators/enums";
-import { enumToOptions } from "#lib/options";
-import { DateField, SelectField } from "#components/shared/form-fields";
+import type { ColumnDef } from "@tanstack/react-table";
+import { BanIcon, CopyIcon } from "lucide-react";
+import type { ComponentProps } from "react";
+import type { z } from "zod";
 import { ActionDialog, RowActionMenu, type RowMenuItem } from "#components/shared/action-dialog";
+import { DateField, SelectField } from "#components/shared/form-fields";
 import { RowDetailsDialog } from "#components/shared/row-details-dialog";
+import { enumToOptions } from "#lib/options";
 
 export type { PassportSummary } from "@rocky/validators/api";
 
@@ -115,7 +119,9 @@ export function passportColumns(opts: {
                 description="Transfers physical custody of the passport to the veterinary station."
                 defaultValues={{ passportId: row.original.id }}
                 fields={() => (
-                  <p className="text-sm text-muted-foreground">Confirm shipping this passport to the veterinary station.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Confirm shipping this passport to the veterinary station.
+                  </p>
                 )}
               />
             ),
@@ -148,7 +154,10 @@ export function passportColumns(opts: {
                   { label: "Status", value: row.original.status },
                   { label: "Animal", value: row.original.animalId },
                   { label: "Farm", value: row.original.farmId },
-                  { label: "Issued", value: row.original.issueDate ? new Date(row.original.issueDate).toLocaleDateString() : "—" },
+                  {
+                    label: "Issued",
+                    value: row.original.issueDate ? new Date(row.original.issueDate).toLocaleDateString() : "—",
+                  },
                   { label: "Active", value: row.original.isActive ? "Yes" : "No" },
                 ]}
               />

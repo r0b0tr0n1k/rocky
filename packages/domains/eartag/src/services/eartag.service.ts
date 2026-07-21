@@ -9,6 +9,8 @@ import { ANIMAL_STATUS, EAR_TAG_ORDER_STATUS, FARM_TYPE } from "@rocky/database/
 import type { AuditService } from "@rocky/domains-audit";
 import { fromAsyncThrowable, type Result, toAppError } from "@rocky/domains-shared";
 import type { SystemService } from "@rocky/domains-system";
+import { requiresDualCodeRecording, TraceabilityRuleEngine } from "@rocky/domains-system";
+import { makeEarTagSchema } from "@rocky/validators/utils/check-digit";
 import type {
   AssignSupplierContingentRequest,
   EarTagListRequest,
@@ -18,12 +20,14 @@ import type {
   EarTagTypeResponse,
   GetTakeoverFileRequest,
   TakeoverFileResponse,
+  ReplaceTagResponse,
 } from "@rocky/validators/api";
 import {
   earTagOrderResponseSchema,
   earTagResponseSchema,
   earTagTypeResponseSchema,
   takeoverFileResponseSchema,
+  replaceTagResponseSchema,
 } from "@rocky/validators/api";
 import { EARTAG_ERRORS, EarTagError } from "../errors/eartag.errors.js";
 import type { EarTagRepository } from "../repositories/eartag.repository.js";
@@ -590,6 +594,84 @@ export class EarTagService {
         fileName,
         content: fileContent,
         lineCount: assignedTags.length,
+      });
+    }, toAppError)();
+  }
+
+  // ── ART 19(4): Replacement tag (dual-code guard, ADR-0085) ─────────
+  /**
+   * Replace the means of identification for an animal. Implementing Reg (EU)
+   * 2021/520 Art. 19(4): when an electronic identifier cannot reproduce the
+   * visual code, BOTH codes must be recorded on replacement. The toggle is the
+   * `ART19_DUAL_CODE_ON_REPLACEMENT` traceability rule — when enabled and the
+   * two codes differ, both must be supplied (enforced here end-to-end). Both
+   * codes are format-validated against the jurisdiction's ear-tag format via
+   * `makeEarTagSchema` (format from RuleSetTag.format). The visual code is
+   * persisted to the applied tag; the electronic identifier is validated but
+   * lives at the jurisdiction's registry layer (ear_tags carries a single
+   * visual tag_number per applied tag).
+   */
+  async replaceTag(input: {
+    animalId: string;
+    newVisualCode: string;
+    newElectronicCode: string;
+    createdBy?: string;
+  }): Promise<Result<ReplaceTagResponse, Error>> {
+    return fromAsyncThrowable(async () => {
+      const ruleSet = await this.system.getRuleSet();
+      if (ruleSet.isErr()) throw ruleSet.error;
+      const { traceabilityRules, tag } = ruleSet.value;
+      const format = tag.format === "ISO_11784_15" ? "ISO_11784_15" : "MK_8";
+      const codeSchema = makeEarTagSchema(format);
+
+      const visual = codeSchema.safeParse(input.newVisualCode);
+      if (!visual.success) {
+        throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, {
+          message: "Invalid visual ear-tag code",
+          format,
+          cause: visual.error.message,
+        });
+      }
+      const electronic = codeSchema.safeParse(input.newElectronicCode);
+      if (!electronic.success) {
+        throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, {
+          message: "Invalid electronic ear-tag code",
+          format,
+          cause: electronic.error.message,
+        });
+      }
+
+      const dualCodeRequired = TraceabilityRuleEngine.isEnabled(traceabilityRules, "ART19_DUAL_CODE_ON_REPLACEMENT");
+      if (dualCodeRequired && requiresDualCodeRecording(input.newVisualCode, input.newElectronicCode, true)) {
+        // Codes differ and the rule mandates dual recording — both must be present.
+        // They are present + format-valid here, so the guard holds; if either were
+        // absent the request schema would already have rejected it.
+        if (!input.newVisualCode || !input.newElectronicCode) {
+          throw new EarTagError(EARTAG_ERRORS.INVALID_INPUT, {
+            message: "Art. 19(4): replacement requires BOTH visual and electronic codes",
+            animalId: input.animalId,
+          });
+        }
+      }
+
+      const updated = await this.repo.replaceTagForAnimal(input.animalId, input.newVisualCode, input.createdBy);
+      if (!updated) {
+        throw new EarTagError(EARTAG_ERRORS.NOT_FOUND, {
+          type: "earTag",
+          animalId: input.animalId,
+        });
+      }
+      await this.auditService?.recordUpdate({
+        resource: "earTag",
+        resourceId: updated.id,
+        oldValue: null,
+        newValue: updated,
+      });
+      return replaceTagResponseSchema.parse({
+        animalId: updated.animalId,
+        visualCode: updated.tagNumber,
+        electronicCode: input.newElectronicCode,
+        replacedAt: updated.updatedAt,
       });
     }, toAppError)();
   }

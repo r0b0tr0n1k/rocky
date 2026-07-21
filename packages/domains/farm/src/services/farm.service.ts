@@ -5,6 +5,7 @@
  */
 
 import type { AuditService } from "@rocky/domains-audit";
+import type { GeoService } from "@rocky/geo";
 import { fromAsyncThrowable, type Result, toAppError } from "@rocky/domains-shared";
 import type { OutboxEventPublisher } from "@rocky/execution";
 import { OUTBOX_AGGREGATE_TYPE } from "@rocky/database/constants";
@@ -14,6 +15,7 @@ import type {
   FarmListRequest,
   FarmListResponse,
   FarmResponse,
+  GeofenceResponse,
   UpdateFarmRequest,
 } from "@rocky/validators/api";
 import { addressResponseSchema, farmResponseSchema } from "@rocky/validators/api";
@@ -25,6 +27,7 @@ export class FarmService {
     private readonly repo: FarmRepository,
     private readonly auditService: AuditService,
     private readonly outboxPublisher?: OutboxEventPublisher,
+    private readonly geoService?: GeoService,
   ) {}
 
   async getById(id: string): Promise<Result<FarmResponse, Error>> {
@@ -105,6 +108,20 @@ export class FarmService {
       const addr = await this.repo.findAddressById(id);
       if (!addr) throw new FarmError(FARM_ERRORS.NOT_FOUND, { addressId: id });
       return addressResponseSchema.parse(addr);
+    }, toAppError)();
+  }
+
+  // ── Geo consumption (ADR-0078) ──
+  // Farm holdings can query their polygon/geometry from GeoService (the spatial
+  // reference service owns geofences/boundaries). Geo is query-only; no RLS
+  // conflict with FarmService's own farm-scoped queries.
+
+  async getHoldingBoundary(farmId: string): Promise<Result<GeofenceResponse[], Error>> {
+    return fromAsyncThrowable(async () => {
+      if (!this.geoService) throw new FarmError(FARM_ERRORS.NOT_FOUND, { farmId });
+      const rows = await this.geoService.listGeofences(farmId);
+      if (rows.isErr()) throw rows.error;
+      return rows.value;
     }, toAppError)();
   }
 }

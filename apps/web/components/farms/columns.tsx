@@ -1,14 +1,13 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
-import type { ComponentProps } from "react";
-
-import { StatusBadge } from "#components/shared/status-badge";
 import { Badge } from "@rocky/ui/components/badge";
-import { PencilIcon } from "lucide-react";
-import { RowActions } from "#components/shared/row-actions";
 import type { FarmSummary } from "@rocky/validators/api";
 import { VERIFICATION_STATUS } from "@rocky/validators/enums";
+import type { ColumnDef } from "@tanstack/react-table";
+import { PencilIcon } from "lucide-react";
+import type { ComponentProps } from "react";
+import { RowActions } from "#components/shared/row-actions";
+import { StatusBadge } from "#components/shared/status-badge";
 
 export type { FarmSummary } from "@rocky/validators/api";
 
@@ -38,17 +37,12 @@ export const farmColumns: ColumnDef<FarmSummary>[] = [
     header: "Active",
     enableSorting: false,
     cell: ({ row }) =>
-      row.original.isActive ? (
-        <Badge variant="default">Active</Badge>
-      ) : (
-        <Badge variant="secondary">Inactive</Badge>
-      ),
+      row.original.isActive ? <Badge variant="default">Active</Badge> : <Badge variant="secondary">Inactive</Badge>,
   },
   {
     accessorKey: "createdAt",
     header: "Created",
-    cell: ({ row }) =>
-      row.original.createdAt ? new Date(row.original.createdAt).toLocaleDateString() : "\u2014",
+    cell: ({ row }) => (row.original.createdAt ? new Date(row.original.createdAt).toLocaleDateString() : "\u2014"),
   },
   {
     id: "actions",

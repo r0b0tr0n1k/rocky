@@ -1,5 +1,11 @@
 import { fromAsyncThrowable, type Result, toAppError } from "@rocky/domains-shared";
-import type { CreateGeofenceRequest, GeofenceEventResponse, GeofenceResponse, LogGeofenceEventRequest, SettlementResponse } from "@rocky/validators/api";
+import type {
+  CreateGeofenceRequest,
+  GeofenceEventResponse,
+  GeofenceResponse,
+  LogGeofenceEventRequest,
+  SettlementResponse,
+} from "@rocky/validators/api";
 import { geofenceEventResponseSchema, geofenceResponseSchema, settlementResponseSchema } from "@rocky/validators/api";
 import { GEO_ERRORS, GeoError } from "../errors/geo.errors.js";
 import type { GeoRepository } from "../repositories/geo.repository.js";
@@ -60,9 +66,7 @@ export class GeoService {
         farmId: data.farmId,
         eventType: data.eventType,
         eventAt: new Date(data.eventAt),
-        location: data.latitude && data.longitude
-          ? { x: data.longitude, y: data.latitude }
-          : undefined,
+        location: data.latitude && data.longitude ? { x: data.longitude, y: data.latitude } : undefined,
         source: data.source,
       });
       return geofenceEventResponseSchema.parse(event);
@@ -74,6 +78,19 @@ export class GeoService {
       const rows = await this.repo.findActiveDiseaseZonesByFarm(farmId);
       return rows.map((r: unknown) => geofenceResponseSchema.parse(r));
     }, toAppError)();
+  }
+
+  // ── Dashboard counts (ADR-0078 Consequence) ──
+  // Real geo counts surfaced on the admin dashboard: active disease zones and
+  // open geofence events (events in the last 30 days; the animal_geofence_events
+  // table carries no acknowledgedAt/status column yet).
+
+  async countActiveDiseaseZones(): Promise<Result<number, Error>> {
+    return fromAsyncThrowable(async () => this.repo.countActiveDiseaseZones(), toAppError)();
+  }
+
+  async countOpenGeofenceEvents(days: number = 30): Promise<Result<number, Error>> {
+    return fromAsyncThrowable(async () => this.repo.countOpenGeofenceEvents(days), toAppError)();
   }
 
   // ── Disease-zone declaration (ADR-0080) ──
@@ -128,11 +145,7 @@ export class GeoService {
           radiusMeters: z.radiusMeters,
         };
         const validTo =
-          opts.validTo == null
-            ? null
-            : opts.validTo instanceof Date
-              ? opts.validTo
-              : new Date(opts.validTo);
+          opts.validTo == null ? null : opts.validTo instanceof Date ? opts.validTo : new Date(opts.validTo);
         const row = await this.repo.insertGeofence({
           id: randomUUID(),
           name: `${centerName} — ${z.label} (${z.km} km)`,
@@ -154,9 +167,11 @@ export class GeoService {
     }, toAppError)();
   }
 
-  async listDiseaseZones(input: { farmId?: string; limit: number; offset: number }): Promise<
-    Result<{ data: GeofenceResponse[]; total: number }, Error>
-  > {
+  async listDiseaseZones(input: {
+    farmId?: string;
+    limit: number;
+    offset: number;
+  }): Promise<Result<{ data: GeofenceResponse[]; total: number }, Error>> {
     return fromAsyncThrowable(async () => {
       const { data, total } = await this.repo.listGeofences({
         ...input,
@@ -173,7 +188,10 @@ export class GeoService {
     return runDiseaseZoneCheck(this.repo, ruleSet, fromFarmId);
   }
 
-  async listGeofenceEvents(input: { animalId?: string; farmId?: string }): Promise<Result<GeofenceEventResponse[], Error>> {
+  async listGeofenceEvents(input: {
+    animalId?: string;
+    farmId?: string;
+  }): Promise<Result<GeofenceEventResponse[], Error>> {
     return fromAsyncThrowable(async () => {
       const { data } = await this.repo.listGeofenceEvents(input);
       return data.map((r: unknown) => geofenceEventResponseSchema.parse(r));
@@ -199,7 +217,10 @@ export class GeoService {
 
   // ── Disease-zone proximity (WO-119 / AHL 2016/429) ──
 
-  async findActiveDiseaseZonesNearFarm(farmId: string, radiusMeters: number): Promise<Result<GeofenceResponse[], Error>> {
+  async findActiveDiseaseZonesNearFarm(
+    farmId: string,
+    radiusMeters: number,
+  ): Promise<Result<GeofenceResponse[], Error>> {
     return fromAsyncThrowable(async () => {
       const rows = await this.repo.findActiveDiseaseZonesNearFarm(farmId, radiusMeters);
       return rows.map((r: unknown) => geofenceResponseSchema.parse(r));

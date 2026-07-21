@@ -1,11 +1,10 @@
 "use client";
 
-import { format } from "date-fns";
-import type { ColumnDef } from "@tanstack/react-table";
-
 import { Badge } from "@rocky/ui/components/badge";
-import { StatusBadge } from "#components/shared/status-badge";
 import type { EarTagResponse, EarTagTypeResponse } from "@rocky/validators/api";
+import type { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
+import { StatusBadge } from "#components/shared/status-badge";
 
 export type { EarTagResponse, EarTagTypeResponse } from "@rocky/validators/api";
 
@@ -16,7 +15,12 @@ export interface EarTagLookups {
 
 export function earTagColumns({ animalLabel, typeLabel }: EarTagLookups): ColumnDef<EarTagResponse>[] {
   return [
-    { accessorKey: "stateCode", header: "State", enableSorting: false, cell: ({ row }) => row.original.stateCode ?? "—" },
+    {
+      accessorKey: "stateCode",
+      header: "State",
+      enableSorting: false,
+      cell: ({ row }) => row.original.stateCode ?? "—",
+    },
     { accessorKey: "tagNumber", header: "Tag no", enableSorting: false },
     { accessorKey: "typeId", header: "Type", enableSorting: false, cell: ({ row }) => typeLabel(row.original.typeId) },
     {
@@ -25,7 +29,12 @@ export function earTagColumns({ animalLabel, typeLabel }: EarTagLookups): Column
       enableSorting: false,
       cell: ({ row }) => <StatusBadge value={row.original.status} />,
     },
-    { accessorKey: "animalId", header: "Animal", enableSorting: false, cell: ({ row }) => animalLabel(row.original.animalId) },
+    {
+      accessorKey: "animalId",
+      header: "Animal",
+      enableSorting: false,
+      cell: ({ row }) => animalLabel(row.original.animalId),
+    },
     {
       accessorKey: "appliedDate",
       header: "Applied",
@@ -53,15 +62,31 @@ export function earTagTypeColumns(): ColumnDef<EarTagTypeResponse>[] {
   return [
     { accessorKey: "code", header: "Code", enableSorting: false },
     { accessorKey: "name", header: "Name", enableSorting: false },
-    { accessorKey: "category", header: "Category", enableSorting: false, cell: ({ row }) => row.original.category ?? "—" },
-    { accessorKey: "tagGender", header: "Gender", enableSorting: false, cell: ({ row }) => row.original.tagGender ?? "—" },
+    {
+      accessorKey: "category",
+      header: "Category",
+      enableSorting: false,
+      cell: ({ row }) => row.original.category ?? "—",
+    },
+    {
+      accessorKey: "tagGender",
+      header: "Gender",
+      enableSorting: false,
+      cell: ({ row }) => row.original.tagGender ?? "—",
+    },
     { accessorKey: "color", header: "Color", enableSorting: false, cell: ({ row }) => row.original.color ?? "—" },
-    { accessorKey: "supplier", header: "Supplier", enableSorting: false, cell: ({ row }) => row.original.supplier ?? "—" },
+    {
+      accessorKey: "supplier",
+      header: "Supplier",
+      enableSorting: false,
+      cell: ({ row }) => row.original.supplier ?? "—",
+    },
     {
       accessorKey: "isActive",
       header: "Active",
       enableSorting: false,
-      cell: ({ row }) => (row.original.isActive ? <Badge variant="default">Yes</Badge> : <Badge variant="secondary">No</Badge>),
+      cell: ({ row }) =>
+        row.original.isActive ? <Badge variant="default">Yes</Badge> : <Badge variant="secondary">No</Badge>,
     },
   ];
 }

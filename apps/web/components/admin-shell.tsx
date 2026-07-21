@@ -1,12 +1,8 @@
 "use client";
 
-import * as React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { CookieIcon, LogOutIcon, SearchIcon } from "lucide-react";
-
 import { Avatar, AvatarFallback } from "@rocky/ui/components/avatar";
 import { Button } from "@rocky/ui/components/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@rocky/ui/components/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@rocky/ui/components/dropdown-menu";
+import { Kbd } from "@rocky/ui/components/kbd";
 import {
   Sidebar,
   SidebarContent,
@@ -29,16 +26,18 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@rocky/ui/components/sidebar";
-import { Kbd } from "@rocky/ui/components/kbd";
 import { TooltipProvider } from "@rocky/ui/components/tooltip";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@rocky/ui/components/dialog";
-
-import { authClient, useSession } from "#lib/auth-client";
-import { useRouter } from "next/navigation";
-import { filterNavByPermissions, navSections } from "#lib/nav-config";
-import { usePermissions } from "#lib/permissions";
+import { CookieIcon, LogOutIcon, SearchIcon } from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import * as React from "react";
 import { CommandPalette } from "#components/command-palette";
 import { ThemeToggle } from "#components/theme-toggle";
+import { authClient, useSession } from "#lib/auth-client";
+import { I18nProvider, useT } from "#lib/i18n";
+import { normalizeLocale } from "#lib/i18n/dir";
+import { filterNavByPermissions, navSections } from "#lib/nav-config";
+import { usePermissions } from "#lib/permissions";
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -52,6 +51,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   React.useEffect(() => setMounted(true), []);
   const user = mounted ? session?.user : undefined;
   const { permissions } = usePermissions();
+  const t = useT();
+  const navTitle = (title: string, key?: string) => (key ? t(key) : title);
+  const locale = normalizeLocale(session?.user?.language);
   const roles = (user as { roles?: string[]; permissions?: string[] } | undefined)?.roles ?? [];
   const pathname = usePathname();
   const [cmdOpen, setCmdOpen] = React.useState(false);
@@ -74,7 +76,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
-    <>
+    <I18nProvider locale={locale}>
       <button
         type="button"
         onClick={() => document.getElementById("main-content")?.focus()}
@@ -101,18 +103,18 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <SidebarContent>
               {sections.map((section) => (
                 <SidebarGroup key={section.title}>
-                  <SidebarGroupLabel>{section.title}</SidebarGroupLabel>
+                  <SidebarGroupLabel>{navTitle(section.title, section.titleKey)}</SidebarGroupLabel>
                   <SidebarMenu>
                     {section.items.map((item) => (
                       <SidebarMenuItem key={item.href}>
                         <SidebarMenuButton
                           asChild
                           isActive={pathname === item.href || pathname.startsWith(`${item.href}/`)}
-                          tooltip={item.title}
+                          tooltip={navTitle(item.title, item.titleKey)}
                         >
                           <Link href={item.href}>
                             <item.icon data-icon="inline-start" />
-                            <span>{item.title}</span>
+                            <span>{navTitle(item.title, item.titleKey)}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -204,6 +206,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </Dialog>
         </SidebarProvider>
       </TooltipProvider>
-    </>
+    </I18nProvider>
   );
 }

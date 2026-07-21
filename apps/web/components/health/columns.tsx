@@ -1,21 +1,27 @@
 "use client";
 
-import { format } from "date-fns";
-import type { ReactNode } from "react";
-import type { ColumnDef } from "@tanstack/react-table";
-
 import { Badge } from "@rocky/ui/components/badge";
-import { StatusBadge } from "#components/shared/status-badge";
 import type {
   DiseaseResponse,
   LabTestResponse,
   TreatmentResponse,
+  VaccinationResponse,
   VaccineBatchResponse,
   VaccineResponse,
-  VaccinationResponse,
 } from "@rocky/validators/api";
+import type { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
+import type { ReactNode } from "react";
+import { StatusBadge } from "#components/shared/status-badge";
 
-export type { DiseaseResponse, LabTestResponse, TreatmentResponse, VaccineBatchResponse, VaccineResponse, VaccinationResponse } from "@rocky/validators/api";
+export type {
+  DiseaseResponse,
+  LabTestResponse,
+  TreatmentResponse,
+  VaccinationResponse,
+  VaccineBatchResponse,
+  VaccineResponse,
+} from "@rocky/validators/api";
 
 function trunc(value: string | null | undefined, n = 48): string {
   if (!value) return "—";
@@ -37,7 +43,9 @@ function withRowActions<T>(columns: ColumnDef<T>[], rowActions?: (row: T) => Rea
   ];
 }
 
-export function diseaseColumns(opts?: { rowActions?: (disease: DiseaseResponse) => ReactNode }): ColumnDef<DiseaseResponse>[] {
+export function diseaseColumns(opts?: {
+  rowActions?: (disease: DiseaseResponse) => ReactNode;
+}): ColumnDef<DiseaseResponse>[] {
   const columns: ColumnDef<DiseaseResponse>[] = [
     { accessorKey: "name", header: "Name", enableSorting: false },
     {
@@ -76,10 +84,17 @@ export function diseaseColumns(opts?: { rowActions?: (disease: DiseaseResponse) 
   return withRowActions(columns, opts?.rowActions);
 }
 
-export function vaccineColumns(opts?: { rowActions?: (v: VaccineResponse) => ReactNode }): ColumnDef<VaccineResponse>[] {
+export function vaccineColumns(opts?: {
+  rowActions?: (v: VaccineResponse) => ReactNode;
+}): ColumnDef<VaccineResponse>[] {
   const columns: ColumnDef<VaccineResponse>[] = [
     { accessorKey: "name", header: "Name", enableSorting: false },
-    { accessorKey: "manufacturer", header: "Manufacturer", enableSorting: false, cell: ({ row }) => row.original.manufacturer ?? "—" },
+    {
+      accessorKey: "manufacturer",
+      header: "Manufacturer",
+      enableSorting: false,
+      cell: ({ row }) => row.original.manufacturer ?? "—",
+    },
     {
       accessorKey: "type",
       header: "Type",
@@ -102,9 +117,17 @@ export interface VaccineBatchLookups {
   rowActions?: (row: VaccineBatchResponse) => ReactNode;
 }
 
-export function vaccineBatchColumns({ vaccineLabel, rowActions }: VaccineBatchLookups): ColumnDef<VaccineBatchResponse>[] {
+export function vaccineBatchColumns({
+  vaccineLabel,
+  rowActions,
+}: VaccineBatchLookups): ColumnDef<VaccineBatchResponse>[] {
   const columns: ColumnDef<VaccineBatchResponse>[] = [
-    { accessorKey: "vaccineId", header: "Vaccine", enableSorting: false, cell: ({ row }) => vaccineLabel(row.original.vaccineId) },
+    {
+      accessorKey: "vaccineId",
+      header: "Vaccine",
+      enableSorting: false,
+      cell: ({ row }) => vaccineLabel(row.original.vaccineId),
+    },
     { accessorKey: "batchNo", header: "Batch no", enableSorting: false },
     {
       accessorKey: "productionDate",
@@ -139,11 +162,32 @@ export interface VaccinationLookups {
   rowActions?: (row: VaccinationResponse) => ReactNode;
 }
 
-export function vaccinationColumns({ animalLabel, vaccineLabel, batchLabel, vetLabel, rowActions }: VaccinationLookups): ColumnDef<VaccinationResponse>[] {
+export function vaccinationColumns({
+  animalLabel,
+  vaccineLabel,
+  batchLabel,
+  vetLabel,
+  rowActions,
+}: VaccinationLookups): ColumnDef<VaccinationResponse>[] {
   const columns: ColumnDef<VaccinationResponse>[] = [
-    { accessorKey: "animalId", header: "Animal", enableSorting: false, cell: ({ row }) => animalLabel(row.original.animalId) },
-    { accessorKey: "vaccineId", header: "Vaccine", enableSorting: false, cell: ({ row }) => vaccineLabel(row.original.vaccineId) },
-    { accessorKey: "batchId", header: "Batch", enableSorting: false, cell: ({ row }) => batchLabel(row.original.batchId) },
+    {
+      accessorKey: "animalId",
+      header: "Animal",
+      enableSorting: false,
+      cell: ({ row }) => animalLabel(row.original.animalId),
+    },
+    {
+      accessorKey: "vaccineId",
+      header: "Vaccine",
+      enableSorting: false,
+      cell: ({ row }) => vaccineLabel(row.original.vaccineId),
+    },
+    {
+      accessorKey: "batchId",
+      header: "Batch",
+      enableSorting: false,
+      cell: ({ row }) => batchLabel(row.original.batchId),
+    },
     { accessorKey: "vetId", header: "Vet", enableSorting: false, cell: ({ row }) => vetLabel(row.original.vetId) },
     {
       accessorKey: "adminDate",
@@ -175,10 +219,25 @@ export interface TreatmentLookups {
   rowActions?: (row: TreatmentResponse) => ReactNode;
 }
 
-export function treatmentColumns({ animalLabel, diseaseLabel, vetLabel, rowActions }: TreatmentLookups): ColumnDef<TreatmentResponse>[] {
+export function treatmentColumns({
+  animalLabel,
+  diseaseLabel,
+  vetLabel,
+  rowActions,
+}: TreatmentLookups): ColumnDef<TreatmentResponse>[] {
   const columns: ColumnDef<TreatmentResponse>[] = [
-    { accessorKey: "animalId", header: "Animal", enableSorting: false, cell: ({ row }) => animalLabel(row.original.animalId) },
-    { accessorKey: "diseaseId", header: "Disease", enableSorting: false, cell: ({ row }) => diseaseLabel(row.original.diseaseId) },
+    {
+      accessorKey: "animalId",
+      header: "Animal",
+      enableSorting: false,
+      cell: ({ row }) => animalLabel(row.original.animalId),
+    },
+    {
+      accessorKey: "diseaseId",
+      header: "Disease",
+      enableSorting: false,
+      cell: ({ row }) => diseaseLabel(row.original.diseaseId),
+    },
     { accessorKey: "vetId", header: "Vet", enableSorting: false, cell: ({ row }) => vetLabel(row.original.vetId) },
     {
       accessorKey: "diagnosisDate",
@@ -216,10 +275,24 @@ export interface LabTestLookups {
   rowActions?: (row: LabTestResponse) => ReactNode;
 }
 
-export function labTestColumns({ animalLabel, diseaseLabel, rowActions }: LabTestLookups): ColumnDef<LabTestResponse>[] {
+export function labTestColumns({
+  animalLabel,
+  diseaseLabel,
+  rowActions,
+}: LabTestLookups): ColumnDef<LabTestResponse>[] {
   const columns: ColumnDef<LabTestResponse>[] = [
-    { accessorKey: "animalId", header: "Animal", enableSorting: false, cell: ({ row }) => animalLabel(row.original.animalId) },
-    { accessorKey: "diseaseId", header: "Disease", enableSorting: false, cell: ({ row }) => diseaseLabel(row.original.diseaseId) },
+    {
+      accessorKey: "animalId",
+      header: "Animal",
+      enableSorting: false,
+      cell: ({ row }) => animalLabel(row.original.animalId),
+    },
+    {
+      accessorKey: "diseaseId",
+      header: "Disease",
+      enableSorting: false,
+      cell: ({ row }) => diseaseLabel(row.original.diseaseId),
+    },
     {
       accessorKey: "testType",
       header: "Test",

@@ -1,23 +1,22 @@
 "use client";
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-
 import { Button } from "@rocky/ui/components/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@rocky/ui/components/dialog";
 import { DropdownMenuItem } from "@rocky/ui/components/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@rocky/ui/components/select";
-import { organizationColumns, type OrganizationSummary } from "#components/organizations/columns";
+import type { OrganizationResponse } from "@rocky/validators/api";
+import { ORG_TYPE } from "@rocky/validators/enums";
+import { useQuery } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import * as React from "react";
+import { type OrganizationSummary, organizationColumns } from "#components/organizations/columns";
+import { RowActionMenu } from "#components/shared/action-dialog";
 import { DataTable } from "#components/shared/data-table";
 import { PageHeader } from "#components/shared/page-header";
-import { RowActionMenu } from "#components/shared/action-dialog";
-import { TableCard, tableDensityClass, appendRowActions } from "#components/shared/table-card";
-import { useTRPC } from "#lib/trpc";
+import { appendRowActions, TableCard, tableDensityClass } from "#components/shared/table-card";
 import { enumToOptions } from "#lib/options";
-import { ORG_TYPE } from "@rocky/validators/enums";
-import { type OrganizationResponse } from "@rocky/validators/api";
+import { useTRPC } from "#lib/trpc";
 
 export default function OrganizationsPage() {
   const router = useRouter();
@@ -27,19 +26,14 @@ export default function OrganizationsPage() {
   // Type filter switches to listByType (wires that procedure).
   const [orgType, setOrgType] = React.useState<string>("all");
   const listQuery = useQuery(
-    orgType === "all"
-      ? trpc.organization.list.queryOptions()
-      : trpc.organization.listByType.queryOptions({ orgType }),
+    orgType === "all" ? trpc.organization.list.queryOptions() : trpc.organization.listByType.queryOptions({ orgType }),
   );
   const rows = (listQuery.data ?? []) as OrganizationSummary[];
   const orgsMap = Object.fromEntries(rows.map((o) => [o.id, o.name1]));
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Organizations"
-        description="Veterinary Directorate administrative units."
-      />
+      <PageHeader title="Organizations" description="Veterinary Directorate administrative units." />
       <TableCard
         toolbarLeft={
           <Select value={orgType} onValueChange={setOrgType}>
@@ -49,7 +43,9 @@ export default function OrganizationsPage() {
             <SelectContent>
               <SelectItem value="all">All types</SelectItem>
               {enumToOptions(Object.values(ORG_TYPE)).map((o) => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -88,7 +84,15 @@ export default function OrganizationsPage() {
   );
 }
 
-function OrganizationDetails({ org, orgId, parentName }: { org: OrganizationSummary; orgId: string; parentName?: string }) {
+function OrganizationDetails({
+  org,
+  orgId,
+  parentName,
+}: {
+  org: OrganizationSummary;
+  orgId: string;
+  parentName?: string;
+}) {
   const trpc = useTRPC();
   const [open, setOpen] = React.useState(false);
   // Wires organization.getById — fetched lazily when the dialog opens.
@@ -102,7 +106,10 @@ function OrganizationDetails({ org, orgId, parentName }: { org: OrganizationSumm
     { label: "Type", value: data.orgType },
     { label: "Parent", value: parentName ?? "—" },
     { label: "Active", value: data.isActive ? "Yes" : "No" },
-    { label: "Address", value: data.address ? `${data.address.street}, ${data.address.city} ${data.address.zipCode}` : "—" },
+    {
+      label: "Address",
+      value: data.address ? `${data.address.street}, ${data.address.city} ${data.address.zipCode}` : "—",
+    },
   ];
   return (
     <>

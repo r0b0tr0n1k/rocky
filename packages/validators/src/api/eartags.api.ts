@@ -35,7 +35,8 @@ export const earTagResponseSchema = earTagsSelectSchema
     manufactureDate: z.coerce.date<string>().nullable(),
     expiryDate: z.coerce.date<string>().nullable(),
     status: earTagStatusSchema,
-  }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
+  })
+  .strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type EarTagResponse = z.infer<typeof earTagResponseSchema>;
 
@@ -45,11 +46,11 @@ export const earTagOrderResponseSchema = earTagOrdersSelectSchema
     // Ear-tag procurement orders use the ear_tag_order_status pgEnum
     // (draft/pending/ordered/...), NOT the generic movement ORDER_STATUS_VALUES.
     status: earTagOrderStatusSchema,
-  }).strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
+  })
+  .strip(); // WO-040: kept .strip() — service passes full DB rows; .strict() would reject omitted audit keys
 
 export type EarTagOrderResponse = z.infer<typeof earTagOrderResponseSchema>;
 type _drift_earTagOrderResponse = NoDrift<z.infer<typeof earTagOrderResponseSchema>, EarTagOrderResponse>;
-
 
 export const earTagSummarySchema = z.object(
   earTagResponseSchema.pick({
@@ -215,6 +216,43 @@ export const generateTagNumbersResponseSchema = z.strictObject({
 
 export type GenerateTagNumbersResponse = z.infer<typeof generateTagNumbersResponseSchema>;
 
+// ── ART 19(4): Replacement tag (dual-code guard, ADR-0085) ─────────
+// When an electronic identifier cannot reproduce the visual code, BOTH codes
+// must be recorded on replacement (Implementing Reg (EU) 2021/520 Art. 19(4)).
+// Both codes are validated against the jurisdiction's ear-tag format via
+// makeEarTagSchema (format from RuleSetTag.format). The dual-code *requirement*
+// is enforced end-to-end in EarTagService.replaceTag (WS3.1).
+
+export const replaceTagRequestSchema = z.strictObject({
+  orderId: z.uuid().optional(),
+  animalId: z.uuid(),
+  newVisualCode: z.string().min(1),
+  newElectronicCode: z.string().min(1),
+  createdBy: z.uuid().optional(),
+}) satisfies z.ZodType<ReplaceTagRequest>;
+
+export type ReplaceTagRequest = {
+  orderId?: string;
+  animalId: string;
+  newVisualCode: string;
+  newElectronicCode: string;
+  createdBy?: string;
+};
+
+export const replaceTagResponseSchema = z.strictObject({
+  animalId: z.uuid(),
+  visualCode: z.string(),
+  electronicCode: z.string(),
+  replacedAt: z.coerce.date(),
+}) satisfies z.ZodType<ReplaceTagResponse>;
+
+export type ReplaceTagResponse = {
+  animalId: string;
+  visualCode: string;
+  electronicCode: string;
+  replacedAt: Date;
+};
+
 export const createDuplicateOrderRequestSchema = z.strictObject({
   animalId: z.uuid(),
   farmId: z.uuid(),
@@ -313,14 +351,46 @@ type _drift_cancelOrderRequest = NoDrift<z.infer<typeof cancelOrderRequestSchema
 type _drift_cancelOrderItemRequest = NoDrift<z.infer<typeof cancelOrderItemRequestSchema>, CancelOrderItemRequest>;
 type _drift_appendToOrderRequest = NoDrift<z.infer<typeof appendToOrderRequestSchema>, AppendToOrderRequest>;
 type _drift_collectOrderTagsRequest = NoDrift<z.infer<typeof collectOrderTagsRequestSchema>, CollectOrderTagsRequest>;
-type _drift_generateTagNumbersRequest = NoDrift<z.infer<typeof generateTagNumbersRequestSchema>, GenerateTagNumbersRequest>;
-type _drift_generateTagNumbersResponse = NoDrift<z.infer<typeof generateTagNumbersResponseSchema>, GenerateTagNumbersResponse>;
-type _drift_createDuplicateOrderRequest = NoDrift<z.infer<typeof createDuplicateOrderRequestSchema>, CreateDuplicateOrderRequest>;
+type _drift_generateTagNumbersRequest = NoDrift<
+  z.infer<typeof generateTagNumbersRequestSchema>,
+  GenerateTagNumbersRequest
+>;
+type _drift_generateTagNumbersResponse = NoDrift<
+  z.infer<typeof generateTagNumbersResponseSchema>,
+  GenerateTagNumbersResponse
+>;
+type _drift_createDuplicateOrderRequest = NoDrift<
+  z.infer<typeof createDuplicateOrderRequestSchema>,
+  CreateDuplicateOrderRequest
+>;
 type _drift_orderListRequest = NoDrift<z.infer<typeof orderListRequestSchema>, OrderListRequest>;
-type _drift_assignSupplierContingentRequest = NoDrift<z.infer<typeof assignSupplierContingentRequestSchema>, AssignSupplierContingentRequest>;
+type _drift_assignSupplierContingentRequest = NoDrift<
+  z.infer<typeof assignSupplierContingentRequestSchema>,
+  AssignSupplierContingentRequest
+>;
 type _drift_takeoverFileResponse = NoDrift<z.infer<typeof takeoverFileResponseSchema>, TakeoverFileResponse>;
 type _drift_getTakeoverFileRequest = NoDrift<z.infer<typeof getTakeoverFileRequestSchema>, GetTakeoverFileRequest>;
 
 export type _EartagsGuillotines = ActivateGuillotines<
-  [ _drift_earTagResponse, _drift_earTagSummary, _drift_earTagTypeResponse, _drift_earTagListRequest, _drift_earTagListResponse, _drift_orderStatusTransition, _drift_createOrderRequest, _drift_updateOrderRequest, _drift_cancelOrderRequest, _drift_cancelOrderItemRequest, _drift_appendToOrderRequest, _drift_collectOrderTagsRequest, _drift_generateTagNumbersRequest, _drift_generateTagNumbersResponse, _drift_createDuplicateOrderRequest, _drift_orderListRequest, _drift_assignSupplierContingentRequest, _drift_takeoverFileResponse, _drift_getTakeoverFileRequest ]
+  [
+    _drift_earTagResponse,
+    _drift_earTagSummary,
+    _drift_earTagTypeResponse,
+    _drift_earTagListRequest,
+    _drift_earTagListResponse,
+    _drift_orderStatusTransition,
+    _drift_createOrderRequest,
+    _drift_updateOrderRequest,
+    _drift_cancelOrderRequest,
+    _drift_cancelOrderItemRequest,
+    _drift_appendToOrderRequest,
+    _drift_collectOrderTagsRequest,
+    _drift_generateTagNumbersRequest,
+    _drift_generateTagNumbersResponse,
+    _drift_createDuplicateOrderRequest,
+    _drift_orderListRequest,
+    _drift_assignSupplierContingentRequest,
+    _drift_takeoverFileResponse,
+    _drift_getTakeoverFileRequest,
+  ]
 >;

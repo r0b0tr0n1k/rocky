@@ -1,20 +1,13 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import {
-  CalendarIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ClockIcon,
-  MapPinIcon,
-} from "lucide-react"
+import { Badge } from "@rocky/ui/components/badge";
+import { Button } from "@rocky/ui/components/button";
+import { Separator } from "@rocky/ui/components/separator";
+import { cn } from "@rocky/ui/lib/utils";
+import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, MapPinIcon } from "lucide-react";
+import * as React from "react";
 
-import { Badge } from "@rocky/ui/components/badge"
-import { Button } from "@rocky/ui/components/button"
-import { Separator } from "@rocky/ui/components/separator"
-import { cn } from "@rocky/ui/lib/utils"
-
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTH_NAMES = [
   "January",
   "February",
@@ -28,14 +21,14 @@ const MONTH_NAMES = [
   "October",
   "November",
   "December",
-]
+];
 
 interface CalEvent {
-  label: string
-  variant: "default" | "secondary" | "outline"
-  time: string
-  location: string
-  description: string
+  label: string;
+  variant: "default" | "secondary" | "outline";
+  time: string;
+  location: string;
+  description: string;
 }
 
 const EVENTS: Record<string, CalEvent> = {
@@ -88,51 +81,46 @@ const EVENTS: Record<string, CalEvent> = {
     location: "Lakeside resort",
     description: "Annual team offsite and strategy planning.",
   },
-}
+};
 
-const TODAY = { year: 2025, month: 5, day: 17 }
+const TODAY = { year: 2025, month: 5, day: 17 };
 
 function keyFor(year: number, month: number, day: number) {
-  return `${year}-${month}-${day}`
+  return `${year}-${month}-${day}`;
 }
 
 function buildCells(year: number, month: number): (number | null)[] {
-  const leadingBlanks = new Date(year, month, 1).getDay()
-  const totalDays = new Date(year, month + 1, 0).getDate()
+  const leadingBlanks = new Date(year, month, 1).getDay();
+  const totalDays = new Date(year, month + 1, 0).getDate();
   const cells: (number | null)[] = [
     ...Array(leadingBlanks).fill(null),
     ...Array.from({ length: totalDays }, (_, i) => i + 1),
-  ]
-  while (cells.length % 7 !== 0) cells.push(null)
-  return cells
+  ];
+  while (cells.length % 7 !== 0) cells.push(null);
+  return cells;
 }
 
 export function CalendarBlock() {
-  const [view, setView] = React.useState({ year: 2025, month: 5 })
-  const [selected, setSelected] = React.useState<string | null>(() =>
-    keyFor(TODAY.year, TODAY.month, TODAY.day)
-  )
+  const [view, setView] = React.useState({ year: 2025, month: 5 });
+  const [selected, setSelected] = React.useState<string | null>(() => keyFor(TODAY.year, TODAY.month, TODAY.day));
 
-  const cells = React.useMemo(() => buildCells(view.year, view.month), [view])
+  const cells = React.useMemo(() => buildCells(view.year, view.month), [view]);
 
   function shiftMonth(delta: number) {
     setView((prev) => {
-      const next = new Date(prev.year, prev.month + delta, 1)
-      return { year: next.getFullYear(), month: next.getMonth() }
-    })
+      const next = new Date(prev.year, prev.month + delta, 1);
+      return { year: next.getFullYear(), month: next.getMonth() };
+    });
   }
 
   function goToday() {
-    setView({ year: TODAY.year, month: TODAY.month })
-    setSelected(keyFor(TODAY.year, TODAY.month, TODAY.day))
+    setView({ year: TODAY.year, month: TODAY.month });
+    setSelected(keyFor(TODAY.year, TODAY.month, TODAY.day));
   }
 
-  const [selYear, selMonth, selDay] = selected
-    ? selected.split("-").map(Number)
-    : [0, 0, 0]
-  const selectedInView =
-    selected !== null && selYear === view.year && selMonth === view.month
-  const selectedEvent = selected ? EVENTS[selected] : undefined
+  const [selYear, selMonth, selDay] = selected ? selected.split("-").map(Number) : [0, 0, 0];
+  const selectedInView = selected !== null && selYear === view.year && selMonth === view.month;
+  const selectedEvent = selected ? EVENTS[selected] : undefined;
 
   return (
     <section className="flex w-full items-center justify-center bg-background px-6 py-12 text-foreground">
@@ -147,20 +135,10 @@ export function CalendarBlock() {
               <Button variant="outline" size="sm" onClick={goToday}>
                 Today
               </Button>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Previous month"
-                onClick={() => shiftMonth(-1)}
-              >
+              <Button variant="ghost" size="icon-sm" aria-label="Previous month" onClick={() => shiftMonth(-1)}>
                 <ChevronLeftIcon data-icon="inline-start" />
               </Button>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Next month"
-                onClick={() => shiftMonth(1)}
-              >
+              <Button variant="ghost" size="icon-sm" aria-label="Next month" onClick={() => shiftMonth(1)}>
                 <ChevronRightIcon data-icon="inline-start" />
               </Button>
             </div>
@@ -170,10 +148,7 @@ export function CalendarBlock() {
 
           <div className="grid grid-cols-7 border-b border-border">
             {WEEKDAYS.map((day) => (
-              <div
-                key={day}
-                className="py-2 text-center text-xs font-medium text-muted-foreground"
-              >
+              <div key={day} className="py-2 text-center text-xs font-medium text-muted-foreground">
                 {day}
               </div>
             ))}
@@ -181,34 +156,26 @@ export function CalendarBlock() {
 
           <div className="grid grid-cols-7">
             {cells.map((day, idx) => {
-              const key = day ? keyFor(view.year, view.month, day) : ""
-              const event = day ? EVENTS[key] : undefined
-              const isToday =
-                day === TODAY.day &&
-                view.month === TODAY.month &&
-                view.year === TODAY.year
-              const isSelected = day !== null && key === selected
-              const isLastRow = idx >= cells.length - 7
+              const key = day ? keyFor(view.year, view.month, day) : "";
+              const event = day ? EVENTS[key] : undefined;
+              const isToday = day === TODAY.day && view.month === TODAY.month && view.year === TODAY.year;
+              const isSelected = day !== null && key === selected;
+              const isLastRow = idx >= cells.length - 7;
 
               return (
                 <button
-                  key={idx}
+                  key={key || "empty"}
                   type="button"
                   disabled={day === null}
                   aria-pressed={isSelected}
-                  aria-label={
-                    day
-                      ? `${MONTH_NAMES[view.month]} ${day}, ${view.year}`
-                      : undefined
-                  }
+                  aria-label={day ? `${MONTH_NAMES[view.month]} ${day}, ${view.year}` : undefined}
                   onClick={() => key && setSelected(key)}
                   className={cn(
                     "flex min-h-[3.75rem] min-w-0 flex-col gap-1 overflow-hidden border-border p-1 text-left align-top transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
                     idx % 7 !== 6 && "border-r",
                     !isLastRow && "border-b",
                     day === null ? "bg-muted/30" : "hover:bg-muted/50",
-                    isSelected &&
-                      "bg-primary/10 ring-1 ring-primary/50 ring-inset hover:bg-primary/10"
+                    isSelected && "bg-primary/10 ring-1 ring-primary/50 ring-inset hover:bg-primary/10",
                   )}
                 >
                   {day !== null && (
@@ -216,9 +183,7 @@ export function CalendarBlock() {
                       <span
                         className={cn(
                           "flex size-6 items-center justify-center self-end text-xs font-medium",
-                          isToday
-                            ? "bg-primary text-primary-foreground"
-                            : "text-foreground"
+                          isToday ? "bg-primary text-primary-foreground" : "text-foreground",
                         )}
                       >
                         {day}
@@ -235,7 +200,7 @@ export function CalendarBlock() {
                     </>
                   )}
                 </button>
-              )
+              );
             })}
           </div>
 
@@ -252,15 +217,10 @@ export function CalendarBlock() {
 
                 {selectedEvent ? (
                   <div className="mt-2.5 flex flex-col gap-2">
-                    <Badge
-                      variant={selectedEvent.variant}
-                      className="self-start text-[10px]"
-                    >
+                    <Badge variant={selectedEvent.variant} className="self-start text-[10px]">
                       {selectedEvent.label}
                     </Badge>
-                    <p className="text-xs/relaxed text-foreground">
-                      {selectedEvent.description}
-                    </p>
+                    <p className="text-xs/relaxed text-foreground">{selectedEvent.description}</p>
                     <div className="flex flex-col gap-1.5 text-muted-foreground">
                       <span className="flex items-center gap-1.5 text-xs">
                         <ClockIcon className="size-3.5 shrink-0" />
@@ -273,9 +233,7 @@ export function CalendarBlock() {
                     </div>
                   </div>
                 ) : (
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    No events scheduled.
-                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground">No events scheduled.</p>
                 )}
               </div>
             </>
@@ -283,5 +241,5 @@ export function CalendarBlock() {
         </div>
       </div>
     </section>
-  )
+  );
 }

@@ -1,28 +1,27 @@
 "use client";
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
-import { Plus, PawPrint, Building2, ArrowLeftRight, ClipboardCheck } from "lucide-react";
-
-import { Button } from "@rocky/ui/components/button";
-import { StatCard } from "@rocky/ui/components/stat-card";
-import { animalColumns, type AnimalSummary } from "#components/animals/columns";
-import { DataTable } from "#components/shared/data-table";
-import { PageHeader } from "#components/shared/page-header";
 import {
   Breadcrumb,
-  BreadcrumbList,
   BreadcrumbItem,
   BreadcrumbLink,
+  BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@rocky/ui/components/breadcrumb";
-import { SearchInput, TableCard, tableDensityClass } from "#components/shared/table-card";
-import { useDebounced } from "#lib/use-debounced";
-import { useTotals } from "#components/dashboard/analytics";
-import { useQuery } from "@tanstack/react-query";
-import { useTRPC } from "#lib/trpc";
+import { Button } from "@rocky/ui/components/button";
+import { StatCard } from "@rocky/ui/components/stat-card";
 import type { SORT_ANIMAL_BY } from "@rocky/validators/enums";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeftRight, Building2, ClipboardCheck, PawPrint, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import * as React from "react";
+import { type AnimalSummary, animalColumns } from "#components/animals/columns";
+import { useTotals } from "#components/dashboard/analytics";
+import { DataTable } from "#components/shared/data-table";
+import { PageHeader } from "#components/shared/page-header";
+import { SearchInput, TableCard, tableDensityClass } from "#components/shared/table-card";
+import { useTRPC } from "#lib/trpc";
+import { useDebounced } from "#lib/use-debounced";
 
 type SortKey = (typeof SORT_ANIMAL_BY)[keyof typeof SORT_ANIMAL_BY];
 

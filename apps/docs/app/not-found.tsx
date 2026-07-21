@@ -1,5 +1,5 @@
-import Link from 'next/link'
-import { NotFoundPage } from 'nextra-theme-docs'
+import Link from "next/link";
+import { NotFoundPage } from "nextra-theme-docs";
 
 export default function NotFound() {
   return (
@@ -10,5 +10,5 @@ export default function NotFound() {
         <Link href="/">← Back to home</Link>
       </p>
     </NotFoundPage>
-  )
+  );
 }

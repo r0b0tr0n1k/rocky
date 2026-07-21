@@ -1,13 +1,11 @@
 "use client";
 
-import * as React from "react";
-import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-
-import { SubjectEditForm } from "#components/subjects/subject-edit-form";
 import { Button } from "@rocky/ui/components/button";
-import { PageHeader } from "#components/shared/page-header";
 import { Card, CardContent } from "@rocky/ui/components/card";
+import { ArrowLeft } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { PageHeader } from "#components/shared/page-header";
+import { SubjectEditForm } from "#components/subjects/subject-edit-form";
 
 export default function EditSubjectPage() {
   const router = useRouter();

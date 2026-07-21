@@ -2,7 +2,7 @@
 
 > ⚠️ **AUTO-GENERATED** from `apps/api/src/routers/*.router.ts` via `pnpm gen:api-reference`. Do not edit by hand — re-run the generator when routers change.
 
-The Rocky API is a **tRPC** layer generated from NestJS routers (`@Router` / `@Query` / `@Mutation`) by `nestjs-trpc generate` into `packages/trpc/src/generated/server.ts`. It currently exposes **25 routers / 181 procedures**. The NoDrift ideology holds at the boundary: the client `AppRouter` type *is* the contract, so drift is impossible by construction (enforced by `check:trpc-boundary` in `ci:checks`).
+The Rocky API is a **tRPC** layer generated from NestJS routers (`@Router` / `@Query` / `@Mutation`) by `nestjs-trpc generate` into `packages/trpc/src/generated/server.ts`. It currently exposes **25 routers / 183 procedures**. The NoDrift ideology holds at the boundary: the client `AppRouter` type *is* the contract, so drift is impossible by construction (enforced by `check:trpc-boundary` in `ci:checks`).
 
 ## Where the surface lives
 
@@ -22,10 +22,10 @@ Nextra’s `<TSDoc>` component turns TS types into property / parameter / return
 - [correction](#correction) — 7 procedures
 - [device](#device) — 8 procedures
 - [document](#document) — 7 procedures
-- [earTag](#eartag) — 18 procedures
+- [earTag](#eartag) — 19 procedures
 - [farm](#farm) — 4 procedures
 - [farmBook](#farmbook) — 4 procedures
-- [geo](#geo) — 18 procedures
+- [geo](#geo) — 19 procedures
 - [health](#health) — 21 procedures
 - [inspection](#inspection) — 8 procedures
 - [iot](#iot) — 6 procedures
@@ -129,6 +129,7 @@ Nextra’s `<TSDoc>` component turns TS types into property / parameter / return
 | `appendToOrder` | Mutation | `appendToOrderRequestSchema` | `earTagOrderResponseSchema` |
 | `unknown` | Mutation | `assignSupplierContingentRequestSchema` | `earTagResponseSchema` |
 | `getTakeoverFile` | Query | `getTakeoverFileRequestSchema` | `takeoverFileResponseSchema` |
+| `replaceTag` | Mutation | `replaceTagRequestSchema` | `replaceTagResponseSchema` |
 
 ## farm
 
@@ -161,6 +162,7 @@ Nextra’s `<TSDoc>` component turns TS types into property / parameter / return
 | `listSettlements` | Query | `z.object({})` | `settlementArraySchema` |
 | `declareDiseaseZone` | Mutation | `declareDiseaseZoneRequestSchema` | `geofenceArraySchema` |
 | `listDiseaseZones` | Query | `z.object({ farmId: z.uuid().optional(), limit: z.int().min(1).max(1000).default(50), offset: z.int().min(0).default(0), })` | `diseaseZoneListSchema` |
+| `counts` | Query | `z.object({})` | `geoCountSchema` |
 | `findGeofencesForAnimalPastures` | Query | `z.object({ animalId: z.uuid() })` | `geofenceArraySchema` |
 | `findActiveDiseaseZonesNearFarm` | Query | `z.object({ farmId: z.uuid(), radiusMeters: z.number().min(0).default(50_000) })` | `geofenceArraySchema` |
 | `findGeofencesIntersectingPolygon` | Query | `z.object({ wkt: z.string() })` | `geofenceArraySchema` |

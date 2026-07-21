@@ -52,7 +52,7 @@
 | WO-036 | Business metrics emitted inside domain services/workers       | 0020 P3    | P3       | Open   |
 | WO-040 | Migrate `.strip()` response schemas → `.strict()` + smoke test | 0018      | P2       | Done ✅   |
 | WO-041 | Convert create schemas `.omit()` → `.pick()`                 | 0018       | P2       | Done ✅   |
-| WO-050 | PDF/A rendering + cryptographic seal (generation; viewing UI → **WO-163**) | 0009 / 0029 | Active   | In progress (ADR-0082) |
+| WO-050 | PDF/A rendering + cryptographic seal (generation Done via ADR-0082; viewing UI Done via WO-163; remaining = ADR-0084 Phase 3 PDF/A **visual** render, deferred by design) | 0009 / 0029 | Active   | In progress (ADR-0084 Phase 3 deferred) |
 | WO-060 | Gate IoT behind `RuleSet.features.iot` (UI + routers)         | 0031       | P3       | Open   |
 | WO-061 | IoT LPWAN QoS/SLA model (dedup, late-arrival)                 | 0031       | Future   | Deferred |
 | WO-070 | Deferral register: AMR, 10 km buffer, genetic lineage, blockchain, notification SMS | 0023 / 0014 | Future | Deferred |
@@ -998,9 +998,10 @@ domains. ADR-0030 is _accepted as design_; the build below is the pending implem
 
 ### WO-050 — PDF/A rendering + cryptographic seal — Active
 
-- **Activated by ADR-0082.** `packages/pdf` emits YAML/XML intermediates (stable API, ADR-0009) and, for `format: "pdf"`, renders via **Typst** + embeds as **PDF/A-3** via the `@e-invoice-eu` library, then **PAdES-signs** (ETSI EN 319 142) with Rocky's cert delegated to an air-gapped HSM. QR codes (ear-tag linkage) generated. XML-only output is valid per EN 16931.
+- **Generation (Done):** activated by ADR-0082. `packages/pdf` emits YAML/XML intermediates (stable API, ADR-0009) and, for `format: "pdf"`, renders via **Typst** + embeds as **PDF/A-3** via the `@e-invoice-eu` library, then **PAdES-signs** (ETSI EN 319 142) with Rocky's cert delegated to an air-gapped HSM. QR codes (ear-tag linkage) generated. XML-only output is valid per EN 16931.
 - **Viewing UI (WO-163, Done):** generated PDFs are now rendered in-browser on the admin `/documents` page via a drop-in **EmbedPDF** viewer (`@embedpdf/react-pdf-viewer`, MIT) mounted with `next/dynamic({ ssr:false })`. It consumes the base64 `DocumentResponse.content` directly (no blob URL / native `<object>`), provides a built-in toolbar (print + download enabled), themes to the Rocky green accent, and follows `next-themes` dark mode. Print + download are embedpdf-native; the PAdES signature card (WO-050 verify path) renders above the viewer. The same viewer is slated for `/verify`.
-- **Source:** ADR-0009 §4, ADR-0029, **ADR-0082**.
+- **Remaining (deferred by design):** ADR-0084 **Phase 3** PDF/A _visual_ on-document render (Typst) — currently only the PAdES seal + QR are done. See the ADR-0084 Phase-3 deferred note.
+- **Source:** ADR-0009 §4, ADR-0029, **ADR-0082**, **ADR-0084**.
 
 ### WO-060 — IoT `RuleSet.features.iot` gate — P3
 
@@ -1545,3 +1546,23 @@ subprocessor), wired to ADR-0075 + rocky-processor-register / rocky-toms / rocky
   3. **Container perpetually `unhealthy`** — `docker-compose.yml` probed with `nc -z api 8000`, but the runtime stage is `gcr.io/distroless/nodejs24-debian12` (no shell, no curl/nc). Fix: add `GET /health -> 200` in `main.ts`, a distroless `HEALTHCHECK` via `node -e fetch(...)`, strip `*.map` from `/deploy/dist`, and remove the broken `nc` compose check so the Dockerfile HEALTHCHECK governs. (commit ec4417a9)
 - **Source:** `apps/api/Dockerfile`, `apps/api/src/main.ts`, `docker-compose.yml`.
 - **Note:** rebuild on iotn with `docker compose up --build` (plain `up` reuses the stale image).
+
+---
+
+## User Guide Feature Gaps
+
+Feature gaps identified while documenting the farmer & veterinarian user guide
+(`apps/docs/content/user-guide/`). Each item links to its documented location.
+
+| WO      | GAP-ID | Priority | Doc Page | Description |
+| ------- | ------ | -------- | -------- | ----------- |
+| WO-164  | GAP-001 | P2       | `animals/birth-registration.mdx` | Bulk birth registration (multiple calves from one event) |
+| WO-165  | GAP-002 | P1       | `animals/ear-tag-orders.mdx`     | Tag re-order from farm without admin intervention |
+| WO-166  | GAP-003 | P1       | `movements/index.mdx`            | Dashboard showing pending movements with 7-day countdown |
+| WO-167  | GAP-004 | P2       | `health/notifiable-diseases.mdx` | Push notification to vet when notifiable disease reported nearby |
+| WO-168  | GAP-005 | P3       | `health/vaccinations.mdx`        | Vaccination schedule / calendar view |
+| WO-169  | GAP-006 | P2       | `inspections/risk-analysis.mdx`  | Farmer-facing dashboard showing their own risk score |
+| WO-170  | GAP-007 | P3       | `corrections/index.mdx`          | In-app correction request status tracking |
+| WO-171  | GAP-008 | P1       | `getting-started/navigation.mdx` | Role-based home screen (farmer vs vet see different dashboards) |
+| WO-172  | GAP-009 | P2       | `movements/import-export.mdx`    | Cross-border movement pre-approval workflow |
+| WO-173  | GAP-010 | P3       | `account/offline-sync.mdx`       | Offline queue status indicator showing pending items count |

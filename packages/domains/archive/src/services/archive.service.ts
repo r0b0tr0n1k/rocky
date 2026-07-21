@@ -9,6 +9,7 @@ import type { ArchiveRepository } from "../repositories/archive.repository.js";
 import { ArchiveError, ARCHIVE_ERRORS } from "../errors/archive.errors.js";
 import { ARCHIVE_DOCUMENT_TYPE, ARCHIVE_LOCATION } from "@rocky/database/constants";
 import type { SystemService, RuleSetRetention } from "@rocky/domains-system";
+import type { AuditService } from "@rocky/domains-audit";
 import {
   archiveDocumentResponseSchema,
   type ArchiveDocumentResponse,
@@ -22,6 +23,7 @@ export class ArchiveService {
   constructor(
     private readonly repo: ArchiveRepository,
     private readonly system: SystemService,
+    private readonly auditService?: AuditService,
   ) {}
 
   /** Retention years for an archive tier, from the RuleSet (ADR-0030 WO-014). Default 3. */
@@ -75,6 +77,12 @@ export class ArchiveService {
 
     const updated = await this.repo.markArchived(id);
     if (!updated) return err(new ArchiveError(ARCHIVE_ERRORS.NOT_FOUND, { documentId: id }));
+    await this.auditService?.recordArchiveAction({
+      resource: "archiveDocument",
+      resourceId: id,
+      oldValue: { isArchived: false },
+      newValue: { isArchived: true },
+    });
     return ok(archiveDocumentResponseSchema.parse(updated));
   }
 
@@ -84,6 +92,12 @@ export class ArchiveService {
 
     const updated = await this.repo.markDestroyed(id);
     if (!updated) return err(new ArchiveError(ARCHIVE_ERRORS.NOT_FOUND, { documentId: id }));
+    await this.auditService?.recordArchiveAction({
+      resource: "archiveDocument",
+      resourceId: id,
+      oldValue: { isDestroyed: false },
+      newValue: { isDestroyed: true },
+    });
     return ok(archiveDocumentResponseSchema.parse(updated));
   }
 
@@ -116,6 +130,12 @@ export class ArchiveService {
       isArchived: false,
     });
     if (!doc) return err(new ArchiveError(ARCHIVE_ERRORS.INVALID_INPUT));
+    await this.auditService?.recordArchiveAction({
+      resource: "archiveDocument",
+      resourceId: doc.id,
+      oldValue: null,
+      newValue: archiveDocumentResponseSchema.parse(doc),
+    });
     return ok(archiveDocumentResponseSchema.parse(doc));
   }
 

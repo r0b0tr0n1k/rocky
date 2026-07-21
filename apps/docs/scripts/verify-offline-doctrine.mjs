@@ -16,9 +16,9 @@
 //     node --import tsx --test scripts/verify-offline-doctrine.mjs
 // (or: `pnpm --filter docs test:offline`)
 
-import { describe, test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { beforeEach, describe, test } from "node:test";
 import { fileURLToPath } from "node:url";
 
 const ROOT = new URL("../../../", import.meta.url); // repo root
@@ -35,9 +35,19 @@ const CONTRACT = [
   {
     path: new URL("sync-queue.ts", MOB_OFFLINE),
     symbols: [
-      "enqueueMutation", "listQueue", "setStatus", "markSynced", "markFailed",
-      "dismissQueueItem", "upsertCache", "getCacheByType", "storeDownload",
-      "setMeta", "getMeta", "SyncItemStatus", "SyncQueueRow",
+      "enqueueMutation",
+      "listQueue",
+      "setStatus",
+      "markSynced",
+      "markFailed",
+      "dismissQueueItem",
+      "upsertCache",
+      "getCacheByType",
+      "storeDownload",
+      "setMeta",
+      "getMeta",
+      "SyncItemStatus",
+      "SyncQueueRow",
     ],
   },
   { path: new URL("device-id.ts", MOB_OFFLINE), symbols: ["getDeviceId"] },
@@ -78,8 +88,10 @@ describe("Offline doctrine — doc & contract verification", () => {
 
   test("the idempotency-key invariant (deviceId:uuid, ADR-0036 d7) is in the source", () => {
     const src = readFileSync(fileURLToPath(new URL("sync-queue.ts", MOB_OFFLINE)), "utf8");
-    assert.ok(/idempotencyKey\s*=\s*opts\.deviceId\s*\+\s*":".*uuidv4\(\)/.test(src),
-      "enqueueMutation must compose idempotency_key = deviceId + ':' + uuid");
+    assert.ok(
+      /idempotencyKey\s*=\s*opts\.deviceId\s*\+\s*":".*uuidv4\(\)/.test(src),
+      "enqueueMutation must compose idempotency_key = deviceId + ':' + uuid",
+    );
   });
 
   test("ADR cross-links resolve to real docs", () => {
@@ -116,7 +128,7 @@ describe("Offline subsystem — functional (real source, native deps mocked)", (
 
   test("outbox lifecycle: pending -> synced / failed / dismissed", () => {
     const k = sq.enqueueMutation({ type: "t", payload: { x: 1 }, deviceId: "d" });
-    let rows = sq.listQueue();
+    const rows = sq.listQueue();
     assert.equal(rows.length, 1);
     assert.equal(rows[0].status, "pending");
     assert.deepEqual(rows[0].payload, { x: 1 }, "payload round-trips through JSON");
@@ -144,8 +156,13 @@ describe("Offline subsystem — functional (real source, native deps mocked)", (
     const res = {
       animals: [{ id: "a1", updatedAt: "2024-01-01T00:00:00.000Z" }],
       farms: [{ id: "f1", updatedAt: "2024-01-01T00:00:00.000Z" }],
-      movements: [], inspections: [], earTags: [], diseases: [],
-      vaccines: [], batches: [], vaccineDiseases: [],
+      movements: [],
+      inspections: [],
+      earTags: [],
+      diseases: [],
+      vaccines: [],
+      batches: [],
+      vaccineDiseases: [],
       watermark: "2024-01-02T00:00:00.000Z",
     };
     sq.storeDownload(res);
@@ -156,8 +173,14 @@ describe("Offline subsystem — functional (real source, native deps mocked)", (
     // Re-download the same animal: upsert, not duplicate.
     sq.storeDownload({
       animals: [{ id: "a1", updatedAt: "2024-02-02T00:00:00.000Z" }],
-      farms: [], movements: [], inspections: [], earTags: [], diseases: [],
-      vaccines: [], batches: [], vaccineDiseases: [],
+      farms: [],
+      movements: [],
+      inspections: [],
+      earTags: [],
+      diseases: [],
+      vaccines: [],
+      batches: [],
+      vaccineDiseases: [],
       watermark: "2024-02-02T00:00:00.000Z",
     });
     const animals = sq.getCacheByType("animal");
